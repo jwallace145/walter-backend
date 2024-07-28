@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+        python: 3.11
+    commands:
+      - pip install --upgrade awscli
+  pre_build:
+    commands:
+    - echo Prebuild
+  build:
+    commands:
+      - mkdir walterai-backend
+      - cp -r src walterai-backend
+      - cp walter_ai.py walterai-backend
+      - cd walterai-backend
+      - zip -r ../walterai-backend.zip .
+      - cd ..
+      - aws s3 cp walterai-backend.zip s3://walterai-backend-src/walterai-backend.zip
+      - aws lambda update-function-code --function-name WalterAIBackend-dev --s3-bucket walterai-backend-src --s3-key walterai-backend.zip
+  post_build:
+    commands:
+      - echo Sleeping 60 seconds
+      - sleep 60
+      - aws lambda publish-version --function-name WalterAIBackend-dev 
+
+artifacts:
+  files:
+    - '**/*'
+

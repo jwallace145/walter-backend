@@ -1,0 +1,10 @@
+version: 0.0
+
+Resources:
+  - MyFunction:
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: "WalterAIBackend-dev"
+        Alias: "WalterAIBackend-dev"
+        CurrentVersion: "2"
+        TargetVersion: "3"

@@ -1,0 +1,35 @@
+default_language_version:
+  python: python3.8
+
+repos:
+  - repo: local
+    hooks:
+      - id: black # formatter
+        name: black
+        description: "Black: The uncompromising code formatter for Python"
+        entry: pipenv run black . --diff --color
+        language: python
+        types: [ python ]
+  
+      - id: codespell # devs cant spell
+        name: codespell
+        description: "Codespell: Checks codebase for misspellings since developers cannot spell"
+        entry: pipenv run codespell
+        language: python
+        types: [ text ]
+
+      - id: flake8 # linter
+        name: flake8
+        description: "Flake8: Your tool for style guide enforcement"
+        entry: pipenv run flake8 --count --max-complexity=10 --max-line-length=127 --show-source --statistics --ignore=E501,W503
+        language: python
+        types: [ python ]
+
+      - id: pytest # unit tests
+        name: pytest
+        description: "Pytest: Helps you write less buggy code"
+        entry: pipenv run pytest
+        language: python
+        types: [ python ]
+        pass_filenames: false
+        always_run: true

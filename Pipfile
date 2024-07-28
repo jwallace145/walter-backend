@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+polygon-api-client = "*"
+coloredlogs = "*"
+boto3 = "*"
+mypy-boto3-dynamodb = "*"
+mypy-boto3-s3 = "*"
+mypy-boto3-bedrock = "*"
+mypy-boto3-bedrock-runtime = "*"
+mypy-boto3-ses = "*"
+
+[dev-packages]
+black = "*"
+flake8 = "*"
+pytest = "*"
+codespell = "*"
+
+[requires]
+python_version = "3.11"

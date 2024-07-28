@@ -1,0 +1,273 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "WalterAI Backend Infrastructure"
+
+Parameters:
+  AppEnvironment:
+    Type: String
+    Description: The environment of the Walter AI stack
+    Default: dev
+    AllowedValues:
+      - dev
+      - preprod
+      - prod
+
+Resources:
+  WalterAIBackendFunction:
+      Type: AWS::Lambda::Function
+      Properties:
+        FunctionName: !Sub "WalterAIBackend-${AppEnvironment}"
+        Description: !Sub "WalterAI Backend Lambda (${AppEnvironment})"
+        Handler: walter_ai.lambda_handler
+        Role: !Join
+          - ""
+          - - "arn:aws:iam::"
+            - !Ref "AWS::AccountId"
+            - ":role/"
+            - !Ref WalterLambdaRole
+        Code:
+          S3Bucket: walterai-backend-src
+          S3Key: walterai-backend.zip
+        Timeout: 60
+        Runtime: python3.11
+        Architectures:
+          - "arm64"
+        Layers:
+          - "arn:aws:lambda:us-east-1:010526272437:layer:WalterAILambdaLayer:14"
+        Environment:
+          Variables:
+            DOMAIN: DEVELOPMENT
+
+  WalterAIBackendFunctionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAIBackendFunction
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAIBackend-${AppEnvironment}"
+
+  WalterLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "WalterAILambaExecutionRole-${AppEnvironment}"
+      Description: "Walter AI Lambda execution role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  WalterDailyScheduler:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "WalterAIBackendScheduler-${AppEnvironment}"
+      ScheduleExpression: cron(0 9 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: !Sub "WalterAIBackendScheduler-${AppEnvironment}"
+          Arn: !Join
+            - ""
+            - - "arn:aws:lambda:"
+              - !Ref "AWS::Region"
+              - ":"
+              - !Ref "AWS::AccountId"
+              - ":function:"
+              - !Ref WalterAIBackendFunction
+          Input: |-
+            {
+              "body": {}
+            }
+
+  BedrockAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "BedrockAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "bedrock:InvokeModel"
+            Resource: "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
+      Roles:
+        - !Ref WalterLambdaRole
+
+  StocksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: symbol
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+          - AttributeName: symbol
+            KeyType: HASH
+      TableName: !Sub "Stocks-${AppEnvironment}"
+
+  StocksTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "StocksTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !Join
+              - ""
+              - - "arn:aws:dynamodb:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":table/"
+                - !Ref StocksTable 
+      Roles:
+        - !Ref WalterLambdaRole
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+      TableName: !Sub "Users-${AppEnvironment}"
+
+  UsersTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "UsersTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !Join
+              - ""
+              - - "arn:aws:dynamodb:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":table/"
+                - !Ref UsersTable 
+      Roles:
+        - !Ref WalterLambdaRole
+
+  UsersStocksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: user_email
+          AttributeType: S
+        - AttributeName: stock_symbol
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+          - AttributeName: user_email
+            KeyType: HASH
+          - AttributeName: stock_symbol
+            KeyType: RANGE
+      TableName: !Sub "UsersStocks-${AppEnvironment}"
+
+  UsersStocksTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "UsersStocksTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !Join
+              - ""
+              - - "arn:aws:dynamodb:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":table/"
+                - !Ref UsersStocksTable 
+      Roles:
+        - !Ref WalterLambdaRole
+
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "walterai-reports-${AppEnvironment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      VersioningConfiguration:
+        Status: Enabled
+
+  ReportsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ReportsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Action: 
+              - "s3:PutObject"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref ReportsBucket
+                - "/*" 
+            Principal: 
+              AWS: !Join
+                - ""
+                - - "arn:aws:iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":role/"
+                  - !Ref WalterLambdaRole
+
+  ReportsBucketAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "ReportsBucketAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:PutObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref ReportsBucket
+                - "/*" 
+      Roles:
+        - !Ref WalterLambdaRole
