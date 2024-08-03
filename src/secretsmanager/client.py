@@ -1,7 +1,7 @@
+import json
 from dataclasses import dataclass
 
 from mypy_boto3_secretsmanager import SecretsManagerClient
-
 from src.environment import Domain
 from src.utils.log import Logger
 
@@ -11,6 +11,7 @@ log = Logger(__name__).get_logger()
 @dataclass
 class SecretsManagerClient:
     """
+
     WalterAI Secrets Manager
 
     Secrets:
@@ -32,6 +33,8 @@ class SecretsManagerClient:
 
     def _get_polygon_api_key(self) -> str:
         log.info("Getting Polygon API key")
-        return self.client.get_secret_value(
-            SecretId=SecretsManagerClient.POLYGON_API_KEY_SECRET_ID
-        )["SecretString"]
+        return json.loads(
+            self.client.get_secret_value(
+                SecretId=SecretsManagerClient.POLYGON_API_KEY_SECRET_ID
+            )["SecretString"]
+        )["POLYGON_API_KEY"]
