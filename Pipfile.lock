@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1c41a8eaa721bc28e87eac22764ae939d960c789351c9c494776fed3ba10a220"
+            "sha256": "be50269ed0959c3afbda71745c1683b02908980d5c0129f63b26d4f173829461"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -96,6 +96,14 @@
             "index": "pypi",
             "version": "==1.34.138"
         },
+        "mypy-boto3-secretsmanager": {
+            "hashes": [
+                "sha256:986511caa6626edfed7eb11b63c929801e9468c58e15927dc6fc0339c4eb34cb",
+                "sha256:e5a82c05cce68168a3709e5f0d35066cf250961db1d8670f0111da66206814c7"
+            ],
+            "index": "pypi",
+            "version": "==1.34.145"
+        },
         "mypy-boto3-ses": {
             "hashes": [
                 "sha256:c2a870960d1079b0e8a29464db99041006187f4fa1d26887dab76f1847801a17",
@@ -117,7 +125,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
         },
         "s3transfer": {
@@ -133,7 +141,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
         "typing-extensions": {
@@ -141,7 +149,7 @@
                 "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
                 "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"
             ],
-            "markers": "python_version < '3.12' and python_version < '3.12'",
+            "markers": "python_version < '3.12'",
             "version": "==4.12.2"
         },
         "urllib3": {
