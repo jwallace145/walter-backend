@@ -28,7 +28,7 @@ def lambda_handler(event, context) -> dict:
         # get generative ai response from bedrock
         ai_report = bedrock.generate_response(report)
 
-        # print ai report until emailing via ses is implemented
+        # TODO: print ai report until emailing via ses is implemented
         print(ai_report)
 
     return {"statusCode": 200, "body": json.dumps("Walter AI")}

@@ -6,6 +6,7 @@ phases:
         python: 3.11
     commands:
       - pip install --upgrade awscli
+      - pip install boto3
   pre_build:
     commands:
     - echo Prebuild
@@ -21,9 +22,12 @@ phases:
       - aws lambda update-function-code --function-name WalterAIBackend-dev --s3-bucket walterai-backend-src --s3-key walterai-backend.zip
   post_build:
     commands:
-      - echo Sleeping 60 seconds
-      - sleep 60
+      - echo Sleeping 30 seconds
+      - sleep 30
       - aws lambda publish-version --function-name WalterAIBackend-dev 
+      - echo Sleeping 30 seconds
+      - echo Creating AppSpec
+      - python appspec.py
 
 artifacts:
   files:
