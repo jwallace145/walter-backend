@@ -1,10 +1,10 @@
-### WalterAI
+### WalterAIBackend
 
-WalterAI is a bot that sends daily emails to subscribed users at 8:00am sharp about movements in the markets their following. 
+[`WalterAI`](`https://walterai.io`) is a bot that sends subscribed users daily emails about the stocks and securities they're interested in with data provided by [Polygon](https://polygon.io/) and generative AI responses provided by [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/) powered by [AWS](https://aws.amazon.com/).
+
+`WalterAIBackend` is the backend service that interacts with the [DynamoDB](https://aws.amazon.com/dynamodb/) databases and gets stock market data to feed into the AI models to generate the daily newsletter. `WalterAIBackend` is implemented as a [Lambda](https://aws.amazon.com/lambda/) function and handles different events to add users and stocks to DDB as well as send the user emails. This service is invoked at 8:00am (EST) sharp by an [EventBridge](https://aws.amazon.com/eventbridge/) trigger and is also invoked on-demand by users.
 
 ### Architecture
-
-WalterAI is hosted on website `https://walterai.io` where users 
 
 The Walter backend code is deployed to AWS Lambda and invoked by EventBridge at 9:00am sharp. Walter is stateless and pulls market data from Polygon on each invocation and generates reports to email to subscribed users. The markets Walter follows are stored in DynamoDB and added by users. Each email generated will be dumped to S3 before being emailed via SES.
 
