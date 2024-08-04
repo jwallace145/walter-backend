@@ -5,28 +5,34 @@ phases:
     runtime-versions:
         python: 3.11
     commands:
+      - echo Installing AWS CLI and Boto3
       - pip install --upgrade awscli
       - pip install boto3
   pre_build:
     commands:
-    - echo Prebuild
+    - echo Updating WalterAIBackend infrastructure via CloudFormation
+    - python buildspec.py
   build:
     commands:
+      - echo Updating WalterAIBackend source code
       - mkdir walterai-backend
       - cp -r src walterai-backend
       - cp walter_ai.py walterai-backend
       - cd walterai-backend
       - zip -r ../walterai-backend.zip .
       - cd ..
+      - echo Dumping WalterAIBackend source code to S3
       - aws s3 cp walterai-backend.zip s3://walterai-backend-src/walterai-backend.zip
+      - echo Updating WalterAIBackend Lambda code with artifact from S3
       - aws lambda update-function-code --function-name WalterAIBackend-dev --s3-bucket walterai-backend-src --s3-key walterai-backend.zip
   post_build:
     commands:
-      - echo Sleeping 30 seconds
+      - echo Sleeping 30 seconds for WalterAIBackend Lambda to finish updating
       - sleep 30
+      - echo Publishing new WalterAIBackend Lambda version
       - aws lambda publish-version --function-name WalterAIBackend-dev 
-      - echo Sleeping 30 seconds
-      - echo Creating AppSpec
+      - echo Sleeping 30 seconds for new WalterAIBackend Lambda version to finish publishing
+      - echo Creating AppSpec file for CodeDeploy
       - python appspec.py
 
 artifacts:

@@ -23,7 +23,7 @@ Use the following commands to create/update/delete the [CloudFormation](https://
 
 ```
 # create development stack
-&& aws cloudformation create-stack \
+aws cloudformation create-stack \
   --stack-name="WalterAIBackend-Dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
