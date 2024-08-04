@@ -28,7 +28,7 @@ Resources:
       Type: AWS::Lambda::Function
       Properties:
         FunctionName: !Sub "WalterAIBackend-${AppEnvironment}"
-        Description: !Sub "WalterAIBackend Lambda (${AppEnvironment})"
+        Description: !Sub "WalterAIBackend Lambda Function (${AppEnvironment})"
         Handler: walter_ai.lambda_handler
         Role: !Join
           - ""
