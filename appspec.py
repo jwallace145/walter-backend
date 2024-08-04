@@ -13,9 +13,9 @@ import os
 import boto3
 from src.environment import get_domain
 
-DOMAIN = get_domain(os.getenv("DOMAIN"))
+DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 
-REGION = os.getenv("AWS_REGION")
+REGION = os.getenv("AWS_REGION", "us-east-1")
 
 LAMBDA_NAME = f"WalterAIBackend-{DOMAIN.value}"
 
