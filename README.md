@@ -4,7 +4,22 @@
 
 `WalterAIBackend` is the backend service that interacts with the [DynamoDB](https://aws.amazon.com/dynamodb/) databases and gets stock market data to feed into the [Amazon Bedrock](https://aws.amazon.com/bedrock/) models to generate the daily newsletter. `WalterAIBackend` is implemented as a [Lambda](https://aws.amazon.com/lambda/) function and handles different events to add users and stocks to DDB as well as send emails via [SES](https://aws.amazon.com/ses/). This service is invoked at 8:00am (EST) sharp by an [EventBridge](https://aws.amazon.com/eventbridge/) trigger and also on-demand by users.
 
+### Table of Contents
+
+- [WalterAIBackend](#walteraibackend)
+- [Table of Contents](#table-of-contents)
+- [Scripts](#scripts)
+  - [CloudFormation](#cloudformation)
+  - [Lambda](#lambda)
+- [Contributions](#contributions)
+- [Links](#links)
+
+
 ### Scripts
+
+#### CloudFormation
+
+Use the following commands to create/update/delete the [CloudFormation](https://aws.amazon.com/cloudformation/) stacks responsible for `WalterAIBackend` infrastructure by domain.
 
 ```
 # create development stack
@@ -21,7 +36,18 @@ aws cloudformation update-stack \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
   --capabilities="CAPABILITY_NAMED_IAM"
 
-# create lambda layer, bump lambda layer version in cfn template
+# delete development stack
+aws cloudformation delete-stack \
+  --stack-name="WalterAIBackend-Dev"
+```
+
+#### Lambda
+
+Use the following command to dump the required Python dependencies to a directory to zip and upload to AWS as a [Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html).
+
+A new Lambda Layer is required to be created and uploaded to AWS anytime a new runtime dependency is added to `WalterAIBackend`. To ensure the deployed Lambda utilizes the new Lambda Layer, the corresponding CloudFormation stacks need to be updated to increment the Lambda Layer utilized by `WalterAIBackend`. 
+
+```
 mkdir python \
 && pipenv lock --requirements > requirements.txt \
 && pip3 install -r requirements.txt --platform manylinux2014_aarch64 --target ./python --only-binary=:all: --upgrade \
