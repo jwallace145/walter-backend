@@ -25,6 +25,23 @@ CHANGE_SET_NAME = "TestChanges-WalterAIBackend-Dev"
 
 cloudformation = boto3.client("cloudformation", region_name=REGION)
 
+stacks = [
+    summary["StackName"] for summary in cloudformation.list_stacks()["StackSummaries"]
+]
+
+if STACK_NAME not in stacks:
+    print("WalterAIBackend-Dev doesn't exist. Creating the stack now...")
+    cloudformation.create_stack(
+        StackName=STACK_NAME,
+        TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
+        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": "dev"}],
+        Capabilities=["CAPABILITY_NAMED_IAM"],
+    )
+    print(
+        "WalterAIBackend-Dev created. Sleeping 120 seconds for stack resources to create successfully."
+    )
+    time.sleep(120)
+
 cloudformation.create_change_set(
     ChangeSetName=CHANGE_SET_NAME,
     Description="This change set tests updates for WalterAIBackend-dev",
