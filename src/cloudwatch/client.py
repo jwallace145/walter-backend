@@ -72,4 +72,4 @@ class CloudWatchClient:
 
     @staticmethod
     def _get_metric_namespace(domain: Domain) -> str:
-        return CloudWatchClient.METRIC_NAMESPACE.format(domain=domain)
+        return CloudWatchClient.METRIC_NAMESPACE.format(domain=domain.value)
