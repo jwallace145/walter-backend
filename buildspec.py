@@ -26,7 +26,9 @@ CHANGE_SET_NAME = "TestChanges-WalterAIBackend-Dev"
 cloudformation = boto3.client("cloudformation", region_name=REGION)
 
 stacks = [
-    summary["StackName"] for summary in cloudformation.list_stacks()["StackSummaries"]
+    summary["StackName"]
+    for summary in cloudformation.list_stacks()["StackSummaries"]
+    if "DELETE" not in summary["StackStatus"]
 ]
 
 if STACK_NAME not in stacks:
