@@ -1,16 +1,14 @@
-### WalterAI
+### WalterAIBackend
 
-WalterAI is a bot that sends daily emails to subscribed users at 8:00am sharp about movements in the markets their following. 
+[`WalterAI`](`https://walterai.io`) is a bot that sends subscribed users daily emails about the stocks they're interested in with market data provided by [Polygon](https://polygon.io/) and generative AI responses by [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/) powered by [AWS](https://aws.amazon.com/).
 
-### Architecture
+`WalterAIBackend` is the backend service that interacts with the [DynamoDB](https://aws.amazon.com/dynamodb/) databases and gets stock market data to feed into the [Amazon Bedrock](https://aws.amazon.com/bedrock/) models to generate the daily newsletter. `WalterAIBackend` is implemented as a [Lambda](https://aws.amazon.com/lambda/) function and handles different events to add users and stocks to DDB as well as send emails via [SES](https://aws.amazon.com/ses/). This service is invoked at 8:00am (EST) sharp by an [EventBridge](https://aws.amazon.com/eventbridge/) trigger and also on-demand by users.
 
-WalterAI is hosted on website `https://walterai.io` where users 
-
-The Walter backend code is deployed to AWS Lambda and invoked by EventBridge at 9:00am sharp. Walter is stateless and pulls market data from Polygon on each invocation and generates reports to email to subscribed users. The markets Walter follows are stored in DynamoDB and added by users. Each email generated will be dumped to S3 before being emailed via SES.
+### Scripts
 
 ```
 # create development stack
-aws cloudformation create-stack \
+&& aws cloudformation create-stack \
   --stack-name="WalterAIBackend-Dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
@@ -35,21 +33,6 @@ mkdir python \
   --compatible-architectures "arm64" \
 && rm -rf python* \
 && rm -rf requirements.txt
-
-# upload src code to s3 and update lambda function
-mkdir walterai-backend \
-&& cp -r src walterai-backend \
-&& cp walter_ai.py walterai-backend \
-&& cd walterai-backend \
-&& zip -r ../walterai-backend.zip . \
-&& cd .. \
-&& rm -rf walterai-backend \
-&& aws s3 cp walterai-backend.zip s3://walterai-backend-src/walterai-backend.zip \
-&& rm -rf walterai-backend.zip \
-&& aws lambda update-function-code \
-  --function-name="WalterAIBackend-dev" \
-  --s3-bucket walterai-backend-src \
-  --s3-key walterai-backend.zip
 ```
 
 ### Contributions
