@@ -18,60 +18,58 @@ class CloudWatchClient:
         - The number of subscribed users
     """
 
-    METRIC_NAME_NUMBER_OF_EMAILS_SENT = "NumberOfEmailsSent-{domain}"
-    METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED = "NumberOfStocksAnalyzed-{domain}"
-    METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS = "NumberOfSubscribedUsers-{domain}"
+    METRIC_NAMESPACE = "WalterAIBackend/{domain}"
+    METRIC_NAME_NUMBER_OF_EMAILS_SENT = "NumberOfEmailsSent"
+    METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED = "NumberOfStocksAnalyzed"
+    METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS = "NumberOfSubscribedUsers"
 
     client: CloudWatchClient
     domain: Domain
 
-    metric_name_number_of_emails_sent: str = None
-    metric_name_number_of_stocks_analyzed: str = None
-    metric_name_number_of_subscribed_users: str = None
+    metric_namespace: str = None
 
     def __post_init__(self) -> None:
         log.debug(
             f"Creating {self.domain.value} CloudWatch client in region '{self.client.meta.region_name}'"
         )
-        self.metric_name_number_of_emails_sent = (
-            CloudWatchClient._get_number_of_emails_sent_metric_name(self.domain)
-        )
-        self.metric_name_number_of_stocks_analyzed = (
-            CloudWatchClient._get_number_of_stocks_analyzed_metric_name(self.domain)
-        )
-        self.metric_name_number_of_subscribed_users = (
-            CloudWatchClient._get_number_of_subscribed_users_metric_name(self.domain)
-        )
+        self.metric_namespace = CloudWatchClient._get_metric_namespace(self.domain)
 
     def emit_metric_number_of_emails_sent(self, num_emails: int) -> None:
         self.client.put_metric_data(
-            MetricName=self.metric_name_number_of_emails_sent, Value=num_emails
+            Namespace=self.metric_namespace,
+            MetricData=[
+                {
+                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_EMAILS_SENT,
+                    "Unit": "Count",
+                    "Value": num_emails,
+                }
+            ],
         )
 
     def emit_metric_number_of_stocks_analyzed(self, num_stocks: int) -> None:
         self.client.put_metric_data(
-            MetricName=self.metric_name_number_of_stocks_analyzed, Value=num_stocks
+            Namespace=self.metric_namespace,
+            MetricData=[
+                {
+                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED,
+                    "Unit": "Count",
+                    "Value": num_stocks,
+                }
+            ],
         )
 
     def emit_metric_number_of_subscribed_users(self, num_users: int) -> None:
         self.client.put_metric_data(
-            MetricName=self.metric_name_number_of_subscribed_users, Value=num_users
+            Namespace=self.metric_namespace,
+            MetricData=[
+                {
+                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS,
+                    "Unit": "Count",
+                    "Value": num_users,
+                }
+            ],
         )
 
     @staticmethod
-    def _get_number_of_emails_sent_metric_name(domain: Domain) -> str:
-        return CloudWatchClient.METRIC_NAME_NUMBER_OF_EMAILS_SENT.format(
-            domain=domain.value
-        )
-
-    @staticmethod
-    def _get_number_of_stocks_analyzed_metric_name(domain: Domain) -> str:
-        return CloudWatchClient.METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED.format(
-            domain=domain.value
-        )
-
-    @staticmethod
-    def _get_number_of_subscribed_users_metric_name(domain: Domain) -> str:
-        return CloudWatchClient.METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS.format(
-            domain=domain.value
-        )
+    def _get_metric_namespace(domain: Domain) -> str:
+        return CloudWatchClient.METRIC_NAMESPACE.format(domain=domain)

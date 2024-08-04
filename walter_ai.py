@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from src.clients import bedrock, cloudwatch, ddb, polygon, report_generator
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-START_DATE = END_DATE - timedelta(days=1)
+START_DATE = END_DATE - timedelta(days=7)
 
 
 def lambda_handler(event, context) -> dict:
@@ -38,4 +38,4 @@ def lambda_handler(event, context) -> dict:
     cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))
     cloudwatch.emit_metric_number_of_subscribed_users(len(users))
 
-    return {"statusCode": 200, "body": json.dumps("Walter AI")}
+    return {"statusCode": 200, "body": json.dumps("WalterAIBackend")}
