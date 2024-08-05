@@ -8,6 +8,7 @@ phases:
       - echo Installing AWS CLI and Boto3
       - pip install --upgrade awscli
       - pip install boto3
+      - pip install mypy-boto3-cloudformation
   pre_build:
     commands:
     - echo Updating WalterAIBackend infrastructure via CloudFormation
