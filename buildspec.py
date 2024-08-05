@@ -1,89 +1,114 @@
 """
 BuildSpec
 
-This script is responsible for updating the WalterAIBackend infrastructure
-when changes are detected in the CloudFormation stack for CICD purposes.
-This script is executed during builds by CodeBuild and creates a test change
-set to determine if the stack includes changes and if so updates the stack.
+This script is responsible for deploying infrastructure updates to
+WalterAIBackend. The infrastructure for the service is maintained by
+a CloudFormation stack and this script ensures the stack is always up
+to date. If the stack does not exist, this script creates it and if
+the stack does exist and the stack contains changes, it executes the
+change set. This script is executed by CodeBuild during builds prior
+to CodeDeploy bumping the Lambda versions.
 """
 
 import os
 import time
+from typing import List
 
 import boto3
+from mypy_boto3_cloudformation import CloudFormationClient
 from src.environment import get_domain
+
+#############
+# ARGUMENTS #
+#############
 
 DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 
 REGION = os.getenv("AWS_REGION", "us-east-1")
 
-STACK_NAME = "WalterAIBackend-Dev"
+STACK_NAME = f"WalterAIBackend-{DOMAIN.value}"
 
 CLOUDFORMATION_TEMPLATE = "./infra/infra.yml"
 
-CHANGE_SET_NAME = "TestChanges-WalterAIBackend-Dev"
+CHANGE_SET_NAME = f"WalterAIBackendChangeSet-{DOMAIN.value}"
 
-cloudformation = boto3.client("cloudformation", region_name=REGION)
+###########
+# METHODS #
+###########
 
-stacks = [
-    summary["StackName"]
-    for summary in cloudformation.list_stacks()["StackSummaries"]
-    if "DELETE" not in summary["StackStatus"]
-]
 
-if STACK_NAME not in stacks:
-    print("WalterAIBackend-Dev doesn't exist. Creating the stack now...")
-    cloudformation.create_stack(
+def get_stacks(client: CloudFormationClient) -> List[str]:
+    stacks = client.list_stacks()
+
+    # get not deleted stacks
+    return [
+        summary["StackName"]
+        for summary in stacks["StackSummaries"]
+        if "DELETE" not in summary["StackStatus"]
+    ]
+
+
+def stack_exists(client: CloudFormationClient) -> bool:
+    return STACK_NAME in get_stacks(client)
+
+
+def create_stack(client: CloudFormationClient) -> None:
+    client.create_stack(
         StackName=STACK_NAME,
         TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
-        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": "dev"}],
+        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": DOMAIN.value}],
         Capabilities=["CAPABILITY_NAMED_IAM"],
-    )
-    print(
-        "WalterAIBackend-Dev created. Sleeping 120 seconds for stack resources to create successfully."
     )
     time.sleep(120)
 
-cloudformation.create_change_set(
-    ChangeSetName=CHANGE_SET_NAME,
-    Description="This change set tests updates for WalterAIBackend-dev",
-    StackName=STACK_NAME,
-    TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
-    Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": "dev"}],
-    Capabilities=["CAPABILITY_NAMED_IAM"],
-    ChangeSetType="UPDATE",
-)
 
-change_set_status = cloudformation.describe_change_set(
-    ChangeSetName=CHANGE_SET_NAME, StackName=STACK_NAME
-)["Status"]
-
-includes_changes = False
-match change_set_status:
-    case "CREATE_PENDING":
-        print(
-            "WalterAIBackend-dev includes changes in CREATE_PENDING state. Sleeping for 30 seconds."
-        )
-        includes_changes = True
-        time.sleep(30)
-    case "CREATE_IN_PROGRESS":
-        print(
-            "WalterAIBackend-dev includes changes in CREATE_IN_PROGRESS state. Sleeping for 30 seconds."
-        )
-        includes_changes = True
-        time.sleep(30)
-    case "CREATE_COMPLETED":
-        print("WalterAIBackend-dev includes changes in CREATE_COMPLETE state.")
-        includes_changes = True
-
-if includes_changes:
-    print("Updating WalterAIBackend-dev CloudFormation stack...")
-    cloudformation.execute_change_set(
-        ChangeSetName=CHANGE_SET_NAME, StackName=STACK_NAME
+def create_change_set(client: CloudFormationClient) -> None:
+    client.create_change_set(
+        StackName=STACK_NAME,
+        TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
+        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": DOMAIN.value}],
+        Capabilities=["CAPABILITY_NAMED_IAM"],
+        ChangeSetType="UPDATE",
+        ChangeSetName=CHANGE_SET_NAME,
+        Description=f"This change set tests updates for {STACK_NAME}.",
     )
+    time.sleep(30)
+
+
+def describe_change_set(client: CloudFormationClient) -> str:
+    return client.describe_change_set(
+        StackName=STACK_NAME,
+        ChangeSetName=CHANGE_SET_NAME,
+    )["Status"]
+
+
+def change_set_contains_changes(status: str) -> bool:
+    return status in ["CREATE_PENDING", "CREATE_IN_PROGRESS", "CREATE_COMPLETED"]
+
+
+def execute_change_set(client: CloudFormationClient) -> None:
+    time.sleep(30)
+    client.execute_change_set(StackName=STACK_NAME, ChangeSetName=CHANGE_SET_NAME)
+
+
+def delete_change_set(client: CloudFormationClient) -> None:
+    client.delete_change_set(StackName=STACK_NAME, ChangeSetName=CHANGE_SET_NAME)
+
+
+##########
+# SCRIPT #
+##########
+
+
+cloudformation = boto3.client("cloudformation", region_name=REGION)
+
+if stack_exists(cloudformation):
+    create_change_set(cloudformation)
+    status = describe_change_set(cloudformation)
+
+    if change_set_contains_changes(status):
+        execute_change_set(cloudformation)
+
+    delete_change_set(cloudformation)
 else:
-    print("WalterAIBackend-dev CloudFormation stack does not include new changes.")
-
-
-print("Deleting change set...")
-cloudformation.delete_change_set(ChangeSetName=CHANGE_SET_NAME, StackName=STACK_NAME)
+    create_stack(cloudformation)

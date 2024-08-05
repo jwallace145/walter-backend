@@ -4,7 +4,7 @@ Description: "WalterAIBackend Infrastructure"
 Parameters:
   AppEnvironment:
     Type: String
-    Description: The environment of the Walter AI stack
+    Description: The environment of the WalterAIBackend stack
     Default: dev
     AllowedValues:
       - dev
@@ -28,7 +28,7 @@ Resources:
       Type: AWS::Lambda::Function
       Properties:
         FunctionName: !Sub "WalterAIBackend-${AppEnvironment}"
-        Description: !Sub "WalterAIBackend Lambda Function (${AppEnvironment})"
+        Description: !Sub "WalterAIBackend Lambda (${AppEnvironment})"
         Handler: walter_ai.lambda_handler
         Role: !Join
           - ""

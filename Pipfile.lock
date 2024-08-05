@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0c1dc9c08b49a6e7fcfd5cf85f8ae1bfce9adc6f038ad652d13bf4f5f5456d17"
+            "sha256": "b1d07380a08b40fea351540f70453383e1af28d6f107796a8f18bcf820f5acb2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -79,6 +79,14 @@
             ],
             "index": "pypi",
             "version": "==1.34.149"
+        },
+        "mypy-boto3-cloudformation": {
+            "hashes": [
+                "sha256:526e928c504fa2880b1774aa10629a04fe0ec70ed2864ab3d3f7772386a1a925",
+                "sha256:a02e201d1a9d9a8fb4db5b942d5c537a4e8861c611f0d986126674ac557cb9e8"
+            ],
+            "index": "pypi",
+            "version": "==1.34.111"
         },
         "mypy-boto3-cloudwatch": {
             "hashes": [
