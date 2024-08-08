@@ -51,13 +51,13 @@ LAMBDA_ALIAS = f"WalterAIBackend-{DOMAIN.value}"
 ###########
 
 
-def get_current_version() -> str:
+def get_current_version(lambda_client: LambdaClient) -> str:
     return lambda_client.get_alias(FunctionName=LAMBDA_NAME, Name=LAMBDA_ALIAS)[
         "FunctionVersion"
     ]
 
 
-def get_target_version() -> str:
+def get_target_version(lambda_client: LambdaClient) -> str:
     return lambda_client.list_versions_by_function(FunctionName=LAMBDA_NAME)[
         "Versions"
     ][-1]["Version"]
