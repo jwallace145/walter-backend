@@ -24,14 +24,14 @@ Use the following commands to create/update/delete the [CloudFormation](https://
 ```
 # create development stack
 aws cloudformation create-stack \
-  --stack-name="WalterAIBackend-Dev" \
+  --stack-name="WalterAIBackend-dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
   --capabilities="CAPABILITY_NAMED_IAM"
 
 # update development stack
 aws cloudformation update-stack \
-  --stack-name="WalterAIBackend-Dev" \
+  --stack-name="WalterAIBackend-dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
   --capabilities="CAPABILITY_NAMED_IAM"
@@ -49,7 +49,7 @@ A new Lambda Layer is required to be created and uploaded to AWS anytime a new r
 
 ```
 mkdir python \
-&& pipenv lock --requirements > requirements.txt \
+&& pipenv requirements > requirements.txt \
 && pip3 install -r requirements.txt --platform manylinux2014_aarch64 --target ./python --only-binary=:all: --upgrade \
 && zip -r python.zip python \
 && aws lambda publish-layer-version \
