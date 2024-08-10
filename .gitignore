@@ -3,3 +3,4 @@ secrets.sh
 .pytest_cache
 local.py
 templates
+tmp

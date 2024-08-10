@@ -26,7 +26,7 @@ class TemplateEngine:
     s3_client: S3Client
 
     def __post_init__(self) -> None:
-        log.debug("Creating TemplateGenerator client")
+        log.debug("Creating TemplateEngine client")
 
     def get_template_spec(
         self, template_name: str = DEFAULT_TEMPLATE
@@ -39,9 +39,13 @@ class TemplateEngine:
             parameters.append(Parameter(parameter["Key"], parameter["Prompt"]))
         return parameters
 
+    def get_template_images(self, template_name: str = DEFAULT_TEMPLATE) -> None:
+        log.info(f"Getting images for template: '{template_name}'")
+        return self.s3_client.get_template_images()
+
     def render_template(
         self, template_name: str = DEFAULT_TEMPLATE, responses: List[Response] = []
-    ) -> None:
+    ) -> str:
         log.info(f"Rendering template: '{template_name}'")
         template = self.s3_client.get_template(template_name)
         environment = Environment(loader=BaseLoader).from_string(template)
@@ -50,6 +54,7 @@ class TemplateEngine:
         )
         self.s3_client.put_newsletter(template_name, rendered_template)
         log.info(f"Finished rendering template: '{template_name}'")
+        return rendered_template
 
     @staticmethod
     def _convert_responses_to_dict(responses: List[Response]) -> Dict[str, str]:
