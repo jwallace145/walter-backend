@@ -44,7 +44,7 @@ ses = SESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAI
 # JINJA TEMPLATE ENGINE #
 #########################
 
-template_engine = TemplateEngine(s3_client=s3)
+template_engine = TemplateEngine(s3_client=s3, domain=DOMAIN)
 
 ##################
 # POLYGON CLIENT #
