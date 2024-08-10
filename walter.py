@@ -1,37 +1,48 @@
 import json
 from datetime import datetime, timedelta
 
-from src.clients import bedrock, cloudwatch, ddb, polygon, report_generator
+from src.clients import (
+    bedrock,
+    cloudwatch,
+    ddb,
+    polygon,
+    report_generator,
+    template_engine,
+)
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 START_DATE = END_DATE - timedelta(days=7)
 
 
 def lambda_handler(event, context) -> dict:
-    # get stocks from ddb and get prices from polygon
-    prices = []
+    # get all stocks from ddb
     stocks = ddb.get_stocks()
+
+    # get prices for each stock from polygon
+    prices = []
     for stock in stocks:
         prices.extend(polygon.get_prices(stock.symbol, START_DATE, END_DATE))
 
     # ingest stock data into report generator
     report_generator.ingest_stocks(prices)
 
-    # generate report for each user
+    # get all users in ddb
     users = ddb.get_users()
+
+    # generate a newsletter for each user
     for user in users:
 
         # get stocks for user from ddb
         stocks = ddb.get_stocks_for_user(user)
 
-        # generate a report for user and their stocks
-        report = report_generator.generate_report(user, stocks)
+        # get prompts from template spec
+        parameters = template_engine.get_template_spec()
 
-        # get generative ai response from bedrock
-        ai_report = bedrock.generate_response(report)
+        # get generative ai response from bedrock for eaach prompt for template
+        responses = bedrock.generate_responses(parameters)
 
-        # TODO: print ai report until emailing via ses is implemented
-        print(ai_report)
+        # render template with ai responses
+        template_engine.render_template("default", responses)
 
     # emit metrics
     cloudwatch.emit_metric_number_of_emails_sent(len(users))

@@ -29,7 +29,7 @@ Resources:
       Properties:
         FunctionName: !Sub "WalterAIBackend-${AppEnvironment}"
         Description: !Sub "WalterAIBackend Lambda (${AppEnvironment})"
-        Handler: walter_ai.lambda_handler
+        Handler: walter.lambda_handler
         Role: !Join
           - ""
           - - "arn:aws:iam::"
@@ -51,7 +51,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:16"
+              - "WalterAILambdaLayer:17"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT

@@ -16,12 +16,14 @@ mypy-boto3-secretsmanager = "*"
 mypy-boto3-cloudwatch = "*"
 mypy-boto3-cloudformation = "*"
 mypy-boto3-lambda = "*"
+jinja2 = "*"
 
 [dev-packages]
 black = "*"
 flake8 = "*"
 pytest = "*"
 codespell = "*"
+isort = "*"
 
 [requires]
 python_version = "3.11"
