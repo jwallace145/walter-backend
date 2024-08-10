@@ -51,7 +51,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:17"
+              - "WalterAILambdaLayer:18"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
