@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Dict, List
 
 import yaml
@@ -54,7 +55,9 @@ class TemplateEngine:
             parameters.append(Parameter(parameter["Key"], parameter["Prompt"]))
         return parameters
 
-    def get_template_images(self, template_name: str = DEFAULT_TEMPLATE) -> List[str]:
+    def get_template_images(
+        self, template_name: str = DEFAULT_TEMPLATE
+    ) -> Dict[str, BytesIO]:
         """Download template images.
 
         This method downloads the images used by a template from S3 to be packaged and
