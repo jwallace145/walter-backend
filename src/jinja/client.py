@@ -20,7 +20,7 @@ class TemplateEngine:
     template to create the newsletter.
     """
 
-    OUTPUT_FILE = "templates/index.html"
+    OUTPUT_FILE = "tmp/index.html"
     DEFAULT_TEMPLATE = "default"
 
     s3_client: S3Client
@@ -43,14 +43,12 @@ class TemplateEngine:
         self, template_name: str = DEFAULT_TEMPLATE, responses: List[Response] = []
     ) -> None:
         log.info(f"Rendering template: '{template_name}'")
-        with open(TemplateEngine.OUTPUT_FILE, "w") as f:
-            template = self.s3_client.get_template(template_name)
-            environment = Environment(loader=BaseLoader).from_string(template)
-            rendered_template = environment.render(
-                **TemplateEngine._convert_responses_to_dict(responses)
-            )
-            self.s3_client.put_newsletter(template_name, rendered_template)
-            f.write(rendered_template)
+        template = self.s3_client.get_template(template_name)
+        environment = Environment(loader=BaseLoader).from_string(template)
+        rendered_template = environment.render(
+            **TemplateEngine._convert_responses_to_dict(responses)
+        )
+        self.s3_client.put_newsletter(template_name, rendered_template)
         log.info(f"Finished rendering template: '{template_name}'")
 
     @staticmethod

@@ -83,7 +83,7 @@ def describe_change_set(client: CloudFormationClient) -> str:
 
 
 def change_set_contains_changes(status: str) -> bool:
-    return status in ["CREATE_PENDING", "CREATE_IN_PROGRESS", "CREATE_COMPLETED"]
+    return status in ["CREATE_PENDING", "CREATE_IN_PROGRESS", "CREATE_COMPLETE"]
 
 
 def execute_change_set(client: CloudFormationClient) -> None:
