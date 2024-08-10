@@ -1,9 +1,10 @@
 import os
 from dataclasses import dataclass
-from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import List
+from io import BytesIO
+from typing import Dict
 
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
@@ -38,7 +39,7 @@ class SESClient:
         )
 
     def send_email(
-        self, recipient: str, body: str, subject: str, assets: List[str]
+        self, recipient: str, body: str, subject: str, assets: Dict[str, BytesIO]
     ) -> None:
         """Send email to given recipient.
 
@@ -50,7 +51,7 @@ class SESClient:
             recipient (str): The intended recipient of the email.
             body (str): The HTML body of the email.
             subject (str): The subject of the email.
-            assets (List[str]): The assets referenced by the HTML body.
+            assets (Dict[str, StringIO]): The assets referenced by the HTML body.
         """
         log.info(
             f"Sending email to recipient '{recipient}' from sender '{SESClient.SENDER}'"
@@ -72,7 +73,7 @@ class SESClient:
 
     @staticmethod
     def _create_email(
-        recipient: str, subject: str, body: str, assets: List[str]
+        recipient: str, subject: str, body: str, assets: Dict[str, BytesIO]
     ) -> str:
         """Create an email to the given recipient.
 
@@ -85,7 +86,7 @@ class SESClient:
             recipient (str): The intended recipient of the email.
             subject (str): The subject of the email.
             body (str): The HTML body of the email.
-            assets (List[str]): The assets referenced by the HTML body.
+            assets (Dict[str, StringIO]): The assets referenced by the HTML body.
 
         Returns:
             str: The MIME email represented as a string.
@@ -105,29 +106,14 @@ class SESClient:
         email.attach(email_body)
 
         # add assets as attachments
-        for asset_file_path in assets:
-            asset_name = SESClient._get_asset_name(asset_file_path)
-            attachment = MIMEApplication(open(asset_file_path, "rb").read())
-            attachment.add_header("Content-ID", f"<{asset_name}>")
+        for name, stream in assets.items():
+            cid_name = name.split(".")[0]
+            attachment = MIMEImage(stream.getvalue())
+            attachment.add_header("Content-ID", f"<{cid_name}>")
             attachment.add_header(
-                "Content-Disposition", "inline", filename=os.path.basename(asset_name)
+                "Content-Disposition", "inline", filename=os.path.basename(cid_name)
             )
             email.attach(attachment)
 
         # return email as a string
         return email.as_string()
-
-    @staticmethod
-    def _get_asset_name(asset: str) -> str:
-        """Get asset name from asset file path.
-
-        Given asset file path, e.g. `tmp/image-1.png`, get the name of the
-        asset without the parent directories or file suffix, e.g. `image-1`.
-
-        Args:
-            asset (str): The asset file path of an asset included in the email.
-
-        Returns:
-            str: The name of the asset.
-        """
-        return asset.split("/")[-1].split(".")[0]

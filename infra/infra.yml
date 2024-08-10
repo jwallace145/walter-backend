@@ -321,13 +321,26 @@ Resources:
           - Action: 
               - "s3:PutObject"
               - "s3:GetObject"
-              - "s3:List*"
             Effect: Allow
             Resource: !Join
               - ""
               - - "arn:aws:s3:::"
                 - !Ref ReportsBucket
                 - "/*" 
+            Principal: 
+              AWS: !Join
+                - ""
+                - - "arn:aws:iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":role/"
+                  - !Ref WalterLambdaRole
+          - Action: 
+              - "s3:List*"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref ReportsBucket
             Principal: 
               AWS: !Join
                 - ""

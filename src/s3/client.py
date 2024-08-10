@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import List
+from io import BytesIO
+from typing import Dict
 
 from mypy_boto3_s3 import S3Client
 from src.environment import Domain
 from src.utils.log import Logger
-
 
 log = Logger(__name__).get_logger()
 
@@ -20,7 +20,7 @@ class S3Client:
 
     REPORTS_BUCKET_NAME_FORMAT = "walterai-reports-{domain}"
     TEMPLATES_DIR = "templates"
-    IMAGES_DIR = "images"
+    ASSETS_DIR = "images"
     TEMP_DIR = "tmp"
     DEFAULT_TEMPLATE = "default"
     TEMPLATE_SPEC = "templatespec.yml"
@@ -49,25 +49,29 @@ class S3Client:
         log.info(f"Getting template from bucket '{self.bucket}' with key '{key}'")
         return self._get_object(key)
 
-    def get_template_images(self, template_name: str = DEFAULT_TEMPLATE) -> List[str]:
-        prefix = S3Client._get_images_prefix(template_name)
+    def get_template_images(
+        self, template_name: str = DEFAULT_TEMPLATE
+    ) -> Dict[str, BytesIO]:
+        prefix = S3Client._get_assets_prefix(template_name)
         log.info(
-            f"Getting images for template '{template_name}' with prefix '{prefix}'"
+            f"Getting assets for template '{template_name}' from bucket '{self.bucket}' with prefix '{prefix}'"
         )
-        images = []
-        for key in [
-            content["Key"] for content in self._list_objects(prefix)["Contents"]
-        ]:
-            filename = key.split("/")[-1]
-            if filename == "":
+
+        # get asset keys by listing all objects under asset prefix
+        keys = [content["Key"] for content in self._list_objects(prefix)["Contents"]]
+
+        # for each key get asset name and download object to memory
+        assets = {}
+        for key in keys:
+            asset_name = key.split("/")[-1]
+
+            # if asset name is empty skip, weird S3 list behavior
+            if asset_name == "":
                 continue
-            destination = f"{S3Client.TEMP_DIR}/{filename}"
-            log.info(
-                f"Downloading image '{filename}' for template '{template_name}' to '{destination}'"
-            )
-            self._download_object(key, destination)
-            images.append(destination)
-        return images
+
+            assets[asset_name] = self._download_object(key)
+
+        return assets
 
     def put_newsletter(self, template: str, contents: str) -> None:
         key = S3Client._get_newsletter_key(template)
@@ -81,8 +85,10 @@ class S3Client:
             .decode("utf-8")
         )
 
-    def _download_object(self, key: str, filename: str) -> None:
-        return self.client.download_file(Bucket=self.bucket, Key=key, Filename=filename)
+    def _download_object(self, key: str) -> BytesIO:
+        stream = BytesIO()
+        self.client.download_fileobj(Bucket=self.bucket, Key=key, Fileobj=stream)
+        return stream
 
     def _put_object(self, key: str, contents: str) -> None:
         self.client.put_object(Bucket=self.bucket, Key=key, Body=contents)
@@ -107,5 +113,5 @@ class S3Client:
         return f"{S3Client.NEWSLETTERS_DIR}/{template_name}/{S3Client.NEWSLETTER}"
 
     @staticmethod
-    def _get_images_prefix(template_name: str) -> str:
-        return f"{S3Client.TEMPLATES_DIR}/{template_name}/{S3Client.IMAGES_DIR}/"
+    def _get_assets_prefix(template_name: str) -> str:
+        return f"{S3Client.TEMPLATES_DIR}/{template_name}/{S3Client.ASSETS_DIR}/"
