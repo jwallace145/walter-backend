@@ -5,6 +5,7 @@ from src.bedrock.client import BedrockClient
 from src.cloudwatch.client import CloudWatchClient
 from src.dynamodb.client import DDBClient
 from src.environment import get_domain
+from src.jinja.client import TemplateEngine
 from src.polygon.client import PolygonClient
 from src.report.generator import ReportGenerator
 from src.s3.client import S3Client
@@ -38,6 +39,12 @@ secretsmanager = SecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 ses = SESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
+
+#########################
+# JINJA TEMPLATE ENGINE #
+#########################
+
+template_engine = TemplateEngine(s3_client=s3)
 
 ##################
 # POLYGON CLIENT #

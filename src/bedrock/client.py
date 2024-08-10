@@ -1,8 +1,10 @@
 import json
 from dataclasses import dataclass
+from typing import List
 
 from mypy_boto3_bedrock import BedrockClient
 from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
+from src.jinja.models import Parameter, Response
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -32,10 +34,19 @@ class BedrockClient:
             f"Creating Bedrock client in region '{self.bedrock.meta.region_name}'"
         )
 
+    def generate_responses(self, parameters: List[Parameter]) -> List[Response]:
+        log.info(f"Generating AI response for {len(parameters)} prompts")
+        responses = []
+        for parameter in parameters:
+            responses.append(
+                Response(parameter.key, self.generate_response(parameter.prompt))
+            )
+        return responses
+
     def generate_response(self, prompt: str) -> str:
         try:
             log.info(
-                f"Generating response with model {BedrockClient.META_LLAMA3_8B_MODEL_ID}"
+                f"Generating response with model {BedrockClient.META_LLAMA3_8B_MODEL_ID}:\n{prompt}"
             )
             response = self.bedrock_runtime.invoke_model(
                 modelId=BedrockClient.META_LLAMA3_8B_MODEL_ID,
