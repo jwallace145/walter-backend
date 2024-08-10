@@ -8,6 +8,7 @@ from src.clients import (
     polygon,
     report_generator,
     template_engine,
+    ses,
 )
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -42,7 +43,13 @@ def lambda_handler(event, context) -> dict:
         responses = bedrock.generate_responses(parameters)
 
         # render template with ai responses
-        template_engine.render_template("default", responses)
+        email = template_engine.render_template("default", responses)
+
+        # get images to send with email
+        images = template_engine.get_template_images()
+
+        # send email to user
+        ses.send_email(user.email, email, "Walter: AI Newsletter", images)
 
     # emit metrics
     cloudwatch.emit_metric_number_of_emails_sent(len(users))
