@@ -19,7 +19,7 @@ phases:
       - echo Updating WalterAIBackend source code
       - mkdir walterai-backend
       - cp -r src walterai-backend
-      - cp walter_ai.py walterai-backend
+      - cp walter.py walterai-backend
       - cd walterai-backend
       - zip -r ../walterai-backend.zip .
       - cd ..
