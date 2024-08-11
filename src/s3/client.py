@@ -12,20 +12,23 @@ log = Logger(__name__).get_logger()
 @dataclass
 class S3Client:
     """
-    Walter AI S3 Client
+    S3 Client
+
+    This client is responsible for getting templates from S3 and
+    writing rendered templates to S3 before sending to users.
 
     Buckets
-        - "walterai-reports-{domain}"
+        - "walterai-reports-{domain}" # TODO: Create a new bucket for email dumps
     """
 
     REPORTS_BUCKET_NAME_FORMAT = "walterai-reports-{domain}"
     TEMPLATES_DIR = "templates"
     ASSETS_DIR = "images"
-    TEMP_DIR = "tmp"
+    NEWSLETTERS_DIR = "newsletters"
+
     DEFAULT_TEMPLATE = "default"
     TEMPLATE_SPEC = "templatespec.yml"
     TEMPLATE = "template.jinja"
-    NEWSLETTERS_DIR = "newsletters"
     NEWSLETTER = "index.html"
 
     client: S3Client
@@ -39,12 +42,36 @@ class S3Client:
         )
         self.bucket = S3Client._get_reports_bucket_name(self.domain)
 
-    def get_template_spec(self, template_name: str = DEFAULT_TEMPLATE) -> None:
+    def get_template_spec(self, template_name: str = DEFAULT_TEMPLATE) -> str:
+        """Get template spec YAML config file from S3.
+
+        This method gets the template spec YAML config file from S3 for the given template.
+        The template spec file contains the template keys and prompts to use to successfully
+        render the template.
+
+        Args:
+            template_name (str, optional): The name of the template to get the template spec.
+
+        Returns:
+            _type_: The template spec file.
+        """
         key = S3Client._get_template_spec_key(template_name)
         log.info(f"Getting template spec from bucket '{self.bucket}' with key '{key}'")
         return self._get_object(key)
 
-    def get_template(self, template_name: str = DEFAULT_TEMPLATE) -> None:
+    def get_template(self, template_name: str = DEFAULT_TEMPLATE) -> str:
+        """Get Jinja template from S3.
+
+        This method gets the Jinja template from S3 for the given template. The Jinja template
+        is utilized to render the user email with the AI responses to the intended prompts.
+        Each template in S3 is required to have a Jinja template file.
+
+        Args:
+            template_name (str, optional): The name of the template to get the Jinja template.
+
+        Returns:
+            str: The Jinja template.
+        """
         key = S3Client._get_template_key(template_name)
         log.info(f"Getting template from bucket '{self.bucket}' with key '{key}'")
         return self._get_object(key)
@@ -52,6 +79,18 @@ class S3Client:
     def get_template_images(
         self, template_name: str = DEFAULT_TEMPLATE
     ) -> Dict[str, BytesIO]:
+        """Get HTML template assets from S3.
+
+        This method gets the template assets for the given template from S3 to include in the
+        rendered email as attachments so that the generated emails can include media. Any
+        template that uses media needs to have the required assets in S3.
+
+        Args:
+            template_name (str, optional): The name of the template to get assets from S3.
+
+        Returns:
+            Dict[str, BytesIO]: The name of the asset and the stream of it contents.
+        """
         prefix = S3Client._get_assets_prefix(template_name)
         log.info(
             f"Getting assets for template '{template_name}' from bucket '{self.bucket}' with prefix '{prefix}'"
@@ -74,6 +113,14 @@ class S3Client:
         return assets
 
     def put_newsletter(self, template: str, contents: str) -> None:
+        """Write newsletter to S3.
+
+        This method writes a newsletter generated for a user to S3.
+
+        Args:
+            template (str): The name of the template.
+            contents (str): The contents of the template to put to S3.
+        """
         key = S3Client._get_newsletter_key(template)
         log.info(f"Dumping newsletter to bucket '{self.bucket}' with key '{key}'")
         self._put_object(key, contents)
