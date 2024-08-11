@@ -14,6 +14,9 @@
 - [Contributions](#contributions)
 - [Links](#links)
 
+### Architecture
+
+![WalterAIBackend](https://github.com/user-attachments/assets/d8441a55-84d6-41de-9199-7c70e7b034fc)
 
 ### Scripts
 
