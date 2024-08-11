@@ -1,13 +1,15 @@
 ### WalterAIBackend
 
-[`WalterAI`](`https://walterai.io`) is a bot that sends subscribed users daily emails about the stocks they're interested in with market data provided by [Polygon](https://polygon.io/) and generative AI responses by [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/) powered by [AWS](https://aws.amazon.com/).
+[`WalterAI`](`https://walterai.io`) is an artificially intelligent bot that creates and sends customized newsletters to subscribers at 7:00am sharp about the markets they're following. `WalterAI` gathers market data from various APIs for each user and their interested stocks and feeds the data into [Bedrock](https://aws.amazon.com/bedrock/) to get AI insights from the LLM [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/). This allows `WalterAI` to create tailored newsletters for each subscriber including information only about the markets relevant to the user's portfolio.
 
-`WalterAIBackend` is the backend service that interacts with the [DynamoDB](https://aws.amazon.com/dynamodb/) databases and gets stock market data to feed into the [Amazon Bedrock](https://aws.amazon.com/bedrock/) models to generate the daily newsletter. `WalterAIBackend` is implemented as a [Lambda](https://aws.amazon.com/lambda/) function and handles different events to add users and stocks to DDB as well as send emails via [SES](https://aws.amazon.com/ses/). This service is invoked at 8:00am (EST) sharp by an [EventBridge](https://aws.amazon.com/eventbridge/) trigger and also on-demand by users.
+`WalterAIBackend` is the backend service that maintains the database of subscribers and their interested stocks as well as the service responsible for creating and sending the customized newsletters. `WalterAIBackend` is powered completely by [AWS](https://aws.amazon.com/) and runs on [Lambda](https://aws.amazon.com/lambda/). 
 
 ### Table of Contents
 
 - [WalterAIBackend](#walteraibackend)
 - [Table of Contents](#table-of-contents)
+- [Architecture](#architecture)
+- [Templates](#templates)
 - [Scripts](#scripts)
   - [CloudFormation](#cloudformation)
   - [Lambda](#lambda)
@@ -17,6 +19,26 @@
 ### Architecture
 
 ![WalterAIBackend](https://github.com/user-attachments/assets/d8441a55-84d6-41de-9199-7c70e7b034fc)
+
+### Templates
+
+`WalterAIBackend` uses email templates stored in S3 to create the emails to send to subscribers. Each email template is written in HTML and uses [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) to parameterize the inputs. `WalterAIBackend` pulls the email templates from S3 and renders the template given the `templatespec.yml` and the `template.jinja` file. The `templatespec.yml` is the specification file that tells Walter the name of the parameters as well as the Bedrock prompts to use to get the parameter value. An example of a `templatespec.yml` file is given below:
+
+```yaml
+version: 0.0
+
+TemplateSpec:
+  Parameters:
+    - Key: Introduction # template includes a key "Introduction"
+      Prompt: | # Bedrock prompt for "Introduction" 
+        Introduce yourself as WalterAI, a friendly AI financial newsletter 
+    - Key: DailyJoke # template includes a key "DailyJoke"
+      Prompt: | # Bedrock prompt for "DailyJoke"
+        Tell a joke!
+```
+
+After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 
+[Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) and then sends the custom newsletter to the subscriber!
 
 ### Scripts
 
