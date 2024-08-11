@@ -212,6 +212,20 @@ Resources:
       Roles:
         - !Ref WalterLambdaRole
 
+  SimpleEmailSerivceAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "SimpleEmailServiceAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ses:Send*"
+            Resource: "*"
+      Roles:
+        - !Ref WalterLambdaRole
+
   StocksTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
