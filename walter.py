@@ -5,10 +5,12 @@ from src.clients import (
     bedrock,
     cloudwatch,
     ddb,
+    newsletters_bucket,
     polygon,
     report_generator,
-    template_engine,
     ses,
+    template_engine,
+    templates_bucket,
 )
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -37,19 +39,21 @@ def lambda_handler(event, context) -> dict:
         stocks = ddb.get_stocks_for_user(user)
 
         # get prompts from template spec
-        parameters = template_engine.get_template_spec()
+        template_spec = templates_bucket.get_template_spec()
 
         # get generative ai response from bedrock for eaach prompt for template
-        responses = bedrock.generate_responses(parameters)
+        responses = bedrock.generate_responses(template_spec.parameters)
 
         # render template with ai responses
-        email = template_engine.render_template("default", responses)
+        email = template_engine.render_template(user, "default", responses)
 
         # get images to send with email
-        images = template_engine.get_template_images()
+        assets = templates_bucket.get_template_assets()
 
         # send email to user
-        ses.send_email(user.email, email, "Walter: AI Newsletter", images)
+        ses.send_email(user.email, email, "Walter: AI Newsletter", assets)
+
+        newsletters_bucket.put_newsletter(user, "default", email)
 
     # emit metrics
     cloudwatch.emit_metric_number_of_emails_sent(len(users))

@@ -174,10 +174,10 @@ Resources:
       Roles:
         - !Ref WalterLambdaRole
 
-  ReportsBucketAccessPolicy:
+  NewslettersBucketAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "ReportsBucketAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "NewslettersBucketAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -187,7 +187,7 @@ Resources:
             Resource: !Join
               - ""
               - - "arn:aws:s3:::"
-                - !Ref ReportsBucket
+                - !Ref NewslettersBucket
                 - "/*" 
       Roles:
         - !Ref WalterLambdaRole
@@ -254,6 +254,31 @@ Resources:
       Roles:
         - !Ref WalterLambdaRole
 
+  TemplatesBucketAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "TemplatesBucketAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref TemplatesBucket
+                - "/*"
+          - Effect: Allow
+            Action:
+              - "s3:List*"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref TemplatesBucket
+      Roles:
+        - !Ref WalterLambdaRole
+
   UsersStocksTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -314,10 +339,10 @@ Resources:
   ### S3 ###
   ##########
 
-  ReportsBucket:
+  NewslettersBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "walterai-reports-${AppEnvironment}"
+      BucketName: !Sub "walterai-newsletters-${AppEnvironment}"
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -325,21 +350,54 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
-  ReportsBucketPolicy:
+  NewslettersBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref ReportsBucket
+      Bucket: !Ref NewslettersBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement: 
           - Action: 
               - "s3:PutObject"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref NewslettersBucket
+                - "/*" 
+            Principal: 
+              AWS: !Join
+                - ""
+                - - "arn:aws:iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":role/"
+                  - !Ref WalterLambdaRole
+
+  TemplatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "walterai-templates-${AppEnvironment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      VersioningConfiguration:
+        Status: Enabled
+
+  TemplatesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TemplatesBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Action: 
               - "s3:GetObject"
             Effect: Allow
             Resource: !Join
               - ""
               - - "arn:aws:s3:::"
-                - !Ref ReportsBucket
+                - !Ref TemplatesBucket
                 - "/*" 
             Principal: 
               AWS: !Join
@@ -354,7 +412,7 @@ Resources:
             Resource: !Join
               - ""
               - - "arn:aws:s3:::"
-                - !Ref ReportsBucket
+                - !Ref TemplatesBucket
             Principal: 
               AWS: !Join
                 - ""
