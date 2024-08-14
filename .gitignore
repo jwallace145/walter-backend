@@ -2,5 +2,4 @@ secrets.sh
 *.log
 .pytest_cache
 local.py
-templates
 tmp
