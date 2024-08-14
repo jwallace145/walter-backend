@@ -3,12 +3,11 @@ from dataclasses import dataclass
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from io import BytesIO
-from typing import Dict
 
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 from src.environment import Domain
+from src.s3.templates.models import TemplateAssets
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -39,7 +38,7 @@ class SESClient:
         )
 
     def send_email(
-        self, recipient: str, body: str, subject: str, assets: Dict[str, BytesIO]
+        self, recipient: str, body: str, subject: str, assets: TemplateAssets
     ) -> None:
         """Send email to given recipient.
 
@@ -73,7 +72,7 @@ class SESClient:
 
     @staticmethod
     def _create_email(
-        recipient: str, subject: str, body: str, assets: Dict[str, BytesIO]
+        recipient: str, subject: str, body: str, assets: TemplateAssets
     ) -> str:
         """Create an email to the given recipient.
 
@@ -106,7 +105,7 @@ class SESClient:
         email.attach(email_body)
 
         # add assets as attachments
-        for name, stream in assets.items():
+        for name, stream in assets.assets.items():
             cid_name = name.split(".")[0]
             attachment = MIMEImage(stream.getvalue())
             attachment.add_header("Content-ID", f"<{cid_name}>")

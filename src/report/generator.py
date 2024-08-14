@@ -18,6 +18,36 @@ class ReportGenerator:
         log.debug("Creating ReportGenerator")
         self.stocks = defaultdict(lambda: [])
 
+    def get_profits(self, stocks: List[Stock]) -> str:
+        prompt = ""
+
+        for stock, prices in self._extract_stocks_for_user(stocks).items():
+            sorted_prices = sorted(prices)
+            gain = sorted_prices[-1].price - sorted_prices[0].price
+
+            if gain > 0:
+                prompt += f" {stock} made ${gain:.2f} in profit!"
+
+        if prompt == "":
+            prompt += "User made no profits on any stocks."
+
+        return prompt
+
+    def get_losses(self, stocks: List[Stock]) -> None:
+        prompt = ""
+
+        for stock, prices in self._extract_stocks_for_user(stocks).items():
+            sorted_prices = sorted(prices)
+            gain = sorted_prices[-1].price - sorted_prices[0].price
+
+            if gain < 0:
+                prompt += f" {stock} lost ${-1*gain:.2f}!"
+
+        if prompt == "":
+            prompt += "User did not lose any money on any stocks"
+
+        return prompt
+
     def generate_report(self, user: User, stocks: List[Stock]) -> None:
         log.info(f"Generating report for user {user} and {len(stocks)} stocks")
 
