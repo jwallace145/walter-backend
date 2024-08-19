@@ -32,7 +32,6 @@ class SecretsManagerClient:
         self.polygon_api_key = self._get_polygon_api_key()
 
     def _get_polygon_api_key(self) -> str:
-        log.info("Getting Polygon API key")
         return json.loads(
             self.client.get_secret_value(
                 SecretId=SecretsManagerClient.POLYGON_API_KEY_SECRET_ID
