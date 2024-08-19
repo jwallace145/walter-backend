@@ -4,13 +4,15 @@ from datetime import datetime, timedelta
 from src.clients import (
     bedrock,
     cloudwatch,
-    ddb,
     newsletters_bucket,
     polygon,
     report_generator,
     ses,
     template_engine,
     templates_bucket,
+    stocks_table,
+    users_table,
+    users_stocks_table,
 )
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -19,7 +21,7 @@ START_DATE = END_DATE - timedelta(days=7)
 
 def lambda_handler(event, context) -> dict:
     # get all stocks from ddb
-    stocks = ddb.get_stocks()
+    stocks = stocks_table.list_stocks()
 
     # get prices for each stock from polygon
     prices = []
@@ -30,13 +32,13 @@ def lambda_handler(event, context) -> dict:
     report_generator.ingest_stocks(prices)
 
     # get all users in ddb
-    users = ddb.get_users()
+    users = users_table.get_users()
 
     # generate a newsletter for each user
     for user in users:
 
         # get stocks for user from ddb
-        stocks = ddb.get_stocks_for_user(user)
+        stocks = users_stocks_table.get_stocks_for_user(user)
 
         # get prompts from template spec
         template_spec = templates_bucket.get_template_spec()
