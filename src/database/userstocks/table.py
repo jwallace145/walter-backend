@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import List
 
-from src.dynamodb.models import Stock, UserStock
-from src.dynamodb.users.models import User
+from src.database.models import Stock, UserStock
+from src.database.users.models import User
 from src.utils.log import Logger
-from src.dynamodb.client import WalterDDBClient
+from src.database.client import WalterDDBClient
 from src.environment import Domain
 
 log = Logger(__name__).get_logger()

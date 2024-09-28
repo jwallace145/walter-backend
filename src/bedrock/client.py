@@ -4,6 +4,7 @@ from typing import List
 
 from mypy_boto3_bedrock import BedrockClient
 from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
+
 from src.s3.templates.models import Parameter
 from src.utils.log import Logger
 
@@ -35,7 +36,7 @@ class BedrockClient:
         )
 
     def generate_responses(self, parameters: List[Parameter]) -> List[Parameter]:
-        log.info(f"Generating AI response for {len(parameters)} prompts")
+        log.info(f"Generating response for {len(parameters)} prompts")
         responses = []
         for parameter in parameters:
             responses.append(
@@ -46,7 +47,7 @@ class BedrockClient:
     def generate_response(self, prompt: str) -> str:
         try:
             log.info(
-                f"Generating response with model {BedrockClient.META_LLAMA3_8B_MODEL_ID}:\n{prompt}"
+                f"Generating response with model {BedrockClient.META_LLAMA3_8B_MODEL_ID}"
             )
             response = self.bedrock_runtime.invoke_model(
                 modelId=BedrockClient.META_LLAMA3_8B_MODEL_ID,

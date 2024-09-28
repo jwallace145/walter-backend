@@ -2,7 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List
 
-from src.dynamodb.models import Stock, User
+from src.database.models import Stock, User
 from src.polygon.models import StockPrice
 from src.utils.log import Logger
 

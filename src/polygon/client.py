@@ -49,9 +49,7 @@ class PolygonClient:
         ):
             prices.append(PolygonClient._convert_agg_to_stock_price(symbol, agg))
 
-        log.info(
-            f"Successfully returned {len(prices)} prices for '{symbol}' from '{start_date}' to '{end_date}'"
-        )
+        log.info(f"Successfully returned {len(prices)} prices")
 
         return prices
 

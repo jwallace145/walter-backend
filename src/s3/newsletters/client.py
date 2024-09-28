@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.dynamodb.models import User
+from src.database.models import User
 from src.s3.client import WalterS3Client
 from src.environment import Domain
 from src.utils.log import Logger
@@ -40,14 +40,14 @@ class NewslettersBucket:
         This method writes a newsletter generated for a user to S3.
 
         Args:
+            user (User): The user to send the newsletter.
             template (str): The name of the template.
             contents (str): The contents of the template to put to S3.
         """
+        log.info(f"Dumping newsletter to S3")
         key = NewslettersBucket._get_newsletter_key(user, template)
-        log.info(
-            f"Dumping newsletter to S3 with URI '{WalterS3Client.get_uri(self.bucket, key)}'"
-        )
         self.client.put_object(self.bucket, key, contents)
+        open("test.html", "w").write(contents)
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:

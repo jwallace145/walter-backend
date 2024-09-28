@@ -27,7 +27,7 @@ class WalterS3Client:
         )
 
     def list_objects(self, bucket: str, prefix: str) -> List[str]:
-        log.info(
+        log.debug(
             f"Listing objects from S3 with prefix '{WalterS3Client.get_uri(bucket, prefix)}'"
         )
         try:
@@ -37,7 +37,7 @@ class WalterS3Client:
                     Bucket=bucket, Prefix=prefix
                 )["Contents"]
             ]
-            log.info(
+            log.debug(
                 f"Objects from S3 with prefix '{WalterS3Client.get_uri(bucket, prefix)}':\n{objects}"
             )
             return objects
@@ -49,7 +49,7 @@ class WalterS3Client:
             raise error
 
     def get_object(self, bucket: str, key: str) -> str:
-        log.info(
+        log.debug(
             f"Getting object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
         )
         try:
@@ -58,7 +58,7 @@ class WalterS3Client:
                 .read()
                 .decode("utf-8")
             )
-            log.info(
+            log.debug(
                 f"Retrieved object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
             )
             return object
@@ -70,13 +70,13 @@ class WalterS3Client:
             raise error
 
     def download_object(self, bucket: str, key: str) -> BytesIO:
-        log.info(
+        log.debug(
             f"Downloading object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
         )
         try:
             stream = BytesIO()
             self.client.download_fileobj(Bucket=bucket, Key=key, Fileobj=stream)
-            log.info(
+            log.debug(
                 f"Downloaded object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
             )
             return stream
@@ -88,12 +88,12 @@ class WalterS3Client:
             raise error
 
     def put_object(self, bucket: str, key: str, contents: str) -> None:
-        log.info(
+        log.debug(
             f"Putting object to S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
         )
         try:
             self.client.put_object(Bucket=bucket, Key=key, Body=contents)
-            log.info(
+            log.debug(
                 f"Put object to S3 with URI '{WalterS3Client.get_uri(bucket, key)}' successfully!"
             )
         except ClientError as error:
