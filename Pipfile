@@ -18,14 +18,15 @@ mypy-boto3-cloudformation = "*"
 mypy-boto3-lambda = "*"
 jinja2 = "*"
 pyyaml = "*"
-pre-commit = "*"
 
 [dev-packages]
 black = "*"
 flake8 = "*"
+pre-commit = "*"
 pytest = "*"
 codespell = "*"
 isort = "*"
+moto = {extras = ["dynamodb2"], version = "*"}
 
 [requires]
 python_version = "3.11"

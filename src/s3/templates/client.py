@@ -60,10 +60,8 @@ class TemplatesBucket:
         Returns:
             TemplateSpec: The template spec file.
         """
+        log.info(f"Getting '{template}' template spec from S3")
         key = TemplatesBucket._get_template_spec_key(template)
-        log.info(
-            f"Getting '{template}' template spec from S3 with URI '{WalterS3Client.get_uri(self.bucket, key)}'"
-        )
 
         # get parameters from template spec s3 object
         parameters = []
@@ -87,10 +85,8 @@ class TemplatesBucket:
         Returns:
             str: The Jinja template.
         """
+        log.info(f"Getting '{template}' template from S3")
         key = TemplatesBucket._get_template_key(template)
-        log.info(
-            f"Getting '{template}' template from S3 with URI '{WalterS3Client.get_uri(self.bucket, key)}'"
-        )
         return Template(
             name=template, contents=self.client.get_object(self.bucket, key)
         )
@@ -109,10 +105,8 @@ class TemplatesBucket:
         Returns:
             TemplateAssets: The assets of the given template from S3.
         """
+        log.info(f"Getting '{template}' template assets from S3")
         prefix = TemplatesBucket._get_assets_prefix(template)
-        log.info(
-            f"Getting '{template}' template assets from S3 with prefix {WalterS3Client.get_uri(self.bucket, prefix)}'"
-        )
 
         # for each key get asset name and download object to memory
         assets = {}

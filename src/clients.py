@@ -3,10 +3,10 @@ import os
 import boto3
 from src.bedrock.client import BedrockClient
 from src.cloudwatch.client import CloudWatchClient
-from src.dynamodb.client import WalterDDBClient
-from src.dynamodb.stocks.table import StocksTable
-from src.dynamodb.users.table import UsersTable
-from src.dynamodb.userstocks.table import UsersStocksTable
+from src.database.client import WalterDDBClient
+from src.database.stocks.table import StocksTable
+from src.database.users.table import UsersTable
+from src.database.userstocks.table import UsersStocksTable
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
 from src.polygon.client import PolygonClient
@@ -58,9 +58,7 @@ newsletters_bucket = NewslettersBucket(s3, DOMAIN)
 # DYNAMODB TABLES #
 ###################
 
-ddb = WalterDDBClient(
-    client=boto3.client("dynamodb", region_name=AWS_REGION), domain=DOMAIN
-)
+ddb = WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION))
 users_table = UsersTable(ddb, DOMAIN)
 stocks_table = StocksTable(ddb, DOMAIN)
 users_stocks_table = UsersStocksTable(ddb, DOMAIN)

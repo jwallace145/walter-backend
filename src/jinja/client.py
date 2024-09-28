@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from jinja2 import BaseLoader, Environment
-from src.dynamodb.models import User
+from src.database.models import User
 from src.environment import Domain
 from src.s3.newsletters.client import NewslettersBucket
 from src.s3.templates.client import TemplatesBucket
@@ -60,7 +60,7 @@ class TemplateEngine:
             .render(**TemplateEngine._convert_responses_to_dict(responses))
         )
         log.info(
-            f"Finished rendering '{template_name}' template\n"
+            f"Finished rendering '{template_name}' template. "
             f"Dumping rendered '{template_name}' template to S3"
         )
         self.newsletters_bucket.put_newsletter(user, template_name, rendered_template)
