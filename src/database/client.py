@@ -78,12 +78,16 @@ class WalterDDBClient:
         """
         log.debug(f"Getting item from table '{table}' with key:\n{key}")
         try:
-            return self.client.get_item(TableName=table, Key=key)
-        except ClientError as error:
+            return self.client.get_item(TableName=table, Key=key)["Item"]
+        except ClientError as clientError:
             log.error(
                 f"Unexpected error occurred getting item from '{table}'!\n"
-                f"Error: {error.response['Error']['Message']}"
+                f"Error: {clientError.response['Error']['Message']}"
             )
+        except KeyError:
+            # key error thrown when trying to index ddb client response
+            # i.e. the item does not exist
+            return None
 
     def scan_table(self, table: str) -> List[dict]:
         """

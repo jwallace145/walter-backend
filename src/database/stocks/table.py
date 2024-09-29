@@ -46,7 +46,7 @@ class StocksTable:
         log.info(f"Getting stock with symbol '{symbol}' from table '{self.table}'")
         key = StocksTable._get_stock_key(symbol)
         item = self.ddb.get_item(self.table, key)
-        return StocksTable._get_stock_from_ddb_item(item)
+        return StocksTable._get_stock_from_ddb_item(item) if item is not None else None
 
     def list_stocks(self) -> List[Stock]:
         """
