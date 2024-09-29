@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import List
 
 from src.database.client import WalterDDBClient
-from src.database.models import UserStock
 from src.database.users.models import User
+from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.utils.log import Logger
 
