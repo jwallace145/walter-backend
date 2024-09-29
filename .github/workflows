@@ -1,7 +1,7 @@
 name: Run tests and upload coverage on PRs to main
 
 on:
-  pushg
+  push
 
 jobs:
   test:
