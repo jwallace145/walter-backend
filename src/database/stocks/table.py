@@ -31,7 +31,7 @@ class StocksTable:
 
     def __post_init__(self) -> None:
         self.table = StocksTable._get_stocks_table_name(self.domain)
-        log.debug(f"Creating StocksTable DDB client with table name '{self.table}'")
+        log.info(f"Creating StocksTable DDB client with table name '{self.table}'")
 
     def get_stock(self, symbol: str) -> Stock:
         """
