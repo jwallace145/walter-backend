@@ -1,6 +1,17 @@
 from src.database.users.models import User
 
-USERS = [User(email="walteraifinancialadvisor@gmail.com", username="walter")]
+#########
+# USERS #
+#########
+
+USERS = [
+    User(email="walter@gmail.com", username="walter"),
+    User(email="walrus@gmail.com", username="walrus"),
+]
+
+#########
+# TESTS #
+#########
 
 
 def test_get_users(users_table) -> None:

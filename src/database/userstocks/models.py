@@ -3,8 +3,17 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class UserStock:
+    """
+    UserStock Model
+
+    This class is responsible for maintaining the many-to-many relationship between
+    users and stocks. This model contains user to stock mappings with each of their
+    primary keys to store user portfolios.
+    """
+
     user_email: str
     stock_symbol: str
+    quantity: float
 
     def to_ddb_item(self) -> dict:
         return {
@@ -12,4 +21,5 @@ class UserStock:
                 "S": self.user_email,
             },
             "stock_symbol": {"S": self.stock_symbol},
+            "quantity": {"N": str(self.quantity)},
         }
