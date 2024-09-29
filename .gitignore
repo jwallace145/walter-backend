@@ -3,3 +3,5 @@ secrets.sh
 .pytest_cache
 local.py
 tmp
+.coverage
+.idea

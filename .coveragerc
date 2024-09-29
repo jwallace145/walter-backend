@@ -1,0 +1,8 @@
+[run]
+include =
+    src/*
+omit =
+    tst/*
+
+[report]
+show_missing = True
