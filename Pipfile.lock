@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "75449bc31a0f67608467d8a5a3141b41742e50a595740d25004e8b00cd491788"
+            "sha256": "29ea15bfac4b75e6db0d74f12bc906e860687a148227a5c236bbbddf30fd4152"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -660,6 +660,9 @@
             "version": "==2.3.0"
         },
         "coverage": {
+            "extras": [
+                "toml"
+            ],
             "hashes": [
                 "sha256:06a737c882bd26d0d6ee7269b20b12f14a8704807a01056c80bb881a4b2ce6ca",
                 "sha256:07e2ca0ad381b91350c0ed49d52699b625aab2b44b65e1b4e02fa9df0e92ad2d",
@@ -924,11 +927,11 @@
                 "dynamodb2"
             ],
             "hashes": [
-                "sha256:57aa8c2af417cc64a0ddfe63e5bcd1ada90f5079b73cdd1f74c4e9fb30a1a7e6",
-                "sha256:fa1e92ffb55dbfb9fa92a2115a88c32481b75aa3fbd24075d1f29af2f9becffa"
+                "sha256:4ce1f34830307f7b3d553d77a7ef26066ab3b70006203d4226b048c9d11a3be4",
+                "sha256:f4afb176a964cd7a70da9bc5e053d43109614ce3cab26044bcbb53610435dff4"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==5.0.15"
+            "version": "==5.0.16"
         },
         "mypy-extensions": {
             "hashes": [
@@ -1019,6 +1022,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==8.3.3"
+        },
+        "pytest-cov": {
+            "hashes": [
+                "sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652",
+                "sha256:5837b58e9f6ebd335b0f8060eecce69b662415b16dc503883a02f45dfeb14857"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==5.0.0"
         },
         "python-dateutil": {
             "hashes": [

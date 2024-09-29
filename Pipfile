@@ -28,6 +28,7 @@ codespell = "*"
 isort = "*"
 moto = {extras = ["dynamodb2"], version = "*"}
 coverage = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.11"
