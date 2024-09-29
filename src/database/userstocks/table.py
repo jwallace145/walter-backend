@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import List
 
-from src.database.models import Stock, UserStock
-from src.database.users.models import User
-from src.utils.log import Logger
 from src.database.client import WalterDDBClient
+from src.database.models import UserStock
+from src.database.users.models import User
 from src.environment import Domain
+from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
@@ -24,7 +24,7 @@ class UsersStocksTable:
         self.table = UsersStocksTable._get_table_name(self.domain)
         log.debug(f"Creating UsersStocks table DDB client for table '{self.table}'")
 
-    def get_stocks_for_user(self, user: User) -> List[Stock]:
+    def get_stocks_for_user(self, user: User) -> List[UserStock]:
         log.info(f"Getting stocks for user '{user.email}' from table '{self.table}'")
         stocks = []
         for item in self.ddb.query(
