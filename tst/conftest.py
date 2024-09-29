@@ -93,6 +93,7 @@ def ddb_client() -> DynamoDBClient:
                     Item=UserStock(
                         user_email=json_userstock["user_email"],
                         stock_symbol=json_userstock["stock_symbol"],
+                        quantity=json_userstock["quantity"],
                     ).to_ddb_item(),
                 )
 

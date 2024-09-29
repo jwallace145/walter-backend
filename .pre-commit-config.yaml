@@ -28,7 +28,16 @@ repos:
       - id: pytest # unit tests
         name: pytest
         description: "Pytest: Helps you write less buggy code"
-        entry: pipenv run pytest
+        entry: pipenv run coverage run -m pytest
+        language: python
+        types: [ python ]
+        pass_filenames: false
+        always_run: true
+
+      - id: coverage # test coverage
+        name: coverage
+        description: "Coverage: A tool for measuring code coverage of Python programs"
+        entry: pipenv run coverage report -m
         language: python
         types: [ python ]
         pass_filenames: false

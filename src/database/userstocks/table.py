@@ -12,6 +12,17 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class UsersStocksTable:
+    """
+    UsersStocks Table
+
+    This table maintains mappings from users to stocks to store
+    user portfolios.
+
+    Item Schema
+    - user_email (HASH key): The primary key of the user.
+    - stock_symbol (RANGE key): The primary key of the stock.
+    - quantity: The quantity of the stock owned by the user.
+    """
 
     TABLE_NAME_FORMAT = "UsersStocks-{domain}"
 
@@ -25,6 +36,15 @@ class UsersStocksTable:
         log.debug(f"Creating UsersStocks table DDB client for table '{self.table}'")
 
     def get_stocks_for_user(self, user: User) -> List[UserStock]:
+        """
+        Get the stocks owned by a user.
+
+        Args:
+            user: The user to get the stocks.
+
+        Returns:
+            The stocks owned by the user.
+        """
         log.info(f"Getting stocks for user '{user.email}' from table '{self.table}'")
         stocks = []
         for item in self.ddb.query(
@@ -50,5 +70,7 @@ class UsersStocksTable:
     @staticmethod
     def _get_user_stock_from_ddb_item(item: dict) -> UserStock:
         return UserStock(
-            user_email=item["user_email"]["S"], stock_symbol=item["stock_symbol"]["S"]
+            user_email=item["user_email"]["S"],
+            stock_symbol=item["stock_symbol"]["S"],
+            quantity=float(item["quantity"]["N"]),
         )
