@@ -68,7 +68,11 @@ class TemplatesBucket:
         for parameter in yaml.safe_load(self.client.get_object(self.bucket, key))[
             "TemplateSpec"
         ]["Parameters"]:
-            parameters.append(Parameter(parameter["Key"], parameter["Prompt"]))
+            parameters.append(
+                Parameter(
+                    parameter["Key"], parameter["Prompt"], parameter["MaxGenLength"]
+                )
+            )
 
         return TemplateSpec(parameters)
 

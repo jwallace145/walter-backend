@@ -30,7 +30,7 @@ class CloudWatchClient:
 
     def __post_init__(self) -> None:
         log.debug(
-            f"Creating {self.domain.value} CloudWatch client in region '{self.client.meta.region_name}'"
+            f"Creating '{self.domain.value}' CloudWatch client in region '{self.client.meta.region_name}'"
         )
         self.metric_namespace = CloudWatchClient._get_metric_namespace(self.domain)
 

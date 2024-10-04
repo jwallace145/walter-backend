@@ -1,7 +1,9 @@
 import os
 
 import boto3
-from src.bedrock.client import BedrockClient
+
+from src.ai.client import WalterBedrockClient
+from src.ai.meta.models import MetaLlama38B
 from src.cloudwatch.client import CloudWatchClient
 from src.database.client import WalterDDBClient
 from src.database.stocks.table import StocksTable
@@ -20,21 +22,23 @@ from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+log.debug("Initializing clients...")
+
 #########################
 # ENVIRONMENT VARIABLES #
 #########################
 
-AWS_REGION = os.getenv("AWS_REGION")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 """(str): The AWS region the WalterAIBackend service is deployed."""
 
-DOMAIN = get_domain(os.getenv("DOMAIN"))
+DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 """(str): The domain of the WalterAIBackend service environment."""
 
 ########################
 # WALTER BOTO3 CLIENTS #
 ########################
 
-bedrock = BedrockClient(
+bedrock = WalterBedrockClient(
     bedrock=boto3.client("bedrock", region_name=AWS_REGION),
     bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
 )
@@ -79,6 +83,12 @@ template_engine = TemplateEngine(
 ##################
 
 polygon = PolygonClient(api_key=secretsmanager.polygon_api_key)
+
+##############
+# LLM MODELS #
+##############
+
+meta_llama3 = MetaLlama38B(model=bedrock)
 
 ####################
 # REPORT GENERATOR #

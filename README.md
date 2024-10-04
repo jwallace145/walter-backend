@@ -31,10 +31,12 @@ TemplateSpec:
   Parameters:
     - Key: Introduction # template includes a key "Introduction"
       Prompt: | # Bedrock prompt for "Introduction" 
-        Introduce yourself as WalterAI, a friendly AI financial newsletter 
+        Introduce yourself as Walter, a friendly AI financial newsletter bot
+      MaxGenLength: 100
     - Key: DailyJoke # template includes a key "DailyJoke"
       Prompt: | # Bedrock prompt for "DailyJoke"
         Tell a joke!
+      MaxGenLength: 50
 ```
 
 After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 

@@ -2,7 +2,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List
 
-from src.database.models import Stock, User
+from src.database.stocks.models import Stock
+from src.database.users.models import User
 from src.polygon.models import StockPrice
 from src.utils.log import Logger
 

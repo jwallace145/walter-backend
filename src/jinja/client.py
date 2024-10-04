@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from jinja2 import BaseLoader, Environment
-from src.database.models import User
+
+from src.ai.models import Response
 from src.environment import Domain
 from src.s3.newsletters.client import NewslettersBucket
 from src.s3.templates.client import TemplatesBucket
-from src.s3.templates.models import Parameter
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -35,9 +35,8 @@ class TemplateEngine:
 
     def render_template(
         self,
-        user: User,
         template_name: str = DEFAULT_TEMPLATE,
-        responses: List[Parameter] = [],
+        responses: List[Response] = [],
     ) -> str:
         """Render the template with the AI responses.
 
@@ -45,7 +44,7 @@ class TemplateEngine:
 
         Args:
             template_name (str, optional): The name of the template to render.
-            responses (List[Response], optional): The list of AI responses from BedRock.
+            parameters (List[Response], optional): The list of AI responses from Bedrock.
 
         Returns:
             str: The rendered template with AI responses as a string.
@@ -59,16 +58,12 @@ class TemplateEngine:
             .from_string(template.contents)
             .render(**TemplateEngine._convert_responses_to_dict(responses))
         )
-        log.info(
-            f"Finished rendering '{template_name}' template. "
-            f"Dumping rendered '{template_name}' template to S3"
-        )
-        self.newsletters_bucket.put_newsletter(user, template_name, rendered_template)
+        log.info(f"Finished rendering '{template_name}' template")
         return rendered_template
 
     @staticmethod
-    def _convert_responses_to_dict(responses: List[Parameter]) -> Dict[str, str]:
+    def _convert_responses_to_dict(responses: List[Response]) -> Dict[str, str]:
         responses_dict = {}
         for response in responses:
-            responses_dict[response.key] = response.prompt
+            responses_dict[response.name] = response.response
         return responses_dict
