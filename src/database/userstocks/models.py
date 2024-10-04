@@ -21,5 +21,5 @@ class UserStock:
                 "S": self.user_email,
             },
             "stock_symbol": {"S": self.stock_symbol},
-            "quantity": {"N": str(self.quantity)},
+            "quantity": {"S": str(self.quantity)},
         }

@@ -1,8 +1,8 @@
 import json
 from datetime import datetime, timedelta
 
+from src.ai.models import Prompt
 from src.clients import (
-    bedrock,
     cloudwatch,
     newsletters_bucket,
     polygon,
@@ -13,8 +13,8 @@ from src.clients import (
     stocks_table,
     users_table,
     users_stocks_table,
+    meta_llama3,
 )
-
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -24,7 +24,7 @@ START_DATE = END_DATE - timedelta(days=7)
 
 
 def lambda_handler(event, context) -> dict:
-    log.info(f"WalterAIBackend invoked!")
+    log.info("WalterAIBackend invoked!")
     stocks = stocks_table.list_stocks()
 
     prices = []
@@ -37,11 +37,26 @@ def lambda_handler(event, context) -> dict:
     for user in users:
         stocks = users_stocks_table.get_stocks_for_user(user)
         template_spec = templates_bucket.get_template_spec()
-        responses = bedrock.generate_responses(template_spec.parameters)
-        email = template_engine.render_template(user, "default", responses)
+
+        # TODO: Create utility method to convert template spec parameters to prompts
+        prompts = []
+        for parameter in template_spec.parameters:
+            prompts.append(
+                Prompt(parameter.key, parameter.prompt, parameter.max_gen_len)
+            )
+
+        responses = meta_llama3.generate_responses(prompts)
+        email = template_engine.render_template("default", responses)
         assets = templates_bucket.get_template_assets()
-        ses.send_email(user.email, email, "Walter: AI Newsletter", assets)
-        newsletters_bucket.put_newsletter(user, "default", email)
+
+        # if the event is a dry run, skip sending email to user and dumping to S3
+        dry_run = event["dry_run"]
+        if dry_run:
+            log.info("Dry run invocation...")
+            open("./newsletter.html", "w").write(email)
+        else:
+            ses.send_email(user.email, email, "Walter: AI Newsletter", assets)
+            newsletters_bucket.put_newsletter(user, "default", email)
 
     cloudwatch.emit_metric_number_of_emails_sent(len(users))
     cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))

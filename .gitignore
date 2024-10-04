@@ -5,3 +5,4 @@ local.py
 tmp
 .coverage
 .idea
+*.pyc

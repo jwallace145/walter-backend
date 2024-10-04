@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.database.models import User
+from src.database.users.models import User
 from src.s3.client import WalterS3Client
 from src.environment import Domain
 from src.utils.log import Logger
@@ -44,7 +44,7 @@ class NewslettersBucket:
             template (str): The name of the template.
             contents (str): The contents of the template to put to S3.
         """
-        log.info(f"Dumping newsletter to S3")
+        log.info("Dumping newsletter to S3")
         key = NewslettersBucket._get_newsletter_key(user, template)
         self.client.put_object(self.bucket, key, contents)
         open("test.html", "w").write(contents)

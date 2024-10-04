@@ -72,5 +72,5 @@ class UsersStocksTable:
         return UserStock(
             user_email=item["user_email"]["S"],
             stock_symbol=item["stock_symbol"]["S"],
-            quantity=float(item["quantity"]["N"]),
+            quantity=float(item["quantity"]["S"]),
         )
