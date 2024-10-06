@@ -10,7 +10,7 @@ log = Logger(__name__).get_logger()
 
 PROMPT_FORMAT = """<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
-You are the author of a business casual newsletter that helps users with their stock portfolios<|eot_id|><|start_header_id|>user<|end_header_id|>
+{context}<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 {prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"""
 """(str): The prompt format for Meta Llama3 models. For more information, see: https://www.llama.com/docs/model-cards-and-prompt-formats/meta-llama-3/ """
@@ -26,7 +26,7 @@ class MetaLlama38B:
     temperature: float = 0.5
     top_p: float = 0.9
 
-    def generate_responses(self, prompts: List[Prompt]) -> List[Response]:
+    def generate_responses(self, context: str, prompts: List[Prompt]) -> List[Response]:
         """
         Invoke the foundation model and get responses for the list of prompts given.
 
@@ -44,16 +44,16 @@ class MetaLlama38B:
             Response(
                 prompt.name,
                 self.model.generate_response(
-                    MetaLlama38B.MODEL_ID, self._get_body(prompt)
+                    MetaLlama38B.MODEL_ID, self._get_body(context, prompt)
                 ),
             )
             for prompt in prompts
         ]
 
-    def _get_body(self, prompt: Prompt) -> str:
+    def _get_body(self, context: str, prompt: Prompt) -> str:
         return json.dumps(
             {
-                "prompt": PROMPT_FORMAT.format(prompt=prompt.prompt),
+                "prompt": PROMPT_FORMAT.format(context=context, prompt=prompt.prompt),
                 "temperature": self.temperature,
                 "top_p": self.top_p,
                 "max_gen_len": prompt.max_gen_len,

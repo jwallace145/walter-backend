@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from src.database.client import WalterDDBClient
+from src.aws.dynamodb.client import WalterDDBClient
 from src.database.stocks.models import Stock
 from src.environment import Domain
 from src.utils.log import Logger
@@ -48,7 +48,7 @@ class StocksTable:
         item = self.ddb.get_item(self.table, key)
         return StocksTable._get_stock_from_ddb_item(item) if item is not None else None
 
-    def list_stocks(self) -> List[Stock]:
+    def get_stocks(self) -> List[Stock]:
         """
         Lists all stocks in the Stocks table.
 
