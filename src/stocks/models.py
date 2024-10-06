@@ -8,8 +8,8 @@ from src.stocks.polygon.models import StockPrices
 @dataclass
 class Portfolio:
 
-    stocks: Dict[str, UserStock]
-    prices: Dict[str, StockPrices]
+    stocks: Dict[str, UserStock]  # indexed by stock symbol
+    prices: Dict[str, StockPrices]  # indexed by stock symbol
 
     def get_stocks(self) -> List[str]:
         return self.stocks.keys()

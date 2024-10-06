@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.database.users.models import User
-from src.s3.client import WalterS3Client
+from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
 from src.utils.log import Logger
 from datetime import datetime as dt

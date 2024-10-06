@@ -29,11 +29,12 @@ class PolygonClient:
 
     def __post_init__(self) -> None:
         log.debug(f"Creating {Domain.PRODUCTION.value} Polygon client")
-        self.client = RESTClient(api_key=self.api_key)
 
     def batch_get_prices(
         self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime
     ) -> Dict[str, StockPrices]:
+        self._init_rest_client()
+
         prices = {}
         for stock in stocks.values():
             prices[stock.stock_symbol] = self.get_prices(stock, start_date, end_date)
@@ -42,6 +43,8 @@ class PolygonClient:
     def get_prices(
         self, stock: UserStock, start_date: datetime, end_date: datetime
     ) -> StockPrices:
+        self._init_rest_client()
+
         log.info(
             f"Getting aggregate data for '{stock.stock_symbol}' from '{start_date}' to '{end_date}'"
         )
@@ -67,6 +70,12 @@ class PolygonClient:
         log.info(f"Successfully returned {len(prices)} prices")
 
         return StockPrices(prices)
+
+    def _init_rest_client(self) -> RESTClient:
+        # lazy initialize polygon rest client
+        if self.client is None:
+            self.client = RESTClient(api_key=self.api_key)
+        return self.client
 
     @staticmethod
     def _convert_date_to_string(date: datetime) -> str:

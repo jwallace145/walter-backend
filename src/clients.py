@@ -11,10 +11,10 @@ from src.aws.ses.client import SESClient
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
-from src.report.generator import ReportGenerator
-from src.s3.client import WalterS3Client
-from src.s3.newsletters.client import NewslettersBucket
-from src.s3.templates.client import TemplatesBucket
+from src.ai.context.generator import ContextGenerator
+from src.aws.s3.client import WalterS3Client
+from src.newsletters.client import NewslettersBucket
+from src.templates.client import TemplatesBucket
 from src.stocks.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -88,8 +88,8 @@ polygon = PolygonClient(api_key=secretsmanager.get_polygon_api_key())
 
 meta_llama3 = MetaLlama38B(model=bedrock)
 
-####################
-# REPORT GENERATOR #
-####################
+#####################
+# CONTEXT GENERATOR #
+#####################
 
-report_generator = ReportGenerator()
+context_generator = ContextGenerator()

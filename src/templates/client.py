@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import yaml
 from src.environment import Domain
-from src.s3.client import WalterS3Client
-from src.s3.templates.models import Parameter, Template, TemplateAssets, TemplateSpec
+from src.aws.s3.client import WalterS3Client
+from src.templates.models import Parameter, Template, TemplateAssets, TemplateSpec
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

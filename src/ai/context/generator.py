@@ -2,6 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List
 
+from src.ai.context.models import Context
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
@@ -12,7 +13,7 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class ReportGenerator:
+class ContextGenerator:
 
     stocks: Dict[str, StockPrice] = None
 
@@ -50,7 +51,7 @@ class ReportGenerator:
 
         return prompt
 
-    def generate_report(self, user: User, stocks: List[Stock]) -> str:
+    def get_context(self, user: User, stocks: List[Stock]) -> Context:
         log.info(f"Generating report for user {user} and {len(stocks)} stocks")
 
         report = f"Generate an investments newsletter for {user.username} in a business casual fashion with jokes.\n"
