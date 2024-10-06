@@ -6,7 +6,7 @@ from src.ai.client import WalterBedrockClient
 from src.ai.meta.models import MetaLlama38B
 from src.aws.cloudwatch.client import CloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
-from src.aws.secretsmanager.client import SecretsManagerClient
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import SESClient
 from src.database.client import WalterDB
 from src.environment import get_domain
@@ -43,7 +43,7 @@ bedrock = WalterBedrockClient(
 cloudwatch = CloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
-secretsmanager = SecretsManagerClient(
+secretsmanager = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 ses = SESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
@@ -80,7 +80,7 @@ template_engine = TemplateEngine(
 # POLYGON CLIENT #
 ##################
 
-polygon = PolygonClient(api_key=secretsmanager.polygon_api_key)
+polygon = PolygonClient(api_key=secretsmanager.get_polygon_api_key())
 
 ##############
 # LLM MODELS #
