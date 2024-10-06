@@ -9,7 +9,7 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class SecretsManagerClient:
+class WalterSecretsManagerClient:
     """
     WalterAI Secrets Manager
 
@@ -28,11 +28,16 @@ class SecretsManagerClient:
         log.debug(
             f"Creating {self.domain.value} SecretsManager client in region '{self.client.meta.region_name}'"
         )
-        self.polygon_api_key = self._get_polygon_api_key()
+
+    def get_polygon_api_key(self) -> str:
+        # lazily get polygon api key from secrets manager
+        if self.polygon_api_key is None:
+            self.polygon_api_key = self._get_polygon_api_key()
+        return self.polygon_api_key
 
     def _get_polygon_api_key(self) -> str:
         return json.loads(
             self.client.get_secret_value(
-                SecretId=SecretsManagerClient.POLYGON_API_KEY_SECRET_ID
+                SecretId=WalterSecretsManagerClient.POLYGON_API_KEY_SECRET_ID
             )["SecretString"]
         )["POLYGON_API_KEY"]

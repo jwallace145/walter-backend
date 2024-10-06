@@ -4,17 +4,20 @@ import boto3
 import pytest
 from moto import mock_aws
 from mypy_boto3_dynamodb import DynamoDBClient
+from mypy_boto3_secretsmanager import SecretsManagerClient
 
-from src.aws.dynamodb.client import WalterDDBClient
-from src.database.client import WalterDB
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
-from src.environment import Domain
 
 #############
 # CONSTANTS #
 #############
+
+AWS_REGION = "us-east-1"
+
+SECRETS_MANAGER_POLIGON_API_KEY_NAME = "PolygonAPIKey"
+SECRETS_MANAGER_POLIGON_API_KEY_VALUE = "test-polygon-api-key"
 
 STOCKS_TABLE_NAME = "Stocks-unittest"
 USERS_TABLE_NAME = "Users-unittest"
@@ -32,7 +35,7 @@ USERS_STOCKS_TEST_FILE = "tst/database/data/usersstocks.jsonl"
 @pytest.fixture
 def ddb_client() -> DynamoDBClient:
     with mock_aws():
-        mock_ddb = boto3.client("dynamodb", region_name="us-east-1")
+        mock_ddb = boto3.client("dynamodb", region_name=AWS_REGION)
 
         # create stocks table
         mock_ddb.create_table(
@@ -103,5 +106,13 @@ def ddb_client() -> DynamoDBClient:
 
 
 @pytest.fixture
-def walter_db(ddb_client) -> WalterDB:
-    return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
+def secrets_manager_client() -> SecretsManagerClient:
+    with mock_aws():
+        mock_secrets_manager = boto3.client("secretsmanager", region_name=AWS_REGION)
+        mock_secrets_manager.create_secret(
+            Name=SECRETS_MANAGER_POLIGON_API_KEY_NAME,
+            SecretString=json.dumps(
+                {"POLYGON_API_KEY": SECRETS_MANAGER_POLIGON_API_KEY_VALUE}
+            ),
+        )
+        yield mock_secrets_manager
