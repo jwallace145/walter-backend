@@ -5,8 +5,8 @@ from jinja2 import BaseLoader, Environment
 
 from src.ai.models import Response
 from src.environment import Domain
-from src.s3.newsletters.client import NewslettersBucket
-from src.s3.templates.client import TemplatesBucket
+from src.newsletters.client import NewslettersBucket
+from src.templates.client import TemplatesBucket
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

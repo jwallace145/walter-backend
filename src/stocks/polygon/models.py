@@ -3,18 +3,11 @@ from datetime import datetime
 from typing import List
 
 
-@dataclass(order=True)
+@dataclass(frozen=True, order=True)
 class StockPrice:
-    sort_index: int = field(
-        init=False
-    )  # allows class to be sorted given the sort index
-
-    symbol: str
-    price: float
-    timestamp: datetime
-
-    def __post_init__(self) -> None:
-        self.sort_index = self.timestamp
+    symbol: str = field(compare=False)
+    price: float = field(compare=False)
+    timestamp: datetime = field(compare=True)
 
 
 @dataclass

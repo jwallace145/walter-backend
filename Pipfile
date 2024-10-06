@@ -29,6 +29,7 @@ isort = "*"
 moto = {extras = ["dynamodb2"], version = "*"}
 coverage = "*"
 pytest-cov = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.11"
