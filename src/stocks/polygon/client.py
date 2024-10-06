@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict
 
 from polygon import RESTClient
 from polygon.rest.models.aggs import Agg
@@ -32,10 +32,10 @@ class PolygonClient:
         self.client = RESTClient(api_key=self.api_key)
 
     def batch_get_prices(
-        self, stocks: List[UserStock], start_date: datetime, end_date: datetime
+        self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime
     ) -> Dict[str, StockPrices]:
         prices = {}
-        for stock in stocks:
+        for stock in stocks.values():
             prices[stock.stock_symbol] = self.get_prices(stock, start_date, end_date)
         return prices
 

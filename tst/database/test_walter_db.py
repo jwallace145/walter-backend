@@ -34,5 +34,5 @@ def test_get_user(walter_db: WalterDB):
 
 
 def test_get_stocks_for_user(walter_db: WalterDB):
-    assert set(WALTER_STOCKS) == set(walter_db.get_stocks_for_user(WALTER))
-    assert set(WALRUS_STOCKS) == set(walter_db.get_stocks_for_user(WALRUS))
+    assert set(WALTER_STOCKS) == set(walter_db.get_stocks_for_user(WALTER).values())
+    assert set(WALRUS_STOCKS) == set(walter_db.get_stocks_for_user(WALRUS).values())

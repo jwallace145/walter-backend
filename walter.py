@@ -12,7 +12,7 @@ from src.clients import (
     meta_llama3,
     walter_db,
 )
-from src.database.models import Portfolio
+from src.stocks.models import Portfolio
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -34,7 +34,8 @@ def lambda_handler(event, context) -> dict:
     prices = polygon.batch_get_prices(stocks, START_DATE, END_DATE)
 
     # create portfolio for user with stocks and prices
-    Portfolio(stocks, prices)
+    total_equity = Portfolio(stocks, prices).get_total_equity()
+    log.info(f"'{user.email}' portfolio total equity: {total_equity:.2f}")
 
     # get template spec with prompts
     template_spec = templates_bucket.get_template_spec()
