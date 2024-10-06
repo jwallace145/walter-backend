@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from src.database.client import WalterDDBClient
+from src.aws.dynamodb.client import WalterDDBClient
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
@@ -37,7 +37,7 @@ class UsersStocksTable:
 
     def get_stocks_for_user(self, user: User) -> List[UserStock]:
         """
-        Get the stocks owned by a user.
+        Get the stocks owned by a user and the number of shares owned.
 
         Args:
             user: The user to get the stocks.

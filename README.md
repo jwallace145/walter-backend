@@ -93,6 +93,7 @@ mkdir python \
 * [Black: The uncompromising code formatter](https://black.readthedocs.io/en/stable/)
 * [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 * [Pre-Commit](https://github.com/pre-commit/pre-commit)
+* [Codecov](https://about.codecov.io/)
 
 
 ### Links

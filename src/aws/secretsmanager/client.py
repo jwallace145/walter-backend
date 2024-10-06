@@ -11,7 +11,6 @@ log = Logger(__name__).get_logger()
 @dataclass
 class SecretsManagerClient:
     """
-
     WalterAI Secrets Manager
 
     Secrets:

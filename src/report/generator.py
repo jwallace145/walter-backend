@@ -4,7 +4,8 @@ from typing import Dict, List
 
 from src.database.stocks.models import Stock
 from src.database.users.models import User
-from src.polygon.models import StockPrice
+from src.database.userstocks.models import UserStock
+from src.stocks.polygon.models import StockPrice
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -49,7 +50,7 @@ class ReportGenerator:
 
         return prompt
 
-    def generate_report(self, user: User, stocks: List[Stock]) -> None:
+    def generate_report(self, user: User, stocks: List[Stock]) -> str:
         log.info(f"Generating report for user {user} and {len(stocks)} stocks")
 
         report = f"Generate an investments newsletter for {user.username} in a business casual fashion with jokes.\n"
@@ -75,6 +76,8 @@ class ReportGenerator:
         for stock in stock_prices:
             self.stocks[stock.symbol].append(stock)
 
-    def _extract_stocks_for_user(self, stocks: List[Stock]) -> Dict[str, StockPrice]:
-        symbols = [stock.symbol for stock in stocks]
+    def _extract_stocks_for_user(
+        self, stocks: List[UserStock]
+    ) -> Dict[str, StockPrice]:
+        symbols = [stock.stock_symbol for stock in stocks]
         return dict((symbol, self.stocks[symbol]) for symbol in symbols)

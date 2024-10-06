@@ -4,20 +4,18 @@ import boto3
 
 from src.ai.client import WalterBedrockClient
 from src.ai.meta.models import MetaLlama38B
-from src.cloudwatch.client import CloudWatchClient
-from src.database.client import WalterDDBClient
-from src.database.stocks.table import StocksTable
-from src.database.users.table import UsersTable
-from src.database.userstocks.table import UsersStocksTable
+from src.aws.cloudwatch.client import CloudWatchClient
+from src.aws.dynamodb.client import WalterDDBClient
+from src.aws.secretsmanager.client import SecretsManagerClient
+from src.aws.ses.client import SESClient
+from src.database.client import WalterDB
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
-from src.polygon.client import PolygonClient
 from src.report.generator import ReportGenerator
 from src.s3.client import WalterS3Client
 from src.s3.newsletters.client import NewslettersBucket
 from src.s3.templates.client import TemplatesBucket
-from src.secretsmanager.client import SecretsManagerClient
-from src.ses.client import SESClient
+from src.stocks.polygon.client import PolygonClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -59,13 +57,13 @@ templates_bucket = TemplatesBucket(s3, DOMAIN)
 newsletters_bucket = NewslettersBucket(s3, DOMAIN)
 
 ###################
-# DYNAMODB TABLES #
+# DATABASE CLIENT #
 ###################
 
-ddb = WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION))
-users_table = UsersTable(ddb, DOMAIN)
-stocks_table = StocksTable(ddb, DOMAIN)
-users_stocks_table = UsersStocksTable(ddb, DOMAIN)
+walter_db = WalterDB(
+    ddb=WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION)),
+    domain=DOMAIN,
+)
 
 
 #########################

@@ -1,10 +1,6 @@
+from src.database.client import WalterDB
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
-from src.database.userstocks.table import UsersStocksTable
-
-################
-# USERS STOCKS #
-################
 
 WALTER = User(email="walter@gmail.com", username="walter")
 WALRUS = User(email="walrus@gmail.com", username="walrus")
@@ -22,13 +18,12 @@ WALRUS_STOCKS = [
     UserStock(user_email=WALRUS.email, stock_symbol="NFLX", quantity=100.0),
 ]
 
-#########
-# TESTS #
-#########
+
+def test_get_user(walter_db: WalterDB):
+    assert WALTER == walter_db.get_user(WALTER.email)
+    assert WALRUS == walter_db.get_user(WALRUS.email)
 
 
-def test_get_user_stocks(users_stocks_table: UsersStocksTable) -> None:
-    walter_stocks = users_stocks_table.get_stocks_for_user(WALTER)
-    walrus_stocks = users_stocks_table.get_stocks_for_user(WALRUS)
-    assert set(walter_stocks) == set(WALTER_STOCKS)
-    assert set(walrus_stocks) == set(WALRUS_STOCKS)
+def test_get_stocks_for_user(walter_db: WalterDB):
+    assert set(WALTER_STOCKS) == set(walter_db.get_stocks_for_user(WALTER))
+    assert set(WALRUS_STOCKS) == set(walter_db.get_stocks_for_user(WALRUS))

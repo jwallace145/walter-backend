@@ -6,15 +6,13 @@ from src.clients import (
     cloudwatch,
     newsletters_bucket,
     polygon,
-    report_generator,
     ses,
     template_engine,
     templates_bucket,
-    stocks_table,
-    users_table,
-    users_stocks_table,
     meta_llama3,
+    walter_db,
 )
+from src.database.models import Portfolio
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -25,41 +23,46 @@ START_DATE = END_DATE - timedelta(days=7)
 
 def lambda_handler(event, context) -> dict:
     log.info("WalterAIBackend invoked!")
-    stocks = stocks_table.list_stocks()
 
-    prices = []
-    for stock in stocks:
-        prices.extend(polygon.get_prices(stock.symbol, START_DATE, END_DATE))
+    # get user from db
+    user = walter_db.get_user(event["user_email"])
 
-    report_generator.ingest_stocks(prices)
+    # get stocks for user from db
+    stocks = walter_db.get_stocks_for_user(user)
 
-    users = users_table.get_users()
-    for user in users:
-        stocks = users_stocks_table.get_stocks_for_user(user)
-        template_spec = templates_bucket.get_template_spec()
+    # get stock prices from api
+    prices = polygon.batch_get_prices(stocks, START_DATE, END_DATE)
 
-        # TODO: Create utility method to convert template spec parameters to prompts
-        prompts = []
-        for parameter in template_spec.parameters:
-            prompts.append(
-                Prompt(parameter.key, parameter.prompt, parameter.max_gen_len)
-            )
+    # create portfolio for user with stocks and prices
+    Portfolio(stocks, prices)
 
-        responses = meta_llama3.generate_responses(prompts)
-        email = template_engine.render_template("default", responses)
-        assets = templates_bucket.get_template_assets()
+    # get template spec with prompts
+    template_spec = templates_bucket.get_template_spec()
 
-        # if the event is a dry run, skip sending email to user and dumping to S3
-        dry_run = event["dry_run"]
-        if dry_run:
-            log.info("Dry run invocation...")
-            open("./newsletter.html", "w").write(email)
-        else:
-            ses.send_email(user.email, email, "Walter: AI Newsletter", assets)
-            newsletters_bucket.put_newsletter(user, "default", email)
+    # TODO: Create utility method to convert template spec parameters to prompts
+    prompts = []
+    for parameter in template_spec.parameters:
+        prompts.append(Prompt(parameter.key, parameter.prompt, parameter.max_gen_len))
 
-    cloudwatch.emit_metric_number_of_emails_sent(len(users))
+    # get template spec responses from llm
+    responses = meta_llama3.generate_responses(context, prompts)
+
+    # render template with responses from llm
+    email = template_engine.render_template("default", responses)
+
+    # get assets for rendered template
+    assets = templates_bucket.get_template_assets()
+
+    # if the event is a dry run, skip sending email to user and dumping to S3
+    dry_run = event["dry_run"]
+    if dry_run:
+        log.info("Dry run invocation...")
+        open("./newsletter.html", "w").write(email)
+    else:
+        ses.send_email(user.email, email, "Walter: AI Newsletter", assets)
+        newsletters_bucket.put_newsletter(user, "default", email)
+
+    cloudwatch.emit_metric_number_of_emails_sent(1)
     cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))
-    cloudwatch.emit_metric_number_of_subscribed_users(len(users))
 
     return {"statusCode": 200, "body": json.dumps("WalterAIBackend")}

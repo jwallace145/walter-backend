@@ -5,13 +5,11 @@ import pytest
 from moto import mock_aws
 from mypy_boto3_dynamodb import DynamoDBClient
 
-from src.database.client import WalterDDBClient
+from src.aws.dynamodb.client import WalterDDBClient
+from src.database.client import WalterDB
 from src.database.stocks.models import Stock
-from src.database.stocks.table import StocksTable
 from src.database.users.models import User
-from src.database.users.table import UsersTable
 from src.database.userstocks.models import UserStock
-from src.database.userstocks.table import UsersStocksTable
 from src.environment import Domain
 
 #############
@@ -21,6 +19,10 @@ from src.environment import Domain
 STOCKS_TABLE_NAME = "Stocks-unittest"
 USERS_TABLE_NAME = "Users-unittest"
 USERS_STOCKS_TABLE_NAME = "UsersStocks-unittest"
+
+STOCKS_TEST_FILE = "tst/database/data/stocks.jsonl"
+USERS_TEST_FILE = "tst/database/data/users.jsonl"
+USERS_STOCKS_TEST_FILE = "tst/database/data/usersstocks.jsonl"
 
 ###################
 # GLOBAL FIXTURES #
@@ -39,7 +41,7 @@ def ddb_client() -> DynamoDBClient:
             AttributeDefinitions=[{"AttributeName": "symbol", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
         )
-        with open("./tst/stocks.jsonl") as stocks_f:
+        with open(STOCKS_TEST_FILE) as stocks_f:
             for stock in stocks_f:
                 if not stock.strip():
                     continue
@@ -58,7 +60,7 @@ def ddb_client() -> DynamoDBClient:
             AttributeDefinitions=[{"AttributeName": "email", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
         )
-        with open("./tst/users.jsonl") as users_f:
+        with open(USERS_TEST_FILE) as users_f:
             for user in users_f:
                 if not user.strip():
                     continue
@@ -83,7 +85,7 @@ def ddb_client() -> DynamoDBClient:
             ],
             BillingMode="PAY_PER_REQUEST",
         )
-        with open("./tst/usersstocks.jsonl") as userstocks_f:
+        with open(USERS_STOCKS_TEST_FILE) as userstocks_f:
             for userstock in userstocks_f:
                 if not userstock.strip():
                     continue
@@ -101,20 +103,5 @@ def ddb_client() -> DynamoDBClient:
 
 
 @pytest.fixture
-def walter_ddb_client(ddb_client) -> WalterDDBClient:
-    return WalterDDBClient(ddb_client)
-
-
-@pytest.fixture
-def stocks_table(walter_ddb_client) -> StocksTable:
-    return StocksTable(walter_ddb_client, Domain.TESTING)
-
-
-@pytest.fixture
-def users_table(walter_ddb_client) -> UsersTable:
-    return UsersTable(walter_ddb_client, Domain.TESTING)
-
-
-@pytest.fixture
-def users_stocks_table(walter_ddb_client) -> UsersStocksTable:
-    return UsersStocksTable(walter_ddb_client, Domain.TESTING)
+def walter_db(ddb_client) -> WalterDB:
+    return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
