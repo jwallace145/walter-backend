@@ -5,14 +5,14 @@ from src.ai.models import Prompt
 from src.clients import (
     cloudwatch,
     newsletters_bucket,
-    polygon,
+    walter_stocks_api,
     ses,
     template_engine,
     templates_bucket,
     meta_llama3,
     walter_db,
+    context_generator,
 )
-from src.stocks.models import Portfolio
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -30,12 +30,11 @@ def lambda_handler(event, context) -> dict:
     # get stocks for user from db
     stocks = walter_db.get_stocks_for_user(user)
 
-    # get stock prices from api
-    prices = polygon.batch_get_prices(stocks, START_DATE, END_DATE)
+    # get portfolio with latest market data and news
+    portfolio = walter_stocks_api.get_portfolio(stocks, START_DATE, END_DATE)
 
-    # create portfolio for user with stocks and prices
-    total_equity = Portfolio(stocks, prices).get_total_equity()
-    log.info(f"'{user.email}' portfolio total equity: {total_equity:.2f}")
+    total_equity = portfolio.get_total_equity()
+    log.info(f"'{user.email}' portfolio total equity: ${total_equity:.2f}")
 
     # get template spec with prompts
     template_spec = templates_bucket.get_template_spec()
@@ -46,6 +45,7 @@ def lambda_handler(event, context) -> dict:
         prompts.append(Prompt(parameter.key, parameter.prompt, parameter.max_gen_len))
 
     # get template spec responses from llm
+    context = context_generator.get_context(user, portfolio)
     responses = meta_llama3.generate_responses(context, prompts)
 
     # render template with responses from llm
