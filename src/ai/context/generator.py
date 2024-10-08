@@ -1,11 +1,9 @@
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
 
 from src.ai.context.models import Context
-from src.database.stocks.models import Stock
 from src.database.users.models import User
-from src.database.userstocks.models import UserStock
+from src.stocks.models import Portfolio
 from src.stocks.polygon.models import StockPrice
 from src.utils.log import Logger
 
@@ -18,67 +16,17 @@ class ContextGenerator:
     stocks: Dict[str, StockPrice] = None
 
     def __post_init__(self) -> None:
-        log.debug("Creating ReportGenerator")
-        self.stocks = defaultdict(lambda: [])
+        log.debug("Creating ContextGenerator")
 
-    def get_profits(self, stocks: List[Stock]) -> str:
-        prompt = ""
+    def get_context(self, user: User, portfolio: Portfolio) -> Context:
+        log.info(f"Creating context for {user}")
 
-        for stock, prices in self._extract_stocks_for_user(stocks).items():
-            sorted_prices = sorted(prices)
-            gain = sorted_prices[-1].price - sorted_prices[0].price
+        context = f"Generate an investments newsletter for {user.username} in a business casual fashion with jokes.\n"
+        context += f"{user.username} total portfolio value is ${portfolio.get_total_equity():.2f}"
+        context += "Use the following financial data for writing the newsletter.\n"
 
-            if gain > 0:
-                prompt += f" {stock} made ${gain:.2f} in profit!"
+        for stock in portfolio.get_stocks():
+            news = portfolio.get_news(stock)
+            context += "\n".join(news.descriptions)
 
-        if prompt == "":
-            prompt += "User made no profits on any stocks."
-
-        return prompt
-
-    def get_losses(self, stocks: List[Stock]) -> None:
-        prompt = ""
-
-        for stock, prices in self._extract_stocks_for_user(stocks).items():
-            sorted_prices = sorted(prices)
-            gain = sorted_prices[-1].price - sorted_prices[0].price
-
-            if gain < 0:
-                prompt += f" {stock} lost ${-1*gain:.2f}!"
-
-        if prompt == "":
-            prompt += "User did not lose any money on any stocks"
-
-        return prompt
-
-    def get_context(self, user: User, stocks: List[Stock]) -> Context:
-        log.info(f"Generating report for user {user} and {len(stocks)} stocks")
-
-        report = f"Generate an investments newsletter for {user.username} in a business casual fashion with jokes.\n"
-        report += "Use the following financial data for writing the newsletter.\n"
-
-        total_gain = 0
-        for stock, prices in self._extract_stocks_for_user(stocks).items():
-            sorted_prices = sorted(prices)
-            gain = sorted_prices[-1].price - sorted_prices[0].price
-            if gain > 0:
-                report += f"{user.username} made ${gain:.2f} on stock {stock}.\n"
-            elif gain < 0:
-                report += f"{user.username} lost -${-1*gain:.2f} on stock {stock}.\n"
-            else:
-                report += f"{user.username} made no money on stock {stock}.\n"
-            total_gain += gain
-        report += f"{user.username} made a total profit of ${total_gain:.2f}!"
-
-        return report
-
-    def ingest_stocks(self, stock_prices: List[StockPrice]) -> None:
-        log.info("Ingesting stock data")
-        for stock in stock_prices:
-            self.stocks[stock.symbol].append(stock)
-
-    def _extract_stocks_for_user(
-        self, stocks: List[UserStock]
-    ) -> Dict[str, StockPrice]:
-        symbols = [stock.stock_symbol for stock in stocks]
-        return dict((symbol, self.stocks[symbol]) for symbol in symbols)
+        return Context(context)

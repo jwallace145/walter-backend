@@ -14,6 +14,7 @@ from src.jinja.client import TemplateEngine
 from src.ai.context.generator import ContextGenerator
 from src.aws.s3.client import WalterS3Client
 from src.newsletters.client import NewslettersBucket
+from src.stocks.client import WalterStocksAPI
 from src.templates.client import TemplatesBucket
 from src.stocks.polygon.client import PolygonClient
 from src.utils.log import Logger
@@ -76,11 +77,13 @@ template_engine = TemplateEngine(
     domain=DOMAIN,
 )
 
-##################
-# POLYGON CLIENT #
-##################
+#####################
+# WALTER STOCKS API #
+#####################
 
-polygon = PolygonClient(api_key=secretsmanager.get_polygon_api_key())
+walter_stocks_api = WalterStocksAPI(
+    client=PolygonClient(api_key=secretsmanager.get_polygon_api_key())
+)
 
 ##############
 # LLM MODELS #

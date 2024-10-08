@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from src.database.userstocks.models import UserStock
-from src.stocks.polygon.models import StockPrices
+from src.stocks.polygon.models import StockPrices, StockNews
 
 
 @dataclass
@@ -10,6 +10,7 @@ class Portfolio:
 
     stocks: Dict[str, UserStock]  # indexed by stock symbol
     prices: Dict[str, StockPrices]  # indexed by stock symbol
+    news: Dict[str, StockNews]  # indexed by stock symbol
 
     def get_stocks(self) -> List[str]:
         return self.stocks.keys()
@@ -30,3 +31,6 @@ class Portfolio:
         for stock in self.stocks.keys():
             equity += self.get_equity(stock)
         return equity
+
+    def get_news(self, symbol: str) -> str:
+        return self.news[symbol]

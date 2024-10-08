@@ -17,3 +17,9 @@ class StockPrices:
 
     def get_latest_price(self) -> float:
         return self.prices[-1].price
+
+
+@dataclass(frozen=True)
+class StockNews:
+    symbol: str
+    descriptions: List[str]
