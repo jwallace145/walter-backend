@@ -82,7 +82,7 @@ template_engine = TemplateEngine(
 #####################
 
 walter_stocks_api = WalterStocksAPI(
-    polygon=PolygonClient(api_key=secretsmanager.get_polygon_api_key())
+    client=PolygonClient(api_key=secretsmanager.get_polygon_api_key())
 )
 
 ##############
