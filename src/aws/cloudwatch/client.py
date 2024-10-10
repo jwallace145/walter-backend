@@ -32,7 +32,9 @@ class WalterCloudWatchClient:
         log.debug(
             f"Creating '{self.domain.value}' CloudWatch client in region '{self.client.meta.region_name}'"
         )
-        self.metric_namespace = CloudWatchClient._get_metric_namespace(self.domain)
+        self.metric_namespace = WalterCloudWatchClient._get_metric_namespace(
+            self.domain
+        )
 
     def emit_metric_number_of_emails_sent(self, num_emails: int) -> None:
         self.client.put_metric_data(

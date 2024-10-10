@@ -15,6 +15,7 @@ class Event:
         return json.dumps(
             {
                 "email": self.email,
+                "dry_run": self.dry_run,
             },
             indent=4,
         )
@@ -25,4 +26,9 @@ def parse_event(event: dict) -> Event:
     if len(records) != 1:
         raise ValueError("More than a single message found in an SQS batch!")
 
-    return Event(email=json.loads(records[0]["body"])["email"])
+    body = json.loads(records[0]["body"])
+    event = Event(email=body["email"], dry_run=body["dry_run"])
+
+    log.info(f"Parsed event: {event}")
+
+    return event
