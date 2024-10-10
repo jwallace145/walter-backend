@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6a436f08bad1ac67d6ebd5bfa7ec460a7aec29532fff96ef4ab43b3687cacc6c"
+            "sha256": "31e004a70b1106b727498f333540678838db052d0eb062f48b3520ee68082fe5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -222,6 +222,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==1.35.3"
+        },
+        "mypy-boto3-sqs": {
+            "hashes": [
+                "sha256:61752f1c2bf2efa3815f64d43c25b4a39dbdbd9e472ae48aa18d7c6d2a7a6eb8",
+                "sha256:9fd6e622ed231c06f7542ba6f8f0eea92046cace24defa95d0d0ce04e7caee0c"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==1.35.0"
         },
         "polygon-api-client": {
             "hashes": [

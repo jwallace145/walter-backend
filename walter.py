@@ -7,6 +7,7 @@ from src.clients import (
     newsletters_bucket,
     walter_stocks_api,
     ses,
+    sqs,
     template_engine,
     templates_bucket,
     meta_llama3,
@@ -67,5 +68,7 @@ def lambda_handler(event, context) -> dict:
 
     cloudwatch.emit_metric_number_of_emails_sent(1)
     cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))
+
+    sqs.delete_event(event.receipt_handle)
 
     return {"statusCode": 200, "body": json.dumps("WalterAIBackend")}

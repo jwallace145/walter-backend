@@ -10,6 +10,7 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
+from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
@@ -45,6 +46,7 @@ cloudwatch = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
 ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
+sqs = WalterSQSClient(client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN)
 
 ##############
 # S3 BUCKETS #
