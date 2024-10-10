@@ -58,8 +58,7 @@ def lambda_handler(event, context) -> dict:
     assets = templates_bucket.get_template_assets()
 
     # if the event is a dry run, skip sending email to user and dumping to S3
-    dry_run = event["dry_run"]
-    if dry_run:
+    if event.dry_run:
         log.info("Dry run invocation...")
         open("./newsletter.html", "w").write(email)
     else:

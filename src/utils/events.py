@@ -9,6 +9,7 @@ log = Logger(__name__).get_logger()
 @dataclass
 class Event:
     email: str
+    dry_run: bool = True
 
     def __str__(self) -> str:
         return json.dumps(
