@@ -59,7 +59,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:18"
+              - "WalterAILambdaLayer:19g"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
@@ -433,4 +433,4 @@ Resources:
     Properties:
       QueueName: !Sub "NewsletterQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 60
+      VisibilityTimeout: 3600

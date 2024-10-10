@@ -18,6 +18,7 @@ mypy-boto3-cloudformation = "*"
 mypy-boto3-lambda = "*"
 jinja2 = "*"
 pyyaml = "*"
+mypy-boto3-sqs = "*"
 
 [dev-packages]
 black = "*"
