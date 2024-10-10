@@ -43,5 +43,5 @@ class WalterSQSClient:
         return WalterSQSClient.QUEUE_URL_FORMAT.format(
             region=self.client.meta.region_name,
             account_id=ACCOUNT_ID,
-            domain=self.domain,
+            domain=self.domain.value,
         )
