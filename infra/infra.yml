@@ -24,6 +24,14 @@ Resources:
       FunctionVersion: $LATEST
       Name: !Sub "WalterAIBackend-${AppEnvironment}"
 
+  WalterAIBackendFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      EventSourceArn: !GetAtt NewsletterQueue.Arn
+      FunctionName: !GetAtt WalterAIBackendFunction.Arn
+      Enabled: "True"
+
   WalterAIBackendFunction:
       Type: AWS::Lambda::Function
       Properties:
@@ -55,27 +63,6 @@ Resources:
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
-
-  WalterDailyScheduler:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: !Sub "WalterAIBackendScheduler-${AppEnvironment}"
-      ScheduleExpression: cron(0 9 * * ? *)
-      State: ENABLED
-      Targets:
-        - Id: !Sub "WalterAIBackendScheduler-${AppEnvironment}"
-          Arn: !Join
-            - ""
-            - - "arn:aws:lambda:"
-              - !Ref "AWS::Region"
-              - ":"
-              - !Ref "AWS::AccountId"
-              - ":function:"
-              - !Ref WalterAIBackendFunction
-          Input: |-
-            {
-              "body": {}
-            }
 
   ################
   ### DYNAMODB ###
@@ -192,6 +179,22 @@ Resources:
       Roles:
         - !Ref WalterLambdaRole
 
+  NewslettersQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "NewsletterQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt NewsletterQueue.Arn
+      Roles:
+        - !Ref WalterLambdaRole
+
   SecretsManagerAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -235,17 +238,17 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "database:BatchGet*"
-              - "database:Get*"
-              - "database:Query"
-              - "database:Scan"
-              - "database:BatchWrite*"
-              - "database:Delete*"
-              - "database:Update*"
-              - "database:PutItem"
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
             Resource: !Join
               - ""
-              - - "arn:aws:database:"
+              - - "arn:aws:dynamodb:"
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
@@ -288,17 +291,17 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "database:BatchGet*"
-              - "database:Get*"
-              - "database:Query"
-              - "database:Scan"
-              - "database:BatchWrite*"
-              - "database:Delete*"
-              - "database:Update*"
-              - "database:PutItem"
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
             Resource: !Join
               - ""
-              - - "arn:aws:database:"
+              - - "arn:aws:dynamodb:"
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
@@ -316,17 +319,17 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "database:BatchGet*"
-              - "database:Get*"
-              - "database:Query"
-              - "database:Scan"
-              - "database:BatchWrite*"
-              - "database:Delete*"
-              - "database:Update*"
-              - "database:PutItem"
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
             Resource: !Join
               - ""
-              - - "arn:aws:database:"
+              - - "arn:aws:dynamodb:"
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
@@ -420,3 +423,14 @@ Resources:
                   - !Ref "AWS::AccountId"
                   - ":role/"
                   - !Ref WalterLambdaRole
+
+  ###########
+  ### SQS ###
+  ###########
+
+  NewsletterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "NewsletterQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 60
