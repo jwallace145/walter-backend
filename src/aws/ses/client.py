@@ -14,7 +14,7 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class SESClient:
+class WalterSESClient:
     """
     Simple Email Service (SES) Client
 

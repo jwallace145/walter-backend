@@ -8,7 +8,7 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class CloudWatchClient:
+class WalterCloudWatchClient:
     """
     WalterAI CloudWatch Client
 

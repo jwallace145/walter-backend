@@ -88,6 +88,16 @@ mkdir python \
 && rm -rf requirements.txt
 ```
 
+#### SQS
+
+Use the following command to publish a message to the Newsletters Queue to invoke Walter to generate and send an email to the given user.
+
+```
+aws sqs send-message \
+  --queue-url="https://sqs.${AWS_REGION}.amazonaws.com/${AWS_ACCOUNT_ID}/NewsletterQueue-${DOMAIN}" \
+  --message-body '{"email": "walteraifinancialadvisor@gmail.com"}'
+```
+
 ### Contributions
 
 * [Black: The uncompromising code formatter](https://black.readthedocs.io/en/stable/)

@@ -13,6 +13,7 @@ from src.clients import (
     walter_db,
     context_generator,
 )
+from src.utils.events import parse_event
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -24,8 +25,10 @@ START_DATE = END_DATE - timedelta(days=7)
 def lambda_handler(event, context) -> dict:
     log.info("WalterAIBackend invoked!")
 
+    event = parse_event(event)
+
     # get user from db
-    user = walter_db.get_user(event["user_email"])
+    user = walter_db.get_user(event.email)
 
     # get stocks for user from db
     stocks = walter_db.get_stocks_for_user(user)

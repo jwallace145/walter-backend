@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class Domain(Enum):
-
     TESTING = "unittest"
     DEVELOPMENT = "dev"
     STAGING = "preprod"
