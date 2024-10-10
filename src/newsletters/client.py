@@ -47,7 +47,6 @@ class NewslettersBucket:
         log.info("Dumping newsletter to S3")
         key = NewslettersBucket._get_newsletter_key(user, template)
         self.client.put_object(self.bucket, key, contents)
-        open("test.html", "w").write(contents)
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:
