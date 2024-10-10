@@ -41,7 +41,7 @@ class WalterCloudWatchClient:
             Namespace=self.metric_namespace,
             MetricData=[
                 {
-                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_EMAILS_SENT,
+                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_EMAILS_SENT,
                     "Unit": "Count",
                     "Value": num_emails,
                 }
@@ -53,7 +53,7 @@ class WalterCloudWatchClient:
             Namespace=self.metric_namespace,
             MetricData=[
                 {
-                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED,
+                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED,
                     "Unit": "Count",
                     "Value": num_stocks,
                 }
@@ -65,7 +65,7 @@ class WalterCloudWatchClient:
             Namespace=self.metric_namespace,
             MetricData=[
                 {
-                    "MetricName": CloudWatchClient.METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS,
+                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS,
                     "Unit": "Count",
                     "Value": num_users,
                 }
@@ -74,4 +74,4 @@ class WalterCloudWatchClient:
 
     @staticmethod
     def _get_metric_namespace(domain: Domain) -> str:
-        return CloudWatchClient.METRIC_NAMESPACE.format(domain=domain.value)
+        return WalterCloudWatchClient.METRIC_NAMESPACE.format(domain=domain.value)
