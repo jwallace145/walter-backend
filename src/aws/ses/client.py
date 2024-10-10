@@ -53,14 +53,16 @@ class WalterSESClient:
             assets (Dict[str, StringIO]): The assets referenced by the HTML body.
         """
         log.info(
-            f"Sending email to recipient '{recipient}' from sender '{SESClient.SENDER}'"
+            f"Sending email to recipient '{recipient}' from sender '{WalterSESClient.SENDER}'"
         )
         try:
             self.client.send_raw_email(
-                Source=SESClient.SENDER,
+                Source=WalterSESClient.SENDER,
                 Destinations=[recipient],
                 RawMessage={
-                    "Data": SESClient._create_email(recipient, subject, body, assets),
+                    "Data": WalterSESClient._create_email(
+                        recipient, subject, body, assets
+                    ),
                 },
             )
             log.info(f"Successfully sent email to recipient '{recipient}'")
@@ -94,13 +96,15 @@ class WalterSESClient:
         email = MIMEMultipart("mixed")
 
         # add sending information
-        email["From"] = SESClient.SENDER
+        email["From"] = WalterSESClient.SENDER
         email["To"] = recipient
         email["Subject"] = subject
 
         # add html body
         email_body = MIMEMultipart("alternative")
-        html_body = MIMEText(body.encode(SESClient.CHARSET), "html", SESClient.CHARSET)
+        html_body = MIMEText(
+            body.encode(WalterSESClient.CHARSET), "html", WalterSESClient.CHARSET
+        )
         email_body.attach(html_body)
         email.attach(email_body)
 
