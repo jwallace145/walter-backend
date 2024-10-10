@@ -95,7 +95,7 @@ Use the following command to publish a message to the Newsletters Queue to invok
 ```
 aws sqs send-message \
   --queue-url="https://sqs.${AWS_REGION}.amazonaws.com/${AWS_ACCOUNT_ID}/NewsletterQueue-${DOMAIN}" \
-  --message-body '{"email": "walteraifinancialadvisor@gmail.com"}'
+  --message-body '{"email": "walteraifinancialadvisor@gmail.com", "dry_run": "true"}'
 ```
 
 ### Contributions
