@@ -16,7 +16,7 @@ class WalterStocksAPI:
     client: PolygonClient
 
     def __post_init__(self) -> None:
-        log.info("Creating WalterStocksAPI")
+        log.debug("Creating WalterStocksAPI")
 
     def get_portfolio(
         self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime

@@ -2,15 +2,16 @@ import os
 
 import boto3
 
-from src.ai.client import WalterBedrockClient
+from src.ai.client import WalterAI
 from src.ai.context.generator import ContextGenerator
-from src.ai.meta.models import MetaLlama38B
+from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
 from src.aws.sqs.client import WalterSQSClient
+from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
@@ -38,10 +39,6 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 # WALTER BOTO3 CLIENTS #
 ########################
 
-bedrock = WalterBedrockClient(
-    bedrock=boto3.client("bedrock", region_name=AWS_REGION),
-    bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
-)
 cloudwatch = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
@@ -88,11 +85,17 @@ template_engine = TemplateEngine(
     domain=DOMAIN,
 )
 
-##############
-# LLM MODELS #
-##############
+#############
+# WALTER AI #
+#############
 
-meta_llama3 = MetaLlama38B(model=bedrock)
+walter_ai = WalterAI(
+    model=CONFIG.model_id,
+    client=WalterBedrockClient(
+        bedrock=boto3.client("bedrock", region_name=AWS_REGION),
+        bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
+    ),
+)
 
 #####################
 # CONTEXT GENERATOR #

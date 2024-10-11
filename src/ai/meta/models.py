@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import List
 
-from src.ai.client import WalterBedrockClient
+from src.aws.bedrock.client import WalterBedrockClient
 from src.ai.models import Prompt, Response
 from src.utils.log import Logger
 
@@ -21,7 +21,7 @@ class MetaLlama38B:
 
     MODEL_ID = "meta.llama3-70b-instruct-v1:0"
 
-    model: WalterBedrockClient
+    client: WalterBedrockClient
 
     temperature: float = 0.5
     top_p: float = 0.9
@@ -40,15 +40,15 @@ class MetaLlama38B:
             The responses to the list of prompts.
         """
         log.info(f"Generating responses for {len(prompts)} prompts")
-        return [
-            Response(
-                prompt.name,
-                self.model.generate_response(
-                    MetaLlama38B.MODEL_ID, self._get_body(context, prompt)
-                ),
-            )
-            for prompt in prompts
-        ]
+
+        responses = []
+        for prompt in prompts:
+            body = self._get_body(context, prompt)
+            log.debug(f"Prompt body:\n{body}")
+            response = self.client.generate_response(self.MODEL_ID, body)
+            log.debug(f"Response:\n{response}")
+            responses.append(Response(prompt.name, response))
+        return responses
 
     def _get_body(self, context: str, prompt: Prompt) -> str:
         return json.dumps(
@@ -57,5 +57,6 @@ class MetaLlama38B:
                 "temperature": self.temperature,
                 "top_p": self.top_p,
                 "max_gen_len": prompt.max_gen_len,
-            }
+            },
+            indent=4,
         )

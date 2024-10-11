@@ -12,7 +12,7 @@ LOG_FILE = os.getenv("LOGS_WORKING_DIR", "./") + "logs.log"
 class Logger:
 
     name: str
-    log_level: str = os.getenv("LOG_LEVEL", "DEBUG")
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
     formatter: Formatter = Formatter(
         "%(asctime)s :: %(levelname)s :: %(name)s :: %(message)s"
     )
