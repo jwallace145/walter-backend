@@ -1,0 +1,9 @@
+walter_config:
+  model_id: "meta.llama3-70b-instruct-v1:0"
+  temperature: 0.5
+  top_p: 0.9
+  generate_responses: false
+  newsletter_template: "default"
+  send_newsletter: false
+  dump_newsletter: false
+  emit_metrics: false

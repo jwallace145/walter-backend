@@ -65,5 +65,6 @@ class TemplateEngine:
     def _convert_responses_to_dict(responses: List[Response]) -> Dict[str, str]:
         responses_dict = {}
         for response in responses:
+            print(response)
             responses_dict[response.name] = response.response
         return responses_dict

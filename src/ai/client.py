@@ -1,55 +1,35 @@
-import json
 from dataclasses import dataclass
+from typing import List
 
-from mypy_boto3_bedrock import BedrockClient
-from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
-
+from src.ai.context.models import Context
+from src.ai.meta.models import MetaLlama38B
+from src.ai.models import Prompt, Response, get_model, Model
+from src.aws.bedrock.client import WalterBedrockClient
+from src.config import CONFIG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 @dataclass
-class WalterBedrockClient:
-    """
-    Walter Bedrock Client
+class WalterAI:
 
-    This class is a wrapper around the Boto3 Bedrock client and is responsible
-    for submitting prompts and returning responses from a foundation model in
-    single or batch calls.
-
-    Model IDs: https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
-    """
-
-    bedrock: BedrockClient
-    bedrock_runtime: BedrockRuntimeClient
+    model: str
+    client: WalterBedrockClient
 
     def __post_init__(self) -> None:
-        log.debug(
-            f"Creating Bedrock client in region '{self.bedrock.meta.region_name}'"
-        )
+        log.debug("Creating WalterAI")
 
-    def generate_response(self, model_id: str, body: str) -> str:
-        """
-        Invoke the model and get a response for a single prompt.
+    def generate_responses(
+        self, context: Context, prompts: List[Prompt]
+    ) -> List[Response]:
+        return self._get_model().generate_responses(context.context, prompts)
 
-        Args:
-            model_id: The foundation model to invoke.
-            body: The body of inference parameters and prompt to invoke the model.
+    def _get_model(self) -> MetaLlama38B:
+        model = get_model(self.model)
+        log.info(f"Getting model: '{model.name}'")
 
-        Returns:
-            The generated response from the given model.
-        """
-        try:
-            log.info(f"Generating response with model '{model_id}'")
-            response = self.bedrock_runtime.invoke_model(
-                modelId=model_id,
-                body=body,
-            )
-            model_response = json.loads(response["body"].read())
-            return model_response["generation"]
-        except Exception as exception:
-            log.error(
-                "Unexpected error occurred attempting to generate response for prompt!",
-                exception,
+        if model == Model.META_LLAMA3_70B:
+            return MetaLlama38B(
+                client=self.client, temperature=CONFIG.temperature, top_p=CONFIG.top_p
             )
