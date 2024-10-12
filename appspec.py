@@ -30,8 +30,16 @@ Resources:
       Properties:
         Name: "WalterAIBackend-{domain}"
         Alias: "WalterAIBackend-{domain}"
-        CurrentVersion: "{current_version}"
-        TargetVersion: "{target_version}"
+        CurrentVersion: "{current_walter_backend__version}"
+        TargetVersion: "{target_walter_backend_version}"
+
+  - MyFunction:
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: "WalterAPI-{domain}"
+        Alias: "WalterAPI-{domain}"
+        CurrentVersion: "{current_walter_api_version}"
+        TargetVersion: "{target_walter_api_version}"
 """
 
 #############
@@ -42,33 +50,46 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 
 REGION = os.getenv("AWS_REGION", "us-east-1")
 
-LAMBDA_NAME = f"WalterAIBackend-{DOMAIN.value}"
+WALTER_BACKEND_LAMBDA_NAME = f"WalterAIBackend-{DOMAIN.value}"
 
-LAMBDA_ALIAS = f"WalterAIBackend-{DOMAIN.value}"
+WALTER_BACKEND_LAMBDA_ALIAS = f"WalterAIBackend-{DOMAIN.value}"
+
+WALTER_API_LAMBDA_NAME = f"WalterAPI-{DOMAIN.value}"
+
+WALTER_API_LAMBDA_ALIAS = f"WalterAPI-{DOMAIN.value}"
 
 ###########
 # METHODS #
 ###########
 
 
-def get_current_version(lambda_client: LambdaClient) -> str:
-    return lambda_client.get_alias(FunctionName=LAMBDA_NAME, Name=LAMBDA_ALIAS)[
+def get_current_version(
+    lambda_client: LambdaClient, lambda_name: str, lambda_alias: str
+) -> str:
+    return lambda_client.get_alias(FunctionName=lambda_name, Name=lambda_alias)[
         "FunctionVersion"
     ]
 
 
-def get_target_version(lambda_client: LambdaClient) -> str:
-    return lambda_client.list_versions_by_function(FunctionName=LAMBDA_NAME)[
+def get_target_version(lambda_client: LambdaClient, lambda_name: str) -> str:
+    return lambda_client.list_versions_by_function(FunctionName=lambda_name)[
         "Versions"
     ][-1]["Version"]
 
 
-def create_appspec(current_version: str, target_version: str) -> None:
+def create_appspec(
+    current_walter_backend_version: str,
+    target_walter_backend_version: str,
+    current_walter_api_version: str,
+    target_walter_api_version: str,
+) -> None:
     with open(APPSPEC_FILE_NAME, "w") as appspec:
         appspec.write(
             APPSPEC_TEMPLATE.format(
-                current_version=current_version,
-                target_version=target_version,
+                current_walter_backend_version=current_walter_backend_version,
+                target_walter_backend_version=target_walter_backend_version,
+                current_walter_api_version=current_walter_api_version,
+                target_walter_api_version=target_walter_api_version,
                 domain=DOMAIN.value,
             )
         )
@@ -80,7 +101,21 @@ def create_appspec(current_version: str, target_version: str) -> None:
 
 lambda_client: LambdaClient = boto3.client("lambda", region_name=REGION)
 
-current_version = get_current_version(lambda_client)
-target_version = get_target_version(lambda_client)
+current_walter_backend_version = get_current_version(
+    lambda_client, WALTER_BACKEND_LAMBDA_NAME, WALTER_BACKEND_LAMBDA_ALIAS
+)
+target_walter_backend_version = get_target_version(
+    lambda_client, WALTER_BACKEND_LAMBDA_NAME
+)
 
-create_appspec(current_version, target_version)
+current_walter_api_version = get_current_version(
+    lambda_client, WALTER_API_LAMBDA_NAME, WALTER_API_LAMBDA_ALIAS
+)
+target_walter_api_version = get_target_version(lambda_client, WALTER_API_LAMBDA_NAME)
+
+create_appspec(
+    current_walter_backend_version,
+    target_walter_backend_version,
+    current_walter_api_version,
+    target_walter_api_version,
+)

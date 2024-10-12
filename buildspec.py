@@ -102,13 +102,19 @@ def delete_change_set(client: CloudFormationClient) -> None:
 
 cloudformation = boto3.client("cloudformation", region_name=REGION)
 
+print(f"Checking if stack '{STACK_NAME}' exists...")
 if stack_exists(cloudformation):
+    print(f"Stack '{STACK_NAME}' exists! Creating change set...")
     create_change_set(cloudformation)
     status = describe_change_set(cloudformation)
+    print(f"Change set status: {status}")
 
     if change_set_contains_changes(status):
+        print("Change set contains changes! Executing change set...")
         execute_change_set(cloudformation)
 
+    print("Deleting change set...")
     delete_change_set(cloudformation)
 else:
+    print(f"Stack '{STACK_NAME}' does not exist! Creating stack...")
     create_stack(cloudformation)

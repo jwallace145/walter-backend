@@ -28,8 +28,17 @@ class WalterDB:
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
 
+    def create_user(self, user: User) -> None:
+        self.users_table.create_user(user)
+
     def get_user(self, email: str) -> User:
         return self.users_table.get_user(email)
+
+    def update_user(self, user: User) -> None:
+        self.users_table.update_user(user)
+
+    def delete_user(self, email: str) -> None:
+        self.users_table.delete_user(email)
 
     def get_stocks_for_user(self, user: User) -> Dict[str, UserStock]:
         stocks = self.users_stocks_table.get_stocks_for_user(user)
