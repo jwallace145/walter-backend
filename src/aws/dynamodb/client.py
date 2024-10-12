@@ -110,3 +110,23 @@ class WalterDDBClient:
                 f"Unexpected error occurred attempting to scan table '{table}'!\n"
                 f"Error: {error.response['Error']['Message']}"
             )
+
+    def delete_item(self, table: str, key: dict) -> None:
+        """
+        Delete an item, if it exists, from the DDB table given its primary key.
+
+        Args:
+            table: The name of the DDB table to delete the item.
+            key: The primary key of the item to delete.
+
+        Returns:
+            None
+        """
+        log.debug(f"Deleting item from table '{table}' with key:\n{key}")
+        try:
+            self.client.delete_item(TableName=table, Key=key)
+        except ClientError as error:
+            log.error(
+                f"Unexpected error occurred attempting to delete item from table '{table}'!\n"
+                f"Error: {error.response['Error']['Message']}"
+            )

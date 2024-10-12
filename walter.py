@@ -69,8 +69,9 @@ def lambda_handler(event, context) -> dict:
             cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))
         else:
             log.info("Not emitting metrics")
+
     except Exception:
         sqs.delete_event(event.receipt_handle)
     sqs.delete_event(event.receipt_handle)
 
-    return {"statusCode": 200, "body": json.dumps("WalterAIBackend")}
+    return {"statusCode": 200, "body": json.dumps("WalterBackend")}

@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "WalterAIBackend Infrastructure"
+Description: "Walter backend Infrastructure"
 
 Parameters:
   AppEnvironment:
     Type: String
-    Description: The environment of the WalterAIBackend stack
+    Description: The environment of the Walter backend stack
     Default: dev
     AllowedValues:
       - dev
@@ -17,26 +17,33 @@ Resources:
   ### LAMBDA ###
   ##############
 
-  WalterAIBackendFunctionAlias:
+  WalterBackendFunctionAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAIBackendFunction
+      FunctionName: !Ref WalterBackendFunction
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAIBackend-${AppEnvironment}"
+      Name: !Sub "WalterBackend-${AppEnvironment}"
 
-  WalterAIBackendFunctionEventSourceMapping:
+  WalterAPIFunctionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIFunction
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-${AppEnvironment}"
+
+  WalterBackendFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       BatchSize: 1
       EventSourceArn: !GetAtt NewsletterQueue.Arn
-      FunctionName: !GetAtt WalterAIBackendFunction.Arn
+      FunctionName: !GetAtt WalterBackendFunction.Arn
       Enabled: "True"
 
-  WalterAIBackendFunction:
+  WalterBackendFunction:
       Type: AWS::Lambda::Function
       Properties:
-        FunctionName: !Sub "WalterAIBackend-${AppEnvironment}"
-        Description: !Sub "WalterAIBackend Lambda (${AppEnvironment})"
+        FunctionName: !Sub "WalterBackend-${AppEnvironment}"
+        Description: !Sub "WalterBackend Lambda (${AppEnvironment})"
         Handler: walter.lambda_handler
         Role: !Join
           - ""
@@ -45,8 +52,8 @@ Resources:
             - ":role/"
             - !Ref WalterLambdaRole
         Code:
-          S3Bucket: walterai-backend-src
-          S3Key: walterai-backend.zip
+          S3Bucket: walter-backend-src
+          S3Key: walter-backend.zip
         Timeout: 60
         Runtime: python3.11
         Architectures:
@@ -59,10 +66,42 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:19"
+              - "WalterAILambdaLayer:20"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
+
+  WalterAPIFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-${AppEnvironment}"
+      Description: !Sub "WalterAPI Lambda (${AppEnvironment})"
+      Handler: api.lambda_handler
+      Role: !Join
+        - ""
+        - - "arn:aws:iam::"
+          - !Ref "AWS::AccountId"
+          - ":role/"
+          - !Ref WalterLambdaRole
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:20"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
 
   ################
   ### DYNAMODB ###
@@ -115,8 +154,8 @@ Resources:
   WalterLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "WalterAILambaExecutionRole-${AppEnvironment}"
-      Description: "Walter AI Lambda execution role"
+      RoleName: !Sub "WalterLambaExecutionRole-${AppEnvironment}"
+      Description: "Walter Lambda execution role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -344,6 +383,7 @@ Resources:
 
   NewslettersBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
       BucketName: !Sub "walterai-newsletters-${AppEnvironment}"
       BucketEncryption:
@@ -378,6 +418,7 @@ Resources:
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
       BucketName: !Sub "walterai-templates-${AppEnvironment}"
       BucketEncryption:

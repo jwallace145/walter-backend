@@ -26,11 +26,26 @@ class UsersTable:
         self.table = UsersTable._get_table_name(self.domain)
         log.debug(f"Creating UsersTable DDB client with table name '{self.table}'")
 
+    def create_user(self, user: User) -> None:
+        log.info(
+            f"Creating the following user and adding to table '{self.table}':\n{user}"
+        )
+        item = user.to_ddb_item()
+        self.ddb.put_item(self.table, item)
+
     def get_user(self, email: str) -> User:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         key = UsersTable._get_user_key(email)
         item = self.ddb.get_item(self.table, key)
         return UsersTable._get_user_from_ddb_item(item)
+
+    def update_user(self, user: User) -> None:
+        log.info(f"Updating user with email '{user.email}'")
+        self.ddb.put_item(self.table, user.to_ddb_item())
+
+    def delete_user(self, email: str) -> None:
+        log.info(f"Deleting user with email '{email}'")
+        self.ddb.delete_item(self.table, UsersTable._get_user_key(email))
 
     def get_users(self) -> List[User]:
         log.info(f"Getting users from table '{self.table}'")
