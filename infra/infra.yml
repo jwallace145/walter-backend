@@ -21,30 +21,117 @@ Parameters:
 
 Resources:
 
+  ###################
+  ### API GATEWAY ###
+  ###################
+
+  WalterAPIGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub "WalterAPI-${AppEnvironment}"
+      Description: "API Gateway for WalterAPI"
+
+  WalterAPIUsers:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: users
+
+  WalterAPICreateUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIUsers
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateUser.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPICreateUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPICreateUser
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIStocks:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: stocks
+
+  WalterAPIAddStockMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIStocks
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAddStock.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIAddStockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIAddStock
+      Principal: apigateway.amazonaws.com
+
+  WalterAPISendNewsletterPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPISendNewsletter
+      Principal: apigateway.amazonaws.com
+
+  WalterAPINewsletters:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: newsletters
+
+  WalterAPISendNewsletterMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPINewsletters
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISendNewsletter.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   ##############
   ### LAMBDA ###
   ##############
 
-  WalterAPIAlias:
+  WalterAPICreateUserAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPI
+      FunctionName: !Ref WalterAPICreateUser
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-${AppEnvironment}"
+      Name: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
 
-  WalterBackendAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterBackend
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterBackend-${AppEnvironment}"
-
-  WalterAPI:
+  WalterAPICreateUser:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-${AppEnvironment}"
-      Description: !Sub "WalterAPI function to interact with WalterDB and WalterBackend (${AppEnvironment})"
-      Handler: api.lambda_handler
+      FunctionName: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
+      Description: !Sub "WalterAPI: CreateUser - create user and add to database (${AppEnvironment})"
+      Handler: api.create_user
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -65,6 +152,81 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+
+  WalterAPIAddStockAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIAddStock
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-AddStock-${AppEnvironment}"
+
+  WalterAPIAddStock:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-AddStock-${AppEnvironment}"
+      Description: !Sub "WalterAPI: AddStock - Add stock and number of shares to user portfolio (${AppEnvironment})"
+      Handler: api.add_stock
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:20"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPISendNewsletterAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPISendNewsletter
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
+
+  WalterAPISendNewsletter:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
+      Description: !Sub "WalterAPI: SendNewsletter - generate and send a newsletter to the given user (${AppEnvironment})"
+      Handler: api.send_newsletter
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:20"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterBackendAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterBackend
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterBackend-${AppEnvironment}"
 
   WalterBackend:
       Type: AWS::Lambda::Function
@@ -242,8 +404,10 @@ Resources:
               - "sqs:ReceiveMessage"
               - "sqs:DeleteMessage"
               - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
             Resource: !GetAtt NewslettersQueue.Arn
       Roles:
+        - !Ref WalterAPIRole
         - !Ref WalterBackendRole
 
   SecretsManagerAccessPolicy:
@@ -442,3 +606,15 @@ Resources:
       QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
       VisibilityTimeout: 3600
+
+###############
+### OUTPUTS ###
+###############
+
+Outputs:
+  WalterAPICreateUserEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
+  WalterAPIAddStockEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
+  WalterAPISendNewsletterEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/newsletters"

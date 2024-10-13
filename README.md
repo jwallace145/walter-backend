@@ -91,17 +91,25 @@ mkdir python \
 Use the following command to update the Walter backend code for `WalterAPI` and `WalterBackend` from the latest artifacts in S3.
 
 ```bash
-echo Updating WalterAPI source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+echo Updating WalterAPI CreateUser source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-CreateUser-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterAPI AddStock source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-AddStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterAPI SendNewsletter source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-SendNewsletter-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterBackend source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterBackend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
 ```
 
-Use the following command to publish new versions for the `WalterAPI` and `WalterBackend` lambda functions. 
+Use the following command to publish new versions for the Walter Lambda functions.
 
 ```bash
-echo Publishing new WalterAPI Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-dev \
+echo Publishing new WalterAPI CreateUser Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-CreateUser-dev \
+echo Publishing new WalterAPI AddStock Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-AddStock-dev \
+echo Publishing new WalterAPI SendNewsletter Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-SendNewsletter \
 && echo Publishing new WalterBackend Lambda version \
 && aws lambda publish-version --function-name WalterBackend-dev
 ```
@@ -130,7 +138,7 @@ from S3 and the above command zips the required source code files in this reposi
 
 Use the following command to publish a message to the Newsletters Queue to invoke Walter to generate and send an email to the given user.
 
-```
+```bash
 aws sqs send-message \
   --queue-url="https://sqs.${AWS_REGION}.amazonaws.com/${AWS_ACCOUNT_ID}/NewsletterQueue-${DOMAIN}" \
   --message-body '{"email": "walteraifinancialadvisor@gmail.com", "dry_run": "false"}'

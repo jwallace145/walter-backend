@@ -35,6 +35,20 @@ class UsersStocksTable:
         self.table = UsersStocksTable._get_table_name(self.domain)
         log.debug(f"Creating UsersStocks table DDB client for table '{self.table}'")
 
+    def add_stocks_to_user_portfolio(self, stock: UserStock) -> None:
+        """
+        Add stock to user portfolio.
+
+        Args:
+            stock: The stock and number of shares owned by the user.
+
+        Returns:
+            None.
+        """
+        log.info(f"Adding stock to user portfolio:\n{stock}")
+        self.ddb.put_item(self.table, stock.to_ddb_item())
+        log.info("Added stock to user portfolio!")
+
     def get_stocks_for_user(self, user: User) -> List[UserStock]:
         """
         Get the stocks owned by a user and the number of shares owned.
