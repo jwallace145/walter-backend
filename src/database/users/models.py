@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 
@@ -13,3 +14,12 @@ class User:
             },
             "username": {"S": self.username},
         }
+
+    def __str__(self) -> str:
+        return json.dumps(
+            {
+                "email": self.email,
+                "username": self.username,
+            },
+            indent=4
+        )

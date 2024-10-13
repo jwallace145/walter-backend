@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 
@@ -23,3 +24,10 @@ class UserStock:
             "stock_symbol": {"S": self.stock_symbol},
             "quantity": {"S": str(self.quantity)},
         }
+
+    def __str__(self) -> str:
+        return json.dumps({
+            "email": self.user_email,
+            "stock": self.stock_symbol,
+            "quantity": self.quantity,
+        })
