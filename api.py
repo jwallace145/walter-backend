@@ -1,9 +1,10 @@
 import json
 from enum import Enum
 
-from src.clients import walter_db, sqs
+from src.clients import walter_db, newsletters_queue
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
+from src.newsletters.queue import NewsletterRequest
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -127,12 +128,9 @@ def add_stock(event, context) -> dict:
 def send_newsletter(event, context) -> dict:
     log.info(f"Sending newsletter to user with event: {json.dumps(event, indent=4)}")
 
-    message = None
+    request = None
     try:
-        body = json.loads(event["body"])
-        message = {
-            "email": body["email"],
-        }
+        request = NewsletterRequest(email=json.loads(event["body"]))
     except Exception as exception:
         log.error("Client bad request to send newsletter!", exception)
         return {
@@ -146,14 +144,14 @@ def send_newsletter(event, context) -> dict:
         }
 
     try:
-        sqs.publish_message(message)
+        newsletters_queue.add_newsletter_request(request)
         return {
             "statusCode": HTTPStatus.OK.value,
             "body": json.dumps(
                 {
                     "API": SEND_NEWSLETTER_API_NAME,
                     "Status": Status.SUCCESS.value,
-                    "Newsletter": message,
+                    "Newsletter": request,
                 }
             ),
         }

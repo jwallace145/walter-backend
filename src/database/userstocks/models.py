@@ -26,8 +26,10 @@ class UserStock:
         }
 
     def __str__(self) -> str:
-        return json.dumps({
-            "email": self.user_email,
-            "stock": self.stock_symbol,
-            "quantity": self.quantity,
-        })
+        return json.dumps(
+            {
+                "email": self.user_email,
+                "stock": self.stock_symbol,
+                "quantity": self.quantity,
+            }
+        )

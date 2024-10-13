@@ -1,10 +1,12 @@
 import json
+import os
 
 import boto3
 import pytest
 from moto import mock_aws
 from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_secretsmanager import SecretsManagerClient
+from mypy_boto3_sqs import SQSClient
 
 from src.database.stocks.models import Stock
 from src.database.users.models import User
@@ -22,6 +24,8 @@ SECRETS_MANAGER_POLIGON_API_KEY_VALUE = "test-polygon-api-key"
 STOCKS_TABLE_NAME = "Stocks-unittest"
 USERS_TABLE_NAME = "Users-unittest"
 USERS_STOCKS_TABLE_NAME = "UsersStocks-unittest"
+
+NEWSLETTERS_QUEUE_NAME = "NewslettersQueue-unittest"
 
 STOCKS_TEST_FILE = "tst/database/data/stocks.jsonl"
 USERS_TEST_FILE = "tst/database/data/users.jsonl"
@@ -116,3 +120,18 @@ def secrets_manager_client() -> SecretsManagerClient:
             ),
         )
         yield mock_secrets_manager
+
+
+@pytest.fixture
+def sqs_client() -> SQSClient:
+    with mock_aws():
+        mock_sqs = boto3.client("sqs", region_name=AWS_REGION)
+        mock_sqs.create_queue(QueueName=NEWSLETTERS_QUEUE_NAME)
+        yield mock_sqs
+
+
+@pytest.fixture(autouse=True)
+def env_vars():
+    os.environ["AWS_ACCOUNT_ID"] = "012345678901"
+    yield
+    del os.environ["AWS_ACCOUNT_ID"]

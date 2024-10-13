@@ -16,6 +16,7 @@ from src.database.client import WalterDB
 from src.environment import get_domain
 from src.jinja.client import TemplateEngine
 from src.newsletters.client import NewslettersBucket
+from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.client import TemplatesBucket
@@ -43,7 +44,6 @@ cloudwatch = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
 ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
-sqs = WalterSQSClient(client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN)
 
 ##############
 # S3 BUCKETS #
@@ -52,6 +52,16 @@ sqs = WalterSQSClient(client=boto3.client("sqs", region_name=AWS_REGION), domain
 s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
 templates_bucket = TemplatesBucket(s3, DOMAIN)
 newsletters_bucket = NewslettersBucket(s3, DOMAIN)
+
+#####################
+# NEWSLETTERS QUEUE #
+#####################
+
+newsletters_queue = NewslettersQueue(
+    client=WalterSQSClient(
+        client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN
+    )
+)
 
 ##########################
 # WALTER DATABASE CLIENT #
