@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Walter backend Infrastructure"
+Description: "WalterBackend infrastructure"
+
+##################
+### PARAMETERS ###
+##################
 
 Parameters:
   AppEnvironment:
@@ -11,46 +15,64 @@ Parameters:
       - preprod
       - prod
 
+#################
+### RESOURCES ###
+#################
+
 Resources:
 
   ##############
   ### LAMBDA ###
   ##############
 
-  WalterBackendFunctionAlias:
+  WalterAPIAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterBackendFunction
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterBackend-${AppEnvironment}"
-
-  WalterAPIFunctionAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterAPIFunction
+      FunctionName: !Ref WalterAPI
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-${AppEnvironment}"
 
-  WalterBackendFunctionEventSourceMapping:
-    Type: AWS::Lambda::EventSourceMapping
+  WalterBackendAlias:
+    Type: AWS::Lambda::Alias
     Properties:
-      BatchSize: 1
-      EventSourceArn: !GetAtt NewsletterQueue.Arn
-      FunctionName: !GetAtt WalterBackendFunction.Arn
-      Enabled: "True"
+      FunctionName: !Ref WalterBackend
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterBackend-${AppEnvironment}"
 
-  WalterBackendFunction:
+  WalterAPI:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-${AppEnvironment}"
+      Description: !Sub "WalterAPI function to interact with WalterDB and WalterBackend (${AppEnvironment})"
+      Handler: api.lambda_handler
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:20"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterBackend:
       Type: AWS::Lambda::Function
       Properties:
         FunctionName: !Sub "WalterBackend-${AppEnvironment}"
-        Description: !Sub "WalterBackend Lambda (${AppEnvironment})"
+        Description: !Sub "WalterBackend function to read from WalterDB and write and send newsletters (${AppEnvironment})"
         Handler: walter.lambda_handler
-        Role: !Join
-          - ""
-          - - "arn:aws:iam::"
-            - !Ref "AWS::AccountId"
-            - ":role/"
-            - !Ref WalterLambdaRole
+        Role: !GetAtt WalterBackendRole.Arn
         Code:
           S3Bucket: walter-backend-src
           S3Key: walter-backend.zip
@@ -71,37 +93,13 @@ Resources:
           Variables:
             DOMAIN: DEVELOPMENT
 
-  WalterAPIFunction:
-    Type: AWS::Lambda::Function
+  WalterBackendFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
     Properties:
-      FunctionName: !Sub "WalterAPI-${AppEnvironment}"
-      Description: !Sub "WalterAPI Lambda (${AppEnvironment})"
-      Handler: api.lambda_handler
-      Role: !Join
-        - ""
-        - - "arn:aws:iam::"
-          - !Ref "AWS::AccountId"
-          - ":role/"
-          - !Ref WalterLambdaRole
-      Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.11
-      Architectures:
-        - "arm64"
-      Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:20"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
+      BatchSize: 1
+      EventSourceArn: !GetAtt NewslettersQueue.Arn
+      FunctionName: !GetAtt WalterBackend.Arn
+      Enabled: "True"
 
   ################
   ### DYNAMODB ###
@@ -151,11 +149,28 @@ Resources:
   ### IAM ROLES ###
   #################
 
-  WalterLambdaRole:
+  WalterAPIRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "WalterLambaExecutionRole-${AppEnvironment}"
-      Description: "Walter Lambda execution role"
+      RoleName: !Sub "WalterAPIRole-${AppEnvironment}"
+      Description: "WalterAPI execution role to read and modify WalterDB and send newsletters (${AppEnvironment})"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  WalterBackendRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "WalterBackendRole-${AppEnvironment}"
+      Description: "WalterBackend execution role write and send newsletters (${AppEnvironment})"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -184,7 +199,7 @@ Resources:
               - "bedrock:InvokeModel"
             Resource: "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterBackendRole
   
   CloudWatchAccessPolicy:
     Type: AWS::IAM::Policy
@@ -198,7 +213,8 @@ Resources:
               - "cloudwatch:PutMetricData"
             Resource: "*"
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
 
   NewslettersBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -210,18 +226,14 @@ Resources:
           - Effect: Allow
             Action:
               - "s3:PutObject"
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref NewslettersBucket
-                - "/*" 
+            Resource: !Sub "${NewslettersBucket.Arn}/*"
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterBackendRole
 
   NewslettersQueueAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "NewsletterQueueAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "NewslettersQueueAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -230,9 +242,9 @@ Resources:
               - "sqs:ReceiveMessage"
               - "sqs:DeleteMessage"
               - "sqs:GetQueueAttributes"
-            Resource: !GetAtt NewsletterQueue.Arn
+            Resource: !GetAtt NewslettersQueue.Arn
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterBackendRole
 
   SecretsManagerAccessPolicy:
     Type: AWS::IAM::Policy
@@ -252,7 +264,8 @@ Resources:
                 - !Ref "AWS::AccountId"
                 - ":secret:PolygonAPIKey-vZymuJ"
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
 
   SimpleEmailSerivceAccessPolicy:
     Type: AWS::IAM::Policy
@@ -266,7 +279,7 @@ Resources:
               - "ses:Send*"
             Resource: "*"
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterBackendRole
 
   StocksTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -285,16 +298,10 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !Join
-              - ""
-              - - "arn:aws:dynamodb:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":table/"
-                - !Ref StocksTable 
+            Resource: !GetAtt StocksTable.Arn
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
 
   TemplatesBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -306,20 +313,13 @@ Resources:
           - Effect: Allow
             Action:
               - "s3:GetObject"
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref TemplatesBucket
-                - "/*"
+            Resource: !Sub "${TemplatesBucket.Arn}/*"
           - Effect: Allow
             Action:
               - "s3:List*"
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref TemplatesBucket
+            Resource: !GetAtt TemplatesBucket.Arn
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterBackendRole
 
   UsersStocksTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -338,16 +338,10 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !Join
-              - ""
-              - - "arn:aws:dynamodb:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":table/"
-                - !Ref UsersStocksTable 
+            Resource: !GetAtt UsersStocksTable.Arn
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
 
   UsersTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -366,16 +360,10 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !Join
-              - ""
-              - - "arn:aws:dynamodb:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":table/"
-                - !Ref UsersTable 
+            Resource: !GetAtt UsersTable.Arn
       Roles:
-        - !Ref WalterLambdaRole
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
 
   ##########
   ### S3 ###
@@ -392,6 +380,11 @@ Resources:
               SSEAlgorithm: "AES256"
       VersioningConfiguration:
         Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: "DeleteOldNewsletters"
+            Status: "Enabled"
+            ExpirationInDays: 30
 
   NewslettersBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -403,18 +396,9 @@ Resources:
           - Action: 
               - "s3:PutObject"
             Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref NewslettersBucket
-                - "/*" 
+            Resource: !Sub "${NewslettersBucket.Arn}/*"
             Principal: 
-              AWS: !Join
-                - ""
-                - - "arn:aws:iam::"
-                  - !Ref "AWS::AccountId"
-                  - ":role/"
-                  - !Ref WalterLambdaRole
+              AWS: !GetAtt WalterBackendRole.Arn
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
@@ -438,40 +422,23 @@ Resources:
           - Action: 
               - "s3:GetObject"
             Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref TemplatesBucket
-                - "/*" 
+            Resource: !Sub "${TemplatesBucket.Arn}/*"
             Principal: 
-              AWS: !Join
-                - ""
-                - - "arn:aws:iam::"
-                  - !Ref "AWS::AccountId"
-                  - ":role/"
-                  - !Ref WalterLambdaRole
+              AWS: !GetAtt WalterBackendRole.Arn
           - Action: 
               - "s3:List*"
             Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref TemplatesBucket
+            Resource: !GetAtt TemplatesBucket.Arn
             Principal: 
-              AWS: !Join
-                - ""
-                - - "arn:aws:iam::"
-                  - !Ref "AWS::AccountId"
-                  - ":role/"
-                  - !Ref WalterLambdaRole
+              AWS: !GetAtt WalterBackendRole.Arn
 
   ###########
   ### SQS ###
   ###########
 
-  NewsletterQueue:
+  NewslettersQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "NewsletterQueue-${AppEnvironment}"
+      QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
       VisibilityTimeout: 3600

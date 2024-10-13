@@ -12,11 +12,11 @@ phases:
       - pip install mypy-boto3-lambda
   pre_build:
     commands:
-    - echo Updating Walter backend infrastructure via CloudFormation
+    - echo Updating WalterBackend infrastructure via CloudFormation
     - python buildspec.py
   build:
     commands:
-      - echo Updating Walter backend source code
+      - echo Updating WalterBackend source code
       - mkdir walter-backend
       - cp -r src walter-backend
       - cp config.yml walter-backend
@@ -33,7 +33,7 @@ phases:
       - aws lambda update-function-code --function-name WalterBackend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
   post_build:
     commands:
-      - echo Sleeping 60 seconds for Walter backend to finish updating
+      - echo Sleeping 60 seconds for WalterBackend to finish updating
       - sleep 60
       - echo Publishing new WalterAPI Lambda version
       - aws lambda publish-version --function-name WalterAPI-dev

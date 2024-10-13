@@ -51,21 +51,21 @@ Use the following commands to create/update/delete the [CloudFormation](https://
 ```bash
 # create development stack
 aws cloudformation create-stack \
-  --stack-name="WalterAIBackend-dev" \
+  --stack-name="WalterBackend-dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
   --capabilities="CAPABILITY_NAMED_IAM"
 
 # update development stack
 aws cloudformation update-stack \
-  --stack-name="WalterAIBackend-dev" \
+  --stack-name="WalterBackend-dev" \
   --template-body="file://infra/infra.yml" \
   --parameters="ParameterKey=AppEnvironment,ParameterValue=dev" \
   --capabilities="CAPABILITY_NAMED_IAM"
 
 # delete development stack
 aws cloudformation delete-stack \
-  --stack-name="WalterAIBackend-Dev"
+  --stack-name="WalterBackend-Dev"
 ```
 
 #### Lambda
