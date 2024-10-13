@@ -26,11 +26,11 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 
 REGION = os.getenv("AWS_REGION", "us-east-1")
 
-STACK_NAME = f"WalterAIBackend-{DOMAIN.value}"
+STACK_NAME = f"WalterBackend-{DOMAIN.value}"
 
 CLOUDFORMATION_TEMPLATE = "./infra/infra.yml"
 
-CHANGE_SET_NAME = f"WalterAIBackendChangeSet-{DOMAIN.value}"
+CHANGE_SET_NAME = f"WalterBackendChangeSet-{DOMAIN.value}"
 
 ###########
 # METHODS #

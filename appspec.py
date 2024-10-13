@@ -28,8 +28,8 @@ Resources:
   - MyFunction:
       Type: AWS::Lambda::Function
       Properties:
-        Name: "WalterAIBackend-{domain}"
-        Alias: "WalterAIBackend-{domain}"
+        Name: "WalterBackend-{domain}"
+        Alias: "WalterBackend-{domain}"
         CurrentVersion: "{current_walter_backend__version}"
         TargetVersion: "{target_walter_backend_version}"
 
@@ -50,9 +50,9 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 
 REGION = os.getenv("AWS_REGION", "us-east-1")
 
-WALTER_BACKEND_LAMBDA_NAME = f"WalterAIBackend-{DOMAIN.value}"
+WALTER_BACKEND_LAMBDA_NAME = f"WalterBackend-{DOMAIN.value}"
 
-WALTER_BACKEND_LAMBDA_ALIAS = f"WalterAIBackend-{DOMAIN.value}"
+WALTER_BACKEND_LAMBDA_ALIAS = f"WalterBackend-{DOMAIN.value}"
 
 WALTER_API_LAMBDA_NAME = f"WalterAPI-{DOMAIN.value}"
 
