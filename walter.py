@@ -7,7 +7,7 @@ from src.clients import (
     newsletters_bucket,
     walter_stocks_api,
     ses,
-    sqs,
+    newsletters_queue,
     template_engine,
     templates_bucket,
     walter_db,
@@ -71,7 +71,7 @@ def lambda_handler(event, context) -> dict:
             log.info("Not emitting metrics")
 
     except Exception:
-        sqs.delete_event(event.receipt_handle)
-    sqs.delete_event(event.receipt_handle)
+        newsletters_queue.delete_newsletter_request(event.receipt_handle)
+    newsletters_queue.delete_newsletter_request(event.receipt_handle)
 
     return {"statusCode": 200, "body": json.dumps("WalterBackend")}

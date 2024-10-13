@@ -21,5 +21,5 @@ class User:
                 "email": self.email,
                 "username": self.username,
             },
-            indent=4
+            indent=4,
         )

@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 
 from mypy_boto3_secretsmanager import SecretsManagerClient
+
 from src.environment import Domain
 from src.utils.log import Logger
 
