@@ -64,4 +64,9 @@ class UsersTable:
 
     @staticmethod
     def _get_user_from_ddb_item(item: dict) -> User:
-        return User(email=item["email"]["S"], username=item["username"]["S"])
+        return User(
+            email=item["email"]["S"],
+            username=item["username"]["S"],
+            password_hash=item["password_hash"]["S"],
+            salt=item["salt"]["S"],
+        )

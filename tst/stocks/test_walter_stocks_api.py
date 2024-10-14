@@ -15,7 +15,9 @@ from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
 from tst.conftest import SECRETS_MANAGER_POLIGON_API_KEY_VALUE
 
-WALTER = User(email="walter@gmail.com", username="walter")
+WALTER = User(
+    email="walter@gmail.com", username="walter", password_hash="password", salt="salt"
+)
 
 START_DATE = dt(year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
 END_DATE = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)

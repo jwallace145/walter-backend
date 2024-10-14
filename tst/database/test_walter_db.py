@@ -6,8 +6,18 @@ from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
 
-WALTER = User(email="walter@gmail.com", username="walter")
-WALRUS = User(email="walrus@gmail.com", username="walrus")
+WALTER = User(
+    email="walter@gmail.com",
+    username="walter",
+    password_hash="walter",
+    salt="walter",
+)
+WALRUS = User(
+    email="walrus@gmail.com",
+    username="walrus",
+    password_hash="walrus",
+    salt="walrus",
+)
 
 WALTER_STOCKS = [
     UserStock(user_email=WALTER.email, stock_symbol="AAPL", quantity=1.0),

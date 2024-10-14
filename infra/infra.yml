@@ -148,7 +148,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:20"
+            - "WalterAILambdaLayer:21"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -182,7 +182,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:20"
+            - "WalterAILambdaLayer:21"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -216,7 +216,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:20"
+            - "WalterAILambdaLayer:21"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -250,7 +250,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:20"
+              - "WalterAILambdaLayer:21"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
