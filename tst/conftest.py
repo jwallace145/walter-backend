@@ -75,7 +75,10 @@ def ddb_client() -> DynamoDBClient:
                 mock_ddb.put_item(
                     TableName=USERS_TABLE_NAME,
                     Item=User(
-                        email=json_user["email"], username=json_user["username"]
+                        email=json_user["email"],
+                        username=json_user["username"],
+                        password_hash=json_user["password_hash"],
+                        salt=json_user["salt"],
                     ).to_ddb_item(),
                 )
 

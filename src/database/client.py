@@ -8,6 +8,7 @@ from src.database.users.table import UsersTable
 from src.database.userstocks.models import UserStock
 from src.database.userstocks.table import UsersStocksTable
 from src.environment import Domain
+from src.utils.auth import hash_password
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -28,7 +29,15 @@ class WalterDB:
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
 
-    def create_user(self, user: User) -> None:
+    def create_user(self, email: str, username: str, password: str) -> None:
+        # generate salt and hash the given password to store in users table
+        salt, password_hash = hash_password(password)
+        user = User(
+            email=email,
+            username=username,
+            password_hash=password_hash.decode(),
+            salt=salt.decode(),
+        )
         self.users_table.create_user(user)
 
     def get_user(self, email: str) -> User:

@@ -19,6 +19,7 @@ mypy-boto3-lambda = "*"
 jinja2 = "*"
 pyyaml = "*"
 mypy-boto3-sqs = "*"
+bcrypt = "*"
 
 [dev-packages]
 black = "*"
