@@ -20,6 +20,7 @@ jinja2 = "*"
 pyyaml = "*"
 mypy-boto3-sqs = "*"
 bcrypt = "*"
+pyjwt = "*"
 
 [dev-packages]
 black = "*"

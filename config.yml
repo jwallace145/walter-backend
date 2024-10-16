@@ -7,3 +7,4 @@ walter_config:
   send_newsletter: false
   dump_newsletter: false
   emit_metrics: false
+  jwt_algorithm: "HS256"

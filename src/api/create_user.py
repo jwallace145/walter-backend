@@ -1,8 +1,8 @@
 import json
 from dataclasses import dataclass
 
-from src.api.models import HTTPStatus, Status, Response
-from src.clients import walter_db
+from src.api.models import HTTPStatus, Status, create_response
+from src.database.client import WalterDB
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -14,47 +14,42 @@ class CreateUser:
     API_NAME = "WalterAPI: CreateUser"
     REQUIRED_FIELDS = ["email", "username", "password"]
 
-    event: dict
+    walter_db: WalterDB
 
-    def invoke(self) -> dict:
-        log.info(f"Creating user with event: {json.dumps(self.event, indent=4)}")
+    def invoke(self, event: dict) -> dict:
+        log.info(f"Creating user with event: {json.dumps(event, indent=4)}")
 
-        if not self._is_valid_request():
+        if not self._is_valid_request(event):
             error_msg = "Client bad request to create user!"
             log.error(error_msg)
-            return self._create_response(
-                HTTPStatus.BAD_REQUEST, Status.FAILURE, error_msg
+            return create_response(
+                CreateUser.API_NAME, HTTPStatus.BAD_REQUEST, Status.FAILURE, error_msg
             )
 
-        return self._create_user()
+        return self._create_user(event)
 
-    def _is_valid_request(self) -> bool:
-        body = json.loads(self.event["body"])
+    def _is_valid_request(self, event: dict) -> bool:
+        body = json.loads(event["body"])
         for field in CreateUser.REQUIRED_FIELDS:
             if field not in body:
                 return False
         return True
 
-    def _create_user(self) -> dict:
+    def _create_user(self, event: dict) -> dict:
         try:
-            body = json.loads(self.event["body"])
-            walter_db.create_user(
+            body = json.loads(event["body"])
+            self.walter_db.create_user(
                 email=body["email"],
                 username=body["username"],
                 password=body["password"],
             )
-            return self._create_response(HTTPStatus.OK, Status.SUCCESS, "User created!")
-        except Exception as exception:
-            return self._create_response(
-                HTTPStatus.INTERNAL_SERVER_ERROR, Status.FAILURE, str(exception)
+            return create_response(
+                CreateUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, "User created!"
             )
-
-    def _create_response(
-        self, http_status: HTTPStatus, status: Status, message: str
-    ) -> dict:
-        return Response(
-            api_name=CreateUser.API_NAME,
-            http_status=http_status,
-            status=status,
-            message=message,
-        ).to_json()
+        except Exception as exception:
+            return create_response(
+                CreateUser.API_NAME,
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                Status.FAILURE,
+                str(exception),
+            )

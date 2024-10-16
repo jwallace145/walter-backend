@@ -31,6 +31,34 @@ Resources:
       Name: !Sub "WalterAPI-${AppEnvironment}"
       Description: "API Gateway for WalterAPI"
 
+  WalterAPIAuthResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: auth
+
+  WalterAPIAuthMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIAuthResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIAuthPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIAuth
+      Principal: apigateway.amazonaws.com
+
   WalterAPIUsers:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -119,6 +147,40 @@ Resources:
   ### LAMBDA ###
   ##############
 
+  WalterAPIAuthAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIAuth
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-Auth-${AppEnvironment}"
+
+  WalterAPIAuth:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-Auth-${AppEnvironment}"
+      Description: !Sub "WalterAPI: Auth - authenticate a user (${AppEnvironment})"
+      Handler: api.auth_user
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:22"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
   WalterAPICreateUserAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -148,7 +210,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:21"
+            - "WalterAILambdaLayer:22"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -182,7 +244,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:21"
+            - "WalterAILambdaLayer:22"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -216,7 +278,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:21"
+            - "WalterAILambdaLayer:22"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -250,7 +312,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:21"
+              - "WalterAILambdaLayer:22"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
@@ -427,6 +489,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:PolygonAPIKey-vZymuJ"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:JWTSecretKey-E5va6r"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
@@ -612,6 +684,8 @@ Resources:
 ###############
 
 Outputs:
+  WalterAPIAuthEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/auth"
   WalterAPICreateUserEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
   WalterAPIAddStockEndpoint:

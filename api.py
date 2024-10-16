@@ -1,6 +1,8 @@
 from src.api.add_stock import AddStock
+from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
 from src.api.send_newsletter import SendNewsletter
+from src.clients import walter_db, newsletters_queue
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -10,13 +12,17 @@ log = Logger(__name__).get_logger()
 ############
 
 
+def auth_user(event, context) -> dict:
+    return AuthUser(walter_db).invoke(event)
+
+
 def create_user(event, context) -> dict:
-    return CreateUser(event).invoke()
+    return CreateUser(walter_db).invoke(event)
 
 
 def add_stock(event, context) -> dict:
-    return AddStock(event).invoke()
+    return AddStock(walter_db).invoke(event)
 
 
 def send_newsletter(event, context) -> dict:
-    return SendNewsletter(event).invoke()
+    return SendNewsletter(newsletters_queue).invoke()

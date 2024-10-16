@@ -18,8 +18,11 @@ from src.database.userstocks.models import UserStock
 
 AWS_REGION = "us-east-1"
 
-SECRETS_MANAGER_POLIGON_API_KEY_NAME = "PolygonAPIKey"
-SECRETS_MANAGER_POLIGON_API_KEY_VALUE = "test-polygon-api-key"
+SECRETS_MANAGER_POLYGON_API_KEY_NAME = "PolygonAPIKey"
+SECRETS_MANAGER_POLYGON_API_KEY_VALUE = "test-polygon-api-key"
+
+SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_NAME = "JWTSecretKey"
+SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE = "test-jwt-secret-key"
 
 STOCKS_TABLE_NAME = "Stocks-unittest"
 USERS_TABLE_NAME = "Users-unittest"
@@ -117,9 +120,15 @@ def secrets_manager_client() -> SecretsManagerClient:
     with mock_aws():
         mock_secrets_manager = boto3.client("secretsmanager", region_name=AWS_REGION)
         mock_secrets_manager.create_secret(
-            Name=SECRETS_MANAGER_POLIGON_API_KEY_NAME,
+            Name=SECRETS_MANAGER_POLYGON_API_KEY_NAME,
             SecretString=json.dumps(
-                {"POLYGON_API_KEY": SECRETS_MANAGER_POLIGON_API_KEY_VALUE}
+                {"POLYGON_API_KEY": SECRETS_MANAGER_POLYGON_API_KEY_VALUE}
+            ),
+        )
+        mock_secrets_manager.create_secret(
+            Name=SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_NAME,
+            SecretString=json.dumps(
+                {"JWT_SECRET_KEY": SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE}
             ),
         )
         yield mock_secrets_manager

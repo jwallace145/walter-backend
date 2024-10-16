@@ -20,6 +20,7 @@ class WalterConfig:
     send_newsletter: bool = False
     dump_newsletter: bool = False
     emit_metrics: bool = False
+    jwt_algorithm: str = "HS256"
 
     def __str__(self) -> str:
         return json.dumps(
@@ -32,6 +33,7 @@ class WalterConfig:
                 "send_newsletter": self.send_newsletter,
                 "dump_newsletter": self.dump_newsletter,
                 "emit_metrics": self.emit_metrics,
+                "jwt_algorithm": self.jwt_algorithm,
             },
             indent=4,
         )
@@ -50,6 +52,7 @@ def get_walter_config() -> WalterConfig:
             send_newsletter=config["send_newsletter"],
             dump_newsletter=config["dump_newsletter"],
             emit_metrics=config["emit_metrics"],
+            jwt_algorithm=config["jwt_algorithm"],
         )
     except Exception as exception:
         log.error(
