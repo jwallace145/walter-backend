@@ -9,6 +9,11 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+class UserDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 @dataclass
 class AddStock:
 
@@ -41,14 +46,26 @@ class AddStock:
     def _add_stock(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
+            email = body["email"]
+
+            user = self.walter_db.get_user(email)
+            if user is None:
+                raise UserDoesNotExist("User not found!")
+
             stock = UserStock(
                 user_email=body["email"],
                 stock_symbol=body["stock"],
                 quantity=body["quantity"],
             )
+
             self.walter_db.add_stock_to_user_portfolio(stock)
+
             return create_response(
                 AddStock.API_NAME, HTTPStatus.OK, Status.SUCCESS, "Stock added!"
+            )
+        except UserDoesNotExist as exception:
+            return create_response(
+                AddStock.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
             )
         except Exception as exception:
             return create_response(

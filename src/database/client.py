@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.stocks.table import StocksTable
@@ -42,6 +42,9 @@ class WalterDB:
 
     def get_user(self, email: str) -> User:
         return self.users_table.get_user(email)
+
+    def get_users(self) -> List[User]:
+        return self.users_table.get_users()
 
     def update_user(self, user: User) -> None:
         self.users_table.update_user(user)

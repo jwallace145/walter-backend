@@ -8,9 +8,12 @@ from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 
+from src.aws.dynamodb.client import WalterDDBClient
+from src.database.client import WalterDB
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
+from src.environment import Domain
 
 #############
 # CONSTANTS #
@@ -147,3 +150,8 @@ def env_vars():
     os.environ["AWS_ACCOUNT_ID"] = "012345678901"
     yield
     del os.environ["AWS_ACCOUNT_ID"]
+
+
+@pytest.fixture
+def walter_db(ddb_client) -> WalterDB:
+    return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)

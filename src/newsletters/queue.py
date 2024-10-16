@@ -57,6 +57,6 @@ class NewslettersQueue:
     def _get_queue_url(self) -> str:
         return NewslettersQueue.QUEUE_URL_FORMAT.format(
             region=self.client.client.meta.region_name,
-            account_id=os.getenv("AWS_ACCOUNT_ID"),
+            account_id=os.getenv("AWS_ACCOUNT_ID", "010526272437"),
             domain=self.client.domain.value,
         )

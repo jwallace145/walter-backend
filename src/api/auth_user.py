@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 
 from src.api.models import HTTPStatus, Status, create_response
-from src.clients import walter_db, JWT_TOKEN_KEY
+from src.clients import JWT_TOKEN_KEY
 from src.database.client import WalterDB
 from src.utils.auth import check_password, generate_token
 from src.utils.log import Logger
@@ -53,7 +53,7 @@ class AuthUser:
             email = body["email"]
             password = body["password"]
 
-            user = walter_db.get_user(email)
+            user = self.walter_db.get_user(email)
 
             if user is None:
                 raise UserDoesNotExist("User not found!")

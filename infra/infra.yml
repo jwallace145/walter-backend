@@ -283,6 +283,40 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterNewslettersAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterNewsletters
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterNewsletters-${AppEnvironment}"
+
+  WalterNewsletters:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterNewsletters-${AppEnvironment}"
+      Description: !Sub "WalterNewsletters: Gets users from WalterDB and sends newsletter requests to queue (${AppEnvironment})"
+      Handler: newsletters.send_messages
+      Role: !GetAtt WalterNewslettersRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:22"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
   WalterBackendAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -390,6 +424,23 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  WalterNewslettersRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "WalterNewslettersRole-${AppEnvironment}"
+      Description: "WalterNewsletters role to send newsletter requests to the queue (${AppEnvironment})"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   WalterBackendRole:
     Type: AWS::IAM::Role
     Properties:
@@ -470,6 +521,7 @@ Resources:
             Resource: !GetAtt NewslettersQueue.Arn
       Roles:
         - !Ref WalterAPIRole
+        - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
   SecretsManagerAccessPolicy:
@@ -501,6 +553,7 @@ Resources:
                 - ":secret:JWTSecretKey-E5va6r"
       Roles:
         - !Ref WalterAPIRole
+        - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
   SimpleEmailSerivceAccessPolicy:
@@ -599,6 +652,7 @@ Resources:
             Resource: !GetAtt UsersTable.Arn
       Roles:
         - !Ref WalterAPIRole
+        - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
   ##########
