@@ -91,7 +91,9 @@ mkdir python \
 Use the following command to update the Walter backend code for `WalterAPI` and `WalterBackend` from the latest artifacts in S3.
 
 ```bash
-echo Updating WalterAPI CreateUser source code with artifact from S3 \
+echo Updating WalterAPI Auth source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-Auth-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterAPI CreateUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateUser-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI AddStock source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-AddStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
@@ -104,12 +106,14 @@ echo Updating WalterAPI CreateUser source code with artifact from S3 \
 Use the following command to publish new versions for the Walter Lambda functions.
 
 ```bash
-echo Publishing new WalterAPI CreateUser Lambda version \
+echo Publishing new WalterAPI Auth Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-Auth-dev \
+&& echo Publishing new WalterAPI CreateUser Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateUser-dev \
-echo Publishing new WalterAPI AddStock Lambda version \
+&& echo Publishing new WalterAPI AddStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-AddStock-dev \
-echo Publishing new WalterAPI SendNewsletter Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-SendNewsletter \
+&& echo Publishing new WalterAPI SendNewsletter Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-SendNewsletter-dev \
 && echo Publishing new WalterBackend Lambda version \
 && aws lambda publish-version --function-name WalterBackend-dev
 ```

@@ -1,8 +1,8 @@
 import json
 from dataclasses import dataclass
 
-from src.api.models import HTTPStatus, Status, Response
-from src.clients import walter_db
+from src.api.models import HTTPStatus, Status, create_response
+from src.database.client import WalterDB
 from src.database.userstocks.models import UserStock
 from src.utils.log import Logger
 
@@ -15,52 +15,45 @@ class AddStock:
     API_NAME = "WalterAPI: AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
 
-    event: dict
+    walter_db: WalterDB
 
-    def invoke(self) -> dict:
+    def invoke(self, event: dict) -> dict:
         log.info(
-            f"Adding stock to user portfolio with event: {json.dumps(self.event, indent=4)}"
+            f"Adding stock to user portfolio with event: {json.dumps(event, indent=4)}"
         )
 
-        if not self._is_valid_request():
+        if not self._is_valid_request(event):
             error_msg = "Client bad request to add stock!"
             log.error(error_msg)
-            return self._create_response(
-                HTTPStatus.BAD_REQUEST, Status.FAILURE, error_msg
+            return create_response(
+                AddStock.API_NAME, HTTPStatus.BAD_REQUEST, Status.FAILURE, error_msg
             )
 
-        return self._add_stock()
+        return self._add_stock(event)
 
-    def _is_valid_request(self) -> bool:
-        body = json.loads(self.event["body"])
+    def _is_valid_request(self, event: dict) -> bool:
+        body = json.loads(event["body"])
         for field in AddStock.REQUIRED_FIELDS:
             if field not in body:
                 return False
         return True
 
-    def _add_stock(self) -> dict:
+    def _add_stock(self, event: dict) -> dict:
         try:
-            body = json.loads(self.event["body"])
+            body = json.loads(event["body"])
             stock = UserStock(
                 user_email=body["email"],
                 stock_symbol=body["stock"],
                 quantity=body["quantity"],
             )
-            walter_db.add_stock_to_user_portfolio(stock)
-            return self._generate_response(
-                HTTPStatus.OK, Status.SUCCESS, "Stock added!"
+            self.walter_db.add_stock_to_user_portfolio(stock)
+            return create_response(
+                AddStock.API_NAME, HTTPStatus.OK, Status.SUCCESS, "Stock added!"
             )
         except Exception as exception:
-            return self._generate_response(
-                HTTPStatus.INTERNAL_SERVER_ERROR, Status.FAILURE, str(exception)
+            return create_response(
+                AddStock.API_NAME,
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                Status.FAILURE,
+                str(exception),
             )
-
-    def _generate_response(
-        self, http_status: HTTPStatus, status: Status, message: str
-    ) -> dict:
-        return Response(
-            api_name=AddStock.API_NAME,
-            http_status=http_status,
-            status=status,
-            message=message,
-        ).to_json()

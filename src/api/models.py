@@ -34,3 +34,14 @@ class Response:
                 }
             ),
         }
+
+
+def create_response(
+    name: str, http_status: HTTPStatus, status: Status, message: str
+) -> dict:
+    return Response(
+        api_name=name,
+        http_status=http_status,
+        status=status,
+        message=message,
+    ).to_json()

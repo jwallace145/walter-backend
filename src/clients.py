@@ -53,6 +53,17 @@ s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DO
 templates_bucket = TemplatesBucket(s3, DOMAIN)
 newsletters_bucket = NewslettersBucket(s3, DOMAIN)
 
+###########
+# SECRETS #
+###########
+
+sm = WalterSecretsManagerClient(
+    client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
+)
+
+POLYGON_API_KEY = sm.get_polygon_api_key()
+JWT_TOKEN_KEY = sm.get_jwt_secret_key()
+
 #####################
 # NEWSLETTERS QUEUE #
 #####################
@@ -78,9 +89,7 @@ walter_db = WalterDB(
 
 walter_stocks_api = WalterStocksAPI(
     client=PolygonClient(
-        api_key=WalterSecretsManagerClient(
-            client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
-        ).get_polygon_api_key()
+        api_key=POLYGON_API_KEY,
     )
 )
 

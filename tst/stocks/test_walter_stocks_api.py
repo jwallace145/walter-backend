@@ -13,7 +13,7 @@ from src.stocks.client import WalterStocksAPI
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
-from tst.conftest import SECRETS_MANAGER_POLIGON_API_KEY_VALUE
+from tst.conftest import SECRETS_MANAGER_POLYGON_API_KEY_VALUE
 
 WALTER = User(
     email="walter@gmail.com", username="walter", password_hash="password", salt="salt"
@@ -182,7 +182,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
 
     return WalterStocksAPI(
         client=PolygonClient(
-            api_key=SECRETS_MANAGER_POLIGON_API_KEY_VALUE,
+            api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
             client=mock_polygon_rest_client,
         )
     )

@@ -6,7 +6,7 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Event:
 
     receipt_handle: str
@@ -23,6 +23,8 @@ class Event:
 
 
 def parse_event(event: dict) -> Event:
+    log.info(f"Parsing event:\n{json.dumps(event, indent=4)}")
+
     records = event["Records"]
     if len(records) != 1:
         raise ValueError("More than a single message found in an SQS batch!")

@@ -1,0 +1,8 @@
+{
+    "Records": [
+      {
+        "receiptHandle": "test-receipt-handle",
+        "body": "{\"email\": \"walter@gmail.com\"}"
+      }
+    ]
+}
