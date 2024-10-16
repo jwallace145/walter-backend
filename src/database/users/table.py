@@ -37,6 +37,8 @@ class UsersTable:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         key = UsersTable._get_user_key(email)
         item = self.ddb.get_item(self.table, key)
+        if item is None:
+            return None
         return UsersTable._get_user_from_ddb_item(item)
 
     def update_user(self, user: User) -> None:

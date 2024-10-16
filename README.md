@@ -101,6 +101,8 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-AddStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI SendNewsletter source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-SendNewsletter-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterNewsletters source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterNewsletters-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterBackend source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterBackend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
 ```
@@ -116,6 +118,8 @@ echo Publishing new WalterAPI Auth Lambda version \
 && aws lambda publish-version --function-name WalterAPI-AddStock-dev \
 && echo Publishing new WalterAPI SendNewsletter Lambda version \
 && aws lambda publish-version --function-name WalterAPI-SendNewsletter-dev \
+&& echo Publishing new WalterNewsletters Lambda version \
+&& aws lambda publish-version --function-name WalterNewsletters-dev \
 && echo Publishing new WalterBackend Lambda version \
 && aws lambda publish-version --function-name WalterBackend-dev
 ```
@@ -130,12 +134,15 @@ echo "Updating Walter backend source code" \
 && cp -r src walter-backend \
 && cp config.yml walter-backend \
 && cp api.py walter-backend \
+&& cp newsletters.py walter-backend \
 && cp walter.py walter-backend \
 && cd walter-backend \
 && zip -r ../walter-backend.zip . \
 && cd .. \
 && echo "Publishing Walter backend source to S3" \
 && aws s3 cp walter-backend.zip s3://walter-backend-src/walter-backend.zip
+&& rm -rf walter-backend \
+&& rm -rf walter-backend.zip
 ```
 The CloudFormation stack responsible for creating the `WalterAPI` and `WalterBackend` Lambdas pulls the source  code
 from S3 and the above command zips the required source code files in this repository into a package to upload to S3. 
