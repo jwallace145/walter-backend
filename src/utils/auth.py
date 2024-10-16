@@ -24,10 +24,13 @@ def validate_token(token: str, key: str) -> bool:
         # Decode the JWT
         decoded_payload = jwt.decode(token, key, algorithms=[CONFIG.jwt_algorithm])
         print(f"Decoded payload: {decoded_payload}")
+        return True
     except jwt.ExpiredSignatureError:
         print("Token has expired")
+        return False
     except jwt.InvalidTokenError:
         print("Invalid token")
+        return False
 
 
 def hash_password(password: str) -> Tuple[bytes, bytes]:
