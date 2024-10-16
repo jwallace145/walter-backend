@@ -24,7 +24,7 @@ class UsersTable:
 
     def __post_init__(self) -> None:
         self.table = UsersTable._get_table_name(self.domain)
-        log.debug(f"Creating UsersTable DDB client with table name '{self.table}'")
+        log.info(f"Creating UsersTable DDB client with table name '{self.table}'")
 
     def create_user(self, user: User) -> None:
         log.info(

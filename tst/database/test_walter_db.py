@@ -1,10 +1,6 @@
-import pytest
-
-from src.aws.dynamodb.client import WalterDDBClient
 from src.database.client import WalterDB
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
-from src.environment import Domain
 
 WALTER = User(
     email="walter@gmail.com",
@@ -31,11 +27,6 @@ WALRUS_STOCKS = [
     UserStock(user_email=WALRUS.email, stock_symbol="MSFT", quantity=100.0),
     UserStock(user_email=WALRUS.email, stock_symbol="NFLX", quantity=100.0),
 ]
-
-
-@pytest.fixture
-def walter_db(ddb_client) -> WalterDB:
-    return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
 
 
 def test_get_user(walter_db: WalterDB):

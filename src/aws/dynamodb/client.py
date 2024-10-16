@@ -84,6 +84,7 @@ class WalterDDBClient:
                 f"Unexpected error occurred getting item from '{table}'!\n"
                 f"Error: {clientError.response['Error']['Message']}"
             )
+            return None
         except KeyError:
             # key error thrown when trying to index ddb client response
             # i.e. the item does not exist
