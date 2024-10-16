@@ -1,34 +1,52 @@
 import json
 
+import pytest
+
 from src.api.create_user import CreateUser
 from src.api.models import Status, HTTPStatus
-
-AUTH_USER_EVENT = json.load(open("tst/api/data/event.json"))
-
-
-def get_create_user_event(email: str, username: str, password: str) -> dict:
-    AUTH_USER_EVENT["body"] = json.dumps(
-        {"email": email, "username": username, "password": password}
-    )
-    return AUTH_USER_EVENT
+from src.database.client import WalterDB
+from tst.api.utils import get_create_user_event
 
 
-def test_create_user(walter_db) -> None:
+@pytest.fixture
+def create_user_api(walter_db: WalterDB) -> CreateUser:
+    return CreateUser(walter_db)
+
+
+def test_create_user(create_user_api: CreateUser) -> None:
     event = get_create_user_event(email="jim@gmail.com", username="jim", password="jim")
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.SUCCESS, message="User created!"
     )
-    assert expected_response == CreateUser(walter_db).invoke(event)
+    assert expected_response == create_user_api.invoke(event)
 
 
-def test_create_user_failure_user_already_exists(walter_db) -> None:
+def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(email="jim", username="jim", password="jim")
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
+def test_create_user_failure_invalid_username(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(
+        email="jim@gmail.com", username="jim ", password="jim"
+    )
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid username!"
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
+def test_create_user_failure_user_already_exists(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
         email="walter@gmail.com", username="walter", password="walter"
     )
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.FAILURE, message="User already exists!"
     )
-    assert expected_response == CreateUser(walter_db).invoke(event)
+    assert expected_response == create_user_api.invoke(event)
 
 
 def get_expected_response(

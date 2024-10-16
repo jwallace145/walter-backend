@@ -9,11 +9,14 @@ from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 
 from src.aws.dynamodb.client import WalterDDBClient
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
+from src.newsletters.queue import NewslettersQueue
 
 #############
 # CONSTANTS #
@@ -155,3 +158,19 @@ def env_vars():
 @pytest.fixture
 def walter_db(ddb_client) -> WalterDB:
     return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
+
+
+@pytest.fixture
+def walter_sm(
+    secrets_manager_client: SecretsManagerClient,
+) -> WalterSecretsManagerClient:
+    return WalterSecretsManagerClient(
+        client=secrets_manager_client, domain=Domain.TESTING
+    )
+
+
+@pytest.fixture
+def newsletters_queue(sqs_client) -> NewslettersQueue:
+    return NewslettersQueue(
+        client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
+    )

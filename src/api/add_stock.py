@@ -1,7 +1,9 @@
 import json
 from dataclasses import dataclass
 
+from src.api.exceptions import UserDoesNotExist, InvalidEmail
 from src.api.models import HTTPStatus, Status, create_response
+from src.api.utils import is_valid_email
 from src.database.client import WalterDB
 from src.database.userstocks.models import UserStock
 from src.utils.log import Logger
@@ -9,16 +11,12 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
-class UserDoesNotExist(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 @dataclass
 class AddStock:
 
     API_NAME = "WalterAPI: AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
+    EXCEPTIONS = [UserDoesNotExist, InvalidEmail]
 
     walter_db: WalterDB
 
@@ -46,14 +44,17 @@ class AddStock:
     def _add_stock(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
+
             email = body["email"]
+            if not is_valid_email(email):
+                raise InvalidEmail("Invalid email!")
 
             user = self.walter_db.get_user(email)
             if user is None:
                 raise UserDoesNotExist("User not found!")
 
             stock = UserStock(
-                user_email=body["email"],
+                user_email=email,
                 stock_symbol=body["stock"],
                 quantity=body["quantity"],
             )
@@ -63,14 +64,15 @@ class AddStock:
             return create_response(
                 AddStock.API_NAME, HTTPStatus.OK, Status.SUCCESS, "Stock added!"
             )
-        except UserDoesNotExist as exception:
-            return create_response(
-                AddStock.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
-            )
         except Exception as exception:
+            status = HTTPStatus.INTERNAL_SERVER_ERROR
+            for e in AddStock.EXCEPTIONS:
+                if isinstance(exception, e):
+                    status = HTTPStatus.OK
+                    break
             return create_response(
                 AddStock.API_NAME,
-                HTTPStatus.INTERNAL_SERVER_ERROR,
+                status,
                 Status.FAILURE,
                 str(exception),
             )
