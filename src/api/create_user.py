@@ -8,6 +8,11 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+class UserAlreadyExists(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 @dataclass
 class CreateUser:
 
@@ -38,13 +43,23 @@ class CreateUser:
     def _create_user(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
+
+            user = self.walter_db.get_user(body["email"])
+            if user is not None:
+                raise UserAlreadyExists("User already exists!")
+
             self.walter_db.create_user(
                 email=body["email"],
                 username=body["username"],
                 password=body["password"],
             )
+
             return create_response(
                 CreateUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, "User created!"
+            )
+        except UserAlreadyExists as exception:
+            return create_response(
+                CreateUser.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
             )
         except Exception as exception:
             return create_response(
