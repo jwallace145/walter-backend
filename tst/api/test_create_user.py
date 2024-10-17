@@ -21,6 +21,24 @@ def test_create_user(create_user_api: CreateUser) -> None:
     assert expected_response == create_user_api.invoke(event)
 
 
+def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(email="jim", username="jim", password="jim")
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
+def test_create_user_failure_invalid_username(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(
+        email="jim@gmail.com", username="jim ", password="jim"
+    )
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid username!"
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
 def test_create_user_failure_user_already_exists(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
         email="walter@gmail.com", username="walter", password="walter"

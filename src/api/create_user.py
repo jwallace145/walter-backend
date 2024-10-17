@@ -1,16 +1,13 @@
 import json
 from dataclasses import dataclass
 
+from src.api.exceptions import InvalidEmail, InvalidUsername, UserAlreadyExists
 from src.api.models import HTTPStatus, Status, create_response
+from src.api.utils import is_valid_username, is_valid_email
 from src.database.client import WalterDB
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-
-class UserAlreadyExists(Exception):
-    def __init__(self, message):
-        super().__init__(message)
 
 
 @dataclass
@@ -18,6 +15,7 @@ class CreateUser:
 
     API_NAME = "WalterAPI: CreateUser"
     REQUIRED_FIELDS = ["email", "username", "password"]
+    EXCEPTIONS = [InvalidEmail, InvalidUsername, UserAlreadyExists]
 
     walter_db: WalterDB
 
@@ -44,24 +42,36 @@ class CreateUser:
         try:
             body = json.loads(event["body"])
 
-            user = self.walter_db.get_user(body["email"])
+            email = body["email"]
+            if not is_valid_email(email):
+                raise InvalidEmail("Invalid email!")
+
+            username = body["username"]
+            if not is_valid_username(username):
+                raise InvalidUsername("Invalid username!")
+
+            user = self.walter_db.get_user(email)
             if user is not None:
                 raise UserAlreadyExists("User already exists!")
 
             self.walter_db.create_user(
-                email=body["email"],
-                username=body["username"],
+                email=email,
+                username=username,
                 password=body["password"],
             )
 
             return create_response(
                 CreateUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, "User created!"
             )
-        except UserAlreadyExists as exception:
-            return create_response(
-                CreateUser.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
-            )
         except Exception as exception:
+            for e in CreateUser.EXCEPTIONS:
+                if isinstance(exception, e):
+                    return create_response(
+                        CreateUser.API_NAME,
+                        HTTPStatus.OK,
+                        Status.FAILURE,
+                        str(exception),
+                    )
             return create_response(
                 CreateUser.API_NAME,
                 HTTPStatus.INTERNAL_SERVER_ERROR,

@@ -1,8 +1,10 @@
 import json
 from dataclasses import dataclass
 
+from src.api.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
 from src.api.models import HTTPStatus, Status, create_response
-from src.clients import JWT_TOKEN_KEY
+from src.api.utils import is_valid_email
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.utils.auth import check_password, generate_token
 from src.utils.log import Logger
@@ -10,23 +12,17 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
-class UserDoesNotExist(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class InvalidPassword(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 @dataclass
 class AuthUser:
 
     API_NAME = "WalterAPI: AuthUser"
     REQUIRED_FIELDS = ["email", "password"]
+    EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
 
     walter_db: WalterDB
+    walter_sm: WalterSecretsManagerClient
+
+    jwt_token_key: str = None  # lazy init
 
     def invoke(self, event: dict) -> dict:
         log.info(f"Authenticating user with event: {json.dumps(event, indent=4)}")
@@ -50,35 +46,39 @@ class AuthUser:
     def _auth_user(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
+
             email = body["email"]
-            password = body["password"]
+            if not is_valid_email(email):
+                raise InvalidEmail("Invalid email!")
 
             user = self.walter_db.get_user(email)
-
             if user is None:
                 raise UserDoesNotExist("User not found!")
 
+            password = body["password"]
             if not check_password(password, user.password_hash):
                 raise InvalidPassword("Password incorrect!")
 
-            token = generate_token(email, JWT_TOKEN_KEY)
+            token = generate_token(email, self._get_jwt_token_key())
             log.info(f"Authenticated user successfully! Generated token: {token}")
 
             return create_response(
                 AuthUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, "Authenticated user!"
             )
-        except UserDoesNotExist as exception:
-            return create_response(
-                AuthUser.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
-            )
-        except InvalidPassword as exception:
-            return create_response(
-                AuthUser.API_NAME, HTTPStatus.OK, Status.FAILURE, str(exception)
-            )
         except Exception as exception:
+            status = HTTPStatus.INTERNAL_SERVER_ERROR
+            for e in AuthUser.EXCEPTIONS:
+                if isinstance(exception, e):
+                    status = HTTPStatus.OK
+                    break
             return create_response(
                 AuthUser.API_NAME,
-                HTTPStatus.INTERNAL_SERVER_ERROR,
+                status,
                 Status.FAILURE,
                 str(exception),
             )
+
+    def _get_jwt_token_key(self) -> str:
+        if self.jwt_token_key is None:
+            self.jwt_token_key = self.walter_sm.get_jwt_secret_key()
+        return self.jwt_token_key

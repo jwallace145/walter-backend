@@ -21,6 +21,14 @@ def test_add_stock(add_stock_api: AddStock) -> None:
     assert expected_response == add_stock_api.invoke(event)
 
 
+def test_add_stock_failure_invalid_email(add_stock_api: AddStock) -> None:
+    event = get_add_stock_event(email="walter", stock="ABNB", quantity=100.0)
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
+    )
+    assert expected_response == add_stock_api.invoke(event)
+
+
 def test_add_stock_failure_user_does_not_exist(add_stock_api: AddStock) -> None:
     event = get_add_stock_event(email="sally@gmail.com", stock="ABNB", quantity=100.0)
     expected_response = get_expected_response(
