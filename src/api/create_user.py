@@ -9,7 +9,6 @@ from src.api.exceptions import (
 )
 from src.api.models import HTTPStatus, Status, create_response
 from src.api.utils import is_valid_username, is_valid_email
-from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
 
@@ -24,7 +23,6 @@ class CreateUser:
     EXCEPTIONS = [NotAuthenticated, InvalidEmail, InvalidUsername, UserAlreadyExists]
 
     walter_db: WalterDB
-    walter_sm: WalterSecretsManagerClient
 
     def invoke(self, event: dict) -> dict:
         log.info(f"Creating user with event: {json.dumps(event, indent=4)}")

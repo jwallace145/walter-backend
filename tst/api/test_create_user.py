@@ -4,16 +4,13 @@ import pytest
 
 from src.api.create_user import CreateUser
 from src.api.models import Status, HTTPStatus
-from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from tst.api.utils import get_create_user_event
 
 
 @pytest.fixture
-def create_user_api(
-    walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
-) -> CreateUser:
-    return CreateUser(walter_db, walter_sm)
+def create_user_api(walter_db: WalterDB) -> CreateUser:
+    return CreateUser(walter_db)
 
 
 def test_create_user(create_user_api: CreateUser) -> None:
