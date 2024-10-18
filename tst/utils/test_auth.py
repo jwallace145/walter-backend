@@ -1,4 +1,4 @@
-from src.utils.auth import hash_password, check_password, generate_token, validate_token
+from src.utils.auth import hash_password, check_password, generate_token, decode_token
 from tst.conftest import SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE
 
 
@@ -13,8 +13,8 @@ def test_check_password() -> None:
 def test_validate_token() -> None:
     email = "walter@gmail.com"
     token = generate_token(email, SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE)
-    assert validate_token(token, SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE) is True
+    decoded_token = decode_token(token, SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE)
+    assert decoded_token["sub"] == "walter@gmail.com"
     assert (
-        validate_token("test-token", SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE)
-        is False
+        decode_token("test-token", SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE) is None
     )

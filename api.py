@@ -22,12 +22,12 @@ def create_user(event, context) -> dict:
 
 
 def add_stock(event, context) -> dict:
-    return AddStock(walter_db).invoke(event)
+    return AddStock(walter_db, sm).invoke(event)
 
 
 def get_stocks_for_user(event, context) -> dict:
-    return GetStocksForUser(walter_db).invoke(event)
+    return GetStocksForUser(walter_db, sm).invoke(event)
 
 
 def send_newsletter(event, context) -> dict:
-    return SendNewsletter(walter_db, newsletters_queue).invoke(event)
+    return SendNewsletter(walter_db, newsletters_queue, sm).invoke(event)

@@ -5,6 +5,7 @@ from mypy_boto3_sqs.client import SQSClient
 
 from src.api.models import Status, HTTPStatus
 from src.api.send_newsletter import SendNewsletter
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.newsletters.queue import NewslettersQueue
 from tst.api.utils import get_send_newsletter_event
@@ -12,15 +13,17 @@ from tst.api.utils import get_send_newsletter_event
 
 @pytest.fixture
 def send_newsletter_api(
-    walter_db: WalterDB, newsletters_queue: NewslettersQueue
+    walter_db: WalterDB,
+    newsletters_queue: NewslettersQueue,
+    walter_sm: WalterSecretsManagerClient,
 ) -> SendNewsletter:
-    return SendNewsletter(walter_db, newsletters_queue)
+    return SendNewsletter(walter_db, newsletters_queue, walter_sm)
 
 
 def test_send_newsletter(
-    send_newsletter_api: SendNewsletter, sqs_client: SQSClient
+    send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walter: str
 ) -> None:
-    event = get_send_newsletter_event(email="walter@gmail.com")
+    event = get_send_newsletter_event(email="walter@gmail.com", token=jwt_walter)
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.SUCCESS, message="Newsletter sent!"
     )
@@ -31,9 +34,9 @@ def test_send_newsletter(
 
 
 def test_send_newsletter_failure_invalid_email(
-    send_newsletter_api: SendNewsletter, sqs_client: SQSClient
+    send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walter: str
 ) -> None:
-    event = get_send_newsletter_event(email="walter")
+    event = get_send_newsletter_event(email="walter", token=jwt_walter)
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
     )
@@ -43,7 +46,7 @@ def test_send_newsletter_failure_invalid_email(
 def test_send_newsletter_failure_user_does_not_exist(
     send_newsletter_api: SendNewsletter, sqs_client: SQSClient
 ) -> None:
-    event = get_send_newsletter_event(email="sally@gmail.com")
+    event = get_send_newsletter_event(email="sally@gmail.com", token="test-token")
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.FAILURE, message="User not found!"
     )

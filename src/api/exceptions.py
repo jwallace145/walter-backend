@@ -21,3 +21,8 @@ class UserAlreadyExists(Exception):
 class UserDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class NotAuthenticated(Exception):
+    def __init__(self, message):
+        super().__init__(message)

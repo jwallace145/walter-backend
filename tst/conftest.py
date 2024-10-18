@@ -17,6 +17,7 @@ from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
+from src.utils.auth import generate_token
 
 #############
 # CONSTANTS #
@@ -174,3 +175,13 @@ def newsletters_queue(sqs_client) -> NewslettersQueue:
     return NewslettersQueue(
         client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
     )
+
+
+@pytest.fixture
+def jwt_walter(walter_sm: WalterSecretsManagerClient) -> str:
+    return generate_token("walter@gmail.com", walter_sm.get_jwt_secret_key())
+
+
+@pytest.fixture
+def jwt_walrus(walter_sm: WalterSecretsManagerClient) -> str:
+    return generate_token("walrus@gmail.com", walter_sm.get_jwt_secret_key())

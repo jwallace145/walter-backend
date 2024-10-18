@@ -60,10 +60,9 @@ class AuthUser:
                 raise InvalidPassword("Password incorrect!")
 
             token = generate_token(email, self._get_jwt_token_key())
-            log.info(f"Authenticated user successfully! Generated token: {token}")
 
             return create_response(
-                AuthUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, "Authenticated user!"
+                AuthUser.API_NAME, HTTPStatus.OK, Status.SUCCESS, token
             )
         except Exception as exception:
             status = HTTPStatus.INTERNAL_SERVER_ERROR
