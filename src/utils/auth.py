@@ -19,18 +19,15 @@ def generate_token(email: str, key: str) -> str:
     )
 
 
-def validate_token(token: str, key: str) -> bool:
+def decode_token(token: str, key: str) -> bool:
     try:
-        # Decode the JWT
-        decoded_payload = jwt.decode(token, key, algorithms=[CONFIG.jwt_algorithm])
-        print(f"Decoded payload: {decoded_payload}")
-        return True
+        return jwt.decode(token, key, algorithms=[CONFIG.jwt_algorithm])
     except jwt.ExpiredSignatureError:
         print("Token has expired")
-        return False
+        return None
     except jwt.InvalidTokenError:
         print("Invalid token")
-        return False
+        return None
 
 
 def hash_password(password: str) -> Tuple[bytes, bytes]:

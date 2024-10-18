@@ -1,9 +1,15 @@
 import json
 from dataclasses import dataclass
 
-from src.api.exceptions import InvalidEmail, InvalidUsername, UserAlreadyExists
+from src.api.exceptions import (
+    InvalidEmail,
+    InvalidUsername,
+    UserAlreadyExists,
+    NotAuthenticated,
+)
 from src.api.models import HTTPStatus, Status, create_response
 from src.api.utils import is_valid_username, is_valid_email
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
 
@@ -15,9 +21,10 @@ class CreateUser:
 
     API_NAME = "WalterAPI: CreateUser"
     REQUIRED_FIELDS = ["email", "username", "password"]
-    EXCEPTIONS = [InvalidEmail, InvalidUsername, UserAlreadyExists]
+    EXCEPTIONS = [NotAuthenticated, InvalidEmail, InvalidUsername, UserAlreadyExists]
 
     walter_db: WalterDB
+    walter_sm: WalterSecretsManagerClient
 
     def invoke(self, event: dict) -> dict:
         log.info(f"Creating user with event: {json.dumps(event, indent=4)}")
@@ -41,8 +48,8 @@ class CreateUser:
     def _create_user(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
-
             email = body["email"]
+
             if not is_valid_email(email):
                 raise InvalidEmail("Invalid email!")
 

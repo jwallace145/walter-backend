@@ -4,33 +4,46 @@ import pytest
 
 from src.api.add_stock import AddStock
 from src.api.models import Status, HTTPStatus
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from tst.api.utils import get_add_stock_event
 
 
 @pytest.fixture
-def add_stock_api(walter_db: WalterDB) -> AddStock:
-    return AddStock(walter_db)
+def add_stock_api(
+    walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+) -> AddStock:
+    return AddStock(walter_db, walter_sm)
 
 
-def test_add_stock(add_stock_api: AddStock) -> None:
-    event = get_add_stock_event(email="walter@gmail.com", stock="ABNB", quantity=100.0)
+def test_add_stock(add_stock_api: AddStock, jwt_walter: str) -> None:
+    event = get_add_stock_event(
+        email="walter@gmail.com", stock="ABNB", quantity=100.0, token=jwt_walter
+    )
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.SUCCESS, message="Stock added!"
     )
     assert expected_response == add_stock_api.invoke(event)
 
 
-def test_add_stock_failure_invalid_email(add_stock_api: AddStock) -> None:
-    event = get_add_stock_event(email="walter", stock="ABNB", quantity=100.0)
+def test_add_stock_failure_invalid_email(
+    add_stock_api: AddStock, jwt_walter: str
+) -> None:
+    event = get_add_stock_event(
+        email="walter", stock="ABNB", quantity=100.0, token=jwt_walter
+    )
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
     )
     assert expected_response == add_stock_api.invoke(event)
 
 
-def test_add_stock_failure_user_does_not_exist(add_stock_api: AddStock) -> None:
-    event = get_add_stock_event(email="sally@gmail.com", stock="ABNB", quantity=100.0)
+def test_add_stock_failure_user_does_not_exist(
+    add_stock_api: AddStock, jwt_walter: str
+) -> None:
+    event = get_add_stock_event(
+        email="sally@gmail.com", stock="ABNB", quantity=100.0, token=jwt_walter
+    )
     expected_response = get_expected_response(
         status_code=HTTPStatus.OK, status=Status.FAILURE, message="User not found!"
     )

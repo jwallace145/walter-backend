@@ -3,7 +3,8 @@ from dataclasses import dataclass
 
 from src.api.exceptions import UserDoesNotExist, InvalidEmail
 from src.api.models import HTTPStatus, Status, create_response
-from src.api.utils import is_valid_email
+from src.api.utils import is_valid_email, authenticate_request
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.newsletters.queue import NewsletterRequest, NewslettersQueue
 from src.utils.log import Logger
@@ -20,6 +21,7 @@ class SendNewsletter:
 
     walter_db: WalterDB
     newsletters_queue: NewslettersQueue
+    walter_sm: WalterSecretsManagerClient
 
     def invoke(self, event: dict) -> dict:
         log.info(
@@ -48,14 +50,16 @@ class SendNewsletter:
     def _send_newsletter(self, event: dict) -> dict:
         try:
             body = json.loads(event["body"])
-
             email = body["email"]
+
             if not is_valid_email(email):
                 raise InvalidEmail("Invalid email!")
 
             user = self.walter_db.get_user(email)
             if user is None:
                 raise UserDoesNotExist("User not found!")
+
+            authenticate_request(event, self.walter_sm.get_jwt_secret_key())
 
             self.newsletters_queue.add_newsletter_request(NewsletterRequest(email))
 

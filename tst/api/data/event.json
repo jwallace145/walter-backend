@@ -2,7 +2,9 @@
     "resource": "/auth",
     "path": "/auth",
     "httpMethod": "POST",
-    "headers": {},
+    "headers": {
+        "Authorization": "Bearer JSON_WEB_TOKEN"
+    },
     "multiValueHeaders": {
         "Accept": [
             "*/*"
