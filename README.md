@@ -99,6 +99,8 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateUser-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI AddStock source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-AddStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterAPI GetStocksForUser source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-GetStocksForUser-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI SendNewsletter source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-SendNewsletter-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterNewsletters source code with artifact from S3 \
@@ -116,6 +118,8 @@ echo Publishing new WalterAPI Auth Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateUser-dev \
 && echo Publishing new WalterAPI AddStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-AddStock-dev \
+&& echo Publishing new WalterAPI GetStocksForUser Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetStocksForUser-dev \
 && echo Publishing new WalterAPI SendNewsletter Lambda version \
 && aws lambda publish-version --function-name WalterAPI-SendNewsletter-dev \
 && echo Publishing new WalterNewsletters Lambda version \

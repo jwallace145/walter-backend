@@ -115,6 +115,34 @@ Resources:
       FunctionName: !Ref WalterAPIAddStock
       Principal: apigateway.amazonaws.com
 
+  WalterAPIGetStocksForUserResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIUsers
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: stocks
+
+  WalterAPIGetStocksForUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIGetStocksForUserResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStocksForUser.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetStocksForUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetStocksForUser
+      Principal: apigateway.amazonaws.com
+
   WalterAPISendNewsletterPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -249,12 +277,48 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterAPIGetStocksForUserAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetStocksForUser
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetStocksForUser-${AppEnvironment}"
+
+  WalterAPIGetStocksForUser:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetStocksForUser-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetStocksForUser - Get stocks for the given user from WalterDB (${AppEnvironment})"
+      Handler: api.get_stocks_for_user
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:22"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+
   WalterAPISendNewsletterAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendNewsletter
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
+
 
   WalterAPISendNewsletter:
     Type: AWS::Lambda::Function

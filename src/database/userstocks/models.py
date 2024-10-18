@@ -25,6 +25,13 @@ class UserStock:
             "quantity": {"S": str(self.quantity)},
         }
 
+    def to_dict(self) -> dict:
+        return {
+            "user_email": self.user_email,
+            "stock_symbol": self.stock_symbol,
+            "quantity": self.quantity,
+        }
+
     def __str__(self) -> str:
         return json.dumps(
             {

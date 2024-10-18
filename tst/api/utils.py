@@ -13,6 +13,11 @@ def get_add_stock_event(email: str, stock: str, quantity: float) -> dict:
     return EVENT
 
 
+def get_stocks_for_user_event(email: str) -> dict:
+    EVENT["body"] = json.dumps({"email": email})
+    return EVENT
+
+
 def get_create_user_event(email: str, username: str, password: str) -> dict:
     EVENT["body"] = json.dumps(
         {"email": email, "username": username, "password": password}

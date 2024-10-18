@@ -2,6 +2,7 @@ import json
 from enum import Enum
 
 from dataclasses import dataclass
+from typing import Union
 
 
 class Status(Enum):
@@ -37,7 +38,7 @@ class Response:
 
 
 def create_response(
-    name: str, http_status: HTTPStatus, status: Status, message: str
+    name: str, http_status: HTTPStatus, status: Status, message: Union[str, dict, list]
 ) -> dict:
     return Response(
         api_name=name,
