@@ -52,6 +52,35 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPIAuthCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIAuthResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPIAuthPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -79,6 +108,35 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateUser.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  WalterAPICreateUserCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIUsers
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
 
   WalterAPICreateUserPermission:
     Type: AWS::Lambda::Permission
@@ -108,6 +166,35 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPIAddStockCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIStocks
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPIAddStockPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -135,6 +222,35 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStocksForUser.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  WalterAPIGetStocksForUserCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIGetStocksForUserResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
 
   WalterAPIGetStocksForUserPermission:
     Type: AWS::Lambda::Permission
@@ -170,6 +286,35 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISendNewsletter.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  WalterAPISendNewsletterCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPINewsletters
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
 
   ##############
   ### LAMBDA ###
@@ -808,5 +953,7 @@ Outputs:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
   WalterAPIAddStockEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
+  WalterAPIGetStocksForUserEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users/stocks"
   WalterAPISendNewsletterEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/newsletters"

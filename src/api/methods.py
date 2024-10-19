@@ -60,6 +60,7 @@ class WalterAPIMethod(ABC):
         authenticated_user = decoded_token["sub"]
         if email != authenticated_user:
             raise NotAuthenticated("Not authenticated!")
+        log.info("Successfully authenticated request!")
 
     def _handle_exception(self, exception: Exception) -> dict:
         status = HTTPStatus.INTERNAL_SERVER_ERROR
