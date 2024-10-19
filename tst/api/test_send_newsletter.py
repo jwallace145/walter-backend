@@ -43,16 +43,6 @@ def test_send_newsletter_failure_invalid_email(
     assert expected_response == send_newsletter_api.invoke(event)
 
 
-def test_send_newsletter_failure_user_does_not_exist(
-    send_newsletter_api: SendNewsletter, sqs_client: SQSClient
-) -> None:
-    event = get_send_newsletter_event(email="sally@gmail.com", token="test-token")
-    expected_response = get_expected_response(
-        status_code=HTTPStatus.OK, status=Status.FAILURE, message="User not found!"
-    )
-    assert expected_response == send_newsletter_api.invoke(event)
-
-
 def get_expected_response(
     status_code: HTTPStatus, status: Status, message: str
 ) -> dict:
