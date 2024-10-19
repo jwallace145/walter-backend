@@ -8,15 +8,75 @@
 
 ### Table of Contents
 
-- [WalterAI - WalterAIBackend](#walterai---walteraibackend)
-- [Table of Contents](#table-of-contents)
-- [Architecture](#architecture)
-- [Templates](#templates)
-- [Scripts](#scripts)
-  - [CloudFormation](#cloudformation)
-  - [Lambda](#lambda)
-- [Contributions](#contributions)
-- [Links](#links)
+* [Walter](#walter)
+* [Table of Contents](#table-of-contents)
+* [Architecture](#architecture)
+* [Templates](#templates)
+* [Scripts](#scripts)
+  * [CloudFormation](#cloudformation)
+  * [Lambda](#lambda)
+  * [S3](#s3)
+  * [SQS](#sqs)
+* [Contributions](#contributions)
+* [Links](#links)
+
+### API
+
+Export the `WALTER_API_ENDPOINT` for the intended environment and run the following curl commands to interact with Walter!
+
+For APIs that require authentication, first authenticate the user using the `AuthUser` API and then export the returned JSON web token as `TOKEN` to be included in authenticated requests.
+#### Create User
+
+```bash
+export EMAIL="walter@gmail.com" \
+&& export USERNAME="walter" \
+&& export PASSWORD="walter" \
+&& curl -X POST "${WALTER_API_ENDPOINT}/users" \
+ -H "Content-Type: application/json" \
+ -d "{\"email\": \"${EMAIL}\", \"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}" | jq
+```
+
+#### Authenticate User
+
+```bash
+export EMAIL="walter@gmail.com" \
+&& export PASSWORD="walter" \
+&& curl -X POST "${WALTER_API_ENDPOINT}/auth" \
+ -H "Content-Type: application/json" \
+ -d "{\"email\": \"${EMAIL}\", \"password\": \"${PASSWORD}\"}" | jq
+```
+
+#### Add Stock
+
+```bash
+export EMAIL="walter@gmail.com" \
+&& export STOCK="META" \
+&& export QUANTITY=100.0 \
+&& curl -X POST "${WALTER_API_ENDPOINT}/stocks" \
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer ${TOKEN}" \
+ -d "{\"email\": \"${EMAIL}\", \"stock\": \"${STOCK}\", \"quantity\": \"${QUANTITY}\"}" | jq
+```
+
+#### Get Stocks For User
+
+```bash
+export EMAIL="walter@gmail.com" \
+&& curl -X POST "${WALTER_API_ENDPOINT}/users/stocks" \
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer ${TOKEN}" \
+ -d "{\"email\": \"${EMAIL}\"}" | jq
+```
+
+#### Send Newsletter
+
+```bash
+export EMAIL="walter@gmail.com" \
+&& curl -X POST "${WALTER_API_ENDPOINT}/newsletters" \
+ -H "Content-Type: application/json" \
+ -H "Authorization: Bearer ${TOKEN}" \
+ -d "{\"email\": \"${EMAIL}\"}" | jq
+```
 
 ### Architecture
 
