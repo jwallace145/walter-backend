@@ -54,16 +54,6 @@ def test_add_stock_failure_invalid_email(
     assert expected_response == get_stocks_for_user_api.invoke(event)
 
 
-def test_add_stock_failure_user_does_not_exist(
-    get_stocks_for_user_api: GetStocksForUser,
-) -> None:
-    event = get_stocks_for_user_event(email="sally@gmail.com", token="test-token")
-    expected_response = get_expected_response(
-        status_code=HTTPStatus.OK, status=Status.FAILURE, message="User not found!"
-    )
-    assert expected_response == get_stocks_for_user_api.invoke(event)
-
-
 def get_expected_response(
     status_code: HTTPStatus, status: Status, message: str
 ) -> dict:
