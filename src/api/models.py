@@ -25,6 +25,12 @@ class Response:
     def to_json(self) -> dict:
         return {
             "statusCode": self.http_status.value,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
+            },
             "body": json.dumps(
                 {
                     "API": self.api_name,
