@@ -1,10 +1,11 @@
+import datetime as dt
 from dataclasses import dataclass
 from typing import List
 
-from src.database.users.models import User
-from src.utils.log import Logger
-from src.environment import Domain
 from src.aws.dynamodb.client import WalterDDBClient
+from src.database.users.models import User
+from src.environment import Domain
+from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
@@ -70,5 +71,6 @@ class UsersTable:
             email=item["email"]["S"],
             username=item["username"]["S"],
             password_hash=item["password_hash"]["S"],
-            salt=item["salt"]["S"],
+            last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
+            sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),
         )

@@ -87,8 +87,7 @@ def ddb_client() -> DynamoDBClient:
                     Item=User(
                         email=json_user["email"],
                         username=json_user["username"],
-                        password_hash=json_user["password_hash"],
-                        salt=json_user["salt"],
+                        password_hash=json_user["password_hash"]
                     ).to_ddb_item(),
                 )
 

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import datetime as dt
 from typing import Dict, List
 
 from src.aws.dynamodb.client import WalterDDBClient
@@ -36,7 +37,8 @@ class WalterDB:
             email=email,
             username=username,
             password_hash=password_hash.decode(),
-            salt=salt.decode(),
+            sign_up_date=dt.datetime.now(dt.UTC),
+            last_active_date=dt.datetime.now(dt.UTC),
         )
         self.users_table.create_user(user)
 
