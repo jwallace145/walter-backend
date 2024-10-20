@@ -41,6 +41,20 @@ def test_add_stock_failure_invalid_email(
     assert expected_response == add_stock_api.invoke(event)
 
 
+def test_add_stock_failure_stock_does_not_exist(
+    add_stock_api: AddStock, jwt_walter: str
+) -> None:
+    event = get_add_stock_event(
+        email="walter@gmail.com", stock="INVALID", quantity=100.0, token=jwt_walter
+    )
+    expected_response = get_expected_response(
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Stock does not exist!",
+    )
+    assert expected_response == add_stock_api.invoke(event)
+
+
 def get_expected_response(
     status_code: HTTPStatus, status: Status, message: str
 ) -> dict:

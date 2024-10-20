@@ -24,7 +24,13 @@ class AddStock(WalterAPIMethod):
 
     API_NAME = "WalterAPI: AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
-    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidEmail, UserDoesNotExist, StockDoesNotExist]
+    EXCEPTIONS = [
+        BadRequest,
+        NotAuthenticated,
+        InvalidEmail,
+        UserDoesNotExist,
+        StockDoesNotExist,
+    ]
 
     def __init__(
         self,
@@ -63,7 +69,7 @@ class AddStock(WalterAPIMethod):
 
         symbol = body["stock"]
         if walter_stocks_api.does_stock_exist(symbol) is False:
-            raise StockDoesNotExist(f"Stock {symbol} does not exist!")
+            raise StockDoesNotExist("Stock does not exist!")
 
     def is_authenticated_api(self) -> bool:
         return True
