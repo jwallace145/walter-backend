@@ -177,6 +177,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
 
     aapl = Stock(symbol="AAPL", company="Apple Inc.")
     meta = Stock(symbol="META", company="Meta")
+    abnb = Stock(symbol="ABNB", company="Airbnb")
 
     def mock_aggs(*args, **kwargs) -> List[Agg]:
         aggs = {
@@ -267,12 +268,16 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
         details = {
             aapl.symbol: TickerDetails(
                 ticker=aapl.symbol,
-                name="Apple Inc.",
+                name=aapl.company,
             ),
             meta.symbol: TickerDetails(
                 ticker=meta.symbol,
-                name="Meta",
+                name=meta.company,
             ),
+            abnb.symbol: TickerDetails(
+                ticker=abnb.symbol,
+                name=abnb.company,
+            )
         }
         for key, value in kwargs.items():
             if key == "ticker":

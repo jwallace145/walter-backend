@@ -11,7 +11,6 @@ from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
-from src.clients import walter_stocks_api
 from src.database.client import WalterDB
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
@@ -68,7 +67,7 @@ class AddStock(WalterAPIMethod):
             raise UserDoesNotExist("User not found!")
 
         symbol = body["stock"]
-        if walter_stocks_api.does_stock_exist(symbol) is False:
+        if self.walter_stocks_api.does_stock_exist(symbol) is False:
             raise StockDoesNotExist("Stock does not exist!")
 
     def is_authenticated_api(self) -> bool:
