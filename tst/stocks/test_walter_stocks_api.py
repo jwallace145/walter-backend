@@ -1,19 +1,12 @@
 from datetime import datetime as dt
 from datetime import timedelta
-from typing import List
-
-import pytest
-from polygon import RESTClient
-from polygon.rest.models import Agg, TickerNews
 
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
 from src.stocks.models import Portfolio
-from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
-from tst.conftest import SECRETS_MANAGER_POLYGON_API_KEY_VALUE
 
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
 
@@ -89,101 +82,10 @@ NEWS = {
 PORTFOLIO = Portfolio(STOCKS, PRICES, NEWS)
 
 
-@pytest.fixture
-def walter_stocks_api(mocker) -> WalterStocksAPI:
-    mock_polygon_rest_client = mocker.MagicMock(spec=RESTClient)
-
-    def mock_aggs(*args, **kwargs) -> List[Agg]:
-        aggs = {
-            AAPL.symbol: [
-                Agg(
-                    open=90.0,
-                    high=100.0,
-                    low=85.0,
-                    close=95.0,
-                    timestamp=START_DATE.timestamp() * 1000,
-                ),
-                Agg(
-                    open=95.0,
-                    high=100.0,
-                    low=90.0,
-                    close=100.0,
-                    timestamp=(START_DATE + timedelta(hours=1)).timestamp() * 1000,
-                ),
-                Agg(
-                    open=100.0,
-                    high=120.0,
-                    low=95.0,
-                    close=105.0,
-                    timestamp=END_DATE.timestamp() * 1000,
-                ),
-            ],
-            META.symbol: [
-                Agg(
-                    open=200.0,
-                    high=220.0,
-                    low=190.0,
-                    close=210.0,
-                    timestamp=START_DATE.timestamp() * 1000,
-                ),
-                Agg(
-                    open=225.0,
-                    high=240.0,
-                    low=220.0,
-                    close=230.0,
-                    timestamp=(START_DATE + timedelta(hours=1)).timestamp() * 1000,
-                ),
-                Agg(
-                    open=250.0,
-                    high=255.0,
-                    low=245.0,
-                    close=250.0,
-                    timestamp=END_DATE.timestamp() * 1000,
-                ),
-            ],
-        }
-        for key, value in kwargs.items():
-            if key == "ticker":
-                return aggs[value]
-        raise ValueError("ticker not in get aggs kwargs!")
-
-    mock_polygon_rest_client.list_aggs.side_effect = mock_aggs
-
-    def mock_ticker_news(*args, **kwargs) -> List[TickerNews]:
-        news = {
-            AAPL.symbol: [
-                TickerNews(
-                    author="Maya Grayson",
-                    title="Scientists Discover Hidden Underwater City Off the Coast of Australia",
-                    description="It is much bigger than Atlantis!",
-                )
-            ],
-            META.symbol: [
-                TickerNews(
-                    author="Ethan Caldwell",
-                    title="Local Bakery Breaks World Record for Largest Croissant Ever Made",
-                    description="The croissant weights over 500 pounds!",
-                ),
-                TickerNews(
-                    author="Lila Montgomery",
-                    title="Tech Giant Unveils Revolutionary Smart Glasses That Can Read Your Thoughts",
-                    description="Uh oh, a lot of people are going to be in trouble!",
-                ),
-            ],
-        }
-        for key, value in kwargs.items():
-            if key == "ticker":
-                return news[value]
-        raise ValueError("ticker not in list ticker news kwargs!")
-
-    mock_polygon_rest_client.list_ticker_news.side_effect = mock_ticker_news
-
-    return WalterStocksAPI(
-        client=PolygonClient(
-            api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
-            client=mock_polygon_rest_client,
-        )
-    )
+def test_does_stock_exist(walter_stocks_api: WalterStocksAPI) -> None:
+    assert walter_stocks_api.does_stock_exist(AAPL.symbol) is True
+    assert walter_stocks_api.does_stock_exist(META.symbol) is True
+    assert walter_stocks_api.does_stock_exist("INVALID") is False
 
 
 def test_get_portfolio(walter_stocks_api: WalterStocksAPI) -> None:
