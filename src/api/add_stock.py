@@ -24,7 +24,7 @@ class AddStock(WalterAPIMethod):
 
     API_NAME = "WalterAPI: AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
-    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidEmail, UserDoesNotExist, StockDoesNotExist]
 
     def __init__(
         self,
