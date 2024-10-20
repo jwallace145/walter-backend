@@ -1,8 +1,9 @@
-from dataclasses import dataclass
 import datetime as dt
+from dataclasses import dataclass
 from typing import Dict, List
 
 from src.aws.dynamodb.client import WalterDDBClient
+from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
 from src.database.users.models import User
 from src.database.users.table import UsersTable
@@ -53,6 +54,12 @@ class WalterDB:
 
     def delete_user(self, email: str) -> None:
         self.users_table.delete_user(email)
+
+    def get_stock(self, symbol: str) -> Stock:
+        return self.stocks_table.get_stock(symbol)
+
+    def add_stock(self, stock: Stock) -> None:
+        self.stocks_table.put_stock(stock)
 
     def get_stocks_for_user(self, user: User) -> Dict[str, UserStock]:
         stocks = self.users_stocks_table.get_stocks_for_user(user)

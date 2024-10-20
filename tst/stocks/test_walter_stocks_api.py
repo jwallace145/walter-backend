@@ -83,9 +83,9 @@ PORTFOLIO = Portfolio(STOCKS, PRICES, NEWS)
 
 
 def test_does_stock_exist(walter_stocks_api: WalterStocksAPI) -> None:
-    assert walter_stocks_api.does_stock_exist(AAPL.symbol) is True
-    assert walter_stocks_api.does_stock_exist(META.symbol) is True
-    assert walter_stocks_api.does_stock_exist("INVALID") is False
+    assert walter_stocks_api.get_stock(AAPL.symbol) is not None
+    assert walter_stocks_api.get_stock(META.symbol) is not None
+    assert walter_stocks_api.get_stock("INVALID") is None
 
 
 def test_get_portfolio(walter_stocks_api: WalterStocksAPI) -> None:

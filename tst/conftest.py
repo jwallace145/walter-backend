@@ -277,7 +277,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
             abnb.symbol: TickerDetails(
                 ticker=abnb.symbol,
                 name=abnb.company,
-            )
+            ),
         }
         for key, value in kwargs.items():
             if key == "ticker":

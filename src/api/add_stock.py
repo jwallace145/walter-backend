@@ -67,8 +67,12 @@ class AddStock(WalterAPIMethod):
             raise UserDoesNotExist("User not found!")
 
         symbol = body["stock"]
-        if self.walter_stocks_api.does_stock_exist(symbol) is False:
+        stock = self.walter_stocks_api.get_stock(symbol)
+        if stock is None:
             raise StockDoesNotExist("Stock does not exist!")
+
+        if self.walter_db.get_stock(symbol) is None:
+            self.walter_db.add_stock(stock)
 
     def is_authenticated_api(self) -> bool:
         return True
