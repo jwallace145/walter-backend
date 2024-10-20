@@ -24,3 +24,6 @@ class WalterStocksAPI:
         prices = self.client.batch_get_prices(stocks, start_date, end_date)
         news = self.client.batch_get_news(stocks, start_date)
         return Portfolio(stocks, prices, news)
+
+    def does_stock_exist(self, symbol: str) -> bool:
+        return self.client.get_stock(symbol) is not None

@@ -1,5 +1,7 @@
 import json
 import os
+from datetime import datetime as dt, timedelta
+from typing import List
 
 import boto3
 import pytest
@@ -7,6 +9,8 @@ from moto import mock_aws
 from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
+from polygon import RESTClient, BadResponse
+from polygon.rest.models import Agg, TickerNews, TickerDetails
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -17,6 +21,8 @@ from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
+from src.stocks.client import WalterStocksAPI
+from src.stocks.polygon.client import PolygonClient
 from src.utils.auth import generate_token
 
 #############
@@ -87,7 +93,7 @@ def ddb_client() -> DynamoDBClient:
                     Item=User(
                         email=json_user["email"],
                         username=json_user["username"],
-                        password_hash=json_user["password_hash"]
+                        password_hash=json_user["password_hash"],
                     ).to_ddb_item(),
                 )
 
@@ -158,6 +164,137 @@ def env_vars():
 @pytest.fixture
 def walter_db(ddb_client) -> WalterDB:
     return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
+
+
+@pytest.fixture
+def walter_stocks_api(mocker) -> WalterStocksAPI:
+    mock_polygon_rest_client = mocker.MagicMock(spec=RESTClient)
+
+    start_date = dt(
+        year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    end_date = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
+
+    aapl = Stock(symbol="AAPL", company="Apple Inc.")
+    meta = Stock(symbol="META", company="Meta")
+    abnb = Stock(symbol="ABNB", company="Airbnb")
+
+    def mock_aggs(*args, **kwargs) -> List[Agg]:
+        aggs = {
+            aapl.symbol: [
+                Agg(
+                    open=90.0,
+                    high=100.0,
+                    low=85.0,
+                    close=95.0,
+                    timestamp=start_date.timestamp() * 1000,
+                ),
+                Agg(
+                    open=95.0,
+                    high=100.0,
+                    low=90.0,
+                    close=100.0,
+                    timestamp=(start_date + timedelta(hours=1)).timestamp() * 1000,
+                ),
+                Agg(
+                    open=100.0,
+                    high=120.0,
+                    low=95.0,
+                    close=105.0,
+                    timestamp=end_date.timestamp() * 1000,
+                ),
+            ],
+            meta.symbol: [
+                Agg(
+                    open=200.0,
+                    high=220.0,
+                    low=190.0,
+                    close=210.0,
+                    timestamp=start_date.timestamp() * 1000,
+                ),
+                Agg(
+                    open=225.0,
+                    high=240.0,
+                    low=220.0,
+                    close=230.0,
+                    timestamp=(start_date + timedelta(hours=1)).timestamp() * 1000,
+                ),
+                Agg(
+                    open=250.0,
+                    high=255.0,
+                    low=245.0,
+                    close=250.0,
+                    timestamp=end_date.timestamp() * 1000,
+                ),
+            ],
+        }
+        for key, value in kwargs.items():
+            if key == "ticker":
+                return aggs[value]
+        raise ValueError("ticker not in get aggs kwargs!")
+
+    mock_polygon_rest_client.list_aggs.side_effect = mock_aggs
+
+    def mock_ticker_news(*args, **kwargs) -> List[TickerNews]:
+        news = {
+            aapl.symbol: [
+                TickerNews(
+                    author="Maya Grayson",
+                    title="Scientists Discover Hidden Underwater City Off the Coast of Australia",
+                    description="It is much bigger than Atlantis!",
+                )
+            ],
+            meta.symbol: [
+                TickerNews(
+                    author="Ethan Caldwell",
+                    title="Local Bakery Breaks World Record for Largest Croissant Ever Made",
+                    description="The croissant weights over 500 pounds!",
+                ),
+                TickerNews(
+                    author="Lila Montgomery",
+                    title="Tech Giant Unveils Revolutionary Smart Glasses That Can Read Your Thoughts",
+                    description="Uh oh, a lot of people are going to be in trouble!",
+                ),
+            ],
+        }
+        for key, value in kwargs.items():
+            if key == "ticker":
+                return news[value]
+        raise ValueError("ticker not in list ticker news kwargs!")
+
+    mock_polygon_rest_client.list_ticker_news.side_effect = mock_ticker_news
+
+    def mock_get_ticker_details(*args, **kwargs) -> TickerDetails:
+        details = {
+            aapl.symbol: TickerDetails(
+                ticker=aapl.symbol,
+                name=aapl.company,
+            ),
+            meta.symbol: TickerDetails(
+                ticker=meta.symbol,
+                name=meta.company,
+            ),
+            abnb.symbol: TickerDetails(
+                ticker=abnb.symbol,
+                name=abnb.company,
+            )
+        }
+        for key, value in kwargs.items():
+            if key == "ticker":
+                try:
+                    return details[value]
+                except KeyError:
+                    raise BadResponse("Stock not found!")
+        raise ValueError("ticker not in get ticket details kwargs!")
+
+    mock_polygon_rest_client.get_ticker_details.side_effect = mock_get_ticker_details
+
+    return WalterStocksAPI(
+        client=PolygonClient(
+            api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
+            client=mock_polygon_rest_client,
+        )
+    )
 
 
 @pytest.fixture

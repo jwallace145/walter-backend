@@ -23,6 +23,11 @@ class UserDoesNotExist(Exception):
         super().__init__(message)
 
 
+class StockDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class BadRequest(Exception):
     def __init__(self, message):
         super().__init__(message)

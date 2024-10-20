@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List
 
+import polygon.exceptions
 from polygon import RESTClient
 from polygon.rest.models.aggs import Agg
 
+from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.stocks.polygon.models import StockPrice, StockPrices, StockNews
@@ -32,6 +34,15 @@ class PolygonClient:
 
     def __post_init__(self) -> None:
         log.debug(f"Creating {Domain.PRODUCTION.value} Polygon client")
+
+    def get_stock(self, symbol: str) -> Stock | None:
+        self._init_rest_client()
+        try:
+            details = self.client.get_ticker_details(ticker=symbol)
+            return Stock(symbol=details.ticker, company=details.name)
+        except polygon.BadResponse:
+            log.info(f"{symbol} does not exist in Polygon!")
+            return None
 
     def batch_get_prices(
         self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime

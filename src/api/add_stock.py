@@ -5,6 +5,7 @@ from src.api.exceptions import (
     BadRequest,
     NotAuthenticated,
     UserDoesNotExist,
+    StockDoesNotExist,
 )
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
@@ -12,6 +13,7 @@ from src.api.utils import is_valid_email
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.userstocks.models import UserStock
+from src.stocks.client import WalterStocksAPI
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -21,15 +23,25 @@ class AddStock(WalterAPIMethod):
 
     API_NAME = "WalterAPI: AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
-    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [
+        BadRequest,
+        NotAuthenticated,
+        InvalidEmail,
+        UserDoesNotExist,
+        StockDoesNotExist,
+    ]
 
     def __init__(
-        self, walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+        self,
+        walter_db: WalterDB,
+        walter_stocks_api: WalterStocksAPI,
+        walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
             AddStock.API_NAME, AddStock.REQUIRED_FIELDS, AddStock.EXCEPTIONS
         )
         self.walter_db = walter_db
+        self.walter_stocks_api = walter_stocks_api
         self.walter_sm = walter_sm
 
     def execute(self, event: dict) -> dict:
@@ -45,14 +57,18 @@ class AddStock(WalterAPIMethod):
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
-        email = body["email"]
 
+        email = body["email"]
         if not is_valid_email(email):
             raise InvalidEmail("Invalid email!")
 
         user = self.walter_db.get_user(email)
         if user is None:
             raise UserDoesNotExist("User not found!")
+
+        symbol = body["stock"]
+        if self.walter_stocks_api.does_stock_exist(symbol) is False:
+            raise StockDoesNotExist("Stock does not exist!")
 
     def is_authenticated_api(self) -> bool:
         return True
