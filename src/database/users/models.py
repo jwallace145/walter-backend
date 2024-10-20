@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+import datetime as dt
 
 
 @dataclass(frozen=True)
@@ -7,14 +8,25 @@ class User:
     email: str
     username: str
     password_hash: str
-    salt: str
+    sign_up_date: dt.datetime = dt.datetime.now(dt.UTC)
+    last_active_date: dt.datetime = dt.datetime.now(dt.UTC)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, User):
+            return (
+                self.email == other.email
+                and self.username == other.username
+                and self.password_hash == other.password_hash
+            )
+        return False
 
     def __dict__(self) -> dict:
         return {
             "email": self.email,
             "username": self.username,
             "password_hash": self.password_hash,
-            "salt": self.salt,
+            "sign_up_date": self.sign_up_date.isoformat(),
+            "last_active_date": self.last_active_date.isoformat(),
         }
 
     def __str__(self) -> str:
@@ -30,5 +42,6 @@ class User:
             },
             "username": {"S": self.username},
             "password_hash": {"S": self.password_hash},
-            "salt": {"S": self.salt},
+            "sign_up_date": {"S": self.sign_up_date.isoformat()},
+            "last_active_date": {"S": self.last_active_date.isoformat()},
         }

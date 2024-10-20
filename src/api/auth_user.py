@@ -13,7 +13,6 @@ log = Logger(__name__).get_logger()
 
 
 class AuthUser(WalterAPIMethod):
-
     API_NAME = "WalterAPI: AuthUser"
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
