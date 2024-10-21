@@ -5,6 +5,7 @@ from src.api.exceptions import UserDoesNotExist, InvalidEmail
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.newsletters.queue import NewsletterRequest, NewslettersQueue
@@ -16,12 +17,13 @@ log = Logger(__name__).get_logger()
 @dataclass
 class SendNewsletter(WalterAPIMethod):
 
-    API_NAME = "WalterAPI: SendNewsletter"
+    API_NAME = "SendNewsletter"
     REQUIRED_FIELDS = ["email"]
     EXCEPTIONS = [InvalidEmail, UserDoesNotExist]
 
     def __init__(
         self,
+        walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         newsletters_queue: NewslettersQueue,
         walter_sm: WalterSecretsManagerClient,
@@ -30,6 +32,7 @@ class SendNewsletter(WalterAPIMethod):
             SendNewsletter.API_NAME,
             SendNewsletter.REQUIRED_FIELDS,
             SendNewsletter.EXCEPTIONS,
+            walter_cw,
         )
         self.walter_db = walter_db
         self.newsletters_queue = newsletters_queue

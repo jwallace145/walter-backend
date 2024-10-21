@@ -5,6 +5,7 @@ from src.api.exceptions import UserDoesNotExist, InvalidEmail
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
@@ -15,7 +16,7 @@ log = Logger(__name__).get_logger()
 @dataclass
 class GetStocksForUser(WalterAPIMethod):
 
-    API_NAME = "WalterAPI: GetStocksForUser"
+    API_NAME = "GetStocksForUser"
     REQUIRED_FIELDS = ["email"]
     EXCEPTIONS = [InvalidEmail, UserDoesNotExist]
 
@@ -23,12 +24,16 @@ class GetStocksForUser(WalterAPIMethod):
     walter_sm: WalterSecretsManagerClient
 
     def __init__(
-        self, walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+        self,
+        walter_cw: WalterCloudWatchClient,
+        walter_db: WalterDB,
+        walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
             GetStocksForUser.API_NAME,
             GetStocksForUser.REQUIRED_FIELDS,
             GetStocksForUser.EXCEPTIONS,
+            walter_cw,
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm

@@ -5,6 +5,7 @@ from mypy_boto3_sqs.client import SQSClient
 
 from src.api.models import Status, HTTPStatus
 from src.api.send_newsletter import SendNewsletter
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.newsletters.queue import NewslettersQueue
@@ -13,11 +14,12 @@ from tst.api.utils import get_send_newsletter_event
 
 @pytest.fixture
 def send_newsletter_api(
+    walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
     newsletters_queue: NewslettersQueue,
     walter_sm: WalterSecretsManagerClient,
 ) -> SendNewsletter:
-    return SendNewsletter(walter_db, newsletters_queue, walter_sm)
+    return SendNewsletter(walter_cw, walter_db, newsletters_queue, walter_sm)
 
 
 def test_send_newsletter(
@@ -56,7 +58,7 @@ def get_expected_response(
         },
         "body": json.dumps(
             {
-                "API": "WalterAPI: SendNewsletter",
+                "API": "SendNewsletter",
                 "Status": status.value,
                 "Message": message,
             }
