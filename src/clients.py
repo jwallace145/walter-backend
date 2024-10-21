@@ -40,7 +40,7 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 # WALTER BOTO3 CLIENTS #
 ########################
 
-cloudwatch = WalterCloudWatchClient(
+walter_cw = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
 ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)

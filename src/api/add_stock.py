@@ -10,6 +10,7 @@ from src.api.exceptions import (
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.userstocks.models import UserStock
@@ -21,7 +22,7 @@ log = Logger(__name__).get_logger()
 
 class AddStock(WalterAPIMethod):
 
-    API_NAME = "WalterAPI: AddStock"
+    API_NAME = "AddStock"
     REQUIRED_FIELDS = ["email", "stock", "quantity"]
     EXCEPTIONS = [
         BadRequest,
@@ -33,12 +34,13 @@ class AddStock(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_stocks_api: WalterStocksAPI,
         walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
-            AddStock.API_NAME, AddStock.REQUIRED_FIELDS, AddStock.EXCEPTIONS
+            AddStock.API_NAME, AddStock.REQUIRED_FIELDS, AddStock.EXCEPTIONS, walter_cw
         )
         self.walter_db = walter_db
         self.walter_stocks_api = walter_stocks_api

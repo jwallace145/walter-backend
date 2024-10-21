@@ -4,6 +4,7 @@ import pytest
 
 from src.api.auth_user import AuthUser
 from src.api.models import Status, HTTPStatus
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from tst.api.utils import get_auth_user_event
@@ -11,9 +12,11 @@ from tst.api.utils import get_auth_user_event
 
 @pytest.fixture
 def auth_user_api(
-    walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+    walter_cw: WalterCloudWatchClient,
+    walter_db: WalterDB,
+    walter_sm: WalterSecretsManagerClient,
 ) -> AuthUser:
-    return AuthUser(walter_db, walter_sm)
+    return AuthUser(walter_cw, walter_db, walter_sm)
 
 
 def test_auth_user_failure_invalid_email(auth_user_api: AuthUser) -> None:
@@ -45,7 +48,7 @@ def get_expected_response(
         },
         "body": json.dumps(
             {
-                "API": "WalterAPI: AuthUser",
+                "API": "AuthUser",
                 "Status": status.value,
                 "Message": message,
             }

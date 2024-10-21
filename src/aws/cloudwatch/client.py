@@ -10,18 +10,10 @@ log = Logger(__name__).get_logger()
 @dataclass
 class WalterCloudWatchClient:
     """
-    WalterAI CloudWatch Client
-
-    Metrics:
-        - The number of emails sent
-        - The number of stocks analyzed
-        - The number of subscribed users
+    WalterBackend Cloud Watch Client
     """
 
-    METRIC_NAMESPACE = "WalterAIBackend/{domain}"
-    METRIC_NAME_NUMBER_OF_EMAILS_SENT = "NumberOfEmailsSent"
-    METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED = "NumberOfStocksAnalyzed"
-    METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS = "NumberOfSubscribedUsers"
+    METRIC_NAMESPACE = "WalterBackend/{domain}"
 
     client: CloudWatchClient
     domain: Domain
@@ -36,38 +28,14 @@ class WalterCloudWatchClient:
             self.domain
         )
 
-    def emit_metric_number_of_emails_sent(self, num_emails: int) -> None:
+    def emit_metric(self, metric_name: str, count: int) -> None:
         self.client.put_metric_data(
             Namespace=self.metric_namespace,
             MetricData=[
                 {
-                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_EMAILS_SENT,
+                    "MetricName": metric_name,
                     "Unit": "Count",
-                    "Value": num_emails,
-                }
-            ],
-        )
-
-    def emit_metric_number_of_stocks_analyzed(self, num_stocks: int) -> None:
-        self.client.put_metric_data(
-            Namespace=self.metric_namespace,
-            MetricData=[
-                {
-                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_STOCKS_ANALYZED,
-                    "Unit": "Count",
-                    "Value": num_stocks,
-                }
-            ],
-        )
-
-    def emit_metric_number_of_subscribed_users(self, num_users: int) -> None:
-        self.client.put_metric_data(
-            Namespace=self.metric_namespace,
-            MetricData=[
-                {
-                    "MetricName": WalterCloudWatchClient.METRIC_NAME_NUMBER_OF_SUBSCRIBED_USERS,
-                    "Unit": "Count",
-                    "Value": num_users,
+                    "Value": count,
                 }
             ],
         )

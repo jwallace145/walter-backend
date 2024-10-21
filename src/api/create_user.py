@@ -9,6 +9,7 @@ from src.api.exceptions import (
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_username, is_valid_email
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
 
@@ -17,16 +18,20 @@ log = Logger(__name__).get_logger()
 
 class CreateUser(WalterAPIMethod):
 
-    API_NAME = "WalterAPI: CreateUser"
+    API_NAME = "CreateUser"
     REQUIRED_FIELDS = ["email", "username", "password"]
     EXCEPTIONS = [BadRequest, InvalidEmail, InvalidUsername, UserAlreadyExists]
 
     def __init__(
         self,
+        walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
-            CreateUser.API_NAME, CreateUser.REQUIRED_FIELDS, CreateUser.EXCEPTIONS
+            CreateUser.API_NAME,
+            CreateUser.REQUIRED_FIELDS,
+            CreateUser.EXCEPTIONS,
+            walter_cw,
         )
         self.walter_db = walter_db
 
