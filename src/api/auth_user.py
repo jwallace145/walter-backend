@@ -4,6 +4,7 @@ from src.api.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.utils.auth import check_password, generate_token
@@ -13,15 +14,18 @@ log = Logger(__name__).get_logger()
 
 
 class AuthUser(WalterAPIMethod):
-    API_NAME = "WalterAPI: AuthUser"
+    API_NAME = "AuthUser"
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
 
     def __init__(
-        self, walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+        self,
+        walter_cw: WalterCloudWatchClient,
+        walter_db: WalterDB,
+        walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
-            AuthUser.API_NAME, AuthUser.REQUIRED_FIELDS, AuthUser.EXCEPTIONS
+            AuthUser.API_NAME, AuthUser.REQUIRED_FIELDS, AuthUser.EXCEPTIONS, walter_cw
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm

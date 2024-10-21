@@ -5,6 +5,7 @@ from typing import List, Union
 from src.api.exceptions import BadRequest, NotAuthenticated
 from src.api.models import HTTPStatus, Response, Status
 from src.api.utils import get_token
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.utils.auth import decode_token
 from src.utils.log import Logger
 
@@ -12,25 +13,40 @@ log = Logger(__name__).get_logger()
 
 
 class WalterAPIMethod(ABC):
+
+    METRICS_SUCCESS_COUNT = "SuccessCount"
+    METRICS_FAILURE_COUNT = "FailureCount"
+    METRICS_TOTAL_COUNT = "TotalCount"
+
     def __init__(
-        self, api_name: str, required_fields: List[str], exceptions: List[Exception]
+        self,
+        api_name: str,
+        required_fields: List[str],
+        exceptions: List[Exception],
+        metrics: WalterCloudWatchClient,
     ) -> None:
         self.api_name = api_name
         self.required_fields = required_fields
         self.exceptions = exceptions
+        self.metrics = metrics
 
     def invoke(self, event: dict) -> dict:
         log.info(f"Invoking {self.api_name} with event:\n{json.dumps(event, indent=4)}")
 
+        response = None
         try:
             self._validate_request(event)
 
             if self.is_authenticated_api():
                 self._authenticate_request(event)
 
-            return self.execute(event)
+            response = self.execute(event)
         except Exception as exception:
-            return self._handle_exception(exception)
+            response = self._handle_exception(exception)
+        finally:
+            self.emit_metrics(response)
+
+        return response
 
     def _validate_request(self, event: dict) -> None:
         self._validate_required_fields(event)
@@ -86,6 +102,25 @@ class WalterAPIMethod(ABC):
             status=status,
             message=message,
         ).to_json()
+
+    def _get_success_count_metric_name(self) -> str:
+        return f"{self.api_name}.{WalterAPIMethod.METRICS_SUCCESS_COUNT}"
+
+    def _get_failure_count_metric_name(self) -> str:
+        return f"{self.api_name}.{WalterAPIMethod.METRICS_FAILURE_COUNT}"
+
+    def _get_total_count_metric_name(self) -> str:
+        return f"{self.api_name}.{WalterAPIMethod.METRICS_TOTAL_COUNT}"
+
+    def emit_metrics(self, response: dict | None) -> None:
+        success = response["statusCode"] == HTTPStatus.OK.value
+        self.metrics.emit_metric(
+            self._get_success_count_metric_name(), 1 if success else 0
+        )
+        self.metrics.emit_metric(
+            self._get_failure_count_metric_name(), 0 if success else 1
+        )
+        self.metrics.emit_metric(self._get_total_count_metric_name(), 1)
 
     @abstractmethod
     def execute(self, event: dict) -> dict:

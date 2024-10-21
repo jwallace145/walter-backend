@@ -4,6 +4,7 @@ import pytest
 
 from src.api.get_stocks_for_user import GetStocksForUser
 from src.api.models import Status, HTTPStatus
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from tst.api.utils import get_stocks_for_user_event
@@ -11,9 +12,11 @@ from tst.api.utils import get_stocks_for_user_event
 
 @pytest.fixture
 def get_stocks_for_user_api(
-    walter_db: WalterDB, walter_sm: WalterSecretsManagerClient
+    walter_cw: WalterCloudWatchClient,
+    walter_db: WalterDB,
+    walter_sm: WalterSecretsManagerClient,
 ) -> GetStocksForUser:
-    return GetStocksForUser(walter_db, walter_sm)
+    return GetStocksForUser(walter_cw, walter_db, walter_sm)
 
 
 def test_get_stocks_for_user(
@@ -67,7 +70,7 @@ def get_expected_response(
         },
         "body": json.dumps(
             {
-                "API": "WalterAPI: GetStocksForUser",
+                "API": "GetStocksForUser",
                 "Status": status.value,
                 "Message": message,
             }

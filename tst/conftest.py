@@ -6,12 +6,14 @@ from typing import List
 import boto3
 import pytest
 from moto import mock_aws
+from mypy_boto3_cloudwatch import CloudWatchClient
 from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 from polygon import RESTClient, BadResponse
 from polygon.rest.models import Agg, TickerNews, TickerDetails
 
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.sqs.client import WalterSQSClient
@@ -144,6 +146,13 @@ def secrets_manager_client() -> SecretsManagerClient:
             ),
         )
         yield mock_secrets_manager
+
+
+@pytest.fixture
+def cloud_watch_client() -> CloudWatchClient:
+    with mock_aws():
+        mock_cloudwatch = boto3.client("cloudwatch", region_name=AWS_REGION)
+        yield mock_cloudwatch
 
 
 @pytest.fixture
@@ -304,6 +313,13 @@ def walter_sm(
     return WalterSecretsManagerClient(
         client=secrets_manager_client, domain=Domain.TESTING
     )
+
+
+@pytest.fixture
+def walter_cw(
+    cloud_watch_client: CloudWatchClient,
+) -> WalterCloudWatchClient:
+    return WalterCloudWatchClient(client=cloud_watch_client, domain=Domain.TESTING)
 
 
 @pytest.fixture
