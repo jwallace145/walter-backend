@@ -17,9 +17,8 @@ WALTER_STOCKS = [
     UserStock(user_email=WALTER.email, stock_symbol="PYPL", quantity=10.0),
 ]
 WALRUS_STOCKS = [
-    UserStock(user_email=WALRUS.email, stock_symbol="AMZN", quantity=100.0),
-    UserStock(user_email=WALRUS.email, stock_symbol="MSFT", quantity=100.0),
-    UserStock(user_email=WALRUS.email, stock_symbol="NFLX", quantity=100.0),
+    UserStock(user_email=WALRUS.email, stock_symbol="AAPL", quantity=100.0),
+    UserStock(user_email=WALRUS.email, stock_symbol="META", quantity=100.0),
 ]
 
 

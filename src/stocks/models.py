@@ -5,6 +5,22 @@ from src.database.userstocks.models import UserStock
 from src.stocks.polygon.models import StockPrices, StockNews
 
 
+@dataclass(frozen=True)
+class StockEquity:
+    symbol: str
+    price: float
+    quantity: float
+    equity: float
+
+    def to_dict(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "price": self.price,
+            "quantity": self.quantity,
+            "equity": self.equity,
+        }
+
+
 @dataclass
 class Portfolio:
 
@@ -34,3 +50,12 @@ class Portfolio:
 
     def get_news(self, symbol: str) -> str:
         return self.news[symbol]
+
+    def get_stock_equities(self) -> List[StockEquity]:
+        stock_equities = []
+        for stock in self.stocks.keys():
+            price = self.get_latest_price(stock)
+            quantity = self.get_number_of_shares(stock)
+            equity = self.get_equity(stock)
+            stock_equities.append(StockEquity(stock, price, quantity, equity))
+        return stock_equities

@@ -14,7 +14,7 @@ def get_add_stock_event(email: str, stock: str, quantity: float, token: str) -> 
     return EVENT
 
 
-def get_stocks_for_user_event(email: str, token: str) -> dict:
+def get_portfolio_event(email: str, token: str) -> dict:
     EVENT["body"] = json.dumps({"email": email})
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
