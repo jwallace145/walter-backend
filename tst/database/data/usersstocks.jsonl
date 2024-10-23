@@ -3,6 +3,5 @@
 {"user_email": "walter@gmail.com", "stock_symbol": "MSFT", "quantity": 2.0}
 {"user_email": "walter@gmail.com", "stock_symbol": "NFLX", "quantity": 10.0}
 {"user_email": "walter@gmail.com", "stock_symbol": "PYPL", "quantity": 10.0}
-{"user_email": "walrus@gmail.com", "stock_symbol": "AMZN", "quantity": 100.0}
-{"user_email": "walrus@gmail.com", "stock_symbol": "MSFT", "quantity": 100.0}
-{"user_email": "walrus@gmail.com", "stock_symbol": "NFLX", "quantity": 100.0}
+{"user_email": "walrus@gmail.com", "stock_symbol": "AAPL", "quantity": 100.0}
+{"user_email": "walrus@gmail.com", "stock_symbol": "META", "quantity": 100.0}

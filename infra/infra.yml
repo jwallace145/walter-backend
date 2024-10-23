@@ -202,32 +202,32 @@ Resources:
       FunctionName: !Ref WalterAPIAddStock
       Principal: apigateway.amazonaws.com
 
-  WalterAPIGetStocksForUserResource:
+  WalterAPIGetPortfolioResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !Ref WalterAPIUsers
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
       RestApiId: !Ref WalterAPIGateway
-      PathPart: stocks
+      PathPart: portfolios
 
-  WalterAPIGetStocksForUserMethod:
+  WalterAPIGetPortfolioMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
-      ResourceId: !Ref WalterAPIGetStocksForUserResource
+      ResourceId: !Ref WalterAPIGetPortfolioResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStocksForUser.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPortfolio.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIGetStocksForUserCORSMethod:
+  WalterAPIGetPortfolioCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIGetStocksForUserResource
+      ResourceId: !Ref WalterAPIGetPortfolioResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -252,11 +252,11 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  WalterAPIGetStocksForUserPermission:
+  WalterAPIGetPortfolioPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetStocksForUser
+      FunctionName: !Ref WalterAPIGetPortfolio
       Principal: apigateway.amazonaws.com
 
   WalterAPISendNewsletterPermission:
@@ -422,19 +422,19 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIGetStocksForUserAlias:
+  WalterAPIGetPortfolioAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIGetStocksForUser
+      FunctionName: !Ref WalterAPIGetPortfolio
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetStocksForUser-${AppEnvironment}"
+      Name: !Sub "WalterAPI-GetPortfolio-${AppEnvironment}"
 
-  WalterAPIGetStocksForUser:
+  WalterAPIGetPortfolio:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-GetStocksForUser-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetStocksForUser - Get stocks for the given user from WalterDB (${AppEnvironment})"
-      Handler: api.get_stocks_for_user
+      FunctionName: !Sub "WalterAPI-GetPortfolio-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetPortfolio - Get user portfolio with latest market data (${AppEnvironment})"
+      Handler: api.get_portfolio
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -953,7 +953,7 @@ Outputs:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
   WalterAPIAddStockEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
-  WalterAPIGetStocksForUserEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users/stocks"
+  WalterAPIGetPortfolioEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/portfolios"
   WalterAPISendNewsletterEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/newsletters"
