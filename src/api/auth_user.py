@@ -44,7 +44,12 @@ class AuthUser(WalterAPIMethod):
 
         token = generate_token(email, self.get_jwt_secret_key())
 
-        return self._create_response(HTTPStatus.OK, Status.SUCCESS, token)
+        return self._create_response(
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="User authenticated!",
+            data={"token": token},
+        )
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])

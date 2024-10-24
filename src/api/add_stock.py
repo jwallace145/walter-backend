@@ -55,7 +55,9 @@ class AddStock(WalterAPIMethod):
                 quantity=body["quantity"],
             )
         )
-        return self._create_response(HTTPStatus.OK, Status.SUCCESS, "Stock added!")
+        return self._create_response(
+            http_status=HTTPStatus.OK, status=Status.SUCCESS, message="Stock added!"
+        )
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])

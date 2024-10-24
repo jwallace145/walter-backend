@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from mypy_boto3_sqs.client import SQSClient
 
@@ -9,7 +7,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.newsletters.queue import NewslettersQueue
-from tst.api.utils import get_send_newsletter_event
+from tst.api.utils import get_send_newsletter_event, get_expected_response
 
 
 @pytest.fixture
@@ -27,7 +25,10 @@ def test_send_newsletter(
 ) -> None:
     event = get_send_newsletter_event(email="walter@gmail.com", token=jwt_walter)
     expected_response = get_expected_response(
-        status_code=HTTPStatus.OK, status=Status.SUCCESS, message="Newsletter sent!"
+        api_name=send_newsletter_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.SUCCESS,
+        message="Newsletter sent!",
     )
     sqs_client.receive_message(
         QueueUrl=send_newsletter_api.newsletters_queue.queue_url, MaxNumberOfMessages=1
@@ -40,27 +41,9 @@ def test_send_newsletter_failure_invalid_email(
 ) -> None:
     event = get_send_newsletter_event(email="walter", token=jwt_walter)
     expected_response = get_expected_response(
-        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
+        api_name=send_newsletter_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Invalid email!",
     )
     assert expected_response == send_newsletter_api.invoke(event)
-
-
-def get_expected_response(
-    status_code: HTTPStatus, status: Status, message: str
-) -> dict:
-    return {
-        "statusCode": status_code.value,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
-        },
-        "body": json.dumps(
-            {
-                "API": "SendNewsletter",
-                "Status": status.value,
-                "Message": message,
-            }
-        ),
-    }
