@@ -1,6 +1,6 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
-import datetime as dt
 
 from src.api.exceptions import UserDoesNotExist, InvalidEmail
 from src.api.methods import WalterAPIMethod
@@ -57,9 +57,13 @@ class GetPortfolio(WalterAPIMethod):
         portfolio = self.walter_stocks_api.get_portfolio(stocks, start, end)
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            [stock.to_dict() for stock in portfolio.get_stock_equities()],
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Retrieved portfolio!",
+            data={
+                "total_equity": portfolio.get_total_equity(),
+                "stocks": [stock.to_dict() for stock in portfolio.get_stock_equities()],
+            },
         )
 
     def validate_fields(self, event: dict) -> None:

@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from src.api.get_portfolio import GetPortfolio
@@ -8,7 +6,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
-from tst.api.utils import get_portfolio_event
+from tst.api.utils import get_portfolio_event, get_expected_response
 
 
 @pytest.fixture
@@ -21,47 +19,44 @@ def get_portfolio_api(
     return GetPortfolio(walter_cw, walter_db, walter_sm, walter_stocks_api)
 
 
-def test_get_stocks_for_user(
+def test_get_portfolio(
     get_portfolio_api: GetPortfolio, walter_db: WalterDB, jwt_walrus: str
 ) -> None:
     event = get_portfolio_event(email="walrus@gmail.com", token=jwt_walrus)
     expected_response = get_expected_response(
+        api_name=get_portfolio_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.SUCCESS,
-        message=[
-            {"symbol": "AAPL", "price": 100.0, "quantity": 100.0, "equity": 10000.0},
-            {"symbol": "META", "price": 250.0, "quantity": 100.0, "equity": 25000.0},
-        ],
+        message="Retrieved portfolio!",
+        data={
+            "total_equity": 35_000.0,
+            "stocks": [
+                {
+                    "symbol": "AAPL",
+                    "price": 100.0,
+                    "quantity": 100.0,
+                    "equity": 10_000.0,
+                },
+                {
+                    "symbol": "META",
+                    "price": 250.0,
+                    "quantity": 100.0,
+                    "equity": 25_000.0,
+                },
+            ],
+        },
     )
     assert expected_response == get_portfolio_api.invoke(event)
 
 
-def test_add_stock_failure_invalid_email(
+def test_get_portfolio_failure_invalid_email(
     get_portfolio_api: GetPortfolio, jwt_walter: str
 ) -> None:
     event = get_portfolio_event(email="walter", token=jwt_walter)
     expected_response = get_expected_response(
-        status_code=HTTPStatus.OK, status=Status.FAILURE, message="Invalid email!"
+        api_name=get_portfolio_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Invalid email!",
     )
     assert expected_response == get_portfolio_api.invoke(event)
-
-
-def get_expected_response(
-    status_code: HTTPStatus, status: Status, message: str
-) -> dict:
-    return {
-        "statusCode": status_code.value,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
-        },
-        "body": json.dumps(
-            {
-                "API": "GetPortfolio",
-                "Status": status.value,
-                "Message": message,
-            }
-        ),
-    }

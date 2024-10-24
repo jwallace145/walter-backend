@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import List
 
 from src.api.exceptions import BadRequest, NotAuthenticated
 from src.api.models import HTTPStatus, Response, Status
@@ -91,16 +91,14 @@ class WalterAPIMethod(ABC):
         )
 
     def _create_response(
-        self,
-        http_status: HTTPStatus,
-        status: Status,
-        message: Union[str, dict, list],
+        self, http_status: HTTPStatus, status: Status, message: str, data: dict = None
     ) -> dict:
         return Response(
             api_name=self.api_name,
             http_status=http_status,
             status=status,
             message=message,
+            data=data,
         ).to_json()
 
     def _get_success_count_metric_name(self) -> str:

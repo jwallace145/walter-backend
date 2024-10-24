@@ -42,7 +42,9 @@ class CreateUser(WalterAPIMethod):
             username=body["username"],
             password=body["password"],
         )
-        return self._create_response(HTTPStatus.OK, Status.SUCCESS, "User created!")
+        return self._create_response(
+            http_status=HTTPStatus.OK, status=Status.SUCCESS, message="User created!"
+        )
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])

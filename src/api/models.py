@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class Status(Enum):
@@ -21,8 +22,18 @@ class Response:
     http_status: HTTPStatus
     status: Status
     message: str
+    data: Optional[dict] = None
 
     def to_json(self) -> dict:
+        body = {
+            "API": self.api_name,
+            "Status": self.status.value,
+            "Message": self.message,
+        }
+
+        if self.data is not None:
+            body["Data"] = self.data
+
         return {
             "statusCode": self.http_status.value,
             "headers": {
@@ -31,11 +42,5 @@ class Response:
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
             },
-            "body": json.dumps(
-                {
-                    "API": self.api_name,
-                    "Status": self.status.value,
-                    "Message": self.message,
-                }
-            ),
+            "body": json.dumps(body),
         }

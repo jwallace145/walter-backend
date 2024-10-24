@@ -49,9 +49,9 @@ class SendNewsletter(WalterAPIMethod):
         self.newsletters_queue.add_newsletter_request(NewsletterRequest(email))
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Newsletter sent!",
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Newsletter sent!",
         )
 
     def validate_fields(self, event: dict) -> None:
