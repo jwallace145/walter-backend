@@ -63,7 +63,7 @@ class GetPortfolio(WalterAPIMethod):
             data={
                 "total_equity": portfolio.get_total_equity(),
                 "stocks": [stock.to_dict() for stock in portfolio.get_stock_equities()],
-            },
+            }
         )
 
     def validate_fields(self, event: dict) -> None:
