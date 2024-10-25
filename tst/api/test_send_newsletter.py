@@ -34,16 +34,3 @@ def test_send_newsletter(
         QueueUrl=send_newsletter_api.newsletters_queue.queue_url, MaxNumberOfMessages=1
     )
     assert expected_response == send_newsletter_api.invoke(event)
-
-
-def test_send_newsletter_failure_invalid_email(
-    send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walter: str
-) -> None:
-    event = get_send_newsletter_event(email="walter", token=jwt_walter)
-    expected_response = get_expected_response(
-        api_name=send_newsletter_api.API_NAME,
-        status_code=HTTPStatus.OK,
-        status=Status.FAILURE,
-        message="Invalid email!",
-    )
-    assert expected_response == send_newsletter_api.invoke(event)

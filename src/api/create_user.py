@@ -35,7 +35,7 @@ class CreateUser(WalterAPIMethod):
         )
         self.walter_db = walter_db
 
-    def execute(self, event: dict) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> dict:
         body = json.loads(event["body"])
         self.walter_db.create_user(
             email=body["email"],

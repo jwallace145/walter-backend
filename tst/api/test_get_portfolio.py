@@ -47,16 +47,3 @@ def test_get_portfolio(
         },
     )
     assert expected_response == get_portfolio_api.invoke(event)
-
-
-def test_get_portfolio_failure_invalid_email(
-    get_portfolio_api: GetPortfolio, jwt_walter: str
-) -> None:
-    event = get_portfolio_event(email="walter", token=jwt_walter)
-    expected_response = get_expected_response(
-        api_name=get_portfolio_api.API_NAME,
-        status_code=HTTPStatus.OK,
-        status=Status.FAILURE,
-        message="Invalid email!",
-    )
-    assert expected_response == get_portfolio_api.invoke(event)

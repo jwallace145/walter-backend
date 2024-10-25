@@ -1,11 +1,9 @@
 import datetime as dt
-import json
 from dataclasses import dataclass
 
 from src.api.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
-from src.api.utils import is_valid_email
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -19,7 +17,7 @@ log = Logger(__name__).get_logger()
 class GetPortfolio(WalterAPIMethod):
 
     API_NAME = "GetPortfolio"
-    REQUIRED_FIELDS = ["email"]
+    REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
 
     walter_db: WalterDB
@@ -42,11 +40,8 @@ class GetPortfolio(WalterAPIMethod):
         self.walter_sm = walter_sm
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict) -> dict:
-        body = json.loads(event["body"])
-
-        email = body["email"]
-        user = self.walter_db.get_user(email)
+    def execute(self, event: dict, authenticated_email: str) -> dict:
+        user = self.walter_db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User not found!")
 
@@ -67,11 +62,7 @@ class GetPortfolio(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        body = json.loads(event["body"])
-        email = body["email"]
-
-        if not is_valid_email(email):
-            raise InvalidEmail("Invalid email!")
+        return
 
     def is_authenticated_api(self) -> bool:
         return True
