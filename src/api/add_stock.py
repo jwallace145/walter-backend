@@ -9,7 +9,6 @@ from src.api.exceptions import (
 )
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
-from src.api.utils import is_valid_email
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -23,7 +22,7 @@ log = Logger(__name__).get_logger()
 class AddStock(WalterAPIMethod):
 
     API_NAME = "AddStock"
-    REQUIRED_FIELDS = ["email", "stock", "quantity"]
+    REQUIRED_FIELDS = ["stock", "quantity"]
     EXCEPTIONS = [
         BadRequest,
         NotAuthenticated,
@@ -46,11 +45,11 @@ class AddStock(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> dict:
         body = json.loads(event["body"])
         self.walter_db.add_stock_to_user_portfolio(
             UserStock(
-                user_email=body["email"],
+                user_email=authenticated_email,
                 stock_symbol=body["stock"],
                 quantity=body["quantity"],
             )
@@ -61,14 +60,6 @@ class AddStock(WalterAPIMethod):
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
-
-        email = body["email"]
-        if not is_valid_email(email):
-            raise InvalidEmail("Invalid email!")
-
-        user = self.walter_db.get_user(email)
-        if user is None:
-            raise UserDoesNotExist("User not found!")
 
         symbol = body["stock"]
         stock = self.walter_stocks_api.get_stock(symbol)

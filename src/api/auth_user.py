@@ -30,7 +30,7 @@ class AuthUser(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> dict:
         body = json.loads(event["body"])
 
         email = body["email"]

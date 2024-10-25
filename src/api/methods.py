@@ -37,10 +37,11 @@ class WalterAPIMethod(ABC):
         try:
             self._validate_request(event)
 
+            authenticated_email = None
             if self.is_authenticated_api():
-                self._authenticate_request(event)
+                authenticated_email = self._authenticate_request(event)
 
-            response = self.execute(event)
+            response = self.execute(event, authenticated_email)
         except Exception as exception:
             response = self._handle_exception(exception)
         finally:
@@ -53,7 +54,10 @@ class WalterAPIMethod(ABC):
         self.validate_fields(event)
 
     def _validate_required_fields(self, event: dict) -> None:
-        body = json.loads(event["body"])
+        log.info(f"Validating required fields: {self.required_fields}")
+        body = {}
+        if event["body"] is not None:
+            body = json.loads(event["body"])
         for field in self.required_fields:
             if field not in body:
                 raise BadRequest(
@@ -70,13 +74,8 @@ class WalterAPIMethod(ABC):
         if decoded_token is None:
             raise NotAuthenticated("Not authenticated!")
 
-        body = json.loads(event["body"])
-        email = body["email"]
-
-        authenticated_user = decoded_token["sub"]
-        if email != authenticated_user:
-            raise NotAuthenticated("Not authenticated!")
         log.info("Successfully authenticated request!")
+        return decoded_token["sub"]
 
     def _handle_exception(self, exception: Exception) -> dict:
         status = HTTPStatus.INTERNAL_SERVER_ERROR
@@ -121,7 +120,7 @@ class WalterAPIMethod(ABC):
         self.metrics.emit_metric(self._get_total_count_metric_name(), 1)
 
     @abstractmethod
-    def execute(self, event: dict) -> dict:
+    def execute(self, event: dict, email: str) -> dict:
         pass
 
     @abstractmethod
