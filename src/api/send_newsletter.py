@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-from src.api.exceptions import UserDoesNotExist, InvalidEmail
+from src.api.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
@@ -19,7 +19,7 @@ class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
     REQUIRED_FIELDS = ["email"]
-    EXCEPTIONS = [InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
 
     def __init__(
         self,

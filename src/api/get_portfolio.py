@@ -2,7 +2,7 @@ import datetime as dt
 import json
 from dataclasses import dataclass
 
-from src.api.exceptions import UserDoesNotExist, InvalidEmail
+from src.api.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.api.utils import is_valid_email
@@ -20,7 +20,7 @@ class GetPortfolio(WalterAPIMethod):
 
     API_NAME = "GetPortfolio"
     REQUIRED_FIELDS = ["email"]
-    EXCEPTIONS = [InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
 
     walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
@@ -63,7 +63,7 @@ class GetPortfolio(WalterAPIMethod):
             data={
                 "total_equity": portfolio.get_total_equity(),
                 "stocks": [stock.to_dict() for stock in portfolio.get_stock_equities()],
-            }
+            },
         )
 
     def validate_fields(self, event: dict) -> None:

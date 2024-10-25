@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from src.api.get_portfolio import GetPortfolio
@@ -20,7 +18,7 @@ def get_portfolio_api(
 ) -> GetPortfolio:
     return GetPortfolio(walter_cw, walter_db, walter_sm, walter_stocks_api)
 
-  
+
 def test_get_portfolio(
     get_portfolio_api: GetPortfolio, walter_db: WalterDB, jwt_walrus: str
 ) -> None:
@@ -46,7 +44,7 @@ def test_get_portfolio(
                     "equity": 25_000.0,
                 },
             ],
-        }
+        },
     )
     assert expected_response == get_portfolio_api.invoke(event)
 
