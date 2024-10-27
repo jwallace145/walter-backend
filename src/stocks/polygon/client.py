@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from typing import Dict, List
 
 import polygon.exceptions
@@ -107,6 +107,49 @@ class PolygonClient:
             prices.append(
                 PolygonClient._convert_agg_to_stock_price(stock.stock_symbol, agg)
             )
+
+        log.info(f"Successfully returned {len(prices)} prices")
+
+        return StockPrices(prices)
+
+    def get_stock_prices(
+        self,
+        stock: str,
+        start_date: datetime = datetime.now(UTC) - timedelta(days=7),
+        end_date: datetime = datetime.now(UTC),
+    ) -> StockPrices:
+        """
+        Get stock prices for a single stock over the given timeframe.
+
+        Args:
+            stock: The stock symbol.
+            start_date: The start date of the query.
+            end_date: The end date of the query.
+
+        Returns:
+            stock prices for the stock over the given timeframe.
+        """
+        self._init_rest_client()
+
+        log.info(
+            f"Getting pricing data for '{stock}' from '{start_date}' to '{end_date}'"
+        )
+
+        if start_date >= end_date:
+            raise ValueError(
+                f"start date '{start_date}' is after end date '{end_date}'!"
+            )
+
+        prices = []
+        for agg in self.client.list_aggs(
+            ticker=stock,
+            multiplier=1,
+            timespan="hour",
+            from_=PolygonClient._convert_date_to_string(start_date),
+            to=PolygonClient._convert_date_to_string(end_date),
+            limit=PolygonClient.MAX_AGGREGATE_DATA_LIMIT,
+        ):
+            prices.append(PolygonClient._convert_agg_to_stock_price(stock, agg))
 
         log.info(f"Successfully returned {len(prices)} prices")
 

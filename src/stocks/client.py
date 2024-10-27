@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict
 
+from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
+from src.stocks.polygon.models import StockPrices
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -25,5 +27,8 @@ class WalterStocksAPI:
         news = self.client.batch_get_news(stocks, start_date)
         return Portfolio(stocks, prices, news)
 
-    def get_stock(self, symbol: str) -> bool:
+    def get_stock(self, symbol: str) -> Stock | None:
         return self.client.get_stock(symbol)
+
+    def get_prices(self, stock: str) -> StockPrices:
+        return self.client.get_stock_prices(stock)
