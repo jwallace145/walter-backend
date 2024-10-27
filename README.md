@@ -17,7 +17,8 @@
 
 ### Architecture
 
-![WalterAIBackend](https://github.com/user-attachments/assets/d8441a55-84d6-41de-9199-7c70e7b034fc)
+![image](https://github.com/user-attachments/assets/c484bd63-0381-4045-8039-a9f79ecc12fc)
+
 
 ### Templates
 
