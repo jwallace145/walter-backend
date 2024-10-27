@@ -9,6 +9,13 @@ class StockPrice:
     price: float = field(compare=False)
     timestamp: datetime = field(compare=True)
 
+    def to_dict(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "price": self.price,
+            "timestamp": self.timestamp.isoformat(),
+        }
+
 
 @dataclass
 class StockPrices:

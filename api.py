@@ -2,6 +2,7 @@ from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
 from src.api.get_portfolio import GetPortfolio
+from src.api.get_prices import GetPrices
 from src.api.send_newsletter import SendNewsletter
 from src.clients import walter_db, newsletters_queue, sm, walter_stocks_api, walter_cw
 from src.utils.log import Logger
@@ -31,3 +32,7 @@ def get_portfolio(event, context) -> dict:
 
 def send_newsletter(event, context) -> dict:
     return SendNewsletter(walter_cw, walter_db, newsletters_queue, sm).invoke(event)
+
+
+def get_prices(event, context) -> dict:
+    return GetPrices(walter_cw, walter_db, walter_stocks_api).invoke(event)
