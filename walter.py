@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from src.ai.models import Prompt
 from src.clients import (
-    cloudwatch,
+    walter_cw,
     newsletters_bucket,
     walter_stocks_api,
     ses,
@@ -65,8 +65,8 @@ def lambda_handler(event, context) -> dict:
             log.info("Not dumping newsletter...")
 
         if CONFIG.emit_metrics:
-            cloudwatch.emit_metric_number_of_emails_sent(1)
-            cloudwatch.emit_metric_number_of_stocks_analyzed(len(stocks))
+            walter_cw.emit_metric("WalterBackend.NumberOfEmailsSent", 1)
+            walter_cw.emit_metric("WalterBackend.NumberOfStocksAnalyzed", len(stocks))
         else:
             log.info("Not emitting metrics")
 
