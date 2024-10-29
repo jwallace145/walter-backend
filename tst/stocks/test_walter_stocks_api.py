@@ -16,7 +16,7 @@ END_DATE = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecon
 AAPL = Stock(symbol="AAPL", company="Apple")
 META = Stock(symbol="META", company="Facebook")
 
-STOCKS = {
+USER_STOCKS = {
     AAPL.symbol: UserStock(
         user_email=WALTER.email, stock_symbol=AAPL.symbol, quantity=1.0
     ),
@@ -79,7 +79,9 @@ NEWS = {
     ),
 }
 
-PORTFOLIO = Portfolio(STOCKS, PRICES, NEWS)
+STOCKS = {AAPL.symbol: AAPL, META.symbol: META}
+
+PORTFOLIO = Portfolio(STOCKS, USER_STOCKS, PRICES, NEWS)
 
 
 def test_does_stock_exist(walter_stocks_api: WalterStocksAPI) -> None:
@@ -89,11 +91,13 @@ def test_does_stock_exist(walter_stocks_api: WalterStocksAPI) -> None:
 
 
 def test_get_portfolio(walter_stocks_api: WalterStocksAPI) -> None:
-    assert PORTFOLIO == walter_stocks_api.get_portfolio(STOCKS, START_DATE, END_DATE)
+    assert PORTFOLIO == walter_stocks_api.get_portfolio(
+        USER_STOCKS, STOCKS, START_DATE, END_DATE
+    )
 
 
 def test_get_stocks() -> None:
-    assert {AAPL.symbol, META.symbol} == set(PORTFOLIO.get_stocks())
+    assert {AAPL.symbol, META.symbol} == set(PORTFOLIO.get_stock_symbols())
 
 
 def test_get_latest_price() -> None:

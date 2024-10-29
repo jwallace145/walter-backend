@@ -25,7 +25,7 @@ class ContextGenerator:
         context += f"{user.username} total portfolio value is ${portfolio.get_total_equity():.2f}"
         context += "Use the following financial data for writing the newsletter.\n"
 
-        for stock in portfolio.get_stocks():
+        for stock in portfolio.get_stock_symbols():
             news = portfolio.get_news(stock)
             context += "\n".join(news.descriptions)
 

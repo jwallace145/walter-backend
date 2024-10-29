@@ -122,7 +122,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: ''
@@ -143,6 +143,27 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WalterAPICreateUser
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetUsersMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIUsers
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetUser.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetUser
       Principal: apigateway.amazonaws.com
 
   WalterAPIStocks:
@@ -424,6 +445,40 @@ Resources:
       FunctionName: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
       Description: !Sub "WalterAPI: CreateUser - create user and add to database (${AppEnvironment})"
       Handler: api.create_user
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:22"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIGetUserAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetUser
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetUser-${AppEnvironment}"
+
+  WalterAPIGetUser:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetUser-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetUser - get user from token (${AppEnvironment})"
+      Handler: api.get_user
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src

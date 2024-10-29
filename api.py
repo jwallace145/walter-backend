@@ -3,6 +3,7 @@ from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
+from src.api.get_user import GetUser
 from src.api.send_newsletter import SendNewsletter
 from src.clients import walter_db, newsletters_queue, sm, walter_stocks_api, walter_cw
 from src.utils.log import Logger
@@ -20,6 +21,10 @@ def auth_user(event, context) -> dict:
 
 def create_user(event, context) -> dict:
     return CreateUser(walter_cw, walter_db).invoke(event)
+
+
+def get_user(event, context) -> dict:
+    return GetUser(walter_cw, walter_db, sm).invoke(event)
 
 
 def add_stock(event, context) -> dict:
