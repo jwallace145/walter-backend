@@ -21,11 +21,15 @@ class WalterStocksAPI:
         log.debug("Creating WalterStocksAPI")
 
     def get_portfolio(
-        self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime
+        self,
+        user_stocks: Dict[str, UserStock],
+        stocks: Dict[str, Stock],
+        start_date: datetime,
+        end_date: datetime,
     ) -> Portfolio:
-        prices = self.client.batch_get_prices(stocks, start_date, end_date)
-        news = self.client.batch_get_news(stocks, start_date)
-        return Portfolio(stocks, prices, news)
+        prices = self.client.batch_get_prices(user_stocks, start_date, end_date)
+        news = self.client.batch_get_news(user_stocks, start_date)
+        return Portfolio(stocks, user_stocks, prices, news)
 
     def get_stock(self, symbol: str) -> Stock | None:
         return self.client.get_stock(symbol)

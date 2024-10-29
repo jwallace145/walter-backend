@@ -45,11 +45,14 @@ class GetPortfolio(WalterAPIMethod):
         if user is None:
             raise UserDoesNotExist("User not found!")
 
-        stocks = self.walter_db.get_stocks_for_user(user)
+        user_stocks = self.walter_db.get_stocks_for_user(user)
+        stocks = self.walter_db.get_stocks(list(user_stocks.keys()))
 
         end = dt.datetime.now(dt.UTC)
         start = end - dt.timedelta(days=7)
-        portfolio = self.walter_stocks_api.get_portfolio(stocks, start, end)
+        portfolio = self.walter_stocks_api.get_portfolio(
+            user_stocks, stocks, start, end
+        )
 
         return self._create_response(
             http_status=HTTPStatus.OK,

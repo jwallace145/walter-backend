@@ -2,6 +2,8 @@ echo Publishing new WalterAPI Auth Lambda version \
 && aws lambda publish-version --function-name WalterAPI-Auth-dev \
 && echo Publishing new WalterAPI CreateUser Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateUser-dev \
+&& echo Publishing new WalterAPI GetUser Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetUser-dev \
 && echo Publishing new WalterAPI AddStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-AddStock-dev \
 && echo Publishing new WalterAPI GetPrices Lambda version \

@@ -61,6 +61,10 @@ class WalterDB:
     def add_stock(self, stock: Stock) -> None:
         self.stocks_table.put_stock(stock)
 
+    def get_stocks(self, symbols: List[str]) -> Dict[str, Stock]:
+        stocks = [self.get_stock(symbol) for symbol in symbols]
+        return {stock.symbol: stock for stock in stocks}
+
     def get_stocks_for_user(self, user: User) -> Dict[str, UserStock]:
         stocks = self.users_stocks_table.get_stocks_for_user(user)
         return {stock.stock_symbol: stock for stock in stocks}

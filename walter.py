@@ -30,8 +30,11 @@ def lambda_handler(event, context) -> dict:
     event = parse_event(event)
     try:
         user = walter_db.get_user(event.email)
-        stocks = walter_db.get_stocks_for_user(user)
-        portfolio = walter_stocks_api.get_portfolio(stocks, START_DATE, END_DATE)
+        user_stocks = walter_db.get_stocks_for_user(user)
+        stocks = walter_db.get_stocks(list(user_stocks.keys()) if user_stocks else [])
+        portfolio = walter_stocks_api.get_portfolio(
+            user_stocks, stocks, START_DATE, END_DATE
+        )
 
         template_spec = templates_bucket.get_template_spec()
 
