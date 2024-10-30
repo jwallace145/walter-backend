@@ -1,4 +1,4 @@
-from src.api.exceptions import UserDoesNotExist, InvalidToken
+from src.api.exceptions import UserDoesNotExist, NotAuthenticated
 from src.api.methods import WalterAPIMethod
 from src.api.models import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -9,7 +9,7 @@ from src.database.client import WalterDB
 class GetUser(WalterAPIMethod):
     API_NAME = "GetUser"
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [InvalidToken, UserDoesNotExist]
+    EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
 
     def __init__(
         self,
@@ -32,7 +32,10 @@ class GetUser(WalterAPIMethod):
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully retrieved user!",
-            data={"user": authenticated_email},
+            data={
+                "email": authenticated_email,
+                "username": user.username,
+            },
         )
 
     def validate_fields(self, event: dict) -> None:
