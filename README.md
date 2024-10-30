@@ -17,8 +17,8 @@
 
 ### Architecture
 
-![image](https://github.com/user-attachments/assets/c484bd63-0381-4045-8039-a9f79ecc12fc)
 
+![walter-architecture](https://github.com/user-attachments/assets/3f985a48-bf82-4bbb-aea3-c04d145fc2b0)
 
 ### Templates
 
