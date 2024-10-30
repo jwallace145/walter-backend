@@ -29,6 +29,11 @@ def get_create_user_event(email: str, username: str, password: str) -> dict:
     return EVENT
 
 
+def get_get_user_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
 def get_send_newsletter_event(email: str, token: str) -> dict:
     EVENT["body"] = json.dumps({"email": email})
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
