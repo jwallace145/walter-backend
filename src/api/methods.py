@@ -1,15 +1,68 @@
 import json
+import re
+from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import List
+from enum import Enum
+from typing import List, Optional
 
 from src.api.exceptions import BadRequest, NotAuthenticated
-from src.api.models import HTTPStatus, Response, Status
-from src.api.utils import get_token
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.utils.auth import decode_token
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
+
+################
+# API RESPONSE #
+################
+
+
+class Status(Enum):
+    SUCCESS = "Success"
+    FAILURE = "Failure"
+
+
+class HTTPStatus(Enum):
+    OK = 200
+    CREATED = 201
+    BAD_REQUEST = 400
+    INTERNAL_SERVER_ERROR = 500
+
+
+@dataclass
+class Response:
+
+    api_name: str
+    http_status: HTTPStatus
+    status: Status
+    message: str
+    data: Optional[dict] = None
+
+    def to_json(self) -> dict:
+        body = {
+            "API": self.api_name,
+            "Status": self.status.value,
+            "Message": self.message,
+        }
+
+        if self.data is not None:
+            body["Data"] = self.data
+
+        return {
+            "statusCode": self.http_status.value,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
+            },
+            "body": json.dumps(body),
+        }
+
+
+##############
+# API METHOD #
+##############
 
 
 class WalterAPIMethod(ABC):
@@ -134,3 +187,23 @@ class WalterAPIMethod(ABC):
     @abstractmethod
     def get_jwt_secret_key(self) -> str:
         pass
+
+
+#############
+# API UTILS #
+#############
+
+
+def is_valid_email(email: str) -> bool:
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(pattern, email))
+
+
+def is_valid_username(username: str) -> bool:
+    return username.isalnum()
+
+
+def get_token(event: dict) -> str:
+    if event["headers"] is None or "Authorization" not in event["headers"]:
+        return None
+    return event["headers"]["Authorization"].split(" ")[1]

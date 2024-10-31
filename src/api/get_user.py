@@ -1,6 +1,6 @@
 from src.api.exceptions import UserDoesNotExist, NotAuthenticated
 from src.api.methods import WalterAPIMethod
-from src.api.models import HTTPStatus, Status
+from src.api.methods import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB

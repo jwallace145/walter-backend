@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.add_stock import AddStock
-from src.api.models import Status, HTTPStatus
+from src.api.methods import Status, HTTPStatus
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -25,7 +25,7 @@ def test_add_stock(add_stock_api: AddStock, jwt_walter: str) -> None:
     )
     expected_response = get_expected_response(
         api_name=add_stock_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.CREATED,
         status=Status.SUCCESS,
         message="Stock added!",
     )

@@ -1,6 +1,10 @@
 import json
 
-from src.api.models import HTTPStatus, Status
+from src.api.methods import HTTPStatus, Status
+
+###############
+# TEST EVENTS #
+###############
 
 EVENT = json.load(open("tst/api/data/event.json"))
 
@@ -38,6 +42,11 @@ def get_send_newsletter_event(email: str, token: str) -> dict:
     EVENT["body"] = json.dumps({"email": email})
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
+
+
+#####################
+# EXPECTED RESPONSE #
+#####################
 
 
 def get_expected_response(

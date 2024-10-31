@@ -7,8 +7,7 @@ from src.api.exceptions import (
     UserDoesNotExist,
     StockDoesNotExist,
 )
-from src.api.methods import WalterAPIMethod
-from src.api.models import HTTPStatus, Status
+from src.api.methods import WalterAPIMethod, Status, HTTPStatus
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -55,7 +54,9 @@ class AddStock(WalterAPIMethod):
             )
         )
         return self._create_response(
-            http_status=HTTPStatus.OK, status=Status.SUCCESS, message="Stock added!"
+            http_status=HTTPStatus.CREATED,
+            status=Status.SUCCESS,
+            message="Stock added!",
         )
 
     def validate_fields(self, event: dict) -> None:

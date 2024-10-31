@@ -7,8 +7,8 @@ from src.api.exceptions import (
     BadRequest,
 )
 from src.api.methods import WalterAPIMethod
-from src.api.models import HTTPStatus, Status
-from src.api.utils import is_valid_username, is_valid_email
+from src.api.methods import HTTPStatus, Status
+from src.api.methods import is_valid_username, is_valid_email
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
@@ -43,7 +43,9 @@ class CreateUser(WalterAPIMethod):
             password=body["password"],
         )
         return self._create_response(
-            http_status=HTTPStatus.OK, status=Status.SUCCESS, message="User created!"
+            http_status=HTTPStatus.CREATED,
+            status=Status.SUCCESS,
+            message="User created!",
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -66,3 +68,6 @@ class CreateUser(WalterAPIMethod):
 
     def get_jwt_secret_key(self) -> str:
         raise ValueError(f"{self.api_name} is not an authenticated API!")
+
+    def is_valid_username(username: str) -> bool:
+        return username.isalnum()

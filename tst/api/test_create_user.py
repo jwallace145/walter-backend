@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.create_user import CreateUser
-from src.api.models import Status, HTTPStatus
+from src.api.methods import Status, HTTPStatus
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from tst.api.utils import get_create_user_event, get_expected_response
@@ -18,7 +18,7 @@ def test_create_user(create_user_api: CreateUser) -> None:
     event = get_create_user_event(email="jim@gmail.com", username="jim", password="jim")
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.CREATED,
         status=Status.SUCCESS,
         message="User created!",
     )

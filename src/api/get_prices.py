@@ -2,7 +2,7 @@ import json
 
 from src.api.exceptions import BadRequest, StockDoesNotExist
 from src.api.methods import WalterAPIMethod
-from src.api.models import HTTPStatus, Status
+from src.api.methods import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
