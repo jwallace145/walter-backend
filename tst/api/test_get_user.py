@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.get_user import GetUser
-from src.api.models import HTTPStatus, Status
+from src.api.methods import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB

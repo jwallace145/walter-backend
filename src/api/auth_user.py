@@ -1,9 +1,7 @@
 import json
 
 from src.api.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
-from src.api.methods import WalterAPIMethod
-from src.api.models import HTTPStatus, Status
-from src.api.utils import is_valid_email
+from src.api.methods import WalterAPIMethod, HTTPStatus, Status, is_valid_email
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
