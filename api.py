@@ -1,6 +1,7 @@
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
+from src.api.delete_stock import DeleteStock
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_user import GetUser
@@ -29,6 +30,10 @@ def get_user(event, context) -> dict:
 
 def add_stock(event, context) -> dict:
     return AddStock(walter_cw, walter_db, walter_stocks_api, sm).invoke(event)
+
+
+def delete_stock(event, context) -> dict:
+    return DeleteStock(walter_cw, walter_db, walter_stocks_api, sm).invoke(event)
 
 
 def get_portfolio(event, context) -> dict:

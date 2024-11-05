@@ -200,7 +200,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,POST,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: ''
@@ -221,6 +221,27 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WalterAPIAddStock
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIDeleteStockMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId: !Ref WalterAPIStocks
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteStock.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIDeleteStockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIDeleteStock
       Principal: apigateway.amazonaws.com
 
   WalterAPIPrices:
@@ -513,6 +534,40 @@ Resources:
       FunctionName: !Sub "WalterAPI-AddStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: AddStock - Add stock and number of shares to user portfolio (${AppEnvironment})"
       Handler: api.add_stock
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:22"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIDeleteStockAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIDeleteStock
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-DeleteStock-${AppEnvironment}"
+
+  WalterAPIDeleteStock:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-DeleteStock-${AppEnvironment}"
+      Description: !Sub "WalterAPI: DeleteStock - Delete a stock from user portfolio (${AppEnvironment})"
+      Handler: api.delete_stock
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -1098,6 +1153,8 @@ Outputs:
   WalterAPICreateUserEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
   WalterAPIAddStockEndpoint:
+    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
+  WalterAPIDeleteStockEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
   WalterAPIGetPortfolioEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/portfolios"

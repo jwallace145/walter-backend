@@ -71,3 +71,6 @@ class WalterDB:
 
     def add_stock_to_user_portfolio(self, stock: UserStock) -> None:
         self.users_stocks_table.add_stocks_to_user_portfolio(stock)
+
+    def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
+        self.users_stocks_table.delete_stock_from_user_portfolio(stock)
