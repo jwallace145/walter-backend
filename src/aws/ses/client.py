@@ -22,11 +22,10 @@ class WalterSESClient:
     a recipient email address and an HTML email.
 
     Domains:
-        - walterai.io # TODO: pending verification
-        - walterai.dev # TODO: pending verification
+        - walterai.dev # verified domain
     """
 
-    SENDER = "walteraifinancialadvisor@gmail.com"  # TODO: send from a verified domain
+    SENDER = "walter@walterai.dev"
     CHARSET = "utf-8"
 
     client: SESClient
