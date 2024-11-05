@@ -49,6 +49,13 @@ class UsersStocksTable:
         self.ddb.put_item(self.table, stock.to_ddb_item())
         log.info("Added stock to user portfolio!")
 
+    def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
+        log.info(f"Deleting stock from user portfolio:\n{stock}")
+        self.ddb.delete_item(
+            self.table, UsersStocksTable._get_user_stocks_primary_key(stock)
+        )
+        log.info("Deleted stock from user portfolio!")
+
     def get_stocks_for_user(self, user: User) -> List[UserStock]:
         """
         Get the stocks owned by a user and the number of shares owned.
@@ -71,6 +78,13 @@ class UsersStocksTable:
     @staticmethod
     def _get_table_name(domain: Domain) -> str:
         return UsersStocksTable.TABLE_NAME_FORMAT.format(domain=domain.value)
+
+    @staticmethod
+    def _get_user_stocks_primary_key(stock: UserStock) -> dict:
+        return {
+            "user_email": {"S": stock.user_email},
+            "stock_symbol": {"S": stock.stock_symbol},
+        }
 
     @staticmethod
     def _get_user_stocks_query_key(user_email: str) -> dict:
