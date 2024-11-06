@@ -20,9 +20,7 @@ def add_stock_api(
 
 
 def test_add_stock(add_stock_api: AddStock, jwt_walter: str) -> None:
-    event = get_add_stock_event(
-        email="walter@gmail.com", stock="ABNB", quantity=100.0, token=jwt_walter
-    )
+    event = get_add_stock_event(stock="ABNB", quantity=100.0, token=jwt_walter)
     expected_response = get_expected_response(
         api_name=add_stock_api.API_NAME,
         status_code=HTTPStatus.CREATED,
@@ -35,9 +33,7 @@ def test_add_stock(add_stock_api: AddStock, jwt_walter: str) -> None:
 def test_add_stock_failure_stock_does_not_exist(
     add_stock_api: AddStock, jwt_walter: str
 ) -> None:
-    event = get_add_stock_event(
-        email="walter@gmail.com", stock="INVALID", quantity=100.0, token=jwt_walter
-    )
+    event = get_add_stock_event(stock="INVALID", quantity=100.0, token=jwt_walter)
     expected_response = get_expected_response(
         api_name=add_stock_api.API_NAME,
         status_code=HTTPStatus.OK,

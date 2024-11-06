@@ -42,6 +42,8 @@ TemplateSpec:
 After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 
 [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) and then sends the custom newsletter to the subscriber!
 
+### Walter API
+
 ### Contributions
 
 * [Black: The uncompromising code formatter](https://black.readthedocs.io/en/stable/)

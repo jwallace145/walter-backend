@@ -33,6 +33,7 @@ moto = {extras = ["dynamodb2"], version = "*"}
 coverage = "*"
 pytest-cov = "*"
 pytest-mock = "*"
+typer = "*"
 
 [requires]
 python_version = "3.11"

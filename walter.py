@@ -48,6 +48,8 @@ def lambda_handler(event, context) -> dict:
         responses = []
         if CONFIG.generate_responses:
             context = context_generator.get_context(user, portfolio)
+            print(context)
+            input()
             responses = walter_ai.generate_responses(context, prompts)
         else:
             log.info("Not generating responses...")
@@ -56,7 +58,7 @@ def lambda_handler(event, context) -> dict:
 
         if CONFIG.send_newsletter:
             assets = templates_bucket.get_template_assets()
-            ses.send_email(user.email, newsletter, "Walter: AI Newsletter", assets)
+            ses.send_email(user.email, newsletter, "Walter", assets)
             newsletters_bucket.put_newsletter(user, "default", newsletter)
         else:
             log.info("Not sending newsletter...")

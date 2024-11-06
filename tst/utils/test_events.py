@@ -1,8 +1,7 @@
-import json
-
 from src.utils.events import parse_event, Event
+from tst.utils.utils import get_walter_backend_event
 
-EVENT = json.load(open("tst/utils/data/event.json"))
+EVENT = get_walter_backend_event("walter@gmail.com")
 
 PARSED_EVENT = Event(receipt_handle="test-receipt-handle", email="walter@gmail.com")
 
