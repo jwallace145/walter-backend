@@ -30,7 +30,6 @@ class WalterAI:
         log.info(f"Getting model: '{model.name}'")
 
         if model == Model.META_LLAMA3_70B:
-            print("yes")
             return MetaLlama38B(
                 client=self.client, temperature=CONFIG.temperature, top_p=CONFIG.top_p
             )
