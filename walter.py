@@ -48,8 +48,6 @@ def lambda_handler(event, context) -> dict:
         responses = []
         if CONFIG.generate_responses:
             context = context_generator.get_context(user, portfolio)
-            print(context)
-            input()
             responses = walter_ai.generate_responses(context, prompts)
         else:
             log.info("Not generating responses...")
