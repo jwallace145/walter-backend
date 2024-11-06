@@ -20,6 +20,12 @@ def get_add_stock_event(stock: str, quantity: float, token: str) -> dict:
     return EVENT
 
 
+def get_delete_stock_event(stock: str, token: str) -> dict:
+    EVENT["body"] = json.dumps({"stock": stock})
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
 def get_portfolio_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
