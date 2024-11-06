@@ -22,7 +22,7 @@ def get_portfolio_api(
 def test_get_portfolio(
     get_portfolio_api: GetPortfolio, walter_db: WalterDB, jwt_walrus: str
 ) -> None:
-    event = get_portfolio_event(email="walrus@gmail.com", token=jwt_walrus)
+    event = get_portfolio_event(token=jwt_walrus)
     expected_response = get_expected_response(
         api_name=get_portfolio_api.API_NAME,
         status_code=HTTPStatus.OK,

@@ -23,7 +23,7 @@ def send_newsletter_api(
 def test_send_newsletter(
     send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walter: str
 ) -> None:
-    event = get_send_newsletter_event(email="walter@gmail.com", token=jwt_walter)
+    event = get_send_newsletter_event(token=jwt_walter)
     expected_response = get_expected_response(
         api_name=send_newsletter_api.API_NAME,
         status_code=HTTPStatus.OK,

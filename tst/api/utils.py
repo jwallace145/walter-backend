@@ -14,14 +14,13 @@ def get_auth_user_event(email: str, password: str) -> dict:
     return EVENT
 
 
-def get_add_stock_event(email: str, stock: str, quantity: float, token: str) -> dict:
-    EVENT["body"] = json.dumps({"email": email, "stock": stock, "quantity": quantity})
+def get_add_stock_event(stock: str, quantity: float, token: str) -> dict:
+    EVENT["body"] = json.dumps({"stock": stock, "quantity": quantity})
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
 
 
-def get_portfolio_event(email: str, token: str) -> dict:
-    EVENT["body"] = json.dumps({"email": email})
+def get_portfolio_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
 
@@ -38,8 +37,7 @@ def get_get_user_event(token: str) -> dict:
     return EVENT
 
 
-def get_send_newsletter_event(email: str, token: str) -> dict:
-    EVENT["body"] = json.dumps({"email": email})
+def get_send_newsletter_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
 
