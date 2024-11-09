@@ -1,80 +1,76 @@
-import json
-from datetime import datetime, timedelta
-
-from src.ai.models import Prompt
+from src.api.add_stock import AddStock
+from src.api.auth_user import AuthUser
+from src.api.create_user import CreateUser
+from src.api.delete_stock import DeleteStock
+from src.api.get_portfolio import GetPortfolio
+from src.api.get_prices import GetPrices
+from src.api.get_user import GetUser
+from src.api.send_newsletter import SendNewsletter
+from src.backend.backend import create_newsletter_and_send
 from src.clients import (
     walter_cw,
-    newsletters_bucket,
-    walter_stocks_api,
-    ses,
-    newsletters_queue,
-    template_engine,
-    templates_bucket,
     walter_db,
-    context_generator,
-    walter_ai,
+    walter_sm,
+    walter_stocks_api,
+    newsletters_queue,
 )
-from src.config import CONFIG
-from src.utils.events import parse_event
-from src.utils.log import Logger
-
-log = Logger(__name__).get_logger()
-
-END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-START_DATE = END_DATE - timedelta(days=7)
+from src.newsletters.publish import add_newsletter_to_queue
 
 
-def lambda_handler(event, context) -> dict:
-    log.info(f"Using the following configurations:\n{CONFIG}")
+##############
+# WALTER API #
+##############
 
-    event = parse_event(event)
-    try:
-        user = walter_db.get_user(event.email)
-        user_stocks = walter_db.get_stocks_for_user(user)
-        stocks = walter_db.get_stocks(list(user_stocks.keys()) if user_stocks else [])
-        portfolio = walter_stocks_api.get_portfolio(
-            user_stocks, stocks, START_DATE, END_DATE
-        )
 
-        template_spec = templates_bucket.get_template_spec()
+def create_user_entrypoint(event, context) -> dict:
+    return CreateUser(walter_cw, walter_db).invoke(event)
 
-        # TODO: Create utility method to convert template spec parameters to prompts
-        prompts = []
-        for parameter in template_spec.parameters:
-            prompts.append(
-                Prompt(parameter.key, parameter.prompt, parameter.max_gen_len)
-            )
 
-        responses = []
-        if CONFIG.generate_responses:
-            context = context_generator.get_context(user, portfolio)
-            responses = walter_ai.generate_responses(context, prompts)
-        else:
-            log.info("Not generating responses...")
+def auth_user_entrypoint(event, context) -> dict:
+    return AuthUser(walter_cw, walter_db, walter_sm).invoke(event)
 
-        newsletter = template_engine.render_template("default", responses)
 
-        if CONFIG.send_newsletter:
-            assets = templates_bucket.get_template_assets()
-            ses.send_email(user.email, newsletter, "Walter", assets)
-            newsletters_bucket.put_newsletter(user, "default", newsletter)
-        else:
-            log.info("Not sending newsletter...")
+def get_user_entrypoint(event, context) -> dict:
+    return GetUser(walter_cw, walter_db, walter_sm).invoke(event)
 
-        if CONFIG.dump_newsletter:
-            log.info("Dumping newsletter")
-            open("./newsletter.html", "w").write(newsletter)
-        else:
-            log.info("Not dumping newsletter...")
 
-        if CONFIG.emit_metrics:
-            walter_cw.emit_metric("WalterBackend.NumberOfEmailsSent", 1)
-            walter_cw.emit_metric("WalterBackend.NumberOfStocksAnalyzed", len(stocks))
-        else:
-            log.info("Not emitting metrics")
+def add_stock_entrypoint(event, context) -> dict:
+    return AddStock(walter_cw, walter_db, walter_stocks_api, walter_sm).invoke(event)
 
-    except Exception:
-        newsletters_queue.delete_newsletter_request(event.receipt_handle)
-    newsletters_queue.delete_newsletter_request(event.receipt_handle)
 
-    return {"statusCode": 200, "body": json.dumps("WalterBackend")}
+def delete_stock_entrypoint(event, context) -> dict:
+    return DeleteStock(walter_cw, walter_db, walter_stocks_api, walter_sm).invoke(event)
+
+
+def get_portfolio_entrypoint(event, context) -> dict:
+    return GetPortfolio(walter_cw, walter_db, walter_sm, walter_stocks_api).invoke(
+        event
+    )
+
+
+def send_newsletter_entrypoint(event, context) -> dict:
+    return SendNewsletter(walter_cw, walter_db, newsletters_queue, walter_sm).invoke(
+        event
+    )
+
+
+def get_prices_entrypoint(event, context) -> dict:
+    return GetPrices(walter_cw, walter_db, walter_stocks_api).invoke(event)
+
+
+######################
+# WALTER NEWSLETTERS #
+######################
+
+
+def add_newsletter_to_queue_entrypoint(event, context) -> dict:
+    return add_newsletter_to_queue(event, context)
+
+
+##################
+# WALTER BACKEND #
+##################
+
+
+def create_newsletter_and_send_entrypoint(event, context) -> dict:
+    return create_newsletter_and_send(event, context)

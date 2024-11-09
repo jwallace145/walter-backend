@@ -2,8 +2,6 @@ echo "Updating Walter backend source code" \
 && mkdir walter-backend \
 && cp -r src walter-backend \
 && cp config.yml walter-backend \
-&& cp api.py walter-backend \
-&& cp newsletters.py walter-backend \
 && cp walter.py walter-backend \
 && cd walter-backend \
 && zip -r ../walter-backend.zip . \
