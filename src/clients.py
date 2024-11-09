@@ -57,12 +57,12 @@ newsletters_bucket = NewslettersBucket(s3, DOMAIN)
 # SECRETS #
 ###########
 
-sm = WalterSecretsManagerClient(
+walter_sm = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 
-POLYGON_API_KEY = sm.get_polygon_api_key()
-JWT_TOKEN_KEY = sm.get_jwt_secret_key()
+POLYGON_API_KEY = walter_sm.get_polygon_api_key()
+JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 
 #####################
 # NEWSLETTERS QUEUE #

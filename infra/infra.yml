@@ -431,7 +431,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-Auth-${AppEnvironment}"
       Description: !Sub "WalterAPI: Auth - authenticate a user (${AppEnvironment})"
-      Handler: api.auth_user
+      Handler: walter.auth_user_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -465,7 +465,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
       Description: !Sub "WalterAPI: CreateUser - create user and add to database (${AppEnvironment})"
-      Handler: api.create_user
+      Handler: walter.create_user_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -499,7 +499,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-GetUser-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetUser - get user from token (${AppEnvironment})"
-      Handler: api.get_user
+      Handler: walter.get_user_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -533,7 +533,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-AddStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: AddStock - Add stock and number of shares to user portfolio (${AppEnvironment})"
-      Handler: api.add_stock
+      Handler: walter.add_stock_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -567,7 +567,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-DeleteStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: DeleteStock - Delete a stock from user portfolio (${AppEnvironment})"
-      Handler: api.delete_stock
+      Handler: walter.delete_stock_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -601,7 +601,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-GetPrices-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetPrices - Get pricing data for a given stock over a timeframe (${AppEnvironment})"
-      Handler: api.get_prices
+      Handler: walter.get_prices_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -635,7 +635,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-GetPortfolio-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetPortfolio - Get user portfolio with latest market data (${AppEnvironment})"
-      Handler: api.get_portfolio
+      Handler: walter.get_portfolio_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -671,7 +671,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
       Description: !Sub "WalterAPI: SendNewsletter - generate and send a newsletter to the given user (${AppEnvironment})"
-      Handler: api.send_newsletter
+      Handler: walter.send_newsletter_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -705,7 +705,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterNewsletters-${AppEnvironment}"
       Description: !Sub "WalterNewsletters: Gets users from WalterDB and sends newsletter requests to queue (${AppEnvironment})"
-      Handler: newsletters.send_messages
+      Handler: walter.add_newsletter_to_queue_entrypoint
       Role: !GetAtt WalterNewslettersRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -739,7 +739,7 @@ Resources:
       Properties:
         FunctionName: !Sub "WalterBackend-${AppEnvironment}"
         Description: !Sub "WalterBackend function to read from WalterDB and write and send newsletters (${AppEnvironment})"
-        Handler: walter.lambda_handler
+        Handler: walter.create_newsletter_and_send_entrypoint
         Role: !GetAtt WalterBackendRole.Arn
         Code:
           S3Bucket: walter-backend-src
