@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
-import yaml
-from src.environment import Domain
 from src.aws.s3.client import WalterS3Client
-from src.templates.models import Parameter, Template, TemplateAssets, TemplateSpec
+from src.environment import Domain
+from src.templates.models import Template, TemplateAssets
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -13,17 +12,6 @@ log = Logger(__name__).get_logger()
 class TemplatesBucket:
     """
     Templates S3 Bucket
-
-    This bucket contains the templates Walter uses to create the tailored
-    newsletters. The S3 bucket can hold an arbitrary number of templates
-    under the `templates` prefix. Within the templates prefix, each template
-    is identified by a unique identifier utilized as its prefix such as
-    `default` where each template has a `templatespec.yml` file and a
-    `template.jinja` file, and assets included in an `assets` directory. The
-    template spec file contains the keys and prompts used by Walter to render
-    the template and the template contains the Jinja template to be rendered.
-    The assets are referenced by the rendered template and are to be packaged
-    with the email when sending to users.
     """
 
     BUCKET = "walterai-templates-{domain}"
@@ -33,7 +21,7 @@ class TemplatesBucket:
     ASSETS_DIR = "{templates_dir}/{template}/assets/"
 
     DEFAULT_TEMPLATE = "default"
-    TEMPLATE_SPEC = "templatespec.yml"
+    TEMPLATE_SPEC = "templatespec.jinja"
     TEMPLATE = "template.jinja"
 
     client: WalterS3Client
@@ -47,7 +35,7 @@ class TemplatesBucket:
             f"Creating '{self.domain.value}' TemplatesBucket S3 client with bucket '{self.bucket}'"
         )
 
-    def get_template_spec(self, template: str = DEFAULT_TEMPLATE) -> TemplateSpec:
+    def get_template_spec(self, template: str = DEFAULT_TEMPLATE) -> str:
         """Get template spec YAML config file from S3.
 
         This method gets the template spec YAML config file from S3 for the given template.
@@ -62,19 +50,7 @@ class TemplatesBucket:
         """
         log.info(f"Getting '{template}' template spec from S3")
         key = TemplatesBucket._get_template_spec_key(template)
-
-        # get parameters from template spec s3 object
-        parameters = []
-        for parameter in yaml.safe_load(self.client.get_object(self.bucket, key))[
-            "TemplateSpec"
-        ]["Parameters"]:
-            parameters.append(
-                Parameter(
-                    parameter["Key"], parameter["Prompt"], parameter["MaxGenLength"]
-                )
-            )
-
-        return TemplateSpec(parameters)
+        return self.client.get_object(self.bucket, key)
 
     def get_template(self, template: str = DEFAULT_TEMPLATE) -> Template:
         """Get Jinja template from S3.

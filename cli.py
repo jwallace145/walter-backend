@@ -2,15 +2,7 @@ import json
 
 import typer
 
-from api import (
-    auth_user as AUTH_USER_API,
-    add_stock as ADD_STOCK_API,
-    create_user as CREATE_USER_API,
-    get_portfolio as GET_PORTFOLIO_API,
-    get_user as GET_USER_API,
-    send_newsletter as SEND_NEWSLETTER_API,
-)
-from newsletters import send_messages
+from src.newsletters.publish import add_newsletter_to_queue
 from src.utils.log import Logger
 from tst.api.utils import (
     get_auth_user_event,
@@ -21,7 +13,15 @@ from tst.api.utils import (
     get_send_newsletter_event,
 )
 from tst.utils.utils import get_walter_backend_event
-from walter import lambda_handler
+from walter import (
+    auth_user_entrypoint,
+    create_user_entrypoint,
+    get_user_entrypoint,
+    add_stock_entrypoint,
+    get_portfolio_entrypoint,
+    send_newsletter_entrypoint,
+    create_newsletter_and_send_entrypoint,
+)
 
 log = Logger(__name__).get_logger()
 
@@ -48,7 +48,7 @@ app = typer.Typer()
 def auth_user(email: str = None, password: str = None) -> None:
     log.info("Walter CLI: Authenticating user...")
     event = get_auth_user_event(email, password)
-    response = AUTH_USER_API(event, CONTEXT)
+    response = auth_user_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -56,7 +56,7 @@ def auth_user(email: str = None, password: str = None) -> None:
 def create_user(email: str = None, username: str = None, password: str = None) -> None:
     log.info("Walter CLI: Creating user...")
     event = get_create_user_event(email, username, password)
-    response = CREATE_USER_API(event, CONTEXT)
+    response = create_user_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -64,7 +64,7 @@ def create_user(email: str = None, username: str = None, password: str = None) -
 def get_user(token: str = None) -> None:
     log.info("Walter CLI: Getting user...")
     event = get_get_user_event(token)
-    response = GET_USER_API(event, CONTEXT)
+    response = get_user_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -72,7 +72,7 @@ def get_user(token: str = None) -> None:
 def add_stock(token: str = None, stock: str = None, quantity: float = None) -> None:
     log.info("Walter CLI: Adding stock...")
     event = get_add_stock_event(stock, quantity, token)
-    response = ADD_STOCK_API(event, CONTEXT)
+    response = add_stock_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -80,7 +80,7 @@ def add_stock(token: str = None, stock: str = None, quantity: float = None) -> N
 def get_portfolio(token: str = None) -> None:
     log.info("Walter CLI: Getting portfolio...")
     event = get_portfolio_event(token)
-    response = GET_PORTFOLIO_API(event, CONTEXT)
+    response = get_portfolio_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -88,7 +88,7 @@ def get_portfolio(token: str = None) -> None:
 def send_newsletter(token: str = None) -> None:
     log.info("Walter CLI: Sending newsletter...")
     event = get_send_newsletter_event(token)
-    response = SEND_NEWSLETTER_API(event, CONTEXT)
+    response = send_newsletter_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -100,7 +100,7 @@ def send_newsletter(token: str = None) -> None:
 @app.command()
 def send_newsletters():
     log.info("Walter CLI: Sending newsletters to all users...")
-    send_messages({}, CONTEXT)
+    add_newsletter_to_queue({}, CONTEXT)
 
 
 ##################
@@ -112,7 +112,7 @@ def send_newsletters():
 def walter_backend(email: str = None) -> None:
     log.info("Walter CLI: Invoking WalterBackend...")
     event = get_walter_backend_event(email)
-    response = lambda_handler(event, CONTEXT)
+    response = create_newsletter_and_send_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 

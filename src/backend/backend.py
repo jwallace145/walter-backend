@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timedelta
 
-from src.ai.models import Prompt
 from src.clients import (
     walter_cw,
     newsletters_bucket,
@@ -9,9 +8,9 @@ from src.clients import (
     ses,
     newsletters_queue,
     template_engine,
+    template_engine_refactor,
     templates_bucket,
     walter_db,
-    context_generator,
     walter_ai,
 )
 from src.config import CONFIG
@@ -20,15 +19,23 @@ from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+#############
+# ARGUMENTS #
+#############
+
+TEMPLATE_NAME = "default"
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 START_DATE = END_DATE - timedelta(days=7)
 
 
 def create_newsletter_and_send(event, context) -> dict:
-    log.info(f"Using the following configurations:\n{CONFIG}")
+    log.info(f"WalterBackend invoked! Using the following configurations:\n{CONFIG}")
 
+    # parse event from queue
     event = parse_event(event)
+
     try:
+        # get user and portfolio info from db
         user = walter_db.get_user(event.email)
         user_stocks = walter_db.get_stocks_for_user(user)
         stocks = walter_db.get_stocks(list(user_stocks.keys()) if user_stocks else [])
@@ -36,23 +43,26 @@ def create_newsletter_and_send(event, context) -> dict:
             user_stocks, stocks, START_DATE, END_DATE
         )
 
-        template_spec = templates_bucket.get_template_spec()
+        # get template spec with user inputs
+        template_spec = template_engine_refactor.get_template_spec(
+            template_name=TEMPLATE_NAME,
+            user=user.username,
+            datestamp=END_DATE,
+            portfolio_value=portfolio.get_total_equity(),
+            stocks=portfolio.get_stock_equities(),
+        )
 
-        # TODO: Create utility method to convert template spec parameters to prompts
-        prompts = []
-        for parameter in template_spec.parameters:
-            prompts.append(
-                Prompt(parameter.key, parameter.prompt, parameter.max_gen_len)
-            )
-
-        responses = []
+        template_args = template_spec.get_template_args()
         if CONFIG.generate_responses:
-            context = context_generator.get_context(user, portfolio)
-            responses = walter_ai.generate_responses(context, prompts)
+            context = template_spec.get_context()
+            prompt = template_spec.get_prompts().pop()
+            template_args[prompt.name] = walter_ai.generate_response(
+                context=context, prompt=prompt.prompt, max_gen_len=prompt.max_gen_length
+            )
         else:
             log.info("Not generating responses...")
 
-        newsletter = template_engine.render_template("default", responses)
+        newsletter = template_engine.render_template(TEMPLATE_NAME, template_args)
 
         if CONFIG.send_newsletter:
             assets = templates_bucket.get_template_assets()

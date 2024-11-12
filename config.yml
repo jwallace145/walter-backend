@@ -2,9 +2,9 @@ walter_config:
   model_id: "meta.llama3-70b-instruct-v1:0"
   temperature: 0.5
   top_p: 0.9
-  generate_responses: false
+  generate_responses: true
   newsletter_template: "default"
-  send_newsletter: false
+  send_newsletter: true
   dump_newsletter: false
-  emit_metrics: false
+  emit_metrics: true
   jwt_algorithm: "HS256"
