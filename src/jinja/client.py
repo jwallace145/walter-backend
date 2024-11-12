@@ -6,7 +6,7 @@ from jinja2 import BaseLoader, Environment
 from src.ai.models import Response
 from src.environment import Domain
 from src.newsletters.client import NewslettersBucket
-from src.templates.client import TemplatesBucket
+from src.templates.bucket import TemplatesBucket
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -33,10 +33,33 @@ class TemplateEngine:
             f"Creating '{self.domain.value}' TemplateEngine client with templates bucket '{self.templates_bucket.bucket}'"
         )
 
+    def render_template_spec(
+        self,
+        template_name: str,
+        user: str,
+        datestamp: str,
+        portfolio_value: str,
+        stocks: list,
+    ) -> None:
+        log.info(f"Rendering template spec for '{template_name}' template")
+        template_spec = self.templates_bucket.get_template_spec(template_name)
+        rendered_template_spec = (
+            Environment(loader=BaseLoader)
+            .from_string(template_spec.content)
+            .render(
+                user=user,
+                datestamp=datestamp,
+                portfolio_value=portfolio_value,
+                stocks=stocks,
+            )
+        )
+        log.info(f"Finished rendering template spec for '{template_name}' template")
+        return rendered_template_spec
+
     def render_template(
         self,
         template_name: str = DEFAULT_TEMPLATE,
-        responses: List[Response] = [],
+        template_args: Dict[str, str] = None,
     ) -> str:
         """Render the template with the AI responses.
 
@@ -50,13 +73,13 @@ class TemplateEngine:
             str: The rendered template with AI responses as a string.
         """
         log.info(
-            f"Rendering '{template_name}' template with {len(responses)} responses"
+            f"Rendering '{template_name}' template with {len(template_args)} arguments"
         )
         template = self.templates_bucket.get_template(template_name)
         rendered_template = (
             Environment(loader=BaseLoader)
             .from_string(template.contents)
-            .render(**TemplateEngine._convert_responses_to_dict(responses))
+            .render(**template_args)
         )
         log.info(f"Finished rendering '{template_name}' template")
         return rendered_template
@@ -65,6 +88,5 @@ class TemplateEngine:
     def _convert_responses_to_dict(responses: List[Response]) -> Dict[str, str]:
         responses_dict = {}
         for response in responses:
-            print(response)
             responses_dict[response.name] = response.response
         return responses_dict

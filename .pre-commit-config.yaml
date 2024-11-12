@@ -21,7 +21,7 @@ repos:
       - id: flake8 # linter
         name: flake8
         description: "Flake8: Your tool for style guide enforcement"
-        entry: pipenv run flake8 --count --max-complexity=10 --max-line-length=127 --show-source --statistics --ignore=E501,W503,C901
+        entry: pipenv run flake8 --count --max-complexity=10 --max-line-length=127 --show-source --statistics --ignore=E501,W503,C901,W291
         language: python
         types: [ python ]
 

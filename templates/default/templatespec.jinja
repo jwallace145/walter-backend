@@ -1,0 +1,45 @@
+version: 0.0
+
+#########################
+# DEFAULT TEMPLATE SPEC #
+#########################
+
+TemplateSpec:
+
+  ###########
+  # CONTEXT #
+  ###########
+
+  Context:
+    User: {{ user }}
+    Datestamp: {{ datestamp }}
+    PortfolioValue: {{ portfolio_value }}
+    Stocks:
+      {% for stock in stocks %}
+      - Symbol: {{ stock.symbol }}
+        Shares: {{ stock.quantity }}
+        Price: {{ stock.price }}
+        Equity: {{ stock.equity }}
+      {% endfor %}
+
+  ########
+  # KEYS #
+  ########
+
+  Keys:
+    - Key: User
+      Value: {{ user }}
+    - Key: Datestamp
+      Value: {{ datestamp }}
+    - Key: PortfolioValue
+      Value: {{ portfolio_value }}
+
+  ###########
+  # PROMPTS #
+  ###########
+
+  Prompts:
+    - Key: Newsletter
+      Prompt: |
+        Introduce yourself as Walter, an AI bot that writes a daily financial newsletter in a business casual fashion for the given user about their stocks. Focus on the user's specific stocks and provide insights into their composition of the portfolio.
+      MaxGenLength: 600

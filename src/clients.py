@@ -19,8 +19,9 @@ from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
-from src.templates.client import TemplatesBucket
+from src.templates.bucket import TemplatesBucket
 from src.utils.log import Logger
+from src.templates.engine import TemplatesEngine
 
 log = Logger(__name__).get_logger()
 
@@ -103,6 +104,8 @@ template_engine = TemplateEngine(
     newsletters_bucket=newsletters_bucket,
     domain=DOMAIN,
 )
+
+template_engine_refactor = TemplatesEngine(templates_bucket=templates_bucket)
 
 #############
 # WALTER AI #
