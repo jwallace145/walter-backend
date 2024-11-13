@@ -30,3 +30,8 @@ class StockPrices:
 class StockNews:
     symbol: str
     descriptions: List[str]
+
+    def to_dict(self) -> dict:
+        return {
+            "news": self.descriptions,
+        }

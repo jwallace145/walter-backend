@@ -46,11 +46,13 @@ class AddStock(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> dict:
         body = json.loads(event["body"])
+        stock = body["stock"].upper()
+        quantity = body["quantity"]
         self.walter_db.add_stock_to_user_portfolio(
             UserStock(
                 user_email=authenticated_email,
-                stock_symbol=body["stock"],
-                quantity=body["quantity"],
+                stock_symbol=stock,
+                quantity=quantity,
             )
         )
         return self._create_response(
@@ -62,7 +64,7 @@ class AddStock(WalterAPIMethod):
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
 
-        symbol = body["stock"]
+        symbol = body["stock"].upper()
         stock = self.walter_stocks_api.get_stock(symbol)
         if stock is None:
             raise StockDoesNotExist("Stock does not exist!")

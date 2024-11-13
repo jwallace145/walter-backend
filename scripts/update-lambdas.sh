@@ -10,6 +10,8 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-DeleteStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI GetPrices source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetPrices-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterAPI GetNews source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-GetNews-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI GetPortfolio source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetPortfolio-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI SendNewsletter source code with artifact from S3 \

@@ -31,6 +31,11 @@ def get_portfolio_event(token: str) -> dict:
     return EVENT
 
 
+def get_news_event(stock: str) -> dict:
+    EVENT["body"] = json.dumps({"stock": stock})
+    return EVENT
+
+
 def get_create_user_event(email: str, username: str, password: str) -> dict:
     EVENT["body"] = json.dumps(
         {"email": email, "username": username, "password": password}

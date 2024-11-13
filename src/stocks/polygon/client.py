@@ -160,38 +160,43 @@ class PolygonClient:
     ) -> Dict[str, List[StockNews]]:
         news = {}
         for stock in stocks.values():
-            news[stock.stock_symbol] = self.get_news(stock, latest_published_date)
+            news[stock.stock_symbol] = self.get_news(
+                stock.stock_symbol, latest_published_date
+            )
         return news
 
-    def get_news(self, stock: str, latest_published_date: datetime) -> StockNews:
+    def get_news(self, stock: str, oldest_published_date: datetime) -> StockNews | None:
         """
         Get relevant news for the given stock over the timeframe.
 
         https://polygon.io/docs/stocks/get_v2_reference_news
 
         Args:
-            stock:
-            latest_published_date:
+            stock: The ticker symbol of the given stock.
+            oldest_published_date: The oldest published date of market news returned for the given stock.
 
         Returns:
-
+            Market news for the given stock.
         """
         self._init_rest_client()
-
         log.info(
-            f"Getting news for '{stock.stock_symbol}' with a latest published date of '{latest_published_date}'"
+            f"Getting news for '{stock}' with a latest published date of '{oldest_published_date}'"
         )
 
-        descriptions = []
-        for n in self.client.list_ticker_news(
-            ticker=stock.stock_symbol,
-            published_utc_gt=PolygonClient._convert_date_to_string(
-                latest_published_date
-            ),
-            limit=10,
-        ):
-            descriptions.append(n.description)
-        return StockNews(symbol=stock.stock_symbol, descriptions=descriptions)
+        try:
+            descriptions = []
+            for n in self.client.list_ticker_news(
+                ticker=stock,
+                published_utc_gt=PolygonClient._convert_date_to_string(
+                    oldest_published_date
+                ),
+                limit=10,
+            ):
+                descriptions.append(n.description)
+            return StockNews(symbol=stock, descriptions=descriptions)
+        except polygon.BadResponse:
+            log.info(f"{stock} does not exist in Polygon!")
+            return None
 
     def _init_rest_client(self) -> RESTClient:
         # lazy init polygon rest client

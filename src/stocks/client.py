@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from typing import Dict
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
-from src.stocks.polygon.models import StockPrices
+from src.stocks.polygon.models import StockPrices, StockNews
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -33,6 +33,9 @@ class WalterStocksAPI:
 
     def get_stock(self, symbol: str) -> Stock | None:
         return self.client.get_stock(symbol)
+
+    def get_news(self, symbol: str) -> StockNews | None:
+        return self.client.get_news(symbol, datetime.now(UTC) - timedelta(days=7))
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.client.get_stock_prices(stock)
