@@ -5,10 +5,9 @@ from src.clients import (
     walter_cw,
     newsletters_bucket,
     walter_stocks_api,
-    ses,
+    walter_ses,
     newsletters_queue,
     template_engine,
-    template_engine_refactor,
     templates_bucket,
     walter_db,
     walter_ai,
@@ -44,7 +43,7 @@ def create_newsletter_and_send(event, context) -> dict:
         )
 
         # get template spec with user inputs
-        template_spec = template_engine_refactor.get_template_spec(
+        template_spec = template_engine.get_template_spec(
             template_name=TEMPLATE_NAME,
             user=user.username,
             datestamp=END_DATE,
@@ -62,11 +61,11 @@ def create_newsletter_and_send(event, context) -> dict:
         else:
             log.info("Not generating responses...")
 
-        newsletter = template_engine.render_template(TEMPLATE_NAME, template_args)
+        newsletter = template_engine.get_template(TEMPLATE_NAME, template_args)
 
         if CONFIG.send_newsletter:
             assets = templates_bucket.get_template_assets()
-            ses.send_email(user.email, newsletter, "Walter", assets)
+            walter_ses.send_email(user.email, newsletter, "Walter", assets)
             newsletters_bucket.put_newsletter(user, "default", newsletter)
         else:
             log.info("Not sending newsletter...")
