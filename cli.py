@@ -11,6 +11,7 @@ from tst.api.utils import (
     get_add_stock_event,
     get_portfolio_event,
     get_send_newsletter_event,
+    get_news_event,
 )
 from tst.utils.utils import get_walter_backend_event
 from walter import (
@@ -21,6 +22,7 @@ from walter import (
     get_portfolio_entrypoint,
     send_newsletter_entrypoint,
     create_newsletter_and_send_entrypoint,
+    get_news_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -81,6 +83,14 @@ def get_portfolio(token: str = None) -> None:
     log.info("Walter CLI: Getting portfolio...")
     event = get_portfolio_event(token)
     response = get_portfolio_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_news(stock: str = None) -> None:
+    log.info("Walter CLI: Getting news...")
+    event = get_news_event(stock)
+    response = get_news_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
