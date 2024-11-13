@@ -8,6 +8,21 @@ from src.config import CONFIG
 
 
 def generate_token(email: str, key: str) -> str:
+    """
+    Generate JSON web token for user email.
+
+    After a user successfully authenticates themselves via login, Walter creates
+    a token to give to the user to verify their identity. This allows the user
+    to make subsequent authenticated requests. The token is generated via JSON
+    web tokens with the algorithm specified in Walter's configs.
+
+    Args:
+        email: The user email to generate the JSON web token.
+        key:  The JWT secret key used to encode the user email and token information.
+
+    Returns:
+        The JSON web token for the authenticated user.
+    """
     return jwt.encode(
         {
             "sub": email,
@@ -19,7 +34,17 @@ def generate_token(email: str, key: str) -> str:
     )
 
 
-def decode_token(token: str, key: str) -> bool:
+def decode_token(token: str, key: str) -> bool | None:
+    """
+    Decode the given JSON web token to verify user identity.
+
+    Args:
+        token: The JSON web token given to a user after successful authentication.
+        key: The JWT secret key used to decode the token (stored in SecretsManager).
+
+    Returns:
+        True if the token is valid, False otherwise.
+    """
     try:
         return jwt.decode(token, key, algorithms=[CONFIG.jwt_algorithm])
     except jwt.ExpiredSignatureError:

@@ -14,14 +14,13 @@ from src.aws.sqs.client import WalterSQSClient
 from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
-from src.jinja.client import TemplateEngine
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
-from src.utils.log import Logger
 from src.templates.engine import TemplatesEngine
+from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
@@ -32,10 +31,10 @@ log.debug("Initializing clients...")
 #########################
 
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-"""(str): The AWS region the WalterAIBackend service is deployed."""
+"""(str): The AWS region the WalterBackend service is deployed."""
 
 DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
-"""(str): The domain of the WalterAIBackend service environment."""
+"""(str): The domain of the WalterBackend service environment."""
 
 ########################
 # WALTER BOTO3 CLIENTS #
@@ -44,7 +43,7 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 walter_cw = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
-ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
+walter_ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
 
 ##############
 # S3 BUCKETS #
@@ -99,13 +98,7 @@ walter_stocks_api = WalterStocksAPI(
 # JINJA TEMPLATE ENGINE #
 #########################
 
-template_engine = TemplateEngine(
-    templates_bucket=templates_bucket,
-    newsletters_bucket=newsletters_bucket,
-    domain=DOMAIN,
-)
-
-template_engine_refactor = TemplatesEngine(templates_bucket=templates_bucket)
+template_engine = TemplatesEngine(templates_bucket=templates_bucket)
 
 #############
 # WALTER AI #

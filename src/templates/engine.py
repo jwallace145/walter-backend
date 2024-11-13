@@ -7,7 +7,6 @@ from src.templates.bucket import TemplatesBucket
 from src.templates.spec import TemplateSpec, template_spec_from_dict
 from src.utils.log import Logger
 
-
 log = Logger(__name__).get_logger()
 
 
@@ -43,5 +42,29 @@ class TemplatesEngine:
         log.info(f"Finished rendering template spec for '{template_name}' template")
         return spec
 
-    def _render_template(self) -> None:
-        log.info("Rendering template...")
+    def get_template(
+        self,
+        template_name: str,
+        template_args: dict,
+    ) -> str:
+        """
+        Render and return the given template with the template arguments injected.
+
+        Args:
+            template_name: The name of the template to render.
+            template_args: The dictionary of template arguments to inject into the template.
+
+        Returns:
+            The rendered template as a string.
+        """
+        log.info(
+            f"Rendering '{template_name}' template with {len(template_args)} arguments"
+        )
+        template = self.templates_bucket.get_template(template_name)
+        rendered_template = (
+            Environment(loader=BaseLoader)
+            .from_string(template.contents)
+            .render(**template_args)
+        )
+        log.info(f"Finished rendering '{template_name}' template")
+        return rendered_template
