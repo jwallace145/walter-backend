@@ -14,6 +14,7 @@ from src.clients import (
     walter_sm,
     walter_stocks_api,
     newsletters_queue,
+    walter_authenticator,
 )
 from src.newsletters.publish import add_newsletter_to_queue
 
@@ -24,43 +25,51 @@ from src.newsletters.publish import add_newsletter_to_queue
 
 
 def create_user_entrypoint(event, context) -> dict:
-    return CreateUser(walter_cw, walter_db).invoke(event)
+    return CreateUser(walter_authenticator, walter_cw, walter_db).invoke(event)
 
 
 def auth_user_entrypoint(event, context) -> dict:
-    return AuthUser(walter_cw, walter_db, walter_sm).invoke(event)
+    return AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
 
 
 def get_user_entrypoint(event, context) -> dict:
-    return GetUser(walter_cw, walter_db, walter_sm).invoke(event)
+    return GetUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
 
 
 def add_stock_entrypoint(event, context) -> dict:
-    return AddStock(walter_cw, walter_db, walter_stocks_api, walter_sm).invoke(event)
+    return AddStock(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+    ).invoke(event)
 
 
 def delete_stock_entrypoint(event, context) -> dict:
-    return DeleteStock(walter_cw, walter_db, walter_stocks_api, walter_sm).invoke(event)
+    return DeleteStock(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+    ).invoke(event)
 
 
 def get_portfolio_entrypoint(event, context) -> dict:
-    return GetPortfolio(walter_cw, walter_db, walter_sm, walter_stocks_api).invoke(
-        event
-    )
+    return GetPortfolio(
+        walter_authenticator, walter_cw, walter_db, walter_sm, walter_stocks_api
+    ).invoke(event)
 
 
 def get_news_entrypoint(event, context) -> dict:
-    return GetNews(walter_cw, walter_db, walter_stocks_api).invoke(event)
+    return GetNews(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api
+    ).invoke(event)
 
 
 def send_newsletter_entrypoint(event, context) -> dict:
-    return SendNewsletter(walter_cw, walter_db, newsletters_queue, walter_sm).invoke(
-        event
-    )
+    return SendNewsletter(
+        walter_authenticator, walter_cw, walter_db, newsletters_queue, walter_sm
+    ).invoke(event)
 
 
 def get_prices_entrypoint(event, context) -> dict:
-    return GetPrices(walter_cw, walter_db, walter_stocks_api).invoke(event)
+    return GetPrices(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api
+    ).invoke(event)
 
 
 ######################

@@ -1,13 +1,13 @@
 import json
 import re
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
 from src.api.exceptions import BadRequest, NotAuthenticated
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.utils.auth import decode_token
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -76,11 +76,13 @@ class WalterAPIMethod(ABC):
         api_name: str,
         required_fields: List[str],
         exceptions: List[Exception],
+        authenticator: WalterAuthenticator,
         metrics: WalterCloudWatchClient,
     ) -> None:
         self.api_name = api_name
         self.required_fields = required_fields
         self.exceptions = exceptions
+        self.authenticator = authenticator
         self.metrics = metrics
 
     def invoke(self, event: dict) -> dict:
@@ -119,11 +121,12 @@ class WalterAPIMethod(ABC):
 
     def _authenticate_request(self, event: dict) -> None:
         log.info("Authenticating request")
-        token = get_token(event)
+
+        token = self.authenticator.get_token(event)
         if token is None:
             raise NotAuthenticated("Not authenticated!")
 
-        decoded_token = decode_token(token, self.get_jwt_secret_key())
+        decoded_token = self.authenticator.decode_token(token)
         if decoded_token is None:
             raise NotAuthenticated("Not authenticated!")
 
@@ -184,10 +187,6 @@ class WalterAPIMethod(ABC):
     def is_authenticated_api(self) -> bool:
         pass
 
-    @abstractmethod
-    def get_jwt_secret_key(self) -> str:
-        pass
-
 
 #############
 # API UTILS #
@@ -201,9 +200,3 @@ def is_valid_email(email: str) -> bool:
 
 def is_valid_username(username: str) -> bool:
     return username.isalnum()
-
-
-def get_token(event: dict) -> str:
-    if event["headers"] is None or "Authorization" not in event["headers"]:
-        return None
-    return event["headers"]["Authorization"].split(" ")[1]

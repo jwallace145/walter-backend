@@ -2,6 +2,7 @@ import json
 
 from src.api.exceptions import BadRequest, NotAuthenticated, StockDoesNotExist
 from src.api.methods import WalterAPIMethod, Status, HTTPStatus
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -21,6 +22,7 @@ class DeleteStock(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_stocks_api: WalterStocksAPI,
@@ -30,6 +32,7 @@ class DeleteStock(WalterAPIMethod):
             DeleteStock.API_NAME,
             DeleteStock.REQUIRED_FIELDS,
             DeleteStock.EXCEPTIONS,
+            walter_authenticator,
             walter_cw,
         )
         self.walter_db = walter_db
@@ -61,6 +64,3 @@ class DeleteStock(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return True
-
-    def get_jwt_secret_key(self) -> str:
-        return self.walter_sm.get_jwt_secret_key()

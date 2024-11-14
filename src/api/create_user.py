@@ -6,9 +6,10 @@ from src.api.exceptions import (
     UserAlreadyExists,
     BadRequest,
 )
-from src.api.methods import WalterAPIMethod
 from src.api.methods import HTTPStatus, Status
+from src.api.methods import WalterAPIMethod
 from src.api.methods import is_valid_username, is_valid_email
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
@@ -24,6 +25,7 @@ class CreateUser(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
     ) -> None:
@@ -31,6 +33,7 @@ class CreateUser(WalterAPIMethod):
             CreateUser.API_NAME,
             CreateUser.REQUIRED_FIELDS,
             CreateUser.EXCEPTIONS,
+            walter_authenticator,
             walter_cw,
         )
         self.walter_db = walter_db
@@ -66,8 +69,5 @@ class CreateUser(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return False
 
-    def get_jwt_secret_key(self) -> str:
-        raise ValueError(f"{self.api_name} is not an authenticated API!")
-
-    def is_valid_username(username: str) -> bool:
+    def is_valid_username(self, username: str) -> bool:
         return username.isalnum()

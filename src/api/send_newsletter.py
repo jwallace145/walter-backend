@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
 from src.api.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
-from src.api.methods import WalterAPIMethod
 from src.api.methods import HTTPStatus, Status
+from src.api.methods import WalterAPIMethod
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -21,6 +22,7 @@ class SendNewsletter(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         newsletters_queue: NewslettersQueue,
@@ -30,6 +32,7 @@ class SendNewsletter(WalterAPIMethod):
             SendNewsletter.API_NAME,
             SendNewsletter.REQUIRED_FIELDS,
             SendNewsletter.EXCEPTIONS,
+            walter_authenticator,
             walter_cw,
         )
         self.walter_db = walter_db
@@ -56,6 +59,3 @@ class SendNewsletter(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return True
-
-    def get_jwt_secret_key(self) -> str:
-        return self.walter_sm.get_jwt_secret_key()

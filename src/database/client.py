@@ -2,6 +2,7 @@ import datetime as dt
 from dataclasses import dataclass
 from typing import Dict, List
 
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
@@ -10,7 +11,6 @@ from src.database.users.table import UsersTable
 from src.database.userstocks.models import UserStock
 from src.database.userstocks.table import UsersStocksTable
 from src.environment import Domain
-from src.utils.auth import hash_password
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -20,6 +20,7 @@ log = Logger(__name__).get_logger()
 class WalterDB:
 
     ddb: WalterDDBClient
+    authenticator: WalterAuthenticator
     domain: Domain
 
     users_table: UsersTable = None
@@ -33,7 +34,8 @@ class WalterDB:
 
     def create_user(self, email: str, username: str, password: str) -> None:
         # generate salt and hash the given password to store in users table
-        salt, password_hash = hash_password(password)
+        log.info(type(self.authenticator))
+        salt, password_hash = self.authenticator.hash_password(password)
         user = User(
             email=email,
             username=username,

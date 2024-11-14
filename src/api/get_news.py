@@ -2,6 +2,7 @@ import json
 
 from src.api.exceptions import BadRequest, StockDoesNotExist
 from src.api.methods import WalterAPIMethod, HTTPStatus, Status
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
@@ -15,12 +16,17 @@ class GetNews(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_stocks_api: WalterStocksAPI,
     ) -> None:
         super().__init__(
-            GetNews.API_NAME, GetNews.REQUIRED_FIELDS, GetNews.EXCEPTIONS, walter_cw
+            GetNews.API_NAME,
+            GetNews.REQUIRED_FIELDS,
+            GetNews.EXCEPTIONS,
+            walter_authenticator,
+            walter_cw,
         )
         self.walter_db = walter_db
         self.walter_stocks_api = walter_stocks_api
@@ -49,6 +55,3 @@ class GetNews(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return False
-
-    def get_jwt_secret_key(self) -> str:
-        raise ValueError(f"{self.api_name} is not an authenticated API!")
