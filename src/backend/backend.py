@@ -49,6 +49,7 @@ def create_newsletter_and_send(event, context) -> dict:
             datestamp=END_DATE,
             portfolio_value=portfolio.get_total_equity(),
             stocks=portfolio.get_stock_equities(),
+            news=portfolio.get_all_news(),
         )
 
         # get template args from the template spec

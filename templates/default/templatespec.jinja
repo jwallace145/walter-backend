@@ -21,6 +21,12 @@ TemplateSpec:
         Price: {{ stock.price }}
         Equity: {{ stock.equity }}
       {% endfor %}
+    News:
+      {% for news in stock_news %}
+      - Symbol: {{ news.symbol }}
+        News: {{ news.descriptions }}
+      {% endfor %}
+
 
   ########
   # KEYS #

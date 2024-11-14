@@ -55,6 +55,12 @@ class Portfolio:
             equity += self.get_equity(stock)
         return equity
 
+    def get_all_news(self) -> List[StockNews]:
+        news = []
+        for stock in self.get_stock_symbols():
+            news.append(self.get_news(stock))
+        return news
+
     def get_news(self, symbol: str) -> StockNews:
         return self.news[symbol]
 
