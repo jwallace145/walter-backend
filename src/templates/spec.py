@@ -16,12 +16,19 @@ class TemplateContext:
     datestamp: dt
     portfolio_value: float
     stocks: list
+    news: str
 
     def get_context(self) -> str:
         return f"""
 The current user is {self.user} and the date is {self.datestamp}. The total value of the user's portfolio as of this
 date is ${self.portfolio_value:.2f} and the stocks owned by the user are {self.stocks}. When analyzing stocks, focus on 
 the stocks owned by the user to deliver relevant insights about stocks the user owns. 
+
+Also, read the following market news about the stocks in the user's portfolio to help deliver relevant insights about
+the user's stocks. Remember to focus specifically on the stocks owned by the user as to avoid telling the user about stocks
+they do not own. Feel free to throw in some jokes too.
+
+{self.news}
 """
 
 
@@ -98,6 +105,7 @@ def template_spec_from_dict(template_spec: dict) -> TemplateSpec:
         datestamp=template_spec["TemplateSpec"]["Context"]["Datestamp"],
         portfolio_value=template_spec["TemplateSpec"]["Context"]["PortfolioValue"],
         stocks=template_spec["TemplateSpec"]["Context"]["Stocks"],
+        news=template_spec["TemplateSpec"]["Context"]["News"],
     )
     # create template keys
     keys = []

@@ -25,6 +25,7 @@ class TemplatesEngine:
         datestamp: str,
         portfolio_value: str,
         stocks: list,
+        news: list,
     ) -> TemplateSpec:
         log.info(f"Rendering template spec for '{template_name}' template")
         template_spec = self.templates_bucket.get_template_spec(template_name)
@@ -36,6 +37,7 @@ class TemplatesEngine:
                 datestamp=datestamp,
                 portfolio_value=portfolio_value,
                 stocks=stocks,
+                stock_news=news,
             )
         )
         spec = template_spec_from_dict(yaml.safe_load(rendered_template_spec))
