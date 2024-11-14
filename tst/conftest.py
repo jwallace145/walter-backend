@@ -13,6 +13,7 @@ from mypy_boto3_sqs import SQSClient
 from polygon import RESTClient, BadResponse
 from polygon.rest.models import Agg, TickerNews, TickerDetails
 
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -25,7 +26,6 @@ from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
-from src.utils.auth import generate_token
 
 #############
 # CONSTANTS #
@@ -171,11 +171,6 @@ def env_vars():
 
 
 @pytest.fixture
-def walter_db(ddb_client) -> WalterDB:
-    return WalterDB(ddb=WalterDDBClient(ddb_client), domain=Domain.TESTING)
-
-
-@pytest.fixture
 def walter_stocks_api(mocker) -> WalterStocksAPI:
     mock_polygon_rest_client = mocker.MagicMock(spec=RESTClient)
 
@@ -316,6 +311,20 @@ def walter_sm(
 
 
 @pytest.fixture
+def walter_authenticator(walter_sm: WalterSecretsManagerClient) -> WalterAuthenticator:
+    return WalterAuthenticator(jwt_secret_key=walter_sm.get_jwt_secret_key())
+
+
+@pytest.fixture
+def walter_db(ddb_client, walter_authenticator: WalterAuthenticator) -> WalterDB:
+    return WalterDB(
+        ddb=WalterDDBClient(ddb_client),
+        authenticator=walter_authenticator,
+        domain=Domain.TESTING,
+    )
+
+
+@pytest.fixture
 def walter_cw(
     cloud_watch_client: CloudWatchClient,
 ) -> WalterCloudWatchClient:
@@ -330,10 +339,10 @@ def newsletters_queue(sqs_client) -> NewslettersQueue:
 
 
 @pytest.fixture
-def jwt_walter(walter_sm: WalterSecretsManagerClient) -> str:
-    return generate_token("walter@gmail.com", walter_sm.get_jwt_secret_key())
+def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
+    return walter_authenticator.generate_token("walter@gmail.com")
 
 
 @pytest.fixture
-def jwt_walrus(walter_sm: WalterSecretsManagerClient) -> str:
-    return generate_token("walrus@gmail.com", walter_sm.get_jwt_secret_key())
+def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
+    return walter_authenticator.generate_token("walrus @gmail.com")

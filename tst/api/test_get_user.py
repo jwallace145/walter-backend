@@ -2,6 +2,7 @@ import pytest
 
 from src.api.get_user import GetUser
 from src.api.methods import HTTPStatus, Status
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
@@ -10,11 +11,12 @@ from tst.api.utils import get_get_user_event, get_expected_response
 
 @pytest.fixture
 def get_user_api(
+    walter_authenticator: WalterAuthenticator,
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
     walter_sm: WalterSecretsManagerClient,
 ) -> GetUser:
-    return GetUser(walter_cw, walter_db, walter_sm)
+    return GetUser(walter_authenticator, walter_cw, walter_db, walter_sm)
 
 
 def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:

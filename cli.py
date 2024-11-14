@@ -13,7 +13,7 @@ from tst.api.utils import (
     get_send_newsletter_event,
     get_news_event,
 )
-from tst.utils.utils import get_walter_backend_event
+from tst.events.utils import get_walter_backend_event
 from walter import (
     auth_user_entrypoint,
     create_user_entrypoint,

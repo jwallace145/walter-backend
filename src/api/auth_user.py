@@ -2,10 +2,10 @@ import json
 
 from src.api.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
 from src.api.methods import WalterAPIMethod, HTTPStatus, Status, is_valid_email
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
-from src.utils.auth import check_password, generate_token
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -18,12 +18,17 @@ class AuthUser(WalterAPIMethod):
 
     def __init__(
         self,
+        walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
-            AuthUser.API_NAME, AuthUser.REQUIRED_FIELDS, AuthUser.EXCEPTIONS, walter_cw
+            AuthUser.API_NAME,
+            AuthUser.REQUIRED_FIELDS,
+            AuthUser.EXCEPTIONS,
+            walter_authenticator,
+            walter_cw,
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm
@@ -37,10 +42,10 @@ class AuthUser(WalterAPIMethod):
             raise UserDoesNotExist("User not found!")
 
         password = body["password"]
-        if not check_password(password, user.password_hash):
+        if not self.authenticator.check_password(password, user.password_hash):
             raise InvalidPassword("Password incorrect!")
 
-        token = generate_token(email, self.get_jwt_secret_key())
+        token = self.authenticator.generate_token(email)
 
         return self._create_response(
             http_status=HTTPStatus.OK,
@@ -58,6 +63,3 @@ class AuthUser(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return False
-
-    def get_jwt_secret_key(self) -> str:
-        return self.walter_sm.get_jwt_secret_key()

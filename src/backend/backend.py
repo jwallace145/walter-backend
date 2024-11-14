@@ -11,9 +11,9 @@ from src.clients import (
     templates_bucket,
     walter_db,
     walter_ai,
+    walter_event_parser,
 )
 from src.config import CONFIG
-from src.utils.events import parse_event
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -31,7 +31,7 @@ def create_newsletter_and_send(event, context) -> dict:
     log.info(f"WalterBackend invoked! Using the following configurations:\n{CONFIG}")
 
     # parse event from queue
-    event = parse_event(event)
+    event = walter_event_parser.parse_create_newsletter_and_send_event(event)
 
     try:
         # get user and portfolio info from db
@@ -51,7 +51,10 @@ def create_newsletter_and_send(event, context) -> dict:
             stocks=portfolio.get_stock_equities(),
         )
 
+        # get template args from the template spec
         template_args = template_spec.get_template_args()
+
+        # if bedrock is enabled populate the prompts with responses and add to template args
         if CONFIG.generate_responses:
             context = template_spec.get_context()
             prompt = template_spec.get_prompts().pop()

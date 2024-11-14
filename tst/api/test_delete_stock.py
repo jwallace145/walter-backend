@@ -2,11 +2,12 @@ import pytest
 
 from src.api.delete_stock import DeleteStock
 from src.api.methods import HTTPStatus, Status
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.database.client import WalterDB
 from src.database.users.models import User
 from src.stocks.client import WalterStocksAPI
-from src.database.client import WalterDB
 from tst.api.utils import get_expected_response, get_delete_stock_event
 
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="walter")
@@ -14,12 +15,15 @@ WALTER = User(email="walter@gmail.com", username="walter", password_hash="walter
 
 @pytest.fixture
 def delete_stock_api(
+    walter_authenticator: WalterAuthenticator,
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
     walter_stocks_api: WalterStocksAPI,
     walter_sm: WalterSecretsManagerClient,
 ) -> DeleteStock:
-    return DeleteStock(walter_cw, walter_db, walter_stocks_api, walter_sm)
+    return DeleteStock(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+    )
 
 
 def test_delete_stock(

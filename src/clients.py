@@ -4,6 +4,7 @@ import boto3
 
 from src.ai.client import WalterAI
 from src.ai.context.generator import ContextGenerator
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
@@ -14,6 +15,7 @@ from src.aws.sqs.client import WalterSQSClient
 from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
+from src.events.parser import WalterEventParser
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
@@ -36,6 +38,13 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 """(str): The domain of the WalterBackend service environment."""
 
+#######################
+# WALTER EVENT PARSER #
+#######################
+
+walter_event_parser = WalterEventParser()
+
+
 ########################
 # WALTER BOTO3 CLIENTS #
 ########################
@@ -43,7 +52,9 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 walter_cw = WalterCloudWatchClient(
     client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
 )
-walter_ses = WalterSESClient(client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN)
+walter_ses = WalterSESClient(
+    client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN
+)
 
 ##############
 # S3 BUCKETS #
@@ -64,6 +75,12 @@ walter_sm = WalterSecretsManagerClient(
 POLYGON_API_KEY = walter_sm.get_polygon_api_key()
 JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 
+########################
+# WALTER AUTHENTICATOR #
+########################
+
+walter_authenticator = WalterAuthenticator(jwt_secret_key=JWT_TOKEN_KEY)
+
 #####################
 # NEWSLETTERS QUEUE #
 #####################
@@ -80,6 +97,7 @@ newsletters_queue = NewslettersQueue(
 
 walter_db = WalterDB(
     ddb=WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION)),
+    authenticator=walter_authenticator,
     domain=DOMAIN,
 )
 

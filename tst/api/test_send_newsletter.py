@@ -12,12 +12,15 @@ from tst.api.utils import get_send_newsletter_event, get_expected_response
 
 @pytest.fixture
 def send_newsletter_api(
+    walter_authenticator,
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
     newsletters_queue: NewslettersQueue,
     walter_sm: WalterSecretsManagerClient,
 ) -> SendNewsletter:
-    return SendNewsletter(walter_cw, walter_db, newsletters_queue, walter_sm)
+    return SendNewsletter(
+        walter_authenticator, walter_cw, walter_db, newsletters_queue, walter_sm
+    )
 
 
 def test_send_newsletter(

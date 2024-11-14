@@ -2,6 +2,7 @@ import pytest
 
 from src.api.create_user import CreateUser
 from src.api.methods import Status, HTTPStatus
+from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from tst.api.utils import get_create_user_event, get_expected_response
@@ -9,9 +10,11 @@ from tst.api.utils import get_create_user_event, get_expected_response
 
 @pytest.fixture
 def create_user_api(
-    walter_cw: WalterCloudWatchClient, walter_db: WalterDB
+    walter_authenticator: WalterAuthenticator,
+    walter_cw: WalterCloudWatchClient,
+    walter_db: WalterDB,
 ) -> CreateUser:
-    return CreateUser(walter_cw, walter_db)
+    return CreateUser(walter_authenticator, walter_cw, walter_db)
 
 
 def test_create_user(create_user_api: CreateUser) -> None:

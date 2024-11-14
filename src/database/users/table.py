@@ -34,7 +34,7 @@ class UsersTable:
         item = user.to_ddb_item()
         self.ddb.put_item(self.table, item)
 
-    def get_user(self, email: str) -> User:
+    def get_user(self, email: str) -> User | None:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         key = UsersTable._get_user_key(email)
         item = self.ddb.get_item(self.table, key)
