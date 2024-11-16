@@ -16,9 +16,9 @@ def test_check_password(walter_authenticator: WalterAuthenticator) -> None:
     )
 
 
-def test_validate_token(walter_authenticator: WalterAuthenticator) -> None:
+def test_validate_user_token(walter_authenticator: WalterAuthenticator) -> None:
     email = "walter@gmail.com"
-    token = walter_authenticator.generate_token(email)
-    decoded_token = walter_authenticator.decode_token(token)
+    token = walter_authenticator.generate_user_token(email)
+    decoded_token = walter_authenticator.decode_user_token(token)
     assert decoded_token["sub"] == "walter@gmail.com"
-    assert walter_authenticator.decode_token("test-token") is None
+    assert walter_authenticator.decode_user_token("test-token") is None

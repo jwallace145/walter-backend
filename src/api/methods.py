@@ -126,7 +126,7 @@ class WalterAPIMethod(ABC):
         if token is None:
             raise NotAuthenticated("Not authenticated!")
 
-        decoded_token = self.authenticator.decode_token(token)
+        decoded_token = self.authenticator.decode_user_token(token)
         if decoded_token is None:
             raise NotAuthenticated("Not authenticated!")
 

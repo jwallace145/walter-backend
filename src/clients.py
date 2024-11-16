@@ -79,7 +79,7 @@ JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 # WALTER AUTHENTICATOR #
 ########################
 
-walter_authenticator = WalterAuthenticator(jwt_secret_key=JWT_TOKEN_KEY)
+walter_authenticator = WalterAuthenticator(walter_sm=walter_sm)
 
 #####################
 # NEWSLETTERS QUEUE #

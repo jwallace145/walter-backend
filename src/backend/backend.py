@@ -44,14 +44,17 @@ def create_newsletter_and_send(event, context) -> dict:
             user_stocks, stocks, START_DATE, END_DATE
         )
 
+        template_spec_args = {
+            "user": user.username,
+            "datestamp": END_DATE,
+            "portfolio_value": portfolio.get_total_equity(),
+            "stocks": portfolio.get_stock_equities(),
+            "news": portfolio.get_all_news(),
+        }
+
         # get template spec with user inputs
         template_spec = template_engine.get_template_spec(
-            template_name=TEMPLATE_NAME,
-            user=user.username,
-            datestamp=END_DATE,
-            portfolio_value=portfolio.get_total_equity(),
-            stocks=portfolio.get_stock_equities(),
-            news=portfolio.get_all_news(),
+            template_name=TEMPLATE_NAME, template_spec_args=template_spec_args
         )
 
         # get template args from the template spec

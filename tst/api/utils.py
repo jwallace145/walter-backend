@@ -53,6 +53,16 @@ def get_send_newsletter_event(token: str) -> dict:
     return EVENT
 
 
+def get_verify_email_event(email_token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {email_token}"}
+    return EVENT
+
+
+def get_send_verify_email_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################

@@ -1,7 +1,7 @@
  <!DOCTYPE html>
 <html>
 <head>
-    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
+  <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Walter</title>
@@ -63,16 +63,9 @@
           <tr>
             <td class="content">
               <h2>Hello, {{ User }}!</h2>
-              <p>Welcome to Walter's newsletter! Your total portfolio value is {{ PortfolioValue }}.</p>
-              <p>{{ Newsletter }}</p>
-              <a href="https://walterai.dev" style="padding: 10px 20px; background-color: #BDBDBD; color: #ffffff; border-radius: 5px; display: inline-block; text-align: center;">Portfolio</a>
-            </td>
-          </tr>
-
-          <!-- Footer Section -->
-          <tr>
-            <td class="footer">
-              <p><a href="https://walterai.dev/unsubscribe">Unsubscribe</a></p>
+              <p>Welcome to Walter's newsletter!</p>
+              <p>To verify your email and subscribe to Walter's newsletter, click the link below.</p>
+              <a href={{ Url }} style="padding: 10px 20px; background-color: #BDBDBD; color: #ffffff; border-radius: 5px; display: inline-block; text-align: center;">Verify Email</a>
             </td>
           </tr>
         </table>
