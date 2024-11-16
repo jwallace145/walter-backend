@@ -1,14 +1,6 @@
-import pytest
-
-from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 
 TEMPLATE_NAME = "default"
-
-
-@pytest.fixture
-def template_engine(templates_bucket: TemplatesBucket) -> None:
-    return TemplatesEngine(templates_bucket)
 
 
 def test_get_template_spec(template_engine: TemplatesEngine) -> None:

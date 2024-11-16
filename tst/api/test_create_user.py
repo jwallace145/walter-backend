@@ -4,7 +4,10 @@ from src.api.create_user import CreateUser
 from src.api.methods import Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
+from src.templates.bucket import TemplatesBucket
+from src.templates.engine import TemplatesEngine
 from tst.api.utils import get_create_user_event, get_expected_response
 
 
@@ -13,8 +16,18 @@ def create_user_api(
     walter_authenticator: WalterAuthenticator,
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
+    walter_ses: WalterSESClient,
+    template_engine: TemplatesEngine,
+    templates_bucket: TemplatesBucket,
 ) -> CreateUser:
-    return CreateUser(walter_authenticator, walter_cw, walter_db)
+    return CreateUser(
+        walter_authenticator,
+        walter_cw,
+        walter_db,
+        walter_ses,
+        template_engine,
+        templates_bucket,
+    )
 
 
 def test_create_user(create_user_api: CreateUser) -> None:
