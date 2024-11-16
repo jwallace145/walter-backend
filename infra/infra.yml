@@ -505,7 +505,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -539,7 +539,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -573,7 +573,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -607,7 +607,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -641,7 +641,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -675,7 +675,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -709,7 +709,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -743,7 +743,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -779,7 +779,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -813,7 +813,7 @@ Resources:
             - ":"
             - !Ref "AWS::AccountId"
             - ":layer:"
-            - "WalterAILambdaLayer:22"
+            - "WalterAILambdaLayer:24"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -847,7 +847,7 @@ Resources:
               - ":"
               - !Ref "AWS::AccountId"
               - ":layer:"
-              - "WalterAILambdaLayer:22"
+              - "WalterAILambdaLayer:24"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT

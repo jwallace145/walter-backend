@@ -1,6 +1,8 @@
 import json
 from datetime import datetime, timedelta
 
+import markdown
+
 from src.clients import (
     walter_cw,
     newsletters_bucket,
@@ -59,9 +61,10 @@ def create_newsletter_and_send(event, context) -> dict:
         if CONFIG.generate_responses:
             context = template_spec.get_context()
             prompt = template_spec.get_prompts().pop()
-            template_args[prompt.name] = walter_ai.generate_response(
+            response = walter_ai.generate_response(
                 context=context, prompt=prompt.prompt, max_gen_len=prompt.max_gen_length
             )
+            template_args[prompt.name] = markdown.markdown(response)
         else:
             log.info("Not generating responses...")
 

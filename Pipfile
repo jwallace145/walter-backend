@@ -21,6 +21,7 @@ pyyaml = "*"
 mypy-boto3-sqs = "*"
 bcrypt = "*"
 pyjwt = "*"
+markdown = "*"
 
 [dev-packages]
 black = "*"
