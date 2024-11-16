@@ -30,7 +30,14 @@ from src.newsletters.publish import add_newsletter_to_queue
 
 
 def create_user_entrypoint(event, context) -> dict:
-    return CreateUser(walter_authenticator, walter_cw, walter_db).invoke(event)
+    return CreateUser(
+        walter_authenticator,
+        walter_cw,
+        walter_db,
+        walter_ses,
+        template_engine,
+        templates_bucket,
+    ).invoke(event)
 
 
 def auth_user_entrypoint(event, context) -> dict:

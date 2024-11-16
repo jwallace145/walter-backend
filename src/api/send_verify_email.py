@@ -1,5 +1,4 @@
 from src.api.exceptions import (
-    NotAuthenticated,
     InvalidEmail,
     BadRequest,
     UserDoesNotExist,
@@ -17,7 +16,7 @@ class SendVerifyEmail(WalterAPIMethod):
 
     API_NAME = "SendVerifyEmail"
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [BadRequest, InvalidEmail, UserDoesNotExist]
 
     def __init__(
         self,

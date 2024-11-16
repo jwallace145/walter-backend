@@ -10,6 +10,7 @@ from mypy_boto3_cloudwatch import CloudWatchClient
 from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
+from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
 from polygon import RESTClient, BadResponse
 from polygon.rest.models import Agg, TickerNews, TickerDetails
@@ -19,6 +20,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.aws.ses.client import WalterSESClient
 from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.database.stocks.models import Stock
@@ -29,6 +31,7 @@ from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
+from src.templates.engine import TemplatesEngine
 
 #############
 # CONSTANTS #
@@ -184,6 +187,13 @@ def s3_client() -> S3Client:
         yield mock_s3
 
 
+@pytest.fixture
+def ses_client() -> S3Client:
+    with mock_aws():
+        mock_ses = boto3.client("ses", region_name=AWS_REGION)
+        yield mock_ses
+
+
 @pytest.fixture(autouse=True)
 def env_vars():
     os.environ["AWS_ACCOUNT_ID"] = "012345678901"
@@ -337,6 +347,11 @@ def walter_s3(s3_client: S3Client) -> WalterS3Client:
 
 
 @pytest.fixture
+def walter_ses(ses_client: SESClient) -> WalterSESClient:
+    return WalterSESClient(client=ses_client, domain=Domain.TESTING)
+
+
+@pytest.fixture
 def walter_authenticator(walter_sm: WalterSecretsManagerClient) -> WalterAuthenticator:
     return WalterAuthenticator(walter_sm=walter_sm)
 
@@ -360,6 +375,11 @@ def walter_cw(
 @pytest.fixture
 def templates_bucket(walter_s3: WalterS3Client) -> TemplatesBucket:
     return TemplatesBucket(client=walter_s3, domain=Domain.TESTING)
+
+
+@pytest.fixture
+def template_engine(templates_bucket: TemplatesBucket) -> None:
+    return TemplatesEngine(templates_bucket)
 
 
 @pytest.fixture
