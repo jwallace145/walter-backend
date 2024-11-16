@@ -472,6 +472,84 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPISendVerifyEmailPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPISendVerifyEmail
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIVerify:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: verify
+
+  WalterAPISendVerifyEmailMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIVerify
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISendVerifyEmail.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPISendVerifyEmailCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIVerify
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
+  WalterAPIVerifyEmailPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIVerifyEmail
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIVerifyEmailMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIVerify
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIVerifyEmail.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   ##############
   ### LAMBDA ###
   ##############
@@ -748,7 +826,6 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-
   WalterAPISendNewsletterAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -756,13 +833,82 @@ Resources:
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
 
-
   WalterAPISendNewsletter:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
       Description: !Sub "WalterAPI: SendNewsletter - generate and send a newsletter to the given user (${AppEnvironment})"
       Handler: walter.send_newsletter_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:24"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPISendVerifyEmailAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPISendVerifyEmail
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-SendVerifyEmail-${AppEnvironment}"
+
+
+  WalterAPISendVerifyEmail:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-SendVerifyEmail-${AppEnvironment}"
+      Description: !Sub "WalterAPI: SendVerifyEmail- Generate and send a verification email to user (${AppEnvironment})"
+      Handler: walter.send_verify_email_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:24"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIVerifyEmailAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIVerifyEmail
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-VerifyEmail-${AppEnvironment}"
+
+
+  WalterAPIVerifyEmail:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-VerifyEmail-${AppEnvironment}"
+      Description: !Sub "WalterAPI: VerifyEmail- Verify a user ownership of an email address (${AppEnvironment})"
+      Handler: walter.verify_email_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -1052,6 +1198,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:JWTSecretKey-E5va6r"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:JWTVerifyEmailSecretAccessKey-9KhIYG"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole
@@ -1069,6 +1225,7 @@ Resources:
               - "ses:Send*"
             Resource: "*"
       Roles:
+        - !Ref WalterAPIRole
         - !Ref WalterBackendRole
 
   StocksTableAccessPolicy:
@@ -1109,6 +1266,7 @@ Resources:
               - "s3:List*"
             Resource: !GetAtt TemplatesBucket.Arn
       Roles:
+        - !Ref WalterAPIRole
         - !Ref WalterBackendRole
 
   UsersStocksTableAccessPolicy:

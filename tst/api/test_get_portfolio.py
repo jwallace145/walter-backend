@@ -29,7 +29,7 @@ def test_get_portfolio(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     event = get_portfolio_event(
-        token=walter_authenticator.generate_token("walrus@gmail.com")
+        token=walter_authenticator.generate_user_token("walrus@gmail.com")
     )
     expected_response = get_expected_response(
         api_name=get_portfolio_api.API_NAME,

@@ -34,7 +34,6 @@ class WalterDB:
 
     def create_user(self, email: str, username: str, password: str) -> None:
         # generate salt and hash the given password to store in users table
-        log.info(type(self.authenticator))
         salt, password_hash = self.authenticator.hash_password(password)
         user = User(
             email=email,
@@ -52,6 +51,10 @@ class WalterDB:
         return self.users_table.get_users()
 
     def update_user(self, user: User) -> None:
+        self.users_table.update_user(user)
+
+    def verify_user(self, user: User) -> None:
+        user.verified = True
         self.users_table.update_user(user)
 
     def delete_user(self, email: str) -> None:

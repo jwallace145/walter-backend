@@ -12,6 +12,8 @@ from tst.api.utils import (
     get_portfolio_event,
     get_send_newsletter_event,
     get_news_event,
+    get_send_verify_email_event,
+    get_verify_email_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -23,6 +25,8 @@ from walter import (
     send_newsletter_entrypoint,
     create_newsletter_and_send_entrypoint,
     get_news_entrypoint,
+    send_verify_email_entrypoint,
+    verify_email_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -99,6 +103,22 @@ def send_newsletter(token: str = None) -> None:
     log.info("Walter CLI: Sending newsletter...")
     event = get_send_newsletter_event(token)
     response = send_newsletter_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def verify_email(token: str = None) -> None:
+    log.info("Walter CLI: Verifying email...")
+    event = get_verify_email_event(token)
+    response = verify_email_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def send_verify_email(token: str = None) -> None:
+    log.info("Walter CLI: Sending verify email...")
+    event = get_send_verify_email_event(token)
+    response = send_verify_email_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 

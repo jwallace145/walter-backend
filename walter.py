@@ -7,6 +7,8 @@ from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_user import GetUser
 from src.api.send_newsletter import SendNewsletter
+from src.api.send_verify_email import SendVerifyEmail
+from src.api.verify_email import VerifyEmail
 from src.backend.backend import create_newsletter_and_send
 from src.clients import (
     walter_cw,
@@ -15,6 +17,9 @@ from src.clients import (
     walter_stocks_api,
     newsletters_queue,
     walter_authenticator,
+    template_engine,
+    templates_bucket,
+    walter_ses,
 )
 from src.newsletters.publish import add_newsletter_to_queue
 
@@ -69,6 +74,21 @@ def send_newsletter_entrypoint(event, context) -> dict:
 def get_prices_entrypoint(event, context) -> dict:
     return GetPrices(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api
+    ).invoke(event)
+
+
+def verify_email_entrypoint(event, context) -> dict:
+    return VerifyEmail(walter_authenticator, walter_cw, walter_db).invoke(event)
+
+
+def send_verify_email_entrypoint(event, context) -> dict:
+    return SendVerifyEmail(
+        walter_authenticator,
+        walter_cw,
+        walter_db,
+        walter_ses,
+        template_engine,
+        templates_bucket,
     ).invoke(event)
 
 

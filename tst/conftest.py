@@ -8,6 +8,7 @@ import pytest
 from moto import mock_aws
 from mypy_boto3_cloudwatch import CloudWatchClient
 from mypy_boto3_dynamodb import DynamoDBClient
+from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 from polygon import RESTClient, BadResponse
@@ -16,6 +17,7 @@ from polygon.rest.models import Agg, TickerNews, TickerDetails
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
+from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
@@ -26,6 +28,7 @@ from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
+from src.templates.bucket import TemplatesBucket
 
 #############
 # CONSTANTS #
@@ -161,6 +164,24 @@ def sqs_client() -> SQSClient:
         mock_sqs = boto3.client("sqs", region_name=AWS_REGION)
         mock_sqs.create_queue(QueueName=NEWSLETTERS_QUEUE_NAME)
         yield mock_sqs
+
+
+@pytest.fixture
+def s3_client() -> S3Client:
+    with mock_aws():
+        mock_s3 = boto3.client("s3", region_name=AWS_REGION)
+        mock_s3.create_bucket(Bucket="walterai-templates-unittest")
+        mock_s3.put_object(
+            Bucket="walterai-templates-unittest",
+            Key="templates/default/templatespec.jinja",
+            Body=open("./templates/default/templatespec.jinja", "rb").read(),
+        )
+        mock_s3.put_object(
+            Bucket="walterai-templates-unittest",
+            Key="templates/default/template.jinja",
+            Body=open("./templates/default/template.jinja", "rb").read(),
+        )
+        yield mock_s3
 
 
 @pytest.fixture(autouse=True)
@@ -311,8 +332,13 @@ def walter_sm(
 
 
 @pytest.fixture
+def walter_s3(s3_client: S3Client) -> WalterS3Client:
+    return WalterS3Client(client=s3_client, domain=Domain.TESTING)
+
+
+@pytest.fixture
 def walter_authenticator(walter_sm: WalterSecretsManagerClient) -> WalterAuthenticator:
-    return WalterAuthenticator(jwt_secret_key=walter_sm.get_jwt_secret_key())
+    return WalterAuthenticator(walter_sm=walter_sm)
 
 
 @pytest.fixture
@@ -332,6 +358,11 @@ def walter_cw(
 
 
 @pytest.fixture
+def templates_bucket(walter_s3: WalterS3Client) -> TemplatesBucket:
+    return TemplatesBucket(client=walter_s3, domain=Domain.TESTING)
+
+
+@pytest.fixture
 def newsletters_queue(sqs_client) -> NewslettersQueue:
     return NewslettersQueue(
         client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
@@ -340,9 +371,9 @@ def newsletters_queue(sqs_client) -> NewslettersQueue:
 
 @pytest.fixture
 def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_token("walter@gmail.com")
+    return walter_authenticator.generate_user_token("walter@gmail.com")
 
 
 @pytest.fixture
 def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_token("walrus @gmail.com")
+    return walter_authenticator.generate_user_token("walrus @gmail.com")

@@ -45,7 +45,7 @@ class AuthUser(WalterAPIMethod):
         if not self.authenticator.check_password(password, user.password_hash):
             raise InvalidPassword("Password incorrect!")
 
-        token = self.authenticator.generate_token(email)
+        token = self.authenticator.generate_user_token(email)
 
         return self._create_response(
             http_status=HTTPStatus.OK,
