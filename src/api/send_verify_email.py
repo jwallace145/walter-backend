@@ -66,7 +66,7 @@ class SendVerifyEmail(WalterAPIMethod):
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Successfully sent verify email!"
+            message="Successfully sent verify email!",
         )
 
     def validate_fields(self, event: dict) -> None:
