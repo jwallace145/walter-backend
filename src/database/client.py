@@ -53,6 +53,11 @@ class WalterDB:
     def update_user(self, user: User) -> None:
         self.users_table.update_user(user)
 
+    def update_user_password(self, email: str, password_hash: str) -> None:
+        user = self.users_table.get_user(email)
+        user.password_hash = password_hash.decode()
+        self.users_table.update_user(user)
+
     def verify_user(self, user: User) -> None:
         user.verified = True
         self.users_table.update_user(user)

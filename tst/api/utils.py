@@ -63,6 +63,17 @@ def get_send_verify_email_event(token: str) -> dict:
     return EVENT
 
 
+def get_change_password_event(token: str, new_password: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["body"] = json.dumps({"new_password": new_password})
+    return EVENT
+
+
+def get_send_change_password_email_event(email: str) -> dict:
+    EVENT["body"] = json.dumps({"email": email})
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################

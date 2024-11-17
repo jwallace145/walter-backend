@@ -1,11 +1,13 @@
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
+from src.api.change_password import ChangePassword
 from src.api.create_user import CreateUser
 from src.api.delete_stock import DeleteStock
 from src.api.get_news import GetNews
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_user import GetUser
+from src.api.send_change_password_email import SendChangePasswordEmail
 from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
 from src.api.verify_email import VerifyEmail
@@ -90,6 +92,21 @@ def verify_email_entrypoint(event, context) -> dict:
 
 def send_verify_email_entrypoint(event, context) -> dict:
     return SendVerifyEmail(
+        walter_authenticator,
+        walter_cw,
+        walter_db,
+        walter_ses,
+        template_engine,
+        templates_bucket,
+    ).invoke(event)
+
+
+def change_password_entrypoint(event, context) -> dict:
+    return ChangePassword(walter_authenticator, walter_cw, walter_db).invoke(event)
+
+
+def send_change_password_email_entrypoint(event, context) -> dict:
+    return SendChangePasswordEmail(
         walter_authenticator,
         walter_cw,
         walter_db,

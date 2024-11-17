@@ -29,6 +29,8 @@ class WalterSecretsManagerClient:
     JWT_SECRET_KEY_SECRET_NAME = "JWT_SECRET_KEY"
     JWT_VERIFY_EMAIL_SECRET_KEY_ID = "JWTVerifyEmailSecretAccessKey"
     JWT_VERIFY_EMAIL_SECRET_KEY_NAME = "JWTVerifyEmailSecretKey"
+    JWT_CHANGE_PASSWORD_SECRET_KEY_ID = "JWTChangePasswordSecretKey"
+    JWT_CHANGE_PASSWORD_SECRET_KEY_NAME = "JWT_CHANGE_PASSWORD_SECRET_KEY"
 
     client: SecretsManagerClient
     domain: Domain
@@ -37,6 +39,7 @@ class WalterSecretsManagerClient:
     polygon_api_key: str = None
     jwt_secret_key: str = None
     jwt_verify_email_secret_key: str = None
+    jwt_change_password_secret_key: str = None
 
     def __post_init__(self) -> None:
         log.debug(
@@ -66,6 +69,14 @@ class WalterSecretsManagerClient:
                 WalterSecretsManagerClient.JWT_VERIFY_EMAIL_SECRET_KEY_NAME,
             )
         return self.jwt_verify_email_secret_key
+
+    def get_jwt_change_password_secret_key(self) -> str:
+        if self.jwt_change_password_secret_key is None:
+            self.jwt_change_password_secret_key = self._get_secret(
+                WalterSecretsManagerClient.JWT_CHANGE_PASSWORD_SECRET_KEY_ID,
+                WalterSecretsManagerClient.JWT_CHANGE_PASSWORD_SECRET_KEY_NAME,
+            )
+        return self.jwt_change_password_secret_key
 
     def _get_secret(self, secret_id: str, secret_name: str) -> str:
         return json.loads(

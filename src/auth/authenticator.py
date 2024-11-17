@@ -121,6 +121,59 @@ class WalterAuthenticator:
             log.error("Invalid token!")
             return None
 
+    def generate_change_password_token(self, email: str) -> str:
+        """
+        Generate JSON web token for changing user password purposes.
+
+        Users can change their passwords if they forgot them by having
+        Walter send an email to their email address that contains a token
+        in a URL to change their password. This method generates the change
+        password tokens.
+
+        Args:
+            email: The email address of the user to change password.
+
+        Returns:
+            The unique JSON web token for changing the user's password.
+        """
+        now = dt.datetime.now(dt.UTC)
+        return jwt.encode(
+            {
+                "sub": email,
+                "iat": now,
+                "exp": now + dt.timedelta(days=7),
+            },
+            self.walter_sm.get_jwt_change_password_secret_key(),
+            algorithm=CONFIG.jwt_algorithm,
+        )
+
+    def decode_change_password_token(self, token: str) -> bool:
+        """
+        Decode the change password token to ensure change password request is authenticated.
+
+        This method decodes the change password token given to users attempting
+        to change their password.This method ensures requests to change a password
+        are valid and authenticated.
+
+        Args:
+            token: The change password JSON web token to decode.
+
+        Returns:
+            True if the token is valid, False otherwise.
+        """
+        try:
+            return jwt.decode(
+                token,
+                self.walter_sm.get_jwt_change_password_secret_key(),
+                algorithms=[CONFIG.jwt_algorithm],
+            )
+        except jwt.ExpiredSignatureError:
+            log.error("Token has expired!")
+            return None
+        except jwt.InvalidTokenError:
+            log.error("Invalid token!")
+            return None
+
     def hash_password(self, password: str) -> Tuple[bytes, bytes]:
         """
         Hash the given password.

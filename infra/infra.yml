@@ -550,6 +550,84 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPISendChangePasswordEmailPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPISendChangePasswordEmail
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIPasswords:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: passwords
+
+  WalterAPISendChangePasswordEmailMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIPasswords
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISendChangePasswordEmail.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIPasswordsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIPasswords
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
+  WalterAPIChangePasswordPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIChangePassword
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIChangePasswordMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIPasswords
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIChangePassword.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   ##############
   ### LAMBDA ###
   ##############
@@ -930,6 +1008,77 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterAPISendChangePasswordEmailAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPISendChangePasswordEmail
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-SendChangePasswordEmail-${AppEnvironment}"
+
+
+  WalterAPISendChangePasswordEmail:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-SendChangePasswordEmail-${AppEnvironment}"
+      Description: !Sub "WalterAPI: SendChangePasswordEmail- Send change password link in email to user (${AppEnvironment})"
+      Handler: walter.send_change_password_email_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:24"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIChangePasswordAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIChangePassword
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-ChangePassword-${AppEnvironment}"
+
+
+  WalterAPIChangePassword:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-ChangePassword-${AppEnvironment}"
+      Description: !Sub "WalterAPI: ChangePassword - Change the password of a user (${AppEnvironment})"
+      Handler: walter.change_password_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:24"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+
   WalterNewslettersAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -1208,6 +1357,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:JWTVerifyEmailSecretAccessKey-9KhIYG"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:JWTChangePasswordSecretKey-f0RsUz"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole

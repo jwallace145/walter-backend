@@ -14,6 +14,8 @@ from tst.api.utils import (
     get_news_event,
     get_send_verify_email_event,
     get_verify_email_event,
+    get_change_password_event,
+    get_send_change_password_email_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -27,6 +29,8 @@ from walter import (
     get_news_entrypoint,
     send_verify_email_entrypoint,
     verify_email_entrypoint,
+    change_password_entrypoint,
+    send_change_password_email_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -119,6 +123,22 @@ def send_verify_email(token: str = None) -> None:
     log.info("Walter CLI: Sending verify email...")
     event = get_send_verify_email_event(token)
     response = send_verify_email_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def change_password(token: str = None, new_password: str = None) -> None:
+    log.info("Walter CLI: Changing password...")
+    event = get_change_password_event(token, new_password)
+    response = change_password_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def send_change_password_email(email: str = None) -> None:
+    log.info("Walter CLI: Sending change password email...")
+    event = get_send_change_password_email_event(email)
+    response = send_change_password_email_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
