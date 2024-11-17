@@ -9,10 +9,23 @@ log = Logger(__name__).get_logger()
 
 
 def add_newsletter_to_queue(event, context) -> dict:
+    """
+    Get users from WalterDB and send newsletters to all verified users.
+    """
     log.info("WalterNewsletters invoked!")
 
+    # get all users from db
     users = walter_db.get_users()
+
     for user in users:
+
+        # ensure user email address is verified
+        if not user.verified:
+            log.info(
+                f"Not sending newsletter to '{user.email}' as email address has not been verified."
+            )
+            continue
+
         log.info(f"Adding newsletter request to the queue for user: '{user.email}'")
         request = NewsletterRequest(email=user.email)
         newsletters_queue.add_newsletter_request(request)

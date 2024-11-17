@@ -37,3 +37,16 @@ def test_send_newsletter(
         QueueUrl=send_newsletter_api.newsletters_queue.queue_url, MaxNumberOfMessages=1
     )
     assert expected_response == send_newsletter_api.invoke(event)
+
+
+def test_send_newsletter_failure_email_not_verified(
+    send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walrus: str
+) -> None:
+    event = get_send_newsletter_event(token=jwt_walrus)
+    expected_response = get_expected_response(
+        api_name=send_newsletter_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Email not verified!",
+    )
+    assert expected_response == send_newsletter_api.invoke(event)

@@ -73,4 +73,5 @@ class UsersTable:
             password_hash=item["password_hash"]["S"],
             last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
             sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),
+            verified=item["verified"]["BOOL"],
         )
