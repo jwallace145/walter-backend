@@ -50,7 +50,6 @@ class SendNewsletter(WalterAPIMethod):
         if user is None:
             raise UserDoesNotExist("User not found!")
 
-        log.info(user)
         # ensure user email address is verified before sending
         if not user.verified:
             raise EmailNotVerified("Email not verified!")
