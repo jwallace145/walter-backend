@@ -102,6 +102,7 @@ def ddb_client() -> DynamoDBClient:
                         email=json_user["email"],
                         username=json_user["username"],
                         password_hash=json_user["password_hash"],
+                        verified=json_user["verified"],
                     ).to_ddb_item(),
                 )
 
@@ -396,4 +397,4 @@ def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
 
 @pytest.fixture
 def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("walrus @gmail.com")
+    return walter_authenticator.generate_user_token("walrus@gmail.com")

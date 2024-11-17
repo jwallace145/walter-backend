@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 
-from src.api.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
+from src.api.exceptions import (
+    UserDoesNotExist,
+    InvalidEmail,
+    NotAuthenticated,
+    EmailNotVerified,
+)
 from src.api.methods import HTTPStatus, Status
 from src.api.methods import WalterAPIMethod
 from src.auth.authenticator import WalterAuthenticator
@@ -18,7 +23,7 @@ class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
+    EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist, EmailNotVerified]
 
     def __init__(
         self,
@@ -40,10 +45,17 @@ class SendNewsletter(WalterAPIMethod):
         self.walter_sm = walter_sm
 
     def execute(self, event: dict, authenticated_email: str) -> dict:
+        # ensure user exists
         user = self.walter_db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User not found!")
 
+        log.info(user)
+        # ensure user email address is verified before sending
+        if not user.verified:
+            raise EmailNotVerified("Email not verified!")
+
+        # add a message to the newsletter queue
         self.newsletters_queue.add_newsletter_request(
             NewsletterRequest(authenticated_email)
         )

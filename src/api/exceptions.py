@@ -36,3 +36,8 @@ class BadRequest(Exception):
 class NotAuthenticated(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class EmailNotVerified(Exception):
+    def __init__(self, message):
+        super().__init__(message)
