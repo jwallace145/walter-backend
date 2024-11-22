@@ -173,6 +173,27 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: stocks
 
+  WalterAPIGetStockMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIStocks
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStock.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetStockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetStock
+      Principal: apigateway.amazonaws.com
+
   WalterAPIAddStockMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -713,6 +734,40 @@ Resources:
       FunctionName: !Sub "WalterAPI-GetUser-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetUser - get user from token (${AppEnvironment})"
       Handler: walter.get_user_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:24"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIGetStockAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetStock
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetStock-${AppEnvironment}"
+
+  WalterAPIGetStock:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetStock-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetStock - Get stock and its details from WalterDB (${AppEnvironment})"
+      Handler: walter.get_stock_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
