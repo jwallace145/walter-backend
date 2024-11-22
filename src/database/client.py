@@ -65,7 +65,16 @@ class WalterDB:
     def delete_user(self, email: str) -> None:
         self.users_table.delete_user(email)
 
-    def get_stock(self, symbol: str) -> Stock:
+    def get_stock(self, symbol: str) -> Stock | None:
+        """
+        Get stock by symbol from WalterDB, return None if not found.
+
+        Args:
+            symbol: The stock ticker symbol.
+
+        Returns:
+            The stock details from WalterDB or None if not found.
+        """
         return self.stocks_table.get_stock(symbol)
 
     def add_stock(self, stock: Stock) -> None:

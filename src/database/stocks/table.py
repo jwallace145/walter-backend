@@ -33,7 +33,7 @@ class StocksTable:
         self.table = StocksTable._get_stocks_table_name(self.domain)
         log.debug(f"Creating StocksTable DDB client with table name '{self.table}'")
 
-    def get_stock(self, symbol: str) -> Stock:
+    def get_stock(self, symbol: str) -> Stock | None:
         """
         Gets a Stock from the Stocks table.
 

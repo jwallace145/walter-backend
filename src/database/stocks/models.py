@@ -28,3 +28,13 @@ class Stock:
             },
             "company": {"S": self.company},
         }
+
+    def to_dict(self) -> dict:
+        """
+        Converts the Stock object into a dictionary of key-value pairs of the fields
+        contained in this model class.
+
+        Returns:
+            The dict of fields and their values for a Stock object.
+        """
+        return {"symbol": self.symbol, "company": self.company}

@@ -16,6 +16,8 @@ from typing import List
 
 import boto3
 from mypy_boto3_cloudformation import CloudFormationClient
+from mypy_boto3_s3 import S3Client
+
 from src.environment import get_domain
 
 #############
@@ -28,7 +30,9 @@ REGION = os.getenv("AWS_REGION", "us-east-1")
 
 STACK_NAME = f"WalterBackend-{DOMAIN.value}"
 
-CLOUDFORMATION_TEMPLATE = "./infra/infra.yml"
+BUCKET = "walter-backend-src"
+
+TEMPLATE_URL = "https://walter-backend-src.s3.us-east-1.amazonaws.com/infra.yml"
 
 CHANGE_SET_NAME = f"WalterBackendChangeSet-{DOMAIN.value}"
 
@@ -55,7 +59,7 @@ def stack_exists(client: CloudFormationClient) -> bool:
 def create_stack(client: CloudFormationClient) -> None:
     client.create_stack(
         StackName=STACK_NAME,
-        TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
+        TemplateURL=TEMPLATE_URL,
         Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": DOMAIN.value}],
         Capabilities=["CAPABILITY_NAMED_IAM"],
     )
@@ -65,7 +69,7 @@ def create_stack(client: CloudFormationClient) -> None:
 def create_change_set(client: CloudFormationClient) -> None:
     client.create_change_set(
         StackName=STACK_NAME,
-        TemplateBody=open(CLOUDFORMATION_TEMPLATE).read(),
+        TemplateURL=TEMPLATE_URL,
         Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": DOMAIN.value}],
         Capabilities=["CAPABILITY_NAMED_IAM"],
         ChangeSetType="UPDATE",
@@ -95,12 +99,19 @@ def delete_change_set(client: CloudFormationClient) -> None:
     client.delete_change_set(StackName=STACK_NAME, ChangeSetName=CHANGE_SET_NAME)
 
 
+def upload_template(client: S3Client) -> None:
+    client.upload_file(Bucket=BUCKET, Key="infra.yml", Filename="./infra/infra.yml")
+
+
 ##########
 # SCRIPT #
 ##########
 
-
+s3 = boto3.client("s3", region_name=REGION)
 cloudformation = boto3.client("cloudformation", region_name=REGION)
+
+print("Uploading CloudFormation template to S3...")
+upload_template(s3)
 
 print(f"Checking if stack '{STACK_NAME}' exists...")
 if stack_exists(cloudformation):

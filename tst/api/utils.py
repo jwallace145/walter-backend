@@ -14,6 +14,11 @@ def get_auth_user_event(email: str, password: str) -> dict:
     return EVENT
 
 
+def get_get_stock_event(symbol: str) -> dict:
+    EVENT["queryStringParameters"] = {"symbol": symbol}
+    return EVENT
+
+
 def get_add_stock_event(stock: str, quantity: float, token: str) -> dict:
     EVENT["body"] = json.dumps({"stock": stock, "quantity": quantity})
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
@@ -70,7 +75,7 @@ def get_change_password_event(token: str, new_password: str) -> dict:
 
 
 def get_send_change_password_email_event(email: str) -> dict:
-    EVENT["body"] = json.dumps({"email": email})
+    EVENT["queryStringParameters"] = {"email": email}
     return EVENT
 
 

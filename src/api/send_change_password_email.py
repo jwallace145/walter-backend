@@ -76,6 +76,12 @@ class SendChangePasswordEmail(WalterAPIMethod):
 
     def validate_fields(self, event: dict) -> None:
         query_parameters = event.get("queryStringParameters", {})
+
+        if query_parameters is None:
+            raise BadRequest(
+                f"Client bad request! Missing required query parameters: {SendChangePasswordEmail.REQUIRED_QUERY_FIELDS}"
+            )
+
         for field in SendChangePasswordEmail.REQUIRED_QUERY_FIELDS:
             if field not in query_parameters:
                 raise BadRequest(

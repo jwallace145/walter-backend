@@ -6,6 +6,7 @@ from src.api.delete_stock import DeleteStock
 from src.api.get_news import GetNews
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
+from src.api.get_stock import GetStock
 from src.api.get_user import GetUser
 from src.api.send_change_password_email import SendChangePasswordEmail
 from src.api.send_newsletter import SendNewsletter
@@ -48,6 +49,12 @@ def auth_user_entrypoint(event, context) -> dict:
 
 def get_user_entrypoint(event, context) -> dict:
     return GetUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
+
+
+def get_stock_entrypoint(event, context) -> dict:
+    return GetStock(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api
+    ).invoke(event)
 
 
 def add_stock_entrypoint(event, context) -> dict:
