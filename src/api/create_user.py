@@ -22,6 +22,9 @@ log = Logger(__name__).get_logger()
 
 
 class CreateUser(WalterAPIMethod):
+    """
+    WalterAPI - CreateUser
+    """
 
     API_NAME = "CreateUser"
     REQUIRED_FIELDS = ["email", "username", "password"]

@@ -11,6 +11,7 @@ class User:
     sign_up_date: dt.datetime = dt.datetime.now(dt.UTC)
     last_active_date: dt.datetime = dt.datetime.now(dt.UTC)
     verified: bool = False
+    subscribed: bool = True
 
     def __eq__(self, other) -> bool:
         if isinstance(other, User):
@@ -29,6 +30,7 @@ class User:
             "sign_up_date": self.sign_up_date.isoformat(),
             "last_active_date": self.last_active_date.isoformat(),
             "verified": self.verified,
+            "subscribed": self.subscribed,
         }
 
     def __str__(self) -> str:
@@ -47,4 +49,5 @@ class User:
             "sign_up_date": {"S": self.sign_up_date.isoformat()},
             "last_active_date": {"S": self.last_active_date.isoformat()},
             "verified": {"BOOL": self.verified},
+            "subscribed": {"BOOL": self.subscribed},
         }
