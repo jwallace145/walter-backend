@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 
-from src.api.exceptions import (
+from src.api.common.exceptions import (
     UserDoesNotExist,
     InvalidEmail,
     NotAuthenticated,
     EmailNotVerified,
 )
-from src.api.methods import HTTPStatus, Status
-from src.api.methods import WalterAPIMethod
+from src.api.common.methods import HTTPStatus, Status
+from src.api.common.methods import WalterAPIMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient

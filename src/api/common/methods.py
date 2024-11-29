@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
-from src.api.exceptions import BadRequest, NotAuthenticated
+from src.api.common.exceptions import BadRequest, NotAuthenticated
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.utils.log import Logger

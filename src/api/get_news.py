@@ -1,7 +1,7 @@
 import json
 
-from src.api.exceptions import BadRequest, StockDoesNotExist
-from src.api.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.exceptions import BadRequest, StockDoesNotExist
+from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB

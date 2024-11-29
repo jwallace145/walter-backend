@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.get_user import GetUser
-from src.api.methods import HTTPStatus, Status
+from src.api.common.methods import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -26,11 +26,7 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
         status_code=HTTPStatus.OK,
         status=Status.SUCCESS,
         message="Successfully retrieved user!",
-        data={
-            "email": "walter@gmail.com",
-            "username": "walter",
-            "verified": True
-        },
+        data={"email": "walter@gmail.com", "username": "walter", "verified": True},
     )
     assert expected_response == get_user_api.invoke(event)
 

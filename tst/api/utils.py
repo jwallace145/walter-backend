@@ -1,6 +1,6 @@
 import json
 
-from src.api.methods import HTTPStatus, Status
+from src.api.common.methods import HTTPStatus, Status
 
 ###############
 # TEST EVENTS #
