@@ -1,14 +1,14 @@
 import json
 
-from src.api.exceptions import (
+from src.api.common.exceptions import (
     InvalidEmail,
     InvalidUsername,
     UserAlreadyExists,
     BadRequest,
 )
-from src.api.methods import HTTPStatus, Status
-from src.api.methods import WalterAPIMethod
-from src.api.methods import is_valid_username, is_valid_email
+from src.api.common.methods import HTTPStatus, Status
+from src.api.common.methods import WalterAPIMethod
+from src.api.common.methods import is_valid_username, is_valid_email
 from src.api.send_verify_email import SendVerifyEmail
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient

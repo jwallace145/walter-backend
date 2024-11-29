@@ -1,7 +1,7 @@
 import pytest
 from mypy_boto3_sqs.client import SQSClient
 
-from src.api.methods import Status, HTTPStatus
+from src.api.common.methods import Status, HTTPStatus
 from src.api.send_newsletter import SendNewsletter
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient

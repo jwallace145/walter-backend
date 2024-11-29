@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.get_news import GetNews
-from src.api.methods import HTTPStatus, Status
+from src.api.common.methods import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB

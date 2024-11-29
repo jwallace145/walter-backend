@@ -1,7 +1,8 @@
+import datetime as dt
 import json
 
-from src.api.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
-from src.api.methods import WalterAPIMethod, HTTPStatus, Status, is_valid_email
+from src.api.common.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
+from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status, is_valid_email
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -44,6 +45,10 @@ class AuthUser(WalterAPIMethod):
         password = body["password"]
         if not self.authenticator.check_password(password, user.password_hash):
             raise InvalidPassword("Password incorrect!")
+
+        # update user last active date
+        user.last_active_date = dt.datetime.now(dt.UTC)
+        self.walter_db.update_user(user)
 
         token = self.authenticator.generate_user_token(email)
 

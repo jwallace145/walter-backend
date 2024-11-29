@@ -1,9 +1,9 @@
-from src.api.exceptions import (
+from src.api.common.exceptions import (
     InvalidEmail,
     BadRequest,
     UserDoesNotExist,
 )
-from src.api.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.ses.client import WalterSESClient

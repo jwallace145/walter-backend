@@ -1,6 +1,8 @@
-from src.api.exceptions import UserDoesNotExist, NotAuthenticated
-from src.api.methods import HTTPStatus, Status
-from src.api.methods import WalterAPIMethod
+import datetime as dt
+
+from src.api.common.exceptions import UserDoesNotExist, NotAuthenticated
+from src.api.common.methods import HTTPStatus, Status
+from src.api.common.methods import WalterAPIMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -33,6 +35,10 @@ class GetUser(WalterAPIMethod):
         user = self.walter_db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User does not exist!")
+
+        # update user last active date
+        user.last_active_date = dt.datetime.now(dt.UTC)
+        self.walter_db.update_user(user)
 
         return self._create_response(
             http_status=HTTPStatus.OK,
