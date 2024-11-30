@@ -86,7 +86,9 @@ class WalterAPIMethod(ABC):
         self.metrics = metrics
 
     def invoke(self, event: dict) -> dict:
-        log.info(f"Invoking {self.api_name} with event:\n{json.dumps(event, indent=4)}")
+        log.info(
+            f"Invoking '{self.api_name}' API with event:\n{json.dumps(event, indent=4)}"
+        )
 
         response = None
         try:
@@ -118,8 +120,22 @@ class WalterAPIMethod(ABC):
                 raise BadRequest(
                     f"Client bad request! Missing required field: '{field}'"
                 )
+        log.info("Successfully validated required fields!")
 
-    def _authenticate_request(self, event: dict) -> None:
+    def _authenticate_request(self, event: dict) -> str:
+        """
+        Authenticate request and return authenticated email.
+
+        This method authenticates requests by verifying the Authorization
+        Bearer token in the request header. If the token is valid, the
+        request is authenticated.
+
+        Args:
+            event:
+
+        Returns:
+
+        """
         log.info("Authenticating request")
 
         token = self.authenticator.get_token(event)
@@ -130,8 +146,10 @@ class WalterAPIMethod(ABC):
         if decoded_token is None:
             raise NotAuthenticated("Not authenticated!")
 
-        log.info("Successfully authenticated request!")
-        return decoded_token["sub"]
+        user_email = decoded_token["sub"]
+        log.info(f"Successfully authenticated request for user '{user_email}'!")
+
+        return user_email
 
     def _handle_exception(self, exception: Exception) -> dict:
         status = HTTPStatus.INTERNAL_SERVER_ERROR

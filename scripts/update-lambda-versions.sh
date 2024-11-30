@@ -26,6 +26,8 @@ echo Publishing new WalterAPI Auth Lambda version \
 && aws lambda publish-version --function-name WalterAPI-SendChangePasswordEmail-dev \
 && echo Publishing new WalterAPI ChangePassword Lambda version \
 && aws lambda publish-version --function-name WalterAPI-ChangePassword-dev \
+&& echo Publishing new WalterAPI Subscribe Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-Subscribe-dev \
 && echo Publishing new WalterAPI Unsubscribe Lambda version \
 && aws lambda publish-version --function-name WalterAPI-Unsubscribe-dev \
 && echo Publishing new WalterNewsletters Lambda version \

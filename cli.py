@@ -18,6 +18,7 @@ from tst.api.utils import (
     get_send_change_password_email_event,
     get_get_stock_event,
     get_unsubscribe_event,
+    get_subscribe_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -35,6 +36,7 @@ from walter import (
     send_change_password_email_entrypoint,
     get_stock_entrypoint,
     unsubscribe_entrypoint,
+    subscribe_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -151,6 +153,14 @@ def get_stock(symbol: str = None) -> None:
     log.info("Walter CLI: Getting stock...")
     event = get_get_stock_event(symbol)
     response = get_stock_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def subscribe(token: str = None) -> None:
+    log.info("Walter CLI: Subscribing user from newsletter...")
+    event = get_subscribe_event(token)
+    response = subscribe_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
