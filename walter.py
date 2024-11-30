@@ -11,6 +11,7 @@ from src.api.get_user import GetUser
 from src.api.send_change_password_email import SendChangePasswordEmail
 from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
+from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
 from src.api.verify_email import VerifyEmail
 from src.backend.backend import create_newsletter_and_send
@@ -122,6 +123,10 @@ def send_change_password_email_entrypoint(event, context) -> dict:
         template_engine,
         templates_bucket,
     ).invoke(event)
+
+
+def subscribe_entrypoint(event, context) -> dict:
+    return Subscribe(walter_authenticator, walter_cw, walter_db).invoke(event)
 
 
 def unsubscribe_entrypoint(event, context) -> dict:
