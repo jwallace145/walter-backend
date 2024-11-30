@@ -10,7 +10,7 @@ log = Logger(__name__).get_logger()
 
 def add_newsletter_to_queue(event, context) -> dict:
     """
-    Get users from WalterDB and send newsletters to all verified users.
+    Get users from WalterDB and send newsletters to all verified and subscribed users.
     """
     log.info("WalterNewsletters invoked!")
 
@@ -23,6 +23,13 @@ def add_newsletter_to_queue(event, context) -> dict:
         if not user.verified:
             log.info(
                 f"Not sending newsletter to '{user.email}' as email address has not been verified."
+            )
+            continue
+
+        # ensure user is currently subscribed to newsletter
+        if not user.subscribed:
+            log.info(
+                f"Not sending newsletter to '{user.email}' because user is not currently subscribed."
             )
             continue
 
