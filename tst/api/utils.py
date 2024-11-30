@@ -79,6 +79,11 @@ def get_send_change_password_email_event(email: str) -> dict:
     return EVENT
 
 
+def get_unsubscribe_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################
