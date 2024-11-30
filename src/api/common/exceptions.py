@@ -41,3 +41,8 @@ class NotAuthenticated(Exception):
 class EmailNotVerified(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class EmailNotSubscribed(Exception):
+    def __init__(self, message):
+        super().__init__(message)

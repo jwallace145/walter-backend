@@ -5,6 +5,7 @@ from src.api.common.exceptions import (
     InvalidEmail,
     NotAuthenticated,
     EmailNotVerified,
+    EmailNotSubscribed,
 )
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
@@ -12,6 +13,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.users.models import User
 from src.newsletters.queue import NewsletterRequest, NewslettersQueue
 from src.utils.log import Logger
 
@@ -23,7 +25,13 @@ class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist, EmailNotVerified]
+    EXCEPTIONS = [
+        NotAuthenticated,
+        InvalidEmail,
+        UserDoesNotExist,
+        EmailNotVerified,
+        EmailNotSubscribed,
+    ]
 
     def __init__(
         self,
@@ -45,20 +53,10 @@ class SendNewsletter(WalterAPIMethod):
         self.walter_sm = walter_sm
 
     def execute(self, event: dict, authenticated_email: str) -> dict:
-        # ensure user exists
-        user = self.walter_db.get_user(authenticated_email)
-        if user is None:
-            raise UserDoesNotExist("User not found!")
-
-        # ensure user email address is verified before sending
-        if not user.verified:
-            raise EmailNotVerified("Email not verified!")
-
-        # add a message to the newsletter queue
-        self.newsletters_queue.add_newsletter_request(
-            NewsletterRequest(authenticated_email)
-        )
-
+        user = self._verify_user_exists(authenticated_email)
+        self._verify_user_email_verified(user)
+        self._verify_user_is_subscribed(user)
+        self._send_newsletter(user.email)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -70,3 +68,28 @@ class SendNewsletter(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return True
+
+    def _verify_user_exists(self, email: str) -> User:
+        log.info(f"Verifying user exists: '{email}'")
+        user = self.walter_db.get_user(email)
+        if user is None:
+            raise UserDoesNotExist("User not found!")
+        log.info("Verified user exists!")
+        return user
+
+    def _verify_user_email_verified(self, user: User) -> None:
+        log.info(f"Verifying user email is verified: '{user.email}'")
+        if not user.verified:
+            raise EmailNotVerified("Email not verified!")
+        log.info("User email is verified!")
+
+    def _verify_user_is_subscribed(self, user: User) -> None:
+        log.info(f"Verifying user is subscribed: '{user.email}'")
+        if not user.subscribed:
+            raise EmailNotSubscribed("Email not subscribed!")
+        log.info("User email is subscribed!")
+
+    def _send_newsletter(self, email: str) -> None:
+        log.info(f"Adding newsletter message to queue for user: '{email}")
+        self.newsletters_queue.add_newsletter_request(NewsletterRequest(email))
+        log.info("Successfully added newsletter message to queue for user!")
