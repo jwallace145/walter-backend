@@ -1,4 +1,8 @@
-from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
+from src.api.common.exceptions import (
+    NotAuthenticated,
+    UserDoesNotExist,
+    EmailAlreadySubscribed,
+)
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -17,7 +21,7 @@ class Subscribe(WalterAPIMethod):
 
     API_NAME = "Subscribe"
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
+    EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadySubscribed]
 
     def __init__(
         self,
@@ -36,6 +40,7 @@ class Subscribe(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> dict:
         user = self._verify_user_exists(authenticated_email)
+        self._verify_user_not_already_subscribed(user)
         self._update_user_subscribed_status(user)
         return self._create_response(
             http_status=HTTPStatus.OK,
@@ -56,6 +61,12 @@ class Subscribe(WalterAPIMethod):
             raise UserDoesNotExist("User does not exist!")
         log.info("Verified user exists!")
         return user
+
+    def _verify_user_not_already_subscribed(self, user: User) -> None:
+        log.info(f"Verifying user not already subscribed: '{user.email}'")
+        if user.subscribed:
+            raise EmailAlreadySubscribed("Email already subscribed!")
+        log.info("Verified user is not already subscribed!")
 
     def _update_user_subscribed_status(self, user: User) -> None:
         log.info("Updating user subscribed status to true")

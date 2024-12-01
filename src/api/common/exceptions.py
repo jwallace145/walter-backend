@@ -43,6 +43,21 @@ class EmailNotVerified(Exception):
         super().__init__(message)
 
 
+class EmailAlreadyVerified(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class EmailNotSubscribed(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class EmailAlreadySubscribed(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class EmailAlreadyUnsubscribed(Exception):
     def __init__(self, message):
         super().__init__(message)
