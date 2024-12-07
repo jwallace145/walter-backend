@@ -14,6 +14,7 @@ from src.clients import (
     walter_db,
     walter_ai,
     walter_event_parser,
+    walter_authenticator,
 )
 from src.config import CONFIG
 from src.utils.log import Logger
@@ -27,6 +28,11 @@ log = Logger(__name__).get_logger()
 TEMPLATE_NAME = "default"
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 START_DATE = END_DATE - timedelta(days=7)
+
+
+def get_unsubscribe_link(email: str) -> str:
+    token = walter_authenticator.generate_user_token(email)
+    return "https://walterai.dev/unsubscribe?token=" + token
 
 
 def create_newsletter_and_send(event, context) -> dict:
@@ -50,6 +56,7 @@ def create_newsletter_and_send(event, context) -> dict:
             "portfolio_value": portfolio.get_total_equity(),
             "stocks": portfolio.get_stock_equities(),
             "news": portfolio.get_all_news(),
+            "unsubscribe_link": get_unsubscribe_link(event.email),
         }
 
         # get template spec with user inputs
