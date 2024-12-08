@@ -32,6 +32,7 @@ class WalterStocksAPI:
         return Portfolio(stocks, user_stocks, prices, news)
 
     def get_stock(self, symbol: str) -> Stock | None:
+        log.info(f"Getting stock '{symbol}' from Polygon")
         return self.client.get_stock(symbol)
 
     def get_news(self, symbol: str) -> StockNews | None:

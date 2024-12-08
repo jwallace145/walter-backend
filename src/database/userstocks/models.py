@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
 
@@ -15,6 +16,7 @@ class UserStock:
     user_email: str
     stock_symbol: str
     quantity: float
+    timestamp: dt.datetime = dt.datetime.now(dt.UTC)
 
     def to_ddb_item(self) -> dict:
         return {
@@ -23,6 +25,7 @@ class UserStock:
             },
             "stock_symbol": {"S": self.stock_symbol},
             "quantity": {"S": str(self.quantity)},
+            "timestamp": {"S": self.timestamp.isoformat()},
         }
 
     def to_dict(self) -> dict:
@@ -30,6 +33,7 @@ class UserStock:
             "user_email": self.user_email,
             "stock_symbol": self.stock_symbol,
             "quantity": self.quantity,
+            "timestamp": self.timestamp.isoformat(),
         }
 
     def __str__(self) -> str:
@@ -38,5 +42,6 @@ class UserStock:
                 "email": self.user_email,
                 "stock": self.stock_symbol,
                 "quantity": self.quantity,
+                "timestamp": self.timestamp.isoformat(),
             }
         )

@@ -20,6 +20,11 @@ log = Logger(__name__).get_logger()
 
 
 class AddStock(WalterAPIMethod):
+    """
+    AddStock
+
+    Add a stock to the user's portfolio.
+    """
 
     API_NAME = "AddStock"
     REQUIRED_FIELDS = ["stock", "quantity"]
@@ -70,11 +75,13 @@ class AddStock(WalterAPIMethod):
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
 
+        # validate stock symbol
         symbol = body["stock"].upper()
         stock = self.walter_stocks_api.get_stock(symbol)
         if stock is None:
             raise StockDoesNotExist("Stock does not exist!")
 
+        # add new stocks to db
         if self.walter_db.get_stock(symbol) is None:
             self.walter_db.add_stock(stock)
 
