@@ -35,3 +35,9 @@ class StockNews:
         return {
             "news": self.descriptions,
         }
+
+
+@dataclass(frozen=True)
+class PolygonStock:
+    symbol: str
+    company: str

@@ -12,6 +12,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
 from src.utils.log import Logger
@@ -73,17 +74,22 @@ class AddStock(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        body = json.loads(event["body"])
-
-        # validate stock symbol
-        symbol = body["stock"].upper()
-        stock = self.walter_stocks_api.get_stock(symbol)
-        if stock is None:
-            raise StockDoesNotExist("Stock does not exist!")
-
-        # add new stocks to db
-        if self.walter_db.get_stock(symbol) is None:
-            self.walter_db.add_stock(stock)
+        stock = self._verify_stock_exists(event)
+        self._add_new_stocks_to_db(stock)
 
     def is_authenticated_api(self) -> bool:
         return True
+
+    def _verify_stock_exists(self, event: dict) -> Stock:
+        symbol = json.loads(event["body"])["stock"].upper()
+        log.info(f"Verifying stock exists with symbol '{symbol}'")
+        stock = self.walter_stocks_api.get_stock(symbol)
+        if stock is None:
+            raise StockDoesNotExist("Stock does not exist!")
+        log.info("Verified stock exists!")
+        return stock
+
+    def _add_new_stocks_to_db(self, stock: Stock) -> None:
+        if self.walter_db.get_stock(stock.symbol) is None:
+            log.info(f"Adding new stock to database '{stock.symbol}'")
+            self.walter_db.add_stock(stock)

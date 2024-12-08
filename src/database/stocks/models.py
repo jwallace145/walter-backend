@@ -13,6 +13,8 @@ class Stock:
 
     symbol: str
     company: str
+    sector: str = "N/A"
+    industry: str = "N/A"
 
     def to_ddb_item(self) -> dict:
         """
@@ -27,6 +29,8 @@ class Stock:
                 "S": self.symbol,
             },
             "company": {"S": self.company},
+            "sector": {"S": self.sector},
+            "industry": {"S": self.industry},
         }
 
     def to_dict(self) -> dict:
@@ -37,4 +41,9 @@ class Stock:
         Returns:
             The dict of fields and their values for a Stock object.
         """
-        return {"symbol": self.symbol, "company": self.company}
+        return {
+            "symbol": self.symbol,
+            "company": self.company,
+            "sector": self.sector,
+            "industry": self.industry,
+        }
