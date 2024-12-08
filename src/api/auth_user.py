@@ -7,12 +7,21 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.users.models import User
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 class AuthUser(WalterAPIMethod):
+    """
+    AuthUser
+
+    Validate the given password against the stored hash for the given user email.
+    If the password is correct, return a unique identity token for the user to
+    utilize to make authenticated requests.
+    """
+
     API_NAME = "AuthUser"
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
@@ -35,23 +44,10 @@ class AuthUser(WalterAPIMethod):
         self.walter_sm = walter_sm
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
-        body = json.loads(event["body"])
-
-        email = body["email"]
-        user = self.walter_db.get_user(email)
-        if user is None:
-            raise UserDoesNotExist("User not found!")
-
-        password = body["password"]
-        if not self.authenticator.check_password(password, user.password_hash):
-            raise InvalidPassword("Password incorrect!")
-
-        # update user last active date
-        user.last_active_date = dt.datetime.now(dt.UTC)
-        self.walter_db.update_user(user)
-
-        token = self.authenticator.generate_user_token(email)
-
+        user = self._verify_user_exists(event)
+        self._verify_password(event, user)
+        self._update_last_active_date(user)
+        token = self.authenticator.generate_user_token(user.email)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -62,9 +58,31 @@ class AuthUser(WalterAPIMethod):
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
 
+        # verify email is valid
         email = body["email"]
         if not is_valid_email(email):
             raise InvalidEmail("Invalid email!")
 
     def is_authenticated_api(self) -> bool:
         return False
+
+    def _verify_user_exists(self, event: dict) -> User:
+        email = json.loads(event["body"])["email"]
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user(email)
+        if user is None:
+            raise UserDoesNotExist("User not found!")
+        log.info("Verified user exists!")
+        return user
+
+    def _verify_password(self, event: dict, user: User) -> None:
+        log.info("Verifying password matches stored password hash")
+        password = json.loads(event["body"])["password"]
+        if not self.authenticator.check_password(password, user.password_hash):
+            raise InvalidPassword("Password incorrect!")
+        log.info("Verified password matches!")
+
+    def _update_last_active_date(self, user: User) -> None:
+        log.info("Updating user last active time")
+        user.last_active_date = dt.datetime.now(dt.UTC)
+        self.walter_db.update_user(user)

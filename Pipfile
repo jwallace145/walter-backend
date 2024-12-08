@@ -22,6 +22,7 @@ mypy-boto3-sqs = "*"
 bcrypt = "*"
 pyjwt = "*"
 markdown = "*"
+yfinance = "*"
 
 [dev-packages]
 black = "*"
