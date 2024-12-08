@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import List
 
@@ -45,7 +46,7 @@ class UsersStocksTable:
         Returns:
             None.
         """
-        log.info(f"Adding stock to user portfolio:\n{stock}")
+        log.info(f"Adding stock to user portfolio:\n{json.dumps(stock.to_dict(), indent=4)}")
         self.ddb.put_item(self.table, stock.to_ddb_item())
         log.info("Added stock to user portfolio!")
 
