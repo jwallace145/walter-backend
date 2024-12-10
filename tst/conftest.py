@@ -30,7 +30,6 @@ from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
-from src.stocks.yahoo.models import YahooFinanceStock
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 
@@ -203,30 +202,6 @@ def env_vars():
     del os.environ["AWS_ACCOUNT_ID"]
 
 
-# the real class should be refactored at some point to mock the yf module to more easily
-# mock in this class for unit tests to use but this will work for now
-class MockYahooFinanceClient:
-    def get_stock(self, symbol: str) -> YahooFinanceStock:
-        stocks = {
-            "AAPL": YahooFinanceStock(
-                symbol="AAPL", sector="Technology", industry="Consumer Electronics"
-            ),
-            "META": YahooFinanceStock(
-                symbol="META",
-                sector="Technology",
-                industry="Internet Content and Information",
-            ),
-            "ABNB": YahooFinanceStock(
-                symbol="ABNB", sector="Housing", industry="Real Estate"
-            ),
-        }
-
-        if symbol.upper() not in stocks:
-            return None
-
-        return stocks[symbol.upper()]
-
-
 @pytest.fixture
 def walter_stocks_api(mocker) -> WalterStocksAPI:
     mock_polygon_rest_client = mocker.MagicMock(spec=RESTClient)
@@ -354,8 +329,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
         polygon=PolygonClient(
             api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
             client=mock_polygon_rest_client,
-        ),
-        yahoo=MockYahooFinanceClient(),
+        )
     )
 
 
