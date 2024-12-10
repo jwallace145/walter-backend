@@ -20,7 +20,6 @@ from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
-from src.stocks.yahoo.client import YahooFinanceClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.utils.log import Logger
@@ -109,8 +108,7 @@ walter_db = WalterDB(
 walter_stocks_api = WalterStocksAPI(
     polygon=PolygonClient(
         api_key=POLYGON_API_KEY,
-    ),
-    yahoo=YahooFinanceClient(),
+    )
 )
 
 
