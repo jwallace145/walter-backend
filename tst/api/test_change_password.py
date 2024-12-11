@@ -45,12 +45,9 @@ def test_change_password_failure_not_authenticated(
 ) -> None:
     old_password = walter_db.get_user("walter@gmail.com").password_hash
     event = get_change_password_event(
-        token=walter_authenticator.generate_change_password_token("walter@gmail.com"),
+        token="INVALID_TOKEN",
         new_password="new-password",
     )
-    headers = event["headers"]
-    headers["Authorization"] = "Bearer INVALID_TOKEN"
-    event["headers"] = headers
     expected_response = get_expected_response(
         api_name=change_password_api.API_NAME,
         status_code=HTTPStatus.OK,
