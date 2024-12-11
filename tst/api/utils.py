@@ -21,13 +21,19 @@ def get_get_stock_event(symbol: str) -> dict:
 
 def get_add_stock_event(stock: str, quantity: float, token: str) -> dict:
     EVENT["body"] = json.dumps({"stock": stock, "quantity": quantity})
-    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
     return EVENT
 
 
 def get_delete_stock_event(stock: str, token: str) -> dict:
     EVENT["body"] = json.dumps({"stock": stock})
-    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
     return EVENT
 
 
@@ -38,6 +44,7 @@ def get_portfolio_event(token: str) -> dict:
 
 def get_news_event(stock: str) -> dict:
     EVENT["body"] = json.dumps({"stock": stock})
+    EVENT["headers"] = {"content-type": "application/json"}
     return EVENT
 
 
@@ -45,6 +52,7 @@ def get_create_user_event(email: str, username: str, password: str) -> dict:
     EVENT["body"] = json.dumps(
         {"email": email, "username": username, "password": password}
     )
+    EVENT["headers"] = {"content-type": "application/json"}
     return EVENT
 
 
@@ -69,7 +77,10 @@ def get_send_verify_email_event(token: str) -> dict:
 
 
 def get_change_password_event(token: str, new_password: str) -> dict:
-    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
     EVENT["body"] = json.dumps({"new_password": new_password})
     return EVENT
 

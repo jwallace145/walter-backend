@@ -31,7 +31,7 @@ class AddStock(WalterAPIMethod):
     API_NAME = "AddStock"
     REQUIRED_HEADERS = [
         {"Authorization": "Bearer"},
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["stock", "quantity"]
     EXCEPTIONS = [

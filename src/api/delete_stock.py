@@ -17,7 +17,7 @@ class DeleteStock(WalterAPIMethod):
     API_NAME = "DeleteStock"
     REQUIRED_HEADERS = [
         {"Authorization": "Bearer"},
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [

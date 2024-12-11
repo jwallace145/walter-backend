@@ -27,7 +27,7 @@ class AuthUser(WalterAPIMethod):
 
     API_NAME = "AuthUser"
     REQUIRED_HEADERS = [
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]

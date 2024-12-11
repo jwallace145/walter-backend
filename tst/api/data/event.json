@@ -3,7 +3,8 @@
     "path": "/auth",
     "httpMethod": "POST",
     "headers": {
-        "Authorization": "Bearer JSON_WEB_TOKEN"
+        "Authorization": "Bearer JSON_WEB_TOKEN",
+        "content-type": "application/json"
     },
     "multiValueHeaders": {
         "Accept": [
@@ -29,9 +30,6 @@
         ],
         "CloudFront-Viewer-Country": [
             "US"
-        ],
-        "Content-Type": [
-            "application/json"
         ],
         "Host": [
             "host.execute-api.unit-test.amazonaws.com"
