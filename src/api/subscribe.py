@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
@@ -8,20 +10,23 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.users.models import User
-
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class Subscribe(WalterAPIMethod):
     """
     WalterAPI - Subscribe
     """
 
     API_NAME = "Subscribe"
+    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadySubscribed]
+
+    walter_db: WalterDB
 
     def __init__(
         self,
@@ -31,6 +36,7 @@ class Subscribe(WalterAPIMethod):
     ) -> None:
         super().__init__(
             Subscribe.API_NAME,
+            Subscribe.REQUIRED_HEADERS,
             Subscribe.REQUIRED_FIELDS,
             Subscribe.EXCEPTIONS,
             walter_authenticator,

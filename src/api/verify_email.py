@@ -4,6 +4,7 @@ from src.api.common.exceptions import (
     EmailAlreadyVerified,
     UserDoesNotExist,
 )
+from dataclasses import dataclass
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -14,14 +15,20 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class VerifyEmail(WalterAPIMethod):
     """
     WalterAPI - VerifyEmail
     """
 
     API_NAME = "VerifyEmail"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+    ]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, NotAuthenticated, UserDoesNotExist, EmailAlreadyVerified]
+
+    walter_db: WalterDB
 
     def __init__(
         self,

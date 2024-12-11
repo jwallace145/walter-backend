@@ -1,8 +1,10 @@
 import datetime as dt
 import json
+from dataclasses import dataclass
 
 from src.api.common.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
-from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status, is_valid_email
+from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.utils import is_valid_email
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -13,6 +15,7 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class AuthUser(WalterAPIMethod):
     """
     AuthUser
@@ -23,8 +26,14 @@ class AuthUser(WalterAPIMethod):
     """
 
     API_NAME = "AuthUser"
+    REQUIRED_HEADERS = [
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
+
+    walter_db: WalterDB
+    wlater_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
@@ -35,6 +44,7 @@ class AuthUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             AuthUser.API_NAME,
+            AuthUser.REQUIRED_HEADERS,
             AuthUser.REQUIRED_FIELDS,
             AuthUser.EXCEPTIONS,
             walter_authenticator,

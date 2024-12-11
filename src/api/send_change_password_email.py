@@ -1,5 +1,6 @@
 from typing import Tuple
 
+from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -10,12 +11,21 @@ from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 
 
+@dataclass
 class SendChangePasswordEmail(WalterAPIMethod):
 
     API_NAME = "SendChangePasswordEmail"
+    REQUIRED_HEADERS = [
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_QUERY_FIELDS = ["email"]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, UserDoesNotExist]
+
+    walter_db: WalterDB
+    walter_ses: WalterSESClient
+    templates_engine: TemplatesEngine
+    templates_bucket: TemplatesBucket
 
     def __init__(
         self,
@@ -28,6 +38,7 @@ class SendChangePasswordEmail(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SendChangePasswordEmail.API_NAME,
+            SendChangePasswordEmail.REQUIRED_HEADERS,
             SendChangePasswordEmail.REQUIRED_FIELDS,
             SendChangePasswordEmail.EXCEPTIONS,
             walter_authenticator,

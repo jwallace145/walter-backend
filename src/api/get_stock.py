@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -6,12 +8,17 @@ from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
 
 
+@dataclass
 class GetStock(WalterAPIMethod):
 
     API_NAME = "GetStock"
     REQUIRED_QUERY_FIELDS = ["symbol"]
+    REQUIRED_HEADERS = []
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
+
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
 
     def __init__(
         self,
@@ -22,6 +29,7 @@ class GetStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetStock.API_NAME,
+            GetStock.REQUIRED_HEADERS,
             GetStock.REQUIRED_FIELDS,
             GetStock.EXCEPTIONS,
             walter_authenticator,

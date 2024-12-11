@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
@@ -13,14 +15,20 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class Unsubscribe(WalterAPIMethod):
     """
     WalterAPI - Unsubscribe
     """
 
     API_NAME = "Unsubscribe"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+    ]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadyUnsubscribed]
+
+    walter_db: WalterDB
 
     def __init__(
         self,
@@ -30,6 +38,7 @@ class Unsubscribe(WalterAPIMethod):
     ) -> None:
         super().__init__(
             Unsubscribe.API_NAME,
+            Unsubscribe.REQUIRED_HEADERS,
             Unsubscribe.REQUIRED_FIELDS,
             Unsubscribe.EXCEPTIONS,
             walter_authenticator,

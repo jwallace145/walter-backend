@@ -1,4 +1,5 @@
 import datetime as dt
+from dataclasses import dataclass
 
 from src.api.common.exceptions import UserDoesNotExist, NotAuthenticated
 from src.api.common.methods import HTTPStatus, Status
@@ -9,10 +10,19 @@ from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 
 
+@dataclass
 class GetUser(WalterAPIMethod):
+    """
+    WalterAPI - GetUser
+    """
+
     API_NAME = "GetUser"
+    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
+
+    walter_db: WalterDB
+    walter_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
@@ -23,6 +33,7 @@ class GetUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetUser.API_NAME,
+            GetUser.REQUIRED_HEADERS,
             GetUser.REQUIRED_FIELDS,
             GetUser.EXCEPTIONS,
             walter_authenticator,

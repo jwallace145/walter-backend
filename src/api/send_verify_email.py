@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from src.api.common.exceptions import (
     InvalidEmail,
     BadRequest,
@@ -17,14 +19,21 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class SendVerifyEmail(WalterAPIMethod):
     """
     WalterAPI - SendVerifyEmail
     """
 
     API_NAME = "SendVerifyEmail"
+    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, InvalidEmail, UserDoesNotExist, EmailAlreadyVerified]
+
+    walter_db: WalterDB
+    walter_ses: WalterSESClient
+    templates_engine: TemplatesEngine
+    templates_bucket: TemplatesBucket
 
     def __init__(
         self,
@@ -37,6 +46,7 @@ class SendVerifyEmail(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SendVerifyEmail.API_NAME,
+            SendVerifyEmail.REQUIRED_HEADERS,
             SendVerifyEmail.REQUIRED_FIELDS,
             SendVerifyEmail.EXCEPTIONS,
             walter_authenticator,

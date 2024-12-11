@@ -1,5 +1,6 @@
 import json
 
+from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, NotAuthenticated
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -7,11 +8,18 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 
 
+@dataclass
 class ChangePassword(WalterAPIMethod):
 
     API_NAME = "ChangePassword"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["new_password"]
     EXCEPTIONS = [BadRequest, NotAuthenticated]
+
+    walter_db: WalterDB
 
     def __init__(
         self,
@@ -21,6 +29,7 @@ class ChangePassword(WalterAPIMethod):
     ) -> None:
         super().__init__(
             ChangePassword.API_NAME,
+            ChangePassword.REQUIRED_HEADERS,
             ChangePassword.REQUIRED_FIELDS,
             ChangePassword.EXCEPTIONS,
             walter_authenticator,

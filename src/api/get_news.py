@@ -1,5 +1,6 @@
 import json
 
+from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -8,11 +9,18 @@ from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
 
 
+@dataclass
 class GetNews(WalterAPIMethod):
 
     API_NAME = "GetNews"
+    REQUIRED_HEADERS = [
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
+
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
 
     def __init__(
         self,
@@ -23,6 +31,7 @@ class GetNews(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetNews.API_NAME,
+            GetNews.REQUIRED_HEADERS,
             GetNews.REQUIRED_FIELDS,
             GetNews.EXCEPTIONS,
             walter_authenticator,
