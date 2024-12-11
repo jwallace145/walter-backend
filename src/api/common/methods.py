@@ -100,22 +100,9 @@ class WalterAPIMethod(ABC):
         """
         log.info(f"Validating required headers: {self.required_headers}")
         headers = event["headers"]
-        multivalue_headers = event["multiValueHeaders"]
         for header in self.required_headers:
             key, value = next(iter(header.items()))
-
-            # check headers
-            found_headers = False
-            if key in headers and value in headers[key]:
-                found_headers = True
-
-            # check multivalue headers
-            found_multivalue_headers = False
-            if key in multivalue_headers and value in multivalue_headers[key]:
-                found_multivalue_headers = True
-
-            # throw bad request exception if required header not found in request event headers
-            if not found_headers and not found_multivalue_headers:
+            if key not in headers or value not in headers[key]:
                 raise BadRequest(
                     f"Client bad request! Missing required header: '{header}'"
                 )

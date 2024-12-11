@@ -15,7 +15,7 @@ class GetPrices(WalterAPIMethod):
 
     API_NAME = "GetPrices"
     REQUIRED_HEADERS = [
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]

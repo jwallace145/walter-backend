@@ -14,7 +14,7 @@ class GetNews(WalterAPIMethod):
 
     API_NAME = "GetNews"
     REQUIRED_HEADERS = [
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]

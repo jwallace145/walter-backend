@@ -16,7 +16,7 @@ class SendChangePasswordEmail(WalterAPIMethod):
 
     API_NAME = "SendChangePasswordEmail"
     REQUIRED_HEADERS = [
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_QUERY_FIELDS = ["email"]
     REQUIRED_FIELDS = []

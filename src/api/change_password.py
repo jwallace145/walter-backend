@@ -14,7 +14,7 @@ class ChangePassword(WalterAPIMethod):
     API_NAME = "ChangePassword"
     REQUIRED_HEADERS = [
         {"Authorization": "Bearer"},
-        {"Content-Type": "application/json"},
+        {"content-type": "application/json"},
     ]
     REQUIRED_FIELDS = ["new_password"]
     EXCEPTIONS = [BadRequest, NotAuthenticated]
