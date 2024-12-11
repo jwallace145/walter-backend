@@ -24,6 +24,7 @@ log = Logger(__name__).get_logger()
 class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
+    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
         NotAuthenticated,
@@ -32,6 +33,10 @@ class SendNewsletter(WalterAPIMethod):
         EmailNotVerified,
         EmailNotSubscribed,
     ]
+
+    walter_db: WalterDB
+    newsletters_queue: NewslettersQueue
+    walter_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
@@ -43,6 +48,7 @@ class SendNewsletter(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SendNewsletter.API_NAME,
+            SendNewsletter.REQUIRED_HEADERS,
             SendNewsletter.REQUIRED_FIELDS,
             SendNewsletter.EXCEPTIONS,
             walter_authenticator,

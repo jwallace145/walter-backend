@@ -18,11 +18,15 @@ log = Logger(__name__).get_logger()
 class GetPortfolio(WalterAPIMethod):
 
     API_NAME = "GetPortfolio"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+    ]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
 
     walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
+    walter_stocks_api: WalterStocksAPI
 
     def __init__(
         self,
@@ -34,6 +38,7 @@ class GetPortfolio(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetPortfolio.API_NAME,
+            GetPortfolio.REQUIRED_HEADERS,
             GetPortfolio.REQUIRED_FIELDS,
             GetPortfolio.EXCEPTIONS,
             walter_authenticator,

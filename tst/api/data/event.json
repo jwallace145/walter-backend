@@ -30,7 +30,7 @@
         "CloudFront-Viewer-Country": [
             "US"
         ],
-        "content-type": [
+        "Content-Type": [
             "application/json"
         ],
         "Host": [

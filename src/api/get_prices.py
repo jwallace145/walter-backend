@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import HTTPStatus, Status
@@ -9,11 +10,18 @@ from src.database.client import WalterDB
 from src.stocks.client import WalterStocksAPI
 
 
+@dataclass
 class GetPrices(WalterAPIMethod):
 
     API_NAME = "GetPrices"
+    REQUIRED_HEADERS = [
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
+
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
 
     def __init__(
         self,
@@ -24,6 +32,7 @@ class GetPrices(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetPrices.API_NAME,
+            GetPrices.REQUIRED_HEADERS,
             GetPrices.REQUIRED_FIELDS,
             GetPrices.EXCEPTIONS,
             walter_authenticator,

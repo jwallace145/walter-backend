@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 
 from src.api.common.exceptions import (
     InvalidEmail,
@@ -8,7 +9,7 @@ from src.api.common.exceptions import (
 )
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.methods import is_valid_username, is_valid_email
+from src.api.common.utils import is_valid_email, is_valid_username
 from src.api.send_verify_email import SendVerifyEmail
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -21,14 +22,21 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class CreateUser(WalterAPIMethod):
     """
     WalterAPI - CreateUser
     """
 
     API_NAME = "CreateUser"
+    REQUIRED_HEADERS = [
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["email", "username", "password"]
     EXCEPTIONS = [BadRequest, InvalidEmail, InvalidUsername, UserAlreadyExists]
+
+    walter_db: WalterDB
+    send_verify_email: SendVerifyEmail
 
     def __init__(
         self,
@@ -41,6 +49,7 @@ class CreateUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             CreateUser.API_NAME,
+            CreateUser.REQUIRED_HEADERS,
             CreateUser.REQUIRED_FIELDS,
             CreateUser.EXCEPTIONS,
             walter_authenticator,
@@ -57,23 +66,8 @@ class CreateUser(WalterAPIMethod):
         )
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
-        body = json.loads(event["body"])
-
-        # create user and add to db
-        self.walter_db.create_user(
-            email=body["email"],
-            username=body["username"],
-            password=body["password"],
-        )
-
-        # generate token for user to send verification email
-        token = self.authenticator.generate_user_token(body["email"])
-
-        # invoke send verify email api and send email verification email to new user
-        event["headers"]["Authorization"] = f"Bearer {token}"
-        self.send_verify_email.invoke(event)
-
-        # return successful response
+        self._create_new_user(event)
+        self._sending_verification_email(event)
         return self._create_response(
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
@@ -82,21 +76,47 @@ class CreateUser(WalterAPIMethod):
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
-
-        email = body["email"]
-        if not is_valid_email(email):
-            raise InvalidEmail("Invalid email!")
-
-        username = body["username"]
-        if not is_valid_username(username):
-            raise InvalidUsername("Invalid username!")
-
-        user = self.walter_db.get_user(email)
-        if user is not None:
-            raise UserAlreadyExists("User already exists!")
+        self._verify_email(body["email"])
+        self._verify_username(body["username"])
+        self._verify_user_does_not_already_exist(body["email"])
 
     def is_authenticated_api(self) -> bool:
         return False
 
-    def is_valid_username(self, username: str) -> bool:
-        return username.isalnum()
+    def _verify_email(self, email: str) -> None:
+        log.info(f"Validating email: '{email}'")
+        if not is_valid_email(email):
+            raise InvalidEmail("Invalid email!")
+        log.info("Successfully validated email!")
+
+    def _verify_username(self, username: str) -> None:
+        log.info(f"Validating username: '{username}'")
+        if not is_valid_username(username):
+            raise InvalidUsername("Invalid username!")
+        log.info("Successfully validated username!")
+
+    def _verify_user_does_not_already_exist(self, email: str) -> None:
+        log.info(f"Validate user does not already exist with email: '{email}'")
+        user = self.walter_db.get_user(email)
+        if user is not None:
+            raise UserAlreadyExists("User already exists!")
+        log.info("Successfully validated that user does not already exist!")
+
+    def _create_new_user(self, event: dict) -> None:
+        log.info("Creating new user")
+        body = json.loads(event["body"])
+        self.walter_db.create_user(
+            email=body["email"],
+            username=body["username"],
+            password=body["password"],
+        )
+
+    def _sending_verification_email(self, event: dict) -> None:
+        log.info("Sending verification email to user")
+
+        # generate token for user to send verification email
+        body = json.loads(event["body"])
+        token = self.authenticator.generate_user_token(body["email"])
+
+        event["headers"]["Authorization"] = f"Bearer {token}"
+        self.send_verify_email.invoke(event)

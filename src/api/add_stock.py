@@ -1,7 +1,7 @@
 import json
+from dataclasses import dataclass
 
 from src.api.common.exceptions import (
-    InvalidEmail,
     BadRequest,
     NotAuthenticated,
     UserDoesNotExist,
@@ -20,6 +20,7 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
+@dataclass
 class AddStock(WalterAPIMethod):
     """
     AddStock
@@ -28,14 +29,21 @@ class AddStock(WalterAPIMethod):
     """
 
     API_NAME = "AddStock"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["stock", "quantity"]
     EXCEPTIONS = [
         BadRequest,
         NotAuthenticated,
-        InvalidEmail,
         UserDoesNotExist,
         StockDoesNotExist,
     ]
+
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
+    walter_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
@@ -47,6 +55,7 @@ class AddStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             AddStock.API_NAME,
+            AddStock.REQUIRED_HEADERS,
             AddStock.REQUIRED_FIELDS,
             AddStock.EXCEPTIONS,
             walter_authenticator,

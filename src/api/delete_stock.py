@@ -1,5 +1,6 @@
 import json
 
+from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, NotAuthenticated, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
@@ -10,15 +11,24 @@ from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
 
 
+@dataclass
 class DeleteStock(WalterAPIMethod):
 
     API_NAME = "DeleteStock"
+    REQUIRED_HEADERS = [
+        {"Authorization": "Bearer"},
+        {"Content-Type": "application/json"},
+    ]
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [
         BadRequest,
         NotAuthenticated,
         StockDoesNotExist,
     ]
+
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
+    walter_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
@@ -30,6 +40,7 @@ class DeleteStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             DeleteStock.API_NAME,
+            DeleteStock.REQUIRED_HEADERS,
             DeleteStock.REQUIRED_FIELDS,
             DeleteStock.EXCEPTIONS,
             walter_authenticator,

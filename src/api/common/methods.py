@@ -1,91 +1,66 @@
 import json
-import re
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated
+from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
-################
-# API RESPONSE #
-################
+###########
+# METRICS #
+###########
 
+# Metrics included in this file are emitted for all APIs
 
-class Status(Enum):
-    SUCCESS = "Success"
-    FAILURE = "Failure"
+METRICS_SUCCESS_COUNT = "SuccessCount"
+"""The number of successful API invocations."""
 
+METRICS_FAILURE_COUNT = "FailureCount"
+"""The number of failed API invocations."""
 
-class HTTPStatus(Enum):
-    OK = 200
-    CREATED = 201
-    BAD_REQUEST = 400
-    INTERNAL_SERVER_ERROR = 500
-
-
-@dataclass
-class Response:
-
-    api_name: str
-    http_status: HTTPStatus
-    status: Status
-    message: str
-    data: Optional[dict] = None
-
-    def to_json(self) -> dict:
-        body = {
-            "API": self.api_name,
-            "Status": self.status.value,
-            "Message": self.message,
-        }
-
-        if self.data is not None:
-            body["Data"] = self.data
-
-        return {
-            "statusCode": self.http_status.value,
-            "headers": {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
-            },
-            "body": json.dumps(body),
-        }
-
-
-##############
-# API METHOD #
-##############
+METRICS_TOTAL_COUNT = "TotalCount"
+"""The total number of API invocations."""
 
 
 class WalterAPIMethod(ABC):
+    """
+    WalterAPI - Method
 
-    METRICS_SUCCESS_COUNT = "SuccessCount"
-    METRICS_FAILURE_COUNT = "FailureCount"
-    METRICS_TOTAL_COUNT = "TotalCount"
+    This class contains the core, undifferentiated logic for all Walter APIs.
+    """
 
     def __init__(
         self,
         api_name: str,
+        required_headers: List[str],
         required_fields: List[str],
         exceptions: List[Exception],
         authenticator: WalterAuthenticator,
         metrics: WalterCloudWatchClient,
     ) -> None:
         self.api_name = api_name
+        self.required_headers = required_headers
         self.required_fields = required_fields
         self.exceptions = exceptions
         self.authenticator = authenticator
         self.metrics = metrics
 
     def invoke(self, event: dict) -> dict:
+        """
+        Invoke the API.
+
+        This method is the entrypoint for all Walter APIs.
+
+        Args:
+            event: The request event of the API invocation.
+
+        Returns:
+            The API response.
+        """
         log.info(
             f"Invoking '{self.api_name}' API with event:\n{json.dumps(event, indent=4)}"
         )
@@ -94,6 +69,7 @@ class WalterAPIMethod(ABC):
         try:
             self._validate_request(event)
 
+            # authenticate request if necessary
             authenticated_email = None
             if self.is_authenticated_api():
                 authenticated_email = self._authenticate_request(event)
@@ -107,10 +83,54 @@ class WalterAPIMethod(ABC):
         return response
 
     def _validate_request(self, event: dict) -> None:
+        self._validate_required_headers(event)
         self._validate_required_fields(event)
         self.validate_fields(event)
 
+    def _validate_required_headers(self, event: dict) -> None:
+        """
+        Validate the request event contains the APIs required headers.
+
+        Args:
+            event: The request event to invoke the API.
+
+        Raises:
+            BadRequest exception if any of the APIs required headers are not
+            included in the request.
+        """
+        log.info(f"Validating required headers: {self.required_headers}")
+        headers = event["headers"]
+        multivalue_headers = event["multiValueHeaders"]
+        for header in self.required_headers:
+            key, value = next(iter(header.items()))
+
+            # check headers
+            found_headers = False
+            if key in headers and value in headers[key]:
+                found_headers = True
+
+            # check multivalue headers
+            found_multivalue_headers = False
+            if key in multivalue_headers and value in multivalue_headers[key]:
+                found_multivalue_headers = True
+
+            # throw bad request exception if required header not found in request event headers
+            if not found_headers and not found_multivalue_headers:
+                raise BadRequest(
+                    f"Client bad request! Missing required header: '{header}'"
+                )
+        log.info("Successfully validated required headers!")
+
     def _validate_required_fields(self, event: dict) -> None:
+        """
+        Validate the APIs required fields are included in the request body.
+
+        Args:
+            event: The request event for the API.
+
+        Returns:
+            Raises a BadRequest exception if any required fields are missing.
+        """
         log.info(f"Validating required fields: {self.required_fields}")
         body = {}
         if event["body"] is not None:
@@ -152,11 +172,30 @@ class WalterAPIMethod(ABC):
         return user_email
 
     def _handle_exception(self, exception: Exception) -> dict:
+        """
+        Handle exceptions thrown during API invocation.
+
+        Each API includes a list of expected exceptions that can be handled successfully.
+        These exceptions cause the API to return a Failure status, but a successful HTTPStatus.
+        Unknown exceptions are caught and ultimately rethrown as server internal errors with a
+        HTTPStatus of 500.
+
+        Args:
+            exception: The exception thrown during API invocation.
+
+        Returns:
+            The API response for the exception.
+        """
+        # assume server internal error
         status = HTTPStatus.INTERNAL_SERVER_ERROR
+
+        # if exception is an expected exception, change http status to ok
         for e in self.exceptions:
             if isinstance(exception, e):
                 status = HTTPStatus.OK
                 break
+
+        # return failure response
         return self._create_response(
             status,
             Status.FAILURE,
@@ -174,16 +213,13 @@ class WalterAPIMethod(ABC):
             data=data,
         ).to_json()
 
-    def _get_success_count_metric_name(self) -> str:
-        return f"{self.api_name}.{WalterAPIMethod.METRICS_SUCCESS_COUNT}"
+    def emit_metrics(self, response: dict) -> None:
+        """
+        Emit the common metrics for the API.
 
-    def _get_failure_count_metric_name(self) -> str:
-        return f"{self.api_name}.{WalterAPIMethod.METRICS_FAILURE_COUNT}"
-
-    def _get_total_count_metric_name(self) -> str:
-        return f"{self.api_name}.{WalterAPIMethod.METRICS_TOTAL_COUNT}"
-
-    def emit_metrics(self, response: dict | None) -> None:
+        Args:
+            response: The API response object.
+        """
         success = response["statusCode"] == HTTPStatus.OK.value
         self.metrics.emit_metric(
             self._get_success_count_metric_name(), 1 if success else 0
@@ -193,28 +229,32 @@ class WalterAPIMethod(ABC):
         )
         self.metrics.emit_metric(self._get_total_count_metric_name(), 1)
 
+    def _get_success_count_metric_name(self) -> str:
+        return f"{self.api_name}.{METRICS_SUCCESS_COUNT}"
+
+    def _get_failure_count_metric_name(self) -> str:
+        return f"{self.api_name}.{METRICS_FAILURE_COUNT}"
+
+    def _get_total_count_metric_name(self) -> str:
+        return f"{self.api_name}.{METRICS_TOTAL_COUNT}"
+
     @abstractmethod
     def execute(self, event: dict, email: str) -> dict:
+        """
+        The core action implemented by the API.
+        """
         pass
 
     @abstractmethod
     def validate_fields(self, event: dict) -> None:
+        """
+        Additional validations on the request fields.
+        """
         pass
 
     @abstractmethod
     def is_authenticated_api(self) -> bool:
+        """
+        APIs that require authentication should return True.
+        """
         pass
-
-
-#############
-# API UTILS #
-#############
-
-
-def is_valid_email(email: str) -> bool:
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    return bool(re.match(pattern, email))
-
-
-def is_valid_username(username: str) -> bool:
-    return username.isalnum()
