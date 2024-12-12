@@ -98,6 +98,11 @@ class WalterAPIMethod(ABC):
             BadRequest exception if any of the APIs required headers are not
             included in the request.
         """
+        # early return if no required headers
+        if len(self.required_headers) == 0:
+            log.info("No required headers to validate!")
+            return
+
         log.info(f"Validating required headers: {self.required_headers}")
         headers = event["headers"]
         for header in self.required_headers:
@@ -118,6 +123,11 @@ class WalterAPIMethod(ABC):
         Returns:
             Raises a BadRequest exception if any required fields are missing.
         """
+        # early return if no request payload
+        if len(self.required_fields) == 0:
+            log.info("No required fields to validate!")
+            return
+
         log.info(f"Validating required fields: {self.required_fields}")
         body = {}
         if event["body"] is not None:
