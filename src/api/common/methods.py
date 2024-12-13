@@ -83,6 +83,7 @@ class WalterAPIMethod(ABC):
         return response
 
     def _validate_request(self, event: dict) -> None:
+        log.info("Validating request...")
         self._validate_required_headers(event)
         self._validate_required_fields(event)
         self.validate_fields(event)

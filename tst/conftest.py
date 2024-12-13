@@ -28,6 +28,7 @@ from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue
+from src.stocks.alphavantage.models import CompanyOverview
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
@@ -38,6 +39,9 @@ from src.templates.engine import TemplatesEngine
 #############
 
 AWS_REGION = "us-east-1"
+
+SECRETS_MANAGER_ALPHA_VANTAGE_API_KEY_NAME = "AlphaVantageAPIKey"
+SECRETS_MANAGER_ALPHA_VANTAGE_API_KEY_VALUE = "test-alpha-vantage-api-key"
 
 SECRETS_MANAGER_POLYGON_API_KEY_NAME = "PolygonAPIKey"
 SECRETS_MANAGER_POLYGON_API_KEY_VALUE = "test-polygon-api-key"
@@ -222,9 +226,9 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
     )
     end_date = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
 
-    aapl = Stock(symbol="AAPL", company="Apple Inc.")
-    meta = Stock(symbol="META", company="Meta")
-    abnb = Stock(symbol="ABNB", company="Airbnb")
+    aapl = Stock(symbol="AAPL", company="Apple Inc.", sector="Technology", industry="Electronics")
+    meta = Stock(symbol="META", company="Meta", sector="Technology", industry="Electronics")
+    abnb = Stock(symbol="ABNB", company="Airbnb", sector="Trade & Services", industry="Lodging")
 
     def mock_aggs(*args, **kwargs) -> List[Agg]:
         aggs = {
@@ -336,11 +340,47 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
 
     mock_polygon_rest_client.get_ticker_details.side_effect = mock_get_ticker_details
 
+    class MockAlphaVantageClient:
+        def __init__(self):
+            self.company_overview_map = {
+                aapl.symbol: CompanyOverview(
+                    symbol=aapl.symbol,
+                    name=aapl.company,
+                    description=aapl.company,
+                    exchange="NYSE",
+                    sector=aapl.sector,
+                    industry=aapl.industry,
+                    official_site="https://walterai.dev"
+                ),
+                meta.symbol: CompanyOverview(
+                    symbol=meta.symbol,
+                    name=meta.company,
+                    description=meta.company,
+                    exchange="NYSE",
+                    sector=meta.sector,
+                    industry=meta.industry,
+                    official_site="https://walterai.dev"
+                ),
+                abnb.symbol: CompanyOverview(
+                    symbol=abnb.symbol,
+                    name=abnb.company,
+                    description=abnb.company,
+                    exchange="NYSE",
+                    sector=abnb.sector,
+                    industry=abnb.industry,
+                    official_site="https://walterai.dev"
+                ),
+            }
+
+        def get_company_overview(self, symbol: str) -> CompanyOverview:
+            return self.company_overview_map.get(symbol)
+
     return WalterStocksAPI(
         polygon=PolygonClient(
             api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
             client=mock_polygon_rest_client,
-        )
+        ),
+        alpha_vantage=MockAlphaVantageClient(),
     )
 
 

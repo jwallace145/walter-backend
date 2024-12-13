@@ -5,11 +5,21 @@ from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.stocks.models import Stock
 from src.stocks.client import WalterStocksAPI
+
+from src.utils.log import Logger
+
+log = Logger(__name__).get_logger()
 
 
 @dataclass
 class GetStock(WalterAPIMethod):
+    """
+    WalterAPI - GetStock
+
+    Get stock details.
+    """
 
     API_NAME = "GetStock"
     REQUIRED_QUERY_FIELDS = ["symbol"]
@@ -42,7 +52,7 @@ class GetStock(WalterAPIMethod):
         # get symbol from query params
         symbol = self._get_symbol(event)
 
-        # early return if stock is in db
+        log.info(f"Querying WalterDB for stock: '{symbol}'")
         stock = self.walter_db.get_stock(symbol)
         if stock is not None:
             return self._create_response(
@@ -53,14 +63,11 @@ class GetStock(WalterAPIMethod):
                     "stock": stock.to_dict(),
                 },
             )
+        else:
+            log.info("Stock not found in WalterDB!")
 
-        # if stock is not found in stocks api, raise error
-        stock = self.walter_stocks_api.get_stock(symbol)
-        if stock is None:
-            raise StockDoesNotExist("Stock does not exist!")
-
-        # add stock that wasn't in db to db with info from stocks api and return
-        self.walter_db.add_stock(stock)
+        stock = self._verify_stock_exists(symbol)
+        self._add_stock_to_db(stock)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -83,3 +90,18 @@ class GetStock(WalterAPIMethod):
 
     def _get_symbol(self, event: dict) -> str | None:
         return event["queryStringParameters"]["symbol"]
+
+    def _query_walter_db(self, symbol: str) -> Stock:
+
+        return
+
+    def _verify_stock_exists(self, symbol: str) -> Stock:
+        log.info("Verifying stock exists")
+        stock = self.walter_stocks_api.get_stock(symbol)
+        if stock is None:
+            raise StockDoesNotExist("Stock does not exist!")
+        return stock
+
+    def _add_stock_to_db(self, stock: Stock) -> None:
+        log.info(f"Adding stock '{stock.symbol}' to WalterDB")
+        self.walter_db.add_stock(stock)

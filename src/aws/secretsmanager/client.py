@@ -18,11 +18,15 @@ class WalterSecretsManagerClient:
     generating/decoding authentication tokens and calling external APIs.
 
     Secrets:
+        - AlphaVantageAPIKey: The API key to access Alpha Vantage for stock market news and pricing data.
         - PolygonAPIKey: The API key to access Polygon API for market data.
         - JWTSecretKey: The JSON web token (JWT) secret key used to verify user identity.
         - JWTVerifyEmailSecretKey: The JSON web token (JWT) secret key used to verify user emails.
+        - JWTChangePasswordSecretKey: The JSON web token (JWT) secret key used to verify change password emails.
     """
 
+    ALPHA_VANTAGE_API_KEY_SECRET_ID = "AlphaVantageAPIKey"
+    ALPHA_VANTAGE_API_KEY_SECRET_NAME = "ALPHA_VANTAGE_API_KEY"
     POLYGON_API_KEY_SECRET_ID = "PolygonAPIKey"
     POLYGON_API_KEY_SECRET_NAME = "POLYGON_API_KEY"
     JWT_SECRET_KEY_SECRET_ID = "JWTSecretKey"
@@ -36,6 +40,7 @@ class WalterSecretsManagerClient:
     domain: Domain
 
     # lazy init all secrets
+    alpha_vantage_api_key: str = None
     polygon_api_key: str = None
     jwt_secret_key: str = None
     jwt_verify_email_secret_key: str = None
@@ -45,6 +50,14 @@ class WalterSecretsManagerClient:
         log.debug(
             f"Creating {self.domain.value} SecretsManager client in region '{self.client.meta.region_name}'"
         )
+
+    def get_alpha_vantage_api_key(self) -> str:
+        if self.alpha_vantage_api_key is None:
+            self.alpha_vantage_api_key = self._get_secret(
+                WalterSecretsManagerClient.ALPHA_VANTAGE_API_KEY_SECRET_ID,
+                WalterSecretsManagerClient.ALPHA_VANTAGE_API_KEY_SECRET_NAME,
+            )
+        return self.alpha_vantage_api_key
 
     def get_polygon_api_key(self) -> str:
         if self.polygon_api_key is None:

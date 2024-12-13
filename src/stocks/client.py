@@ -4,6 +4,8 @@ from typing import Dict
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
+from src.stocks.alphavantage.client import AlphaVantageClient
+from src.stocks.alphavantage.models import CompanyOverview
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices, StockNews
@@ -16,6 +18,7 @@ log = Logger(__name__).get_logger()
 class WalterStocksAPI:
 
     polygon: PolygonClient
+    alpha_vantage: AlphaVantageClient
 
     def __post_init__(self) -> None:
         log.debug("Creating WalterStocksAPI")
@@ -32,13 +35,12 @@ class WalterStocksAPI:
         return Portfolio(stocks, user_stocks, prices, news)
 
     def get_stock(self, symbol: str) -> Stock | None:
-        log.info(f"Getting stock '{symbol}' from Polygon")
-        polygon_stock = self.polygon.get_stock(symbol)
-        if polygon_stock is None:
-            return None
-        return Stock(
-            symbol=polygon_stock.symbol,
-            company=polygon_stock.company,
+        log.info(f"Getting stock '{symbol}'")
+        overview = self.alpha_vantage.get_company_overview(symbol)
+        return (
+            WalterStocksAPI._get_stock_from_company_overview(overview)
+            if overview
+            else None
         )
 
     def get_news(self, symbol: str) -> StockNews | None:
@@ -46,3 +48,12 @@ class WalterStocksAPI:
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)
+
+    @staticmethod
+    def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:
+        return Stock(
+            symbol=overview.symbol,
+            company=overview.name,
+            sector=overview.sector,
+            industry=overview.industry,
+        )
