@@ -22,9 +22,7 @@ class VerifyEmail(WalterAPIMethod):
     """
 
     API_NAME = "VerifyEmail"
-    REQUIRED_HEADERS = [
-        {"Authorization": "Bearer"},
-    ]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, NotAuthenticated, UserDoesNotExist, EmailAlreadyVerified]
 

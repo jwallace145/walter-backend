@@ -22,9 +22,7 @@ class Unsubscribe(WalterAPIMethod):
     """
 
     API_NAME = "Unsubscribe"
-    REQUIRED_HEADERS = [
-        {"Authorization": "Bearer"},
-    ]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadyUnsubscribed]
 

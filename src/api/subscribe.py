@@ -22,7 +22,7 @@ class Subscribe(WalterAPIMethod):
     """
 
     API_NAME = "Subscribe"
-    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadySubscribed]
 

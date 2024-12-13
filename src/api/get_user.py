@@ -17,7 +17,7 @@ class GetUser(WalterAPIMethod):
     """
 
     API_NAME = "GetUser"
-    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
 

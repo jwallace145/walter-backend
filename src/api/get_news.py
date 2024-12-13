@@ -13,9 +13,7 @@ from src.stocks.client import WalterStocksAPI
 class GetNews(WalterAPIMethod):
 
     API_NAME = "GetNews"
-    REQUIRED_HEADERS = [
-        {"content-type": "application/json"},
-    ]
+    REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
 

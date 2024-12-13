@@ -26,14 +26,12 @@ class AuthUser(WalterAPIMethod):
     """
 
     API_NAME = "AuthUser"
-    REQUIRED_HEADERS = [
-        {"content-type": "application/json"},
-    ]
+    REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
 
     walter_db: WalterDB
-    wlater_sm: WalterSecretsManagerClient
+    walter_sm: WalterSecretsManagerClient
 
     def __init__(
         self,
