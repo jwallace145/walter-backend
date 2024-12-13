@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import List
 
@@ -74,7 +75,9 @@ class StocksTable:
         Returns:
             None.
         """
-        log.info(f"Putting stock '{stock}' to table '{self.table}'")
+        log.info(
+            f"Putting stock to table '{self.table}':\n{json.dumps(stock.to_dict(), indent=4)}"
+        )
         self.ddb.put_item(self.table, stock.to_ddb_item())
 
     @staticmethod
@@ -114,4 +117,9 @@ class StocksTable:
         Returns:
             The Stock object from the Stocks table.
         """
-        return Stock(symbol=item["symbol"]["S"], company=item["company"]["S"])
+        return Stock(
+            symbol=item["symbol"]["S"],
+            company=item["company"]["S"],
+            sector=item["sector"]["S"],
+            industry=item["industry"]["S"],
+        )

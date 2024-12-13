@@ -26,16 +26,44 @@
 ```yaml
 version: 0.0
 
+#########################
+# DEFAULT TEMPLATE SPEC #
+#########################
+
 TemplateSpec:
-  Parameters:
-    - Key: Introduction # template includes a key "Introduction"
-      Prompt: | # Bedrock prompt for "Introduction" 
-        Introduce yourself as Walter, a friendly AI financial newsletter bot
-      MaxGenLength: 100
-    - Key: DailyJoke # template includes a key "DailyJoke"
-      Prompt: | # Bedrock prompt for "DailyJoke"
-        Tell a joke!
-      MaxGenLength: 50
+
+  ###########
+  # CONTEXT #
+  ###########
+
+  Context:
+    User: {{ user }}
+    PortfolioValue: {{ portfolio_value }}
+    Stocks:
+      {% for stock in stocks %}
+      - Symbol: {{ stock.symbol }}
+        Price: {{ stock.price }}
+      {% endfor %}
+
+  ########
+  # KEYS #
+  ########
+
+  Keys:
+    - Key: User
+      Value: {{ user }}
+    - Key: PortfolioValue
+      Value: {{ portfolio_value }}
+      
+  ###########
+  # PROMPTS #
+  ###########
+
+  Prompts:
+    - Key: Newsletter
+      Prompt: |
+        Write a newsletter with business casual humor!
+      MaxGenLength: 600
 ```
 
 After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 

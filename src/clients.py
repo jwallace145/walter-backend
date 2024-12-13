@@ -18,6 +18,7 @@ from src.environment import get_domain
 from src.events.parser import WalterEventParser
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
+from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
@@ -72,6 +73,7 @@ walter_sm = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 
+ALPHA_VANTAGE_API_KEY = walter_sm.get_alpha_vantage_api_key()
 POLYGON_API_KEY = walter_sm.get_polygon_api_key()
 JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 
@@ -108,7 +110,8 @@ walter_db = WalterDB(
 walter_stocks_api = WalterStocksAPI(
     polygon=PolygonClient(
         api_key=POLYGON_API_KEY,
-    )
+    ),
+    alpha_vantage=AlphaVantageClient(api_key=ALPHA_VANTAGE_API_KEY),
 )
 
 
