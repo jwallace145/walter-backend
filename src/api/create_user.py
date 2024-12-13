@@ -29,9 +29,7 @@ class CreateUser(WalterAPIMethod):
     """
 
     API_NAME = "CreateUser"
-    REQUIRED_HEADERS = [
-        {"content-type": "application/json"},
-    ]
+    REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "username", "password"]
     EXCEPTIONS = [BadRequest, InvalidEmail, InvalidUsername, UserAlreadyExists]
 

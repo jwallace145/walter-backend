@@ -24,7 +24,7 @@ log = Logger(__name__).get_logger()
 class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
-    REQUIRED_HEADERS = [{"Authorization": "Bearer"}]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
         NotAuthenticated,

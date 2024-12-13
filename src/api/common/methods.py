@@ -105,12 +105,12 @@ class WalterAPIMethod(ABC):
             return
 
         log.info(f"Validating required headers: {self.required_headers}")
-        headers = event["headers"]
-        for header in self.required_headers:
-            key, value = next(iter(header.items()))
-            if key not in headers or value not in headers[key]:
+        # lowercase the headers for case-insensitive verification
+        headers = {key.lower(): value for key, value in event["headers"].items()}
+        for key, value in self.required_headers.items():
+            if key.lower() not in headers or value not in headers[key.lower()]:
                 raise BadRequest(
-                    f"Client bad request! Missing required header: '{header}'"
+                    f"Client bad request! Missing required header: '{key} : {value}'"
                 )
         log.info("Successfully validated required headers!")
 

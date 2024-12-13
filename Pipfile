@@ -22,6 +22,7 @@ mypy-boto3-sqs = "*"
 bcrypt = "*"
 pyjwt = "*"
 markdown = "*"
+requests = "*"
 
 [dev-packages]
 black = "*"

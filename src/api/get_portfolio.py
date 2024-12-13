@@ -18,9 +18,7 @@ log = Logger(__name__).get_logger()
 class GetPortfolio(WalterAPIMethod):
 
     API_NAME = "GetPortfolio"
-    REQUIRED_HEADERS = [
-        {"Authorization": "Bearer"},
-    ]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, InvalidEmail, UserDoesNotExist]
 

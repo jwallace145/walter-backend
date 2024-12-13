@@ -226,9 +226,15 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
     )
     end_date = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
 
-    aapl = Stock(symbol="AAPL", company="Apple Inc.", sector="Technology", industry="Electronics")
-    meta = Stock(symbol="META", company="Meta", sector="Technology", industry="Electronics")
-    abnb = Stock(symbol="ABNB", company="Airbnb", sector="Trade & Services", industry="Lodging")
+    aapl = Stock(
+        symbol="AAPL", company="Apple Inc.", sector="Technology", industry="Electronics"
+    )
+    meta = Stock(
+        symbol="META", company="Meta", sector="Technology", industry="Electronics"
+    )
+    abnb = Stock(
+        symbol="ABNB", company="Airbnb", sector="Trade & Services", industry="Lodging"
+    )
 
     def mock_aggs(*args, **kwargs) -> List[Agg]:
         aggs = {
@@ -350,7 +356,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     exchange="NYSE",
                     sector=aapl.sector,
                     industry=aapl.industry,
-                    official_site="https://walterai.dev"
+                    official_site="https://walterai.dev",
                 ),
                 meta.symbol: CompanyOverview(
                     symbol=meta.symbol,
@@ -359,7 +365,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     exchange="NYSE",
                     sector=meta.sector,
                     industry=meta.industry,
-                    official_site="https://walterai.dev"
+                    official_site="https://walterai.dev",
                 ),
                 abnb.symbol: CompanyOverview(
                     symbol=abnb.symbol,
@@ -368,7 +374,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     exchange="NYSE",
                     sector=abnb.sector,
                     industry=abnb.industry,
-                    official_site="https://walterai.dev"
+                    official_site="https://walterai.dev",
                 ),
             }
 
