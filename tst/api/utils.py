@@ -100,6 +100,10 @@ def get_unsubscribe_event(token: str) -> dict:
     return EVENT
 
 
+def get_ingest_news_event() -> dict:
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################

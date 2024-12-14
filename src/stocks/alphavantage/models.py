@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Dict
 
 
 @dataclass(frozen=True)
@@ -27,3 +28,13 @@ class CompanyOverview:
             "industry": self.industry,
             "official_site": self.official_site,
         }
+
+
+@dataclass(frozen=True)
+class CompanyNews:
+    """
+    Company News
+    """
+
+    symbol: str
+    news: Dict[str, str]

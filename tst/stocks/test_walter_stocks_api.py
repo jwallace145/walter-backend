@@ -1,5 +1,4 @@
-from datetime import datetime as dt
-from datetime import timedelta
+import datetime as dt
 
 from src.database.stocks.models import Stock
 from src.database.users.models import User
@@ -10,8 +9,9 @@ from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
 
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
 
-START_DATE = dt(year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
-END_DATE = dt(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
+START_DATE = dt.datetime(year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
+END_DATE = dt.datetime(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
+
 
 AAPL = Stock(symbol="AAPL", company="Apple")
 META = Stock(symbol="META", company="Facebook")
@@ -36,7 +36,7 @@ PRICES = {
             StockPrice(
                 symbol=AAPL.symbol,
                 price=95.0,
-                timestamp=START_DATE + timedelta(hours=1),
+                timestamp=START_DATE + dt.timedelta(hours=1),
             ),
             StockPrice(
                 symbol=AAPL.symbol,
@@ -55,7 +55,7 @@ PRICES = {
             StockPrice(
                 symbol=META.symbol,
                 price=225.0,
-                timestamp=START_DATE + timedelta(hours=1),
+                timestamp=START_DATE + dt.timedelta(hours=1),
             ),
             StockPrice(
                 symbol=META.symbol,

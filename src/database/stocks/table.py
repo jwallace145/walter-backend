@@ -51,13 +51,13 @@ class StocksTable:
 
     def get_stocks(self) -> List[Stock]:
         """
-        Lists all stocks in the Stocks table.
+        Lists all stocks in the `Stocks` table.
 
         This is an expensive operation as it simply scans the entire table.
         Use this method with caution.
 
         Returns:
-            The list of all Stocks included in the Stocks table.
+            The list of all stocks included in the `Stocks` table.
         """
         log.info(f"Listing all stocks in table '{self.table}'")
         return [
