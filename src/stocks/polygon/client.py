@@ -205,7 +205,7 @@ class PolygonClient:
 
     @staticmethod
     def _convert_date_to_string(date: datetime) -> str:
-        return datetime.strftime(date, "%Y-%m-%d")
+        return date.strftime("%Y-%m-%d")
 
     @staticmethod
     def _convert_agg_to_stock_price(symbol: str, agg: Agg) -> StockPrice:

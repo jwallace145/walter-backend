@@ -1,6 +1,6 @@
 ### WalterBackend
 
-[![codecov](https://codecov.io/gh/jwallace145/walter-backend/graph/badge.svg?token=OKI43GAC28)](https://codecov.io/gh/jwallace145/walter-backend)
+[![Walter](https://img.shields.io/badge/Walter-555555)](https://walterai.dev) ![Python Version](https://img.shields.io/badge/Python-3.11-green) [![codecov](https://codecov.io/gh/jwallace145/walter-backend/graph/badge.svg?token=OKI43GAC28)](https://codecov.io/gh/jwallace145/walter-backend)
 
 [`Walter`](`https://walterai.io`) is an artificially intelligent bot that creates and sends customized newsletters to subscribers at 7:00am sharp about the markets they're following. `WalterAI` gathers market data from various APIs for each user and their interested stocks and feeds the data into [Bedrock](https://aws.amazon.com/bedrock/) to get AI insights from the LLM [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/). This allows `WalterAI` to create tailored newsletters for each subscriber including information only about the markets relevant to the user's portfolio.
 
@@ -69,7 +69,14 @@ TemplateSpec:
 After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 
 [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) and then sends the custom newsletter to the subscriber!
 
-### Walter API
+### Dependencies
+
+* [AlphaVantage](https://www.alphavantage.co/documentation/)
+* [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+* [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/index.html)
+* [Jinja](https://jinja.palletsprojects.com/en/stable/)
+* [Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/)
+* [Polygon](https://polygon.io/)
 
 ### Contributions
 
@@ -79,7 +86,4 @@ After getting the answers to the prompts given in the `templatespec.yml` file, W
 * [Codecov](https://about.codecov.io/)
 
 
-### Links
 
-* [Polygon IO Python Client](https://github.com/polygon-io/client-python)
-* [Pre-Commit](https://github.com/pre-commit/pre-commit)

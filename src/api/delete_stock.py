@@ -15,10 +15,7 @@ from src.stocks.client import WalterStocksAPI
 class DeleteStock(WalterAPIMethod):
 
     API_NAME = "DeleteStock"
-    REQUIRED_HEADERS = {
-        "Authorization": "Bearer",
-        "content-type": "application/json"
-    }
+    REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [
         BadRequest,

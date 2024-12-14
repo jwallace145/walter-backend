@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, UTC
+from datetime import datetime
 from typing import Dict
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.alphavantage.client import AlphaVantageClient
-from src.stocks.alphavantage.models import CompanyOverview
+from src.stocks.alphavantage.models import CompanyOverview, CompanyNews
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
-from src.stocks.polygon.models import StockPrices, StockNews
+from src.stocks.polygon.models import StockPrices
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -16,6 +16,9 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class WalterStocksAPI:
+    """
+    WalterStocksAPI
+    """
 
     polygon: PolygonClient
     alpha_vantage: AlphaVantageClient
@@ -43,8 +46,9 @@ class WalterStocksAPI:
             else None
         )
 
-    def get_news(self, symbol: str) -> StockNews | None:
-        return self.polygon.get_news(symbol, datetime.now(UTC) - timedelta(days=7))
+    def get_news(self, symbol: str) -> CompanyNews | None:
+        log.info(f"Getting news '{symbol}'")
+        return self.alpha_vantage.get_news(symbol)
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)

@@ -8,6 +8,7 @@ from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_stock import GetStock
 from src.api.get_user import GetUser
+from src.api.ingest_news import IngestNews
 from src.api.send_change_password_email import SendChangePasswordEmail
 from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
@@ -25,6 +26,7 @@ from src.clients import (
     template_engine,
     templates_bucket,
     walter_ses,
+    knowledge_base,
 )
 from src.newsletters.publish import add_newsletter_to_queue
 
@@ -149,3 +151,14 @@ def add_newsletter_to_queue_entrypoint(event, context) -> dict:
 
 def create_newsletter_and_send_entrypoint(event, context) -> dict:
     return create_newsletter_and_send(event, context)
+
+
+####################
+# WALTER KNOWLEDGE #
+####################
+
+
+def ingest_news_entrypoint(event, context) -> dict:
+    return IngestNews(
+        walter_authenticator, walter_cw, walter_db, walter_stocks_api, knowledge_base
+    ).invoke(event)

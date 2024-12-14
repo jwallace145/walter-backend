@@ -16,6 +16,7 @@ from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.events.parser import WalterEventParser
+from src.knowledge.base import WalterKnowledgeBase
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
@@ -57,13 +58,15 @@ walter_ses = WalterSESClient(
     client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN
 )
 
-##############
-# S3 BUCKETS #
-##############
+###########
+# BUCKETS #
+###########
 
 s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
+
 templates_bucket = TemplatesBucket(s3, DOMAIN)
 newsletters_bucket = NewslettersBucket(s3, DOMAIN)
+knowledge_base = WalterKnowledgeBase(s3)
 
 ###########
 # SECRETS #
@@ -93,9 +96,9 @@ newsletters_queue = NewslettersQueue(
     )
 )
 
-##########################
-# WALTER DATABASE CLIENT #
-##########################
+#############
+# WALTER DB #
+#############
 
 walter_db = WalterDB(
     ddb=WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION)),
@@ -113,7 +116,6 @@ walter_stocks_api = WalterStocksAPI(
     ),
     alpha_vantage=AlphaVantageClient(api_key=ALPHA_VANTAGE_API_KEY),
 )
-
 
 #########################
 # JINJA TEMPLATE ENGINE #

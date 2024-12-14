@@ -23,6 +23,7 @@ bcrypt = "*"
 pyjwt = "*"
 markdown = "*"
 requests = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 black = "*"

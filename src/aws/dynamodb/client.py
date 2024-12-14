@@ -12,7 +12,7 @@ log = Logger(__name__).get_logger()
 @dataclass
 class WalterDDBClient:
     """
-    WalterAI DDB Client
+    Walter DDB Client
 
     This client is a wrapper around the Boto3 DynamoDB client and is
     utilized by Walter to interact with all DDB tables.
