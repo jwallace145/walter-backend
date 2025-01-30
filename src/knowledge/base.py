@@ -33,7 +33,7 @@ class WalterKnowledgeBase:
         for title, contents in news.news.items():
             self._dump_article(stock, title, contents)
         log.info(
-            "Successfully dumped news for company '{news.symbol}' to knowledge base!"
+            f"Successfully dumped news for company '{news.symbol}' to knowledge base!"
         )
 
     def _dump_article(self, symbol: str, title: str, contents: str) -> None:

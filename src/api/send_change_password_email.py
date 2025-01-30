@@ -15,7 +15,7 @@ from src.templates.engine import TemplatesEngine
 class SendChangePasswordEmail(WalterAPIMethod):
 
     API_NAME = "SendChangePasswordEmail"
-    REQUIRED_HEADERS = {"Authorization": "Bearer"}
+    REQUIRED_HEADERS = {}
     REQUIRED_QUERY_FIELDS = ["email"]
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, UserDoesNotExist]

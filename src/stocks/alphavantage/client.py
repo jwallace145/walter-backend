@@ -105,7 +105,7 @@ class AlphaVantageClient:
     def _get_news_url(self, symbol: str, time_from: dt.datetime = ONE_YEAR_AGO) -> str:
         return self._get_method_url(
             method="NEWS_SENTIMENT",
-            args={"symbol": symbol, "time_from": time_from.strftime("%Y%m%dT%H%M")},
+            args={"tickers": symbol, "time_from": time_from.strftime("%Y%m%dT%H%M")},
         )
 
     def _get_method_url(self, method: str, args: dict) -> str:
