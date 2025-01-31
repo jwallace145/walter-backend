@@ -38,3 +38,6 @@ class CompanyNews:
 
     symbol: str
     news: Dict[str, str]
+
+    def to_dict(self) -> dict:
+        return {"symbol": self.symbol, "news": self.news}

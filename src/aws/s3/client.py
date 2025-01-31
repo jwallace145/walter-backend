@@ -54,23 +54,24 @@ class WalterS3Client:
             )
             return []
 
-    def get_object(self, bucket: str, key: str) -> str:
-        log.debug(
-            f"Getting object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
-        )
+    def get_object(self, bucket: str, key: str) -> str | None:
+        uri = WalterS3Client.get_uri(bucket, key)
+        log.debug(f"Getting object from S3 with URI '{uri}'")
         try:
             object = (
                 self.client.get_object(Bucket=bucket, Key=key)["Body"]
                 .read()
                 .decode("utf-8")
             )
-            log.debug(
-                f"Retrieved object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
-            )
+            log.debug(f"Retrieved object from S3 with URI '{uri}'")
             return object
         except ClientError as error:
+            # return none if key does not exist
+            if error.response["Error"]["Code"] == "NoSuchKey":
+                log.warn(f"Object with URI '{uri}' does not exist!")
+                return None
             log.error(
-                f"Unexpected error occurred getting object from S3 '{WalterS3Client.get_uri(bucket, key)}'!",
+                f"Unexpected error occurred getting object from S3 '{uri}'!",
                 error,
             )
             raise error

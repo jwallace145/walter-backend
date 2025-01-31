@@ -11,7 +11,6 @@ from tst.api.utils import (
     get_add_stock_event,
     get_portfolio_event,
     get_send_newsletter_event,
-    get_news_event,
     get_send_verify_email_event,
     get_verify_email_event,
     get_change_password_event,
@@ -19,7 +18,7 @@ from tst.api.utils import (
     get_get_stock_event,
     get_unsubscribe_event,
     get_subscribe_event,
-    get_ingest_news_event,
+    get_news_summary_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -30,7 +29,6 @@ from walter import (
     get_portfolio_entrypoint,
     send_newsletter_entrypoint,
     create_newsletter_and_send_entrypoint,
-    get_news_entrypoint,
     send_verify_email_entrypoint,
     verify_email_entrypoint,
     change_password_entrypoint,
@@ -38,7 +36,7 @@ from walter import (
     get_stock_entrypoint,
     unsubscribe_entrypoint,
     subscribe_entrypoint,
-    ingest_news_entrypoint,
+    get_news_summary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -103,10 +101,10 @@ def get_portfolio(token: str = None) -> None:
 
 
 @app.command()
-def get_news(stock: str = None) -> None:
-    log.info("Walter CLI: Getting news...")
-    event = get_news_event(stock)
-    response = get_news_entrypoint(event, CONTEXT)
+def get_news_summary(stock: str = None) -> None:
+    log.info("Walter CLI: Getting news summary...")
+    event = get_news_summary_event(stock)
+    response = get_news_summary_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -171,14 +169,6 @@ def unsubscribe(token: str = None) -> None:
     log.info("Walter CLI: Unsubscribing user from newsletter...")
     event = get_unsubscribe_event(token)
     response = unsubscribe_entrypoint(event, CONTEXT)
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def ingest_news() -> None:
-    log.info("Walter CLI: Ingesting news...")
-    event = get_ingest_news_event()
-    response = ingest_news_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
