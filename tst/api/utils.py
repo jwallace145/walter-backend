@@ -42,7 +42,7 @@ def get_portfolio_event(token: str) -> dict:
     return EVENT
 
 
-def get_news_event(stock: str) -> dict:
+def get_news_summary_event(stock: str) -> dict:
     EVENT["body"] = json.dumps({"stock": stock})
     EVENT["headers"] = {"content-type": "application/json"}
     return EVENT
@@ -97,10 +97,6 @@ def get_subscribe_event(token: str) -> dict:
 
 def get_unsubscribe_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
-    return EVENT
-
-
-def get_ingest_news_event() -> dict:
     return EVENT
 
 

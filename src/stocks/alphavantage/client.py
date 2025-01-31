@@ -64,12 +64,18 @@ class AlphaVantageClient:
 
         return overview
 
-    def get_news(self, symbol: str) -> CompanyNews | None:
+    def get_news(self, symbol: str, limit: int = 3) -> CompanyNews | None:
         """
         Get relevant company news.
 
+        This method is used by various APIs and therefore needs to be quick to
+        ensure API requests do not time out/take too long. The limit method arg
+        allows callers to limit how many articles this method returns. Default
+        value of 3 ensures fast response times.
+
         Args:
             symbol: The stock symbol of the company.
+            limit: The number of news articles to return.
 
         Returns:
             The latest company news or `None` if not found.
@@ -82,12 +88,12 @@ class AlphaVantageClient:
             log.info("No news found for '{symbol}'")
             return None
 
-        log.info(f"Parsing {len(response['feed'])} articles for '{symbol}'")
+        log.info(f"Parsing {limit} articles for '{symbol}'")
 
         # TODO: Move web scraping to its own class with its own dedicated logic (i.e. a Beautiful Soup wrapper)
 
         news = {}
-        for article in response["feed"]:
+        for article in response["feed"][:limit]:
             title = self._format_title(article["title"])
             url = article["url"]
             log.info(f"Parsing '{url}'")
@@ -105,7 +111,11 @@ class AlphaVantageClient:
     def _get_news_url(self, symbol: str, time_from: dt.datetime = ONE_YEAR_AGO) -> str:
         return self._get_method_url(
             method="NEWS_SENTIMENT",
-            args={"tickers": symbol, "time_from": time_from.strftime("%Y%m%dT%H%M")},
+            args={
+                "tickers": symbol,
+                "sort": "RELEVANCE",
+                "time_from": time_from.strftime("%Y%m%dT%H%M"),
+            },
         )
 
     def _get_method_url(self, method: str, args: dict) -> str:

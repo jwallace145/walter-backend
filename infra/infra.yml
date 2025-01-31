@@ -329,7 +329,7 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: news
 
-  WalterAPIGetNewsMethod:
+  WalterAPIGetNewsSummaryMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
@@ -339,11 +339,11 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNews.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsSummary.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIGetNewsCORSMethod:
+  WalterAPIGetNewsSummaryCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
@@ -372,11 +372,11 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  WalterAPIGetNewsPermission:
+  WalterAPIGetNewsSummaryPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetNews
+      FunctionName: !Ref WalterAPIGetNewsSummary
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetPortfolioResource:
@@ -1005,19 +1005,19 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIGetNewsAlias:
+  WalterAPIGetNewsSummaryAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIGetNews
+      FunctionName: !Ref WalterAPIGetNewsSummary
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetNews-${AppEnvironment}"
+      Name: !Sub "WalterAPI-GetNewsSummary-${AppEnvironment}"
 
-  WalterAPIGetNews:
+  WalterAPIGetNewsSummary:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-GetNews-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetNews - Get news for a given stock (${AppEnvironment})"
-      Handler: walter.get_news_entrypoint
+      FunctionName: !Sub "WalterAPI-GetNewsSummary-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetNewsSummary - Get AI summary of recent news for a given stock (${AppEnvironment})."
+      Handler: walter.get_news_summary_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -1506,6 +1506,7 @@ Resources:
               - "bedrock:InvokeModel"
             Resource: "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
       Roles:
+        - !Ref WalterAPIRole
         - !Ref WalterBackendRole
   
   CloudWatchAccessPolicy:
@@ -1764,6 +1765,44 @@ Resources:
             Principal: 
               AWS: !GetAtt WalterBackendRole.Arn
 
+  NewsSummariesBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "walterai-news-summaries-${AppEnvironment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: "DeleteOldNewsSummaries"
+            Status: "Enabled"
+            ExpirationInDays: 30
+
+  NewsSummariesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref NewsSummariesBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+            Effect: Allow
+            Resource: !Sub "${NewsSummariesBucket.Arn}/*"
+            Principal:
+              AWS: !GetAtt WalterAPIRole.Arn
+          - Action:
+              - "s3:ListBucket"
+            Effect: Allow
+            Resource: !Sub "${NewsSummariesBucket.Arn}"
+            Principal:
+              AWS: !GetAtt WalterAPIRole.Arn
+
   TemplatesBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -1824,7 +1863,7 @@ Outputs:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/portfolios"
   WalterAPIGetPricesEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/prices"
-  WalterAPIGetNewsEndpoint:
+  WalterAPIGetNewsSummaryEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/news"
   WalterAPISendNewsletterEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/newsletters"

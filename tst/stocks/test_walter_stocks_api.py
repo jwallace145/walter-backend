@@ -9,8 +9,12 @@ from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
 
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
 
-START_DATE = dt.datetime(year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
-END_DATE = dt.datetime(year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0)
+START_DATE = dt.datetime(
+    year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0
+)
+END_DATE = dt.datetime(
+    year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0
+)
 
 
 AAPL = Stock(symbol="AAPL", company="Apple")
