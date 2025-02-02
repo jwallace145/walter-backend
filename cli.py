@@ -20,6 +20,7 @@ from tst.api.utils import (
     get_subscribe_event,
     get_news_summary_event,
     get_get_prices_event,
+    get_search_stocks_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -39,6 +40,7 @@ from walter import (
     subscribe_entrypoint,
     get_news_summary_entrypoint,
     get_prices_entrypoint,
+    search_stocks_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -179,6 +181,14 @@ def unsubscribe(token: str = None) -> None:
     log.info("Walter CLI: Unsubscribing user from newsletter...")
     event = get_unsubscribe_event(token)
     response = unsubscribe_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def search_stocks(stock: str = None) -> None:
+    log.info("Walter CLI: Searching stocks...")
+    event = get_search_stocks_event(stock)
+    response = search_stocks_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 

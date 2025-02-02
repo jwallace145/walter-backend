@@ -2,11 +2,13 @@ import datetime as dt
 import json
 import re
 from dataclasses import dataclass
+from typing import List
+
 from bs4 import BeautifulSoup
 
 import requests
 
-from src.stocks.alphavantage.models import CompanyOverview, CompanyNews
+from src.stocks.alphavantage.models import CompanyOverview, CompanyNews, CompanySearch
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -106,6 +108,20 @@ class AlphaVantageClient:
 
         return CompanyNews(symbol=symbol, news=news)
 
+    def search_stock(self, symbol: str) -> List[CompanySearch]:
+        log.info(f"Searching for stocks with tickers similar to '{symbol}'")
+        url = self._get_search_stock_url(symbol)
+        response = requests.get(url).json()
+
+        if response == {}:
+            log.warning(f"No stocks found for symbol '{symbol}'!")
+            return None
+
+        return [
+            AlphaVantageClient._get_company_search(stock)
+            for stock in response["bestMatches"]
+        ]
+
     def _get_company_overview_url(self, symbol: str) -> str:
         return self._get_method_url(method="OVERVIEW", args={"symbol": symbol})
 
@@ -119,6 +135,9 @@ class AlphaVantageClient:
             },
         )
 
+    def _get_search_stock_url(self, symbol: str) -> str:
+        return self._get_method_url(method="SYMBOL_SEARCH", args={"keywords": symbol})
+
     def _get_method_url(self, method: str, args: dict) -> str:
         args_str = ""
         for name, value in args.items():
@@ -128,6 +147,17 @@ class AlphaVantageClient:
             method=method,
             args=args_str,
             key=f"&apikey={self.api_key}",
+        )
+
+    @staticmethod
+    def _get_company_search(stock: dict) -> str:
+        return CompanySearch(
+            symbol=stock["1. symbol"],
+            name=stock["2. name"],
+            type=stock["3. type"],
+            region=stock["4. region"],
+            currency=stock["8. currency"],
+            match_score=stock["9. matchScore"],
         )
 
     @staticmethod
