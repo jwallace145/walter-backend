@@ -32,12 +32,12 @@ class NewsSummariesBucket:
 
     def put_news_summary(self, stock: str, summary: str) -> None:
         log.info("Dumping news summary to S3")
-        key = NewsSummariesBucket._get_summary_key(stock)
+        key = NewsSummariesBucket._get_summary_key(stock, dt.now())
         self.client.put_object(self.bucket, key, summary)
 
     def get_news_summary(self, stock: str) -> str | None:
         log.info("Getting news summary from S3")
-        key = NewsSummariesBucket._get_summary_key(stock)
+        key = NewsSummariesBucket._get_summary_key(stock, dt.now())
         return self.client.get_object(self.bucket, key)
 
     @staticmethod
@@ -45,11 +45,11 @@ class NewsSummariesBucket:
         return NewsSummariesBucket.BUCKET.format(domain=domain.value)
 
     @staticmethod
-    def _get_summary_key(stock: str) -> str:
+    def _get_summary_key(stock: str, timestamp: dt) -> str:
         return NewsSummariesBucket.SUMMARY_KEY.format(
             summaries_dir=NewsSummariesBucket.SUMMARIES_DIR,
             stock=stock.upper(),
-            date=NewsSummariesBucket._get_datestamp(dt.now()),
+            date=NewsSummariesBucket._get_datestamp(timestamp),
         )
 
     @staticmethod
