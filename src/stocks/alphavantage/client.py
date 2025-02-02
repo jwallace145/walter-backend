@@ -57,6 +57,7 @@ class AlphaVantageClient:
             sector=response["Sector"],
             industry=response["Industry"],
             official_site=response["OfficialSite"],
+            address=response["Address"],
         )
         log.info(
             f"Returned company overview for '{symbol}':\n{json.dumps(overview.to_dict(), indent=4)}"

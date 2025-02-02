@@ -357,6 +357,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     sector=aapl.sector,
                     industry=aapl.industry,
                     official_site="https://walterai.dev",
+                    address=aapl.address,
                 ),
                 meta.symbol: CompanyOverview(
                     symbol=meta.symbol,
@@ -366,6 +367,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     sector=meta.sector,
                     industry=meta.industry,
                     official_site="https://walterai.dev",
+                    address=meta.address,
                 ),
                 abnb.symbol: CompanyOverview(
                     symbol=abnb.symbol,
@@ -375,6 +377,7 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     sector=abnb.sector,
                     industry=abnb.industry,
                     official_site="https://walterai.dev",
+                    address=abnb.address,
                 ),
             }
 

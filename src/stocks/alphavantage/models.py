@@ -17,6 +17,7 @@ class CompanyOverview:
     sector: str
     industry: str
     official_site: str
+    address: str
 
     def to_dict(self) -> dict:
         return {
@@ -27,6 +28,7 @@ class CompanyOverview:
             "sector": self.sector,
             "industry": self.industry,
             "official_site": self.official_site,
+            "address": self.address,
         }
 
 

@@ -58,6 +58,10 @@ class WalterStocksAPI:
         return Stock(
             symbol=overview.symbol,
             company=overview.name,
+            exchange=overview.exchange,
             sector=overview.sector,
             industry=overview.industry,
+            description=overview.description,
+            official_site=overview.official_site,
+            address=overview.address,
         )

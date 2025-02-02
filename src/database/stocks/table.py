@@ -120,6 +120,10 @@ class StocksTable:
         return Stock(
             symbol=item["symbol"]["S"],
             company=item["company"]["S"],
+            exchange=item["exchange"]["S"],
             sector=item["sector"]["S"],
             industry=item["industry"]["S"],
+            description=item["description"]["S"],
+            official_site=item["official_site"]["S"],
+            address=item["address"]["S"],
         )
