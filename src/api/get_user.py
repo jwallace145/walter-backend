@@ -59,6 +59,7 @@ class GetUser(WalterAPIMethod):
                 "email": authenticated_email,
                 "username": user.username,
                 "verified": user.verified,
+                "subscribed": user.subscribed,
             },
         )
 
