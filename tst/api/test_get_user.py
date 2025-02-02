@@ -26,7 +26,12 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
         status_code=HTTPStatus.OK,
         status=Status.SUCCESS,
         message="Successfully retrieved user!",
-        data={"email": "walter@gmail.com", "username": "walter", "verified": True},
+        data={
+            "email": "walter@gmail.com",
+            "username": "walter",
+            "verified": True,
+            "subscribed": True,
+        },
     )
     assert expected_response == get_user_api.invoke(event)
 
