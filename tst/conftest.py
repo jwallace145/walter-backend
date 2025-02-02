@@ -207,11 +207,18 @@ def s3_client() -> S3Client:
             Key="templates/default/template.jinja",
             Body=open("./templates/default/template.jinja", "rb").read(),
         )
+        mock_s3.create_bucket(Bucket="walterai-news-summaries-unittest")
+        now = dt.now()
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            Body="news summary",
+        )
         yield mock_s3
 
 
 @pytest.fixture
-def ses_client() -> S3Client:
+def ses_client() -> SESClient:
     with mock_aws():
         mock_ses = boto3.client("ses", region_name=AWS_REGION)
         yield mock_ses

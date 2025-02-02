@@ -68,7 +68,7 @@ class WalterS3Client:
         except ClientError as error:
             # return none if key does not exist
             if error.response["Error"]["Code"] == "NoSuchKey":
-                log.warn(f"Object with URI '{uri}' does not exist!")
+                log.warning(f"Object with URI '{uri}' does not exist!")
                 return None
             log.error(
                 f"Unexpected error occurred getting object from S3 '{uri}'!",
