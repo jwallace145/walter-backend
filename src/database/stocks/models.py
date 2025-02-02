@@ -13,8 +13,12 @@ class Stock:
 
     symbol: str
     company: str
+    exchange: str = "N/A"
     sector: str = "N/A"
     industry: str = "N/A"
+    description: str = "N/A"
+    official_site: str = "N/A"
+    address: str = "N/A"
 
     def to_ddb_item(self) -> dict:
         """
@@ -29,8 +33,12 @@ class Stock:
                 "S": self.symbol,
             },
             "company": {"S": self.company},
+            "exchange": {"S": self.exchange},
             "sector": {"S": self.sector},
             "industry": {"S": self.industry},
+            "description": {"S": self.description},
+            "official_site": {"S": self.official_site},
+            "address": {"S": self.address},
         }
 
     def to_dict(self) -> dict:
@@ -44,6 +52,10 @@ class Stock:
         return {
             "symbol": self.symbol,
             "company": self.company,
+            "exchange": self.exchange,
             "sector": self.sector,
             "industry": self.industry,
+            "description": self.description,
+            "official_site": self.official_site,
+            "address": self.address,
         }

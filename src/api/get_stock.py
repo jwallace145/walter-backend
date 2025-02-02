@@ -52,8 +52,8 @@ class GetStock(WalterAPIMethod):
         # get symbol from query params
         symbol = self._get_symbol(event)
 
-        log.info(f"Querying WalterDB for stock: '{symbol}'")
-        stock = self.walter_db.get_stock(symbol)
+        # check walter db for stock
+        stock = self._query_walter_db(symbol)
         if stock is not None:
             return self._create_response(
                 http_status=HTTPStatus.OK,
@@ -63,11 +63,10 @@ class GetStock(WalterAPIMethod):
                     "stock": stock.to_dict(),
                 },
             )
-        else:
-            log.info("Stock not found in WalterDB!")
 
         stock = self._verify_stock_exists(symbol)
         self._add_stock_to_db(stock)
+
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -91,14 +90,21 @@ class GetStock(WalterAPIMethod):
     def _get_symbol(self, event: dict) -> str | None:
         return event["queryStringParameters"]["symbol"]
 
-    def _query_walter_db(self, symbol: str) -> Stock:
+    def _query_walter_db(self, symbol: str) -> Stock | None:
+        log.info(f"Querying WalterDB for stock: '{symbol}'")
+        stock = self.walter_db.get_stock(symbol)
 
-        return
+        # log if the stock is not found in db for ops
+        if stock is None:
+            log.info("Stock not found in WalterDB!")
+
+        return stock
 
     def _verify_stock_exists(self, symbol: str) -> Stock:
         log.info("Verifying stock exists")
         stock = self.walter_stocks_api.get_stock(symbol)
         if stock is None:
+            log.error("Stock does not exist!")
             raise StockDoesNotExist("Stock does not exist!")
         return stock
 
