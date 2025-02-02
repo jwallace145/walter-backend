@@ -8,6 +8,7 @@ from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_stock import GetStock
 from src.api.get_user import GetUser
+from src.api.search_stocks import SearchStocks
 from src.api.send_change_password_email import SendChangePasswordEmail
 from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
@@ -138,6 +139,10 @@ def subscribe_entrypoint(event, context) -> dict:
 
 def unsubscribe_entrypoint(event, context) -> dict:
     return Unsubscribe(walter_authenticator, walter_cw, walter_db).invoke(event)
+
+
+def search_stocks_entrypoint(event, context) -> dict:
+    return SearchStocks(walter_authenticator, walter_cw, walter_stocks_api).invoke(event)
 
 
 ######################

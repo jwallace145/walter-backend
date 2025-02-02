@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.alphavantage.client import AlphaVantageClient
-from src.stocks.alphavantage.models import CompanyOverview, CompanyNews
+from src.stocks.alphavantage.models import CompanyOverview, CompanyNews, CompanySearch
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices
@@ -49,6 +49,10 @@ class WalterStocksAPI:
     def get_news(self, symbol: str) -> CompanyNews | None:
         log.info(f"Getting news '{symbol}'")
         return self.alpha_vantage.get_news(symbol)
+
+    def search_stock(self, symbol: str) -> List[CompanySearch]:
+        log.info(f"Searching for stocks similar to '{symbol}'")
+        return self.alpha_vantage.search_stock(symbol)
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)

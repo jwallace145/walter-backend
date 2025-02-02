@@ -106,6 +106,11 @@ def get_unsubscribe_event(token: str) -> dict:
     return EVENT
 
 
+def get_search_stocks_event(stock: str) -> dict:
+    EVENT["queryStringParameters"] = {"symbol": stock}
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################

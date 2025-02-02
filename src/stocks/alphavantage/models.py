@@ -43,3 +43,27 @@ class CompanyNews:
 
     def to_dict(self) -> dict:
         return {"symbol": self.symbol, "news": self.news}
+
+
+@dataclass(frozen=True)
+class CompanySearch:
+    """
+    Company Search
+    """
+
+    symbol: str
+    name: str
+    type: str
+    region: str
+    currency: str
+    match_score: float
+
+    def to_dict(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "name": self.name,
+            "type": self.type,
+            "region": self.region,
+            "currency": self.currency,
+            "match_score": self.match_score,
+        }
