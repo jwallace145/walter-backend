@@ -87,7 +87,14 @@ def ddb_client() -> DynamoDBClient:
                 mock_ddb.put_item(
                     TableName=STOCKS_TABLE_NAME,
                     Item=Stock(
-                        symbol=json_stock["symbol"], company=json_stock["company"]
+                        symbol=json_stock["symbol"],
+                        company=json_stock["company"],
+                        description=json_stock["description"],
+                        exchange=json_stock["exchange"],
+                        sector=json_stock["sector"],
+                        industry=json_stock["industry"],
+                        official_site=json_stock["official_site"],
+                        address=json_stock["address"],
                     ).to_ddb_item(),
                 )
 
@@ -233,7 +240,12 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
         symbol="META", company="Meta", sector="Technology", industry="Electronics"
     )
     abnb = Stock(
-        symbol="ABNB", company="Airbnb", sector="Trade & Services", industry="Lodging"
+        symbol="ABNB",
+        company="Airbnb",
+        exchange="NYSE",
+        sector="Trade & Services",
+        industry="Lodging",
+        official_site="https://walterai.dev",
     )
 
     def mock_aggs(*args, **kwargs) -> List[Agg]:

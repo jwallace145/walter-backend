@@ -41,14 +41,14 @@ def test_get_portfolio(
             "stocks": [
                 {
                     "symbol": "AAPL",
-                    "company": "Apple",
+                    "company": "Apple Inc",
                     "price": 100.0,
                     "quantity": 100.0,
                     "equity": 10_000.0,
                 },
                 {
                     "symbol": "META",
-                    "company": "Meta",
+                    "company": "Meta Platforms Inc.",
                     "price": 250.0,
                     "quantity": 100.0,
                     "equity": 25_000.0,
