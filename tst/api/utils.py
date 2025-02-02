@@ -37,6 +37,12 @@ def get_delete_stock_event(stock: str, token: str) -> dict:
     return EVENT
 
 
+def get_get_prices_event(symbol: str) -> dict:
+    EVENT["body"] = json.dumps({"stock": symbol})
+    EVENT["headers"] = {"content-type": "application/json"}
+    return EVENT
+
+
 def get_portfolio_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT

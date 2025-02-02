@@ -296,6 +296,29 @@ def walter_stocks_api(mocker) -> WalterStocksAPI:
                     timestamp=end_date.timestamp() * 1000,
                 ),
             ],
+            abnb.symbol: [
+                Agg(
+                    open=1000.0,
+                    high=1025.0,
+                    low=998.0,
+                    close=1001.0,
+                    timestamp=start_date.timestamp() * 1000,
+                ),
+                Agg(
+                    open=1005.0,
+                    high=1050.0,
+                    low=1001.0,
+                    close=1004.0,
+                    timestamp=(start_date + timedelta(hours=1)).timestamp() * 1000,
+                ),
+                Agg(
+                    open=1006.0,
+                    high=1042.0,
+                    low=1005.0,
+                    close=1006.0,
+                    timestamp=end_date.timestamp() * 1000,
+                ),
+            ],
         }
         for key, value in kwargs.items():
             if key == "ticker":

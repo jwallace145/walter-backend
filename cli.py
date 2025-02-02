@@ -19,6 +19,7 @@ from tst.api.utils import (
     get_unsubscribe_event,
     get_subscribe_event,
     get_news_summary_event,
+    get_get_prices_event,
 )
 from tst.events.utils import get_walter_backend_event
 from walter import (
@@ -37,6 +38,7 @@ from walter import (
     unsubscribe_entrypoint,
     subscribe_entrypoint,
     get_news_summary_entrypoint,
+    get_prices_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -89,6 +91,14 @@ def add_stock(token: str = None, stock: str = None, quantity: float = None) -> N
     log.info("Walter CLI: Adding stock...")
     event = get_add_stock_event(stock, quantity, token)
     response = add_stock_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_prices(stock: str = None) -> None:
+    log.info("Walter CLI: Getting prices...")
+    event = get_get_prices_event(stock)
+    response = get_prices_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
