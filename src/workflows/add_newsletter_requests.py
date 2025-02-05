@@ -8,11 +8,11 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
-def add_newsletter_to_queue(event, context) -> dict:
+def add_newsletter_requests_workflow(event, context) -> dict:
     """
     Get users from WalterDB and send newsletters to all verified and subscribed users.
     """
-    log.info("WalterNewsletters invoked!")
+    log.info("WalterWorkflow: AddNewsletterRequests invoked!")
 
     # get all users from db
     users = walter_db.get_users()
@@ -37,4 +37,7 @@ def add_newsletter_to_queue(event, context) -> dict:
         request = NewsletterRequest(email=user.email)
         newsletters_queue.add_newsletter_request(request)
 
-    return {"statusCode": 200, "body": json.dumps("WalterNewsletters")}
+    return {
+        "statusCode": 200,
+        "body": json.dumps("WalterWorkflow: AddNewsletterRequests"),
+    }

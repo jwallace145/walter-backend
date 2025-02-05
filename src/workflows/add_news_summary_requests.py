@@ -9,7 +9,7 @@ log = Logger(__name__).get_logger()
 
 
 def add_news_summary_requests_workflow(event, context) -> dict:
-    log.info("WalterWorkflow: Add News Summary Requests")
+    log.info("WalterWorkflow: AddNewsSummaryRequests invoked!")
 
     log.info(
         "Scanning WalterDB Stocks table for all stocks to generate news summaries..."
@@ -31,5 +31,5 @@ def add_news_summary_requests_workflow(event, context) -> dict:
     )
     return {
         "statusCode": 200,
-        "body": json.dumps("WalterWorkflow: Add News Summary Requests"),
+        "body": json.dumps("WalterWorkflow: AddNewsSummaryRequests"),
     }

@@ -1406,19 +1406,19 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterNewslettersAlias:
+  WalterWorkflowAddNewsletterRequestsAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterNewsletters
+      FunctionName: !Ref WalterWorkflowAddNewsletterRequests
       FunctionVersion: $LATEST
-      Name: !Sub "WalterNewsletters-${AppEnvironment}"
+      Name: !Sub "WalterWorkflow-AddNewsletterRequests-${AppEnvironment}"
 
-  WalterNewsletters:
+  WalterWorkflowAddNewsletterRequests:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterNewsletters-${AppEnvironment}"
-      Description: !Sub "WalterNewsletters: Gets users from WalterDB and sends newsletter requests to queue (${AppEnvironment})"
-      Handler: walter.add_newsletter_to_queue_entrypoint
+      FunctionName: !Sub "WalterWorkflow-AddNewsletterRequests-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow: AddNewsletterRequests - Scan WalterDB and add newsletter requests for all users for asynchronous processing (${AppEnvironment})"
+      Handler: walter.add_newsletter_requests_entrypoint
       Role: !GetAtt WalterNewslettersRole.Arn
       Code:
         S3Bucket: walter-backend-src
@@ -1451,7 +1451,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment}"
-      Description: !Sub "WalterWorkflow: AddNewsSummaryRequests - Scan WalterDB and add news summary requests for all stocks (${AppEnvironment})"
+      Description: !Sub "WalterWorkflow: AddNewsSummaryRequests - Scan WalterDB and add news summary requests for all stocks for asynchronous processing (${AppEnvironment})"
       Handler: walter.add_news_summary_requests_entrypoint
       Role: !GetAtt WalterWorkflowAddNewsSummaryRequestsRole.Arn
       Code:
@@ -1474,18 +1474,18 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterBackendAlias:
+  WalterWorkflowCreateNewsletterAndSendAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterBackend
+      FunctionName: !Ref WalterWorkflowCreateNewsletterAndSend
       FunctionVersion: $LATEST
-      Name: !Sub "WalterBackend-${AppEnvironment}"
+      Name: !Sub "WalterWorkflow-CreateNewsletterAndSend-${AppEnvironment}"
 
-  WalterBackend:
+  WalterWorkflowCreateNewsletterAndSend:
       Type: AWS::Lambda::Function
       Properties:
-        FunctionName: !Sub "WalterBackend-${AppEnvironment}"
-        Description: !Sub "WalterBackend function to read from WalterDB and write and send newsletters (${AppEnvironment})"
+        FunctionName: !Sub "WalterWorkflow-CreateNewsletterAndSend-${AppEnvironment}"
+        Description: !Sub "WalterWorkflow: CreateNewsletterAndSend - Get user portfolio from WalterDB and create newsletter and send (${AppEnvironment})"
         Handler: walter.create_newsletter_and_send_entrypoint
         Role: !GetAtt WalterBackendRole.Arn
         Code:
@@ -1513,7 +1513,7 @@ Resources:
     Properties:
       BatchSize: 1
       EventSourceArn: !GetAtt NewslettersQueue.Arn
-      FunctionName: !GetAtt WalterBackend.Arn
+      FunctionName: !GetAtt WalterWorkflowCreateNewsletterAndSend.Arn
       Enabled: "True"
 
   ################
