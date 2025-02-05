@@ -35,8 +35,9 @@ def get_unsubscribe_link(email: str) -> str:
     return "https://walterai.dev/unsubscribe?token=" + token
 
 
-def create_newsletter_and_send(event, context) -> dict:
-    log.info(f"WalterBackend invoked! Using the following configurations:\n{CONFIG}")
+def create_newsletter_and_send_workflow(event, context) -> dict:
+    log.info("WalterWorkflow: CreateNewsLetterAndSend invoked!")
+    log.info(f"Using the following configurations:\n{CONFIG}")
 
     # parse event from queue
     event = walter_event_parser.parse_create_newsletter_and_send_event(event)
@@ -103,4 +104,7 @@ def create_newsletter_and_send(event, context) -> dict:
         newsletters_queue.delete_newsletter_request(event.receipt_handle)
     newsletters_queue.delete_newsletter_request(event.receipt_handle)
 
-    return {"statusCode": 200, "body": json.dumps("WalterBackend")}
+    return {
+        "statusCode": 200,
+        "body": json.dumps("WalterWorkflow: CreateNewsLetterAndSend"),
+    }

@@ -15,7 +15,6 @@ from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
 from src.api.verify_email import VerifyEmail
-from src.backend.backend import create_newsletter_and_send
 from src.clients import (
     walter_cw,
     walter_db,
@@ -29,10 +28,11 @@ from src.clients import (
     news_summaries_bucket,
     walter_ai,
 )
-from src.newsletters.publish import add_newsletter_to_queue
 from src.workflows.add_news_summary_requests import (
     add_news_summary_requests_workflow,
 )
+from src.workflows.add_newsletter_requests import add_newsletter_requests_workflow
+from src.workflows.create_newsletter_and_send import create_newsletter_and_send_workflow
 
 
 ##############
@@ -150,13 +150,13 @@ def search_stocks_entrypoint(event, context) -> dict:
     )
 
 
-############################
-# WALTER BACKEND WORKFLOWS #
-############################
+####################
+# WALTER WORKFLOWS #
+####################
 
 
-def add_newsletter_to_queue_entrypoint(event, context) -> dict:
-    return add_newsletter_to_queue(event, context)
+def add_newsletter_requests_entrypoint(event, context) -> dict:
+    return add_newsletter_requests_workflow(event, context)
 
 
 def add_news_summary_requests_entrypoint(event, context) -> dict:
@@ -164,4 +164,4 @@ def add_news_summary_requests_entrypoint(event, context) -> dict:
 
 
 def create_newsletter_and_send_entrypoint(event, context) -> dict:
-    return create_newsletter_and_send(event, context)
+    return create_newsletter_and_send_workflow(event, context)

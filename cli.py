@@ -2,9 +2,7 @@ import json
 
 import typer
 
-from src.newsletters.publish import add_newsletter_to_queue
 from src.utils.log import Logger
-from src.workflows.add_news_summary_requests import add_news_summary_requests_workflow
 from tst.api.utils import (
     get_auth_user_event,
     get_create_user_event,
@@ -42,6 +40,7 @@ from walter import (
     get_news_summary_entrypoint,
     get_prices_entrypoint,
     search_stocks_entrypoint,
+    add_newsletter_requests_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -193,29 +192,31 @@ def search_stocks(stock: str = None) -> None:
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
-############################
-# WALTER BACKEND WORKFLOWS #
-############################
+####################
+# WALTER WORKFLOWS #
+####################
 
 
 @app.command()
 def send_newsletters():
-    log.info("Walter CLI: Sending newsletters to all users...")
-    add_newsletter_to_queue({}, CONTEXT)
+    log.info("WalterCLI: Creating and sending newsletters to all users...")
+    response = add_newsletter_requests_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 @app.command()
-def generate_news_summaries() -> None:
-    log.info("WalterCLI: Generating news summaries...")
-    add_news_summary_requests_workflow({}, CONTEXT)
+def create_news_summaries() -> None:
+    log.info("WalterCLI: Creating news summaries...")
+    response = add_newsletter_requests_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 @app.command()
-def walter_backend(email: str = None) -> None:
-    log.info("Walter CLI: Invoking WalterBackend...")
+def create_and_send_newsletter(email: str = None) -> None:
+    log.info("WalterCLI: Creating and sending newsletter...")
     event = get_walter_backend_event(email)
     response = create_newsletter_and_send_entrypoint(event, CONTEXT)
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 if __name__ == "__main__":
