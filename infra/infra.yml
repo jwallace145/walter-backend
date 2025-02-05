@@ -1440,6 +1440,40 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterWorkflowAddNewsSummaryRequestsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterWorkflowAddNewsSummaryRequests
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment}"
+
+  WalterWorkflowAddNewsSummaryRequests:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow: AddNewsSummaryRequests - Scan WalterDB and add news summary requests for all stocks (${AppEnvironment})"
+      Handler: walter.add_news_summary_requests_entrypoint
+      Role: !GetAtt WalterWorkflowAddNewsSummaryRequestsRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:29"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
   WalterBackendAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -1564,6 +1598,23 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  WalterWorkflowAddNewsSummaryRequestsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "WalterWorkflow-AddNewsSummaryRequestsRole-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment} role to add news summary requests to queue for asynchronous processing."
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   WalterBackendRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1648,6 +1699,23 @@ Resources:
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
+  NewsSummariesQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "NewsSummariesQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
+            Resource: !GetAtt NewsSummariesQueue.Arn
+      Roles:
+        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+
   SecretsManagerAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -1719,6 +1787,7 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
+        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
 
   SimpleEmailSerivceAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1756,6 +1825,7 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
+        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
 
   TemplatesBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1934,6 +2004,13 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 3600
+
+  NewsSummariesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "NewsSummariesQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
       VisibilityTimeout: 3600
 
