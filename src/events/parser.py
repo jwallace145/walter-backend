@@ -1,8 +1,12 @@
 import json
 from dataclasses import dataclass
 
-from src.events.models import CreateNewsletterAndSendEvent
+from src.events.models import (
+    CreateNewsletterAndSendEvent,
+    CreateNewsSummaryAndArchiveEvent,
+)
 from src.utils.log import Logger
+import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -12,6 +16,32 @@ class WalterEventParser:
     """
     WalterEventParser
     """
+
+    def parse_create_news_summary_and_archive_event(
+        self, event: dict
+    ) -> CreateNewsSummaryAndArchiveEvent:
+        """
+        Parse NewsSummaries queue SQS message into CreateNewsSummaryAndArchiveEvent.
+
+        Args:
+            event: The NewsSummaries SQS message to parse.
+
+        Returns:
+            The NewsSummaries message as CreateNewsSummaryAndArchiveEvent.
+        """
+        log.info(f"Parsing event:\n{json.dumps(event, indent=4)}")
+
+        WalterEventParser.verify_one_record(event)
+        records = event["Records"]
+        record = records[0]
+        receipt_handle = record["receiptHandle"]
+        body = json.loads(record["body"])
+
+        return CreateNewsSummaryAndArchiveEvent(
+            receipt_handle=receipt_handle,
+            datestamp=dt.datetime.strptime(body["datestamp"], "%Y-%m-%d"),
+            stock=body["stock"],
+        )
 
     def parse_create_newsletter_and_send_event(
         self, event: dict
@@ -27,10 +57,8 @@ class WalterEventParser:
         """
         log.info(f"Parsing event:\n{json.dumps(event, indent=4)}")
 
+        WalterEventParser.verify_one_record(event)
         records = event["Records"]
-        if len(records) != 1:
-            raise ValueError("More than one record in event!")
-
         record = records[0]
         receipt_handle = record["receiptHandle"]
         body = json.loads(record["body"])
@@ -39,3 +67,9 @@ class WalterEventParser:
             receipt_handle=receipt_handle,
             email=body["email"],
         )
+
+    @staticmethod
+    def verify_one_record(event: dict) -> None:
+        records = event["Records"]
+        if len(records) != 1:
+            raise ValueError("More than one record in event!")

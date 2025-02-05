@@ -37,4 +37,6 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterWorkflow AddNewsSummaryRequests source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-AddNewsSummaryRequests-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterWorkflow CreateNewsletterAndSend source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterWorkflow-CreateNewsletterAndSend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
+&& aws lambda update-function-code --function-name WalterWorkflow-CreateNewsletterAndSend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterWorkflow CreateNewsSummaryAndArchive source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterWorkflow-CreateNewsSummaryAndArchive-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
