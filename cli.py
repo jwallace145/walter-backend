@@ -4,6 +4,7 @@ import typer
 
 from src.newsletters.publish import add_newsletter_to_queue
 from src.utils.log import Logger
+from src.workflows.add_news_summary_requests import add_news_summary_requests_workflow
 from tst.api.utils import (
     get_auth_user_event,
     get_create_user_event,
@@ -192,9 +193,9 @@ def search_stocks(stock: str = None) -> None:
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
-###########################
-# WALTER SEND NEWSLETTERS #
-###########################
+############################
+# WALTER BACKEND WORKFLOWS #
+############################
 
 
 @app.command()
@@ -203,9 +204,10 @@ def send_newsletters():
     add_newsletter_to_queue({}, CONTEXT)
 
 
-##################
-# WALTER BACKEND #
-##################
+@app.command()
+def generate_news_summaries() -> None:
+    log.info("WalterCLI: Generating news summaries...")
+    add_news_summary_requests_workflow({}, CONTEXT)
 
 
 @app.command()

@@ -1,22 +1,10 @@
 import json
 from dataclasses import dataclass
 
+from src.events.models import CreateNewsletterAndSendEvent
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-
-@dataclass(frozen=True)
-class CreateNewsletterAndSendEvent:
-    """
-    CreateNewsletterAndSendEvent
-
-    This event is consumed by WalterBackend via a SQS queue and is used
-    to generate and send a newsletter to a user with the given email.
-    """
-
-    receipt_handle: str
-    email: str
 
 
 @dataclass

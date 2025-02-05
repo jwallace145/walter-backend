@@ -17,6 +17,7 @@ from src.database.client import WalterDB
 from src.environment import get_domain
 from src.events.parser import WalterEventParser
 from src.news.bucket import NewsSummariesBucket
+from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
@@ -57,6 +58,9 @@ walter_cw = WalterCloudWatchClient(
 walter_ses = WalterSESClient(
     client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN
 )
+walter_sqs = WalterSQSClient(
+    client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN
+)
 
 ###########
 # BUCKETS #
@@ -90,11 +94,13 @@ walter_authenticator = WalterAuthenticator(walter_sm=walter_sm)
 # NEWSLETTERS QUEUE #
 #####################
 
-newsletters_queue = NewslettersQueue(
-    client=WalterSQSClient(
-        client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN
-    )
-)
+newsletters_queue = NewslettersQueue(client=walter_sqs)
+
+########################
+# NEWS SUMMARIES QUEUE #
+########################
+
+news_summaries_queue = NewsSummariesQueue(client=walter_sqs)
 
 #############
 # WALTER DB #

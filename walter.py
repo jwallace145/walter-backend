@@ -30,6 +30,9 @@ from src.clients import (
     walter_ai,
 )
 from src.newsletters.publish import add_newsletter_to_queue
+from src.workflows.add_news_summary_requests import (
+    add_news_summary_requests_workflow,
+)
 
 
 ##############
@@ -142,21 +145,22 @@ def unsubscribe_entrypoint(event, context) -> dict:
 
 
 def search_stocks_entrypoint(event, context) -> dict:
-    return SearchStocks(walter_authenticator, walter_cw, walter_stocks_api).invoke(event)
+    return SearchStocks(walter_authenticator, walter_cw, walter_stocks_api).invoke(
+        event
+    )
 
 
-######################
-# WALTER NEWSLETTERS #
-######################
+############################
+# WALTER BACKEND WORKFLOWS #
+############################
 
 
 def add_newsletter_to_queue_entrypoint(event, context) -> dict:
     return add_newsletter_to_queue(event, context)
 
 
-##################
-# WALTER BACKEND #
-##################
+def add_news_summary_requests_entrypoint(event, context) -> dict:
+    return add_news_summary_requests_workflow(event, context)
 
 
 def create_newsletter_and_send_entrypoint(event, context) -> dict:
