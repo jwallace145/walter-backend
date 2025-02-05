@@ -21,7 +21,10 @@ from tst.api.utils import (
     get_get_prices_event,
     get_search_stocks_event,
 )
-from tst.events.utils import get_walter_backend_event
+from tst.events.utils import (
+    get_walter_backend_event,
+    get_create_news_summary_and_archive_event,
+)
 from walter import (
     auth_user_entrypoint,
     create_user_entrypoint,
@@ -41,6 +44,8 @@ from walter import (
     get_prices_entrypoint,
     search_stocks_entrypoint,
     add_newsletter_requests_entrypoint,
+    add_news_summary_requests_entrypoint,
+    create_news_summary_and_archive_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -205,17 +210,25 @@ def send_newsletters():
 
 
 @app.command()
-def create_news_summaries() -> None:
-    log.info("WalterCLI: Creating news summaries...")
-    response = add_newsletter_requests_entrypoint({}, CONTEXT)
-    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
 def create_and_send_newsletter(email: str = None) -> None:
     log.info("WalterCLI: Creating and sending newsletter...")
     event = get_walter_backend_event(email)
     response = create_newsletter_and_send_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def create_news_summaries() -> None:
+    log.info("WalterCLI: Creating news summaries...")
+    response = add_news_summary_requests_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def create_news_summary_and_archive(stock: str = None) -> None:
+    log.info("WalterCLI: Creating news summary and archiving...")
+    event = get_create_news_summary_and_archive_event(stock)
+    response = create_news_summary_and_archive_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 

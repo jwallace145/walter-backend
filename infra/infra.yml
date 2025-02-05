@@ -1474,6 +1474,48 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterWorkflowCreateNewsSummaryAndArchiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterWorkflowCreateNewsSummaryAndArchive
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterWorkflow-CreateNewsletterAndArchive-${AppEnvironment}"
+
+  WalterWorkflowCreateNewsSummaryAndArchive:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterWorkflow-CreateNewsSummaryAndArchive-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow: CreateNewsSummaryAndArchive - Get recent stock news and generate AI summary to archive (${AppEnvironment})"
+      Handler: walter.create_news_summary_and_archive_entrypoint
+      Role: !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:29"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterWorkflowCreateNewsSummaryAndArchiveFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      EventSourceArn: !GetAtt NewsSummariesQueue.Arn
+      FunctionName: !GetAtt WalterWorkflowCreateNewsSummaryAndArchive.Arn
+      Enabled: "True"
+
   WalterWorkflowCreateNewsletterAndSendAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -1615,6 +1657,23 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  WalterWorkflowCreateNewsSummaryAndArchiveRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "WalterWorkflow-CreateNewsSummaryAndArchiveRole-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow-CreateNewsSummaryAndArchive role to create news summaries and archive in S3 (${AppEnvironment})"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   WalterBackendRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1650,6 +1709,7 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
   
   CloudWatchAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1715,6 +1775,8 @@ Resources:
             Resource: !GetAtt NewsSummariesQueue.Arn
       Roles:
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+        - !Ref WalterBackendRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   SecretsManagerAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1788,6 +1850,7 @@ Resources:
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   SimpleEmailSerivceAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1956,13 +2019,17 @@ Resources:
             Effect: Allow
             Resource: !Sub "${NewsSummariesBucket.Arn}/*"
             Principal:
-              AWS: !GetAtt WalterAPIRole.Arn
+              AWS:
+                - !GetAtt WalterAPIRole.Arn
+                - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
           - Action:
               - "s3:ListBucket"
             Effect: Allow
             Resource: !Sub "${NewsSummariesBucket.Arn}"
             Principal:
-              AWS: !GetAtt WalterAPIRole.Arn
+              AWS:
+                - !GetAtt WalterAPIRole.Arn
+                - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
