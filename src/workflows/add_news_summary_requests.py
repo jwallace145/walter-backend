@@ -22,7 +22,8 @@ def add_news_summary_requests_workflow(event, context) -> dict:
             NewsSummaryRequest(
                 datestamp=dt.datetime.now().replace(
                     hour=0, minute=0, second=0, microsecond=0
-                ),
+                )
+                + dt.timedelta(days=1),
                 stock=stock.symbol.upper(),
             )
         )

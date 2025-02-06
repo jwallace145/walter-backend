@@ -19,9 +19,9 @@ class WalterAI:
         log.debug("Creating WalterAI")
 
     def generate_response(self, context: str, prompt: str, max_gen_len: int) -> str:
-        return self._get_model().generate_response(context, prompt, max_gen_len)
+        return self.get_model().generate_response(context, prompt, max_gen_len)
 
-    def _get_model(self) -> MetaLlama38B:
+    def get_model(self) -> MetaLlama38B:
         model = get_model(self.model)
         log.info(f"Getting model: '{model.name}'")
 

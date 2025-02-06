@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import List
 
 
 @dataclass(frozen=True)
@@ -33,16 +33,38 @@ class CompanyOverview:
 
 
 @dataclass(frozen=True)
+class NewsArticle:
+    """
+    News Article
+
+    The model object for a news article from AlphaVantage.
+    """
+
+    title: str
+    url: str
+    contents: str
+
+    def to_dict(self) -> dict:
+        return {"title": self.title, "url": self.url, "summary": self.contents}
+
+
+@dataclass(frozen=True)
 class CompanyNews:
     """
     Company News
     """
 
-    symbol: str
-    news: Dict[str, str]
+    stock: str
+    articles: List[NewsArticle]
 
     def to_dict(self) -> dict:
-        return {"symbol": self.symbol, "news": self.news}
+        return {
+            "stock": self.stock,
+            "articles": [article.to_dict() for article in self.articles],
+        }
+
+    def get_article_urls(self) -> List[str]:
+        return [article.url for article in self.articles]
 
 
 @dataclass(frozen=True)

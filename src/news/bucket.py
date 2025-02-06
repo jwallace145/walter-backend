@@ -7,6 +7,9 @@ from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+TODAY = dt.now().replace(hour=0, minute=0, second=0, microsecond=0)
+"""(datetime): The current date which is used as the default value to get/write news summaries to/from S3."""
+
 
 @dataclass
 class NewsSummariesBucket:
@@ -30,14 +33,14 @@ class NewsSummariesBucket:
             f"Creating '{self.domain.value}' NewsSummariesBucket S3 client with bucket '{self.bucket}'"
         )
 
-    def put_news_summary(self, stock: str, summary: str) -> None:
+    def put_news_summary(self, stock: str, summary: str, date: dt = TODAY) -> str:
         log.info("Dumping news summary to S3")
-        key = NewsSummariesBucket._get_summary_key(stock, dt.now())
-        self.client.put_object(self.bucket, key, summary)
+        key = NewsSummariesBucket._get_summary_key(stock, date)
+        return self.client.put_object(self.bucket, key, summary)
 
-    def get_news_summary(self, stock: str) -> str | None:
+    def get_news_summary(self, stock: str, date: dt = TODAY) -> str | None:
         log.info("Getting news summary from S3")
-        key = NewsSummariesBucket._get_summary_key(stock, dt.now())
+        key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.get_object(self.bucket, key)
 
     @staticmethod

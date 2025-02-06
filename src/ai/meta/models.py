@@ -21,6 +21,7 @@ class MetaLlama38B:
     """
 
     MODEL_ID = "meta.llama3-70b-instruct-v1:0"
+    MODEL_NAME = "Meta Llama 3"
 
     client: WalterBedrockClient
 
@@ -35,6 +36,9 @@ class MetaLlama38B:
         log.debug(f"Response:\n{response}")
         log.info("Successfully returned a response!")
         return response
+
+    def get_name(self) -> str:
+        return self.MODEL_NAME
 
     def _get_body(self, context: str, prompt: str, max_gen_len: int) -> str:
         return json.dumps(

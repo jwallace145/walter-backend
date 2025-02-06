@@ -225,9 +225,9 @@ def create_news_summaries() -> None:
 
 
 @app.command()
-def create_news_summary_and_archive(stock: str = None) -> None:
+def create_news_summary_and_archive(stock: str = None, datestamp: str = None) -> None:
     log.info("WalterCLI: Creating news summary and archiving...")
-    event = get_create_news_summary_and_archive_event(stock)
+    event = get_create_news_summary_and_archive_event(stock, datestamp)
     response = create_news_summary_and_archive_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
