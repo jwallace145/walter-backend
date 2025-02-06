@@ -46,9 +46,9 @@ class WalterStocksAPI:
             else None
         )
 
-    def get_news(self, symbol: str) -> CompanyNews | None:
+    def get_news(self, symbol: str, date: datetime) -> CompanyNews | None:
         log.info(f"Getting news '{symbol}'")
-        return self.alpha_vantage.get_news(symbol)
+        return self.alpha_vantage.get_news(symbol, date)
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks similar to '{symbol}'")

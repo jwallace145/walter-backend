@@ -94,7 +94,7 @@ class WalterS3Client:
             )
             raise error
 
-    def put_object(self, bucket: str, key: str, contents: str) -> None:
+    def put_object(self, bucket: str, key: str, contents: str) -> str:
         log.debug(
             f"Putting object to S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
         )
@@ -103,6 +103,7 @@ class WalterS3Client:
             log.debug(
                 f"Put object to S3 with URI '{WalterS3Client.get_uri(bucket, key)}' successfully!"
             )
+            return WalterS3Client.get_uri(bucket, key)
         except ClientError as error:
             log.error(
                 f"Unexpected error occurred putting object to S3 with URI '{WalterS3Client.get_uri(bucket, key)}'!",

@@ -8,13 +8,21 @@ from bs4 import BeautifulSoup
 
 import requests
 
-from src.stocks.alphavantage.models import CompanyOverview, CompanyNews, CompanySearch
+from src.stocks.alphavantage.models import (
+    CompanyOverview,
+    CompanyNews,
+    CompanySearch,
+    NewsArticle,
+)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 ONE_YEAR_AGO = dt.datetime.today() - dt.timedelta(days=365)
 """(datetime): Exactly one year ago from the current date."""
+
+TODAY = dt.datetime.today()
+"""(datetime): The current date."""
 
 
 @dataclass
@@ -67,7 +75,7 @@ class AlphaVantageClient:
 
         return overview
 
-    def get_news(self, symbol: str, limit: int = 3) -> CompanyNews | None:
+    def get_news(self, symbol: str, date: dt, limit: int = 3) -> CompanyNews | None:
         """
         Get relevant company news.
 
@@ -78,13 +86,16 @@ class AlphaVantageClient:
 
         Args:
             symbol: The stock symbol of the company.
+            date: The most recent news date to fetch.
             limit: The number of news articles to return.
 
         Returns:
             The latest company news or `None` if not found.
         """
-        log.info(f"Getting company news for '{symbol}'")
-        url = self._get_news_url(symbol)
+        log.info(
+            f"Getting company news for '{symbol}' with most recent news date '{date}'"
+        )
+        url = self._get_news_url(symbol, date)
         response = requests.get(url).json()
 
         if response == {}:
@@ -95,7 +106,7 @@ class AlphaVantageClient:
 
         # TODO: Move web scraping to its own class with its own dedicated logic (i.e. a Beautiful Soup wrapper)
 
-        news = {}
+        articles = []
         for article in response["feed"][:limit]:
             title = self._format_title(article["title"])
             url = article["url"]
@@ -104,9 +115,9 @@ class AlphaVantageClient:
             soup = BeautifulSoup(response.text, "html.parser")
             page_text = soup.get_text()
             cleaned_text = " ".join(page_text.split())
-            news[title] = cleaned_text
+            articles.append(NewsArticle(title=title, url=url, contents=cleaned_text))
 
-        return CompanyNews(symbol=symbol, news=news)
+        return CompanyNews(stock=symbol, articles=articles)
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks with tickers similar to '{symbol}'")
@@ -125,13 +136,19 @@ class AlphaVantageClient:
     def _get_company_overview_url(self, symbol: str) -> str:
         return self._get_method_url(method="OVERVIEW", args={"symbol": symbol})
 
-    def _get_news_url(self, symbol: str, time_from: dt.datetime = ONE_YEAR_AGO) -> str:
+    def _get_news_url(
+        self,
+        symbol: str,
+        time_from: dt.datetime = ONE_YEAR_AGO,
+        time_to: dt.datetime = TODAY,
+    ) -> str:
         return self._get_method_url(
             method="NEWS_SENTIMENT",
             args={
                 "tickers": symbol,
                 "sort": "RELEVANCE",
                 "time_from": time_from.strftime("%Y%m%dT%H%M"),
+                "time_to": time_to.strftime("%Y%m%dT%H%M"),
             },
         )
 
