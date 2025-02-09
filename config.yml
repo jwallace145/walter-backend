@@ -1,5 +1,5 @@
 walter_config:
-  model_id: "meta.llama3-70b-instruct-v1:0"
+  model_id: "Amazon: Nova Micro"
   temperature: 0.5
   top_p: 0.9
   generate_responses: true

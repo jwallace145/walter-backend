@@ -3,7 +3,6 @@ import os
 import boto3
 
 from src.ai.client import WalterAI
-from src.ai.context.generator import ContextGenerator
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -26,6 +25,7 @@ from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.utils.log import Logger
+from src.utils.web_scraper import WebScraper
 
 log = Logger(__name__).get_logger()
 
@@ -120,7 +120,9 @@ walter_stocks_api = WalterStocksAPI(
     polygon=PolygonClient(
         api_key=POLYGON_API_KEY,
     ),
-    alpha_vantage=AlphaVantageClient(api_key=ALPHA_VANTAGE_API_KEY),
+    alpha_vantage=AlphaVantageClient(
+        api_key=ALPHA_VANTAGE_API_KEY, web_scraper=WebScraper()
+    ),
 )
 
 #########################
@@ -140,9 +142,3 @@ walter_ai = WalterAI(
         bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
     ),
 )
-
-#####################
-# CONTEXT GENERATOR #
-#####################
-
-context_generator = ContextGenerator()

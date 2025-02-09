@@ -29,7 +29,7 @@ class WalterBedrockClient:
             f"Creating Bedrock client in region '{self.bedrock.meta.region_name}'"
         )
 
-    def generate_response(self, model_id: str, body: str) -> str:
+    def generate_response(self, model_id: str, body: str) -> dict:
         """
         Invoke the model and get a response for a single prompt.
 
@@ -46,8 +46,7 @@ class WalterBedrockClient:
                 modelId=model_id,
                 body=body,
             )
-            model_response = json.loads(response["body"].read())
-            return model_response["generation"]
+            return json.loads(response["body"].read())
         except Exception as exception:
             log.error(
                 "Unexpected error occurred attempting to generate response for prompt!",

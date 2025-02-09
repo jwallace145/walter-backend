@@ -6,6 +6,7 @@ from src.clients import (
     news_summaries_bucket,
     walter_stocks_api,
     walter_ai,
+    news_summaries_queue,
 )
 from src.utils.log import Logger
 
@@ -38,48 +39,52 @@ def create_news_summary_and_archive_workflow(event, context) -> dict:
 
     event = walter_event_parser.parse_create_news_summary_and_archive_event(event)
 
-    log.info("Checking S3 for news summary...")
-    summary = news_summaries_bucket.get_news_summary(event.stock, event.datestamp)
-    if summary is not None:
-        log.info("Found news summary in S3!")
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "WalterWorkflow": "CreateNewsSummaryAndArchive",
-                    "Status": Status.SUCCESS.name,
-                    "Message": "News summary already exists!",
-                }
-            ),
+    try:
+        log.info("Checking S3 for news summary...")
+        summary = news_summaries_bucket.get_news_summary(event.stock, event.datestamp)
+        if summary is not None:
+            log.info("Found news summary in S3!")
+            return {
+                "statusCode": 200,
+                "body": json.dumps(
+                    {
+                        "WalterWorkflow": "CreateNewsSummaryAndArchive",
+                        "Status": Status.SUCCESS.name,
+                        "Message": "News summary already exists!",
+                    }
+                ),
+            }
+        log.info("News summary not found in S3!")
+
+        log.info("Getting recent market news from AlphaVantage...")
+        news = walter_stocks_api.get_news(event.stock, event.datestamp)
+
+        log.info("Generating summary from news...")
+        summary = walter_ai.generate_response(
+            context="You are a financial AI advisor that summaries market news and gives readers digestible, business casual insights about the latest market movements.",
+            prompt=f"Summarize the following news article about the stock '{news.stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report:\n{news.to_dict()}",
+            max_gen_len=SUMMARY_MAX_LENGTH,
+        )
+
+        s3uri = news_summaries_bucket.put_news_summary(event.stock, summary)
+
+        # create response body
+        body = {
+            "Workflow": "CreateNewsSummaryAndArchive",
+            "Status": Status.SUCCESS.value,
+            "Message": "News summary created.",
+            "Data": {
+                "s3uri": s3uri,
+                "model": walter_ai.get_model().get_name(),
+                "articles": [url for url in news.get_article_urls()],
+            },
         }
-    log.info("News summary not found in S3!")
 
-    log.info("Getting recent market news from AlphaVantage...")
-    news = walter_stocks_api.get_news(event.stock, event.datestamp)
-
-    log.info("Generating summary from news...")
-    summary = walter_ai.generate_response(
-        context="You are a financial AI advisor that summaries market news and gives readers digestible, business casual insights about the latest market movements.",
-        prompt=f"Summarize the following news article about the stock '{news.stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report:\n{news.to_dict()}",
-        max_gen_len=SUMMARY_MAX_LENGTH,
-    )
-
-    s3uri = news_summaries_bucket.put_news_summary(event.stock, summary)
-
-    # create response body
-    body = {
-        "Workflow": "CreateNewsSummaryAndArchive",
-        "Status": Status.SUCCESS.value,
-        "Message": "News summary created.",
-        "Data": {
-            "s3uri": s3uri,
-            "model": walter_ai.get_model().get_name(),
-            "articles": [url for url in news.get_article_urls()],
-        },
-    }
-
-    # return successful response
-    return {
-        "statusCode": HTTPStatus.OK.value,
-        "body": json.dumps(body),
-    }
+        # return successful response
+        return {
+            "statusCode": HTTPStatus.OK.value,
+            "body": json.dumps(body),
+        }
+    except Exception:
+        log.error("Unexpected error occurred creating news summary!")
+        news_summaries_queue.delete_news_summary_request(event.receipt_handle)
