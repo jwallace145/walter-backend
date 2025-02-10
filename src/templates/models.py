@@ -121,10 +121,12 @@ def template_spec_from_dict(template_spec: dict) -> TemplateSpec:
         stocks=template_spec["TemplateSpec"]["Context"]["Stocks"],
         news=template_spec["TemplateSpec"]["Context"]["News"],
     )
+
     # create template keys
     keys = []
     for key in template_spec["TemplateSpec"]["Keys"]:
         keys.append(TemplateKey(name=key["Key"], value=key["Value"]))
+
     # create template prompts
     prompts = []
     for prompt in template_spec["TemplateSpec"]["Prompts"]:
@@ -135,6 +137,7 @@ def template_spec_from_dict(template_spec: dict) -> TemplateSpec:
                 max_gen_length=prompt["MaxGenLength"],
             )
         )
+
     # create template spec
     spec = TemplateSpec(context=context, keys=keys, prompts=prompts)
     return spec

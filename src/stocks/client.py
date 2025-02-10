@@ -5,7 +5,7 @@ from typing import Dict, List
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.alphavantage.client import AlphaVantageClient
-from src.stocks.alphavantage.models import CompanyOverview, CompanyNews, CompanySearch
+from src.stocks.alphavantage.models import CompanyOverview, CompanySearch, CompanyNews
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices
@@ -34,8 +34,7 @@ class WalterStocksAPI:
         end_date: datetime,
     ) -> Portfolio:
         prices = self.polygon.batch_get_prices(user_stocks, start_date, end_date)
-        news = self.polygon.batch_get_news(user_stocks, start_date)
-        return Portfolio(stocks, user_stocks, prices, news)
+        return Portfolio(stocks, user_stocks, prices)
 
     def get_stock(self, symbol: str) -> Stock | None:
         log.info(f"Getting stock '{symbol}'")
@@ -46,16 +45,16 @@ class WalterStocksAPI:
             else None
         )
 
-    def get_news(self, symbol: str, date: datetime) -> CompanyNews | None:
-        log.info(f"Getting news '{symbol}'")
-        return self.alpha_vantage.get_news(symbol, date)
-
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks similar to '{symbol}'")
         return self.alpha_vantage.search_stock(symbol)
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)
+
+    def get_news(self, stock: str, timestamp: datetime) -> CompanyNews | None:
+        log.info(f"Getting news for stock '{stock}'")
+        return self.alpha_vantage.get_news(stock, timestamp)
 
     @staticmethod
     def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:

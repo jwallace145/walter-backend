@@ -5,7 +5,7 @@ from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
 from src.stocks.models import Portfolio
-from src.stocks.polygon.models import StockPrices, StockPrice, StockNews
+from src.stocks.polygon.models import StockPrices, StockPrice
 
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
 
@@ -70,22 +70,9 @@ PRICES = {
     ),
 }
 
-NEWS = {
-    AAPL.symbol: StockNews(
-        symbol=AAPL.symbol, descriptions=["It is much bigger than Atlantis!"]
-    ),
-    META.symbol: StockNews(
-        symbol=META.symbol,
-        descriptions=[
-            "The croissant weights over 500 pounds!",
-            "Uh oh, a lot of people are going to be in trouble!",
-        ],
-    ),
-}
-
 STOCKS = {AAPL.symbol: AAPL, META.symbol: META}
 
-PORTFOLIO = Portfolio(STOCKS, USER_STOCKS, PRICES, NEWS)
+PORTFOLIO = Portfolio(STOCKS, USER_STOCKS, PRICES)
 
 
 def test_does_stock_exist(walter_stocks_api: WalterStocksAPI) -> None:

@@ -1,8 +1,10 @@
+import re
 from dataclasses import dataclass
 from datetime import datetime as dt
 
 from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
+from src.news.models import NewsSummary
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -20,6 +22,7 @@ class NewsSummariesBucket:
     BUCKET = "walterai-news-summaries-{domain}"
 
     SUMMARIES_DIR = "summaries"
+    SUMMARIES_PREFIX = "{summaries_dir}/{stock}"
     SUMMARY_KEY = "{summaries_dir}/{stock}/{date}/summary.html"
 
     client: WalterS3Client
@@ -33,15 +36,34 @@ class NewsSummariesBucket:
             f"Creating '{self.domain.value}' NewsSummariesBucket S3 client with bucket '{self.bucket}'"
         )
 
-    def put_news_summary(self, stock: str, summary: str, date: dt = TODAY) -> str:
+    def put_news_summary(self, stock: str, summary: str, date: dt = TODAY) -> None:
         log.info("Dumping news summary to S3")
         key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.put_object(self.bucket, key, summary)
 
     def get_news_summary(self, stock: str, date: dt = TODAY) -> str | None:
-        log.info("Getting news summary from S3")
+        log.info(f"Getting news summary from archive for stock '{stock}' with date: '{date.isoformat()}'")
         key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.get_object(self.bucket, key)
+
+    def get_latest_news_summary(self, stock: str) -> NewsSummary | None:
+        log.info(f"Getting latest news summary for stock '{stock}'")
+        prefix = NewsSummariesBucket._get_summaries_prefix(stock)
+        prefixes = self.client.list_objects(self.bucket, prefix)
+
+        # ensure summaries exist for given stock
+        if len(prefixes) == 0:
+            log.info("No summaries found for stock '{stock}'!")
+            return None
+
+        summary = self.client.get_object(self.bucket, prefixes[-1])
+
+        return NewsSummary(
+            stock=stock.upper(),
+            model_name="TODO",
+            articles=[],
+            summary=self.remove_non_alphanumeric(summary),
+        )
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:
@@ -56,8 +78,18 @@ class NewsSummariesBucket:
         )
 
     @staticmethod
+    def _get_summaries_prefix(stock: str) -> str:
+        return NewsSummariesBucket.SUMMARIES_PREFIX.format(
+            summaries_dir=NewsSummariesBucket.SUMMARIES_DIR,
+            stock=stock.upper(),
+        )
+
+    @staticmethod
     def _get_datestamp(timestamp: dt) -> str:
         return dt.strftime(
             timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
             "y=%Y/m=%m/d=%d",
         )
+
+    def remove_non_alphanumeric(self, text: str) -> str:
+        return re.sub(r"[^a-zA-Z0-9 ]", "", text)

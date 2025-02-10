@@ -86,7 +86,7 @@ class PolygonClient:
         self._init_rest_client()
 
         log.info(
-            f"Getting aggregate data for '{stock.stock_symbol}' from '{start_date}' to '{end_date}'"
+            f"Getting pricing data for '{stock.stock_symbol}' from '{start_date}' to '{end_date}'"
         )
 
         if start_date >= end_date:
@@ -106,8 +106,6 @@ class PolygonClient:
             prices.append(
                 PolygonClient._convert_agg_to_stock_price(stock.stock_symbol, agg)
             )
-
-        log.info(f"Successfully returned {len(prices)} prices")
 
         return StockPrices(prices)
 
@@ -149,8 +147,6 @@ class PolygonClient:
             limit=PolygonClient.MAX_AGGREGATE_DATA_LIMIT,
         ):
             prices.append(PolygonClient._convert_agg_to_stock_price(stock, agg))
-
-        log.info(f"Successfully returned {len(prices)} prices")
 
         return StockPrices(prices)
 
