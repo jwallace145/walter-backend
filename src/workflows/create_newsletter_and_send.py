@@ -109,7 +109,7 @@ def create_newsletter_and_send_workflow(event, context) -> dict:
         response = walter_ai.generate_response(
             context=context,
             prompt=prompt.prompt,
-            max_output_tokens=prompt.max_gen_length,
+            max_output_tokens=CONFIG.newsletter.max_length,
         )
         template_args[prompt.name] = markdown.markdown(response)
 
