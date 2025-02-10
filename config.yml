@@ -1,10 +1,13 @@
 walter_config:
-  model_id: "Amazon: Nova Micro" # the least expensive model with sufficient input token size https://aws.amazon.com/bedrock/pricing/ (2025-02-10)
-  temperature: 0.5
-  top_p: 0.9
-  generate_responses: true
-  newsletter_template: "default"
-  send_newsletter: true
-  dump_newsletter: false
-  emit_metrics: true
-  jwt_algorithm: "HS256"
+  artificial_intelligence:
+    model_name: "Amazon: Nova Micro" # the least expensive model with sufficient input token size https://aws.amazon.com/bedrock/pricing/ (2025-02-10)
+    temperature: 0.5 # controls how random or focused the model's responses to prompts are
+    top_p: 0.9 # controls how many words the model considers at each step when generating text
+  news_summary:
+    number_of_articles: 10 # the number of the most relevant news articles to parse when generating news summaries
+    max_length: 5000 # the max length of generated news summaries
+    schedule: cron(0 5 * * ? *) # the cron schedule to invoke the create news summary and archive workflow
+  newsletter:
+    template: "default"
+    max_length: 3000 # the max length of the generated newsletter
+    schedule: cron(0 11 ? * MON-FRI *) # the cron schedule to invoke the create newsletter and send workflow

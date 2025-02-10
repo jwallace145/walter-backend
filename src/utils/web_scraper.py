@@ -43,6 +43,10 @@ class WebScraper:
     def _parse_response(self, response: Response) -> str | None:
         log.debug(f"Parsing response:\n{response}")
         soup = BeautifulSoup(response.text, "html.parser")
-        page_text = soup.get_text()
+        for script in soup(
+            ["script", "style", "footer", "nav", "header", "aside", "advertisement"]
+        ):
+            script.decompose()
+        page_text = soup.get_text(strip=True)
         cleaned_text = " ".join(page_text.split())
         return cleaned_text

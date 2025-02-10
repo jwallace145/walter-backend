@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import markdown
 
 from src.clients import (
-    walter_cw,
     newsletters_bucket,
     walter_stocks_api,
     walter_ses,
@@ -25,9 +24,6 @@ log = Logger(__name__).get_logger()
 #############
 # ARGUMENTS #
 #############
-
-TEMPLATE_NAME = "default"
-"""(str): The name of the template to use to create the user portfolio newsletter."""
 
 END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 """(str): The end date of the stock pricing data from Polygon to include in the newsletter context."""
@@ -71,21 +67,24 @@ def create_newsletter_and_send_workflow(event, context) -> dict:
     event = walter_event_parser.parse_create_newsletter_and_send_event(event)
 
     try:
-        # get user and portfolio info from db
+        # get user and stocks from db
         log.info("Getting user and portfolio from WalterDB...")
         user = walter_db.get_user(event.email)
         user_stocks = walter_db.get_stocks_for_user(user)
         stocks = walter_db.get_stocks(list(user_stocks.keys()) if user_stocks else [])
 
+        # get latest stock summaries from archive
         summaries = []
         for stock in stocks.keys():
             summary = news_summaries_bucket.get_latest_news_summary(stock)
             summaries.append(summary)
 
+        # get portfolio from db
         portfolio = walter_stocks_api.get_portfolio(
             user_stocks, stocks, START_DATE, END_DATE
         )
 
+        # create template arguments to feed into the template spec
         template_spec_args = {
             "user": user.username,
             "datestamp": END_DATE,
@@ -97,45 +96,36 @@ def create_newsletter_and_send_workflow(event, context) -> dict:
 
         # get template spec with user inputs
         template_spec = template_engine.get_template_spec(
-            template_name=TEMPLATE_NAME, template_spec_args=template_spec_args
+            template_name=CONFIG.newsletter.template,
+            template_spec_args=template_spec_args,
         )
 
         # get template args from the template spec
         template_args = template_spec.get_template_args()
 
-        # if bedrock is enabled, populate the prompts with responses and add to template args
-        if CONFIG.generate_responses:
-            context = template_spec.get_context()
-            prompt = template_spec.get_prompts().pop()
-            response = walter_ai.generate_response(
-                context=context,
-                prompt=prompt.prompt,
-                max_output_tokens=prompt.max_gen_length,
-            )
-            template_args[prompt.name] = markdown.markdown(response)
-        else:
-            log.info("Not generating responses...")
+        # populate the prompts with responses from llm and add to template args
+        context = template_spec.get_context()
+        prompt = template_spec.get_prompts().pop()
+        response = walter_ai.generate_response(
+            context=context,
+            prompt=prompt.prompt,
+            max_output_tokens=prompt.max_gen_length,
+        )
+        template_args[prompt.name] = markdown.markdown(response)
 
-        newsletter = template_engine.get_template(TEMPLATE_NAME, template_args)
+        # get rendered template with the llm responses to write the newsletter
+        newsletter = template_engine.get_template(
+            CONFIG.newsletter.template, template_args
+        )
 
-        if CONFIG.send_newsletter:
-            assets = templates_bucket.get_template_assets()
-            walter_ses.send_email(user.email, newsletter, "Walter", assets)
-            newsletters_bucket.put_newsletter(user, "default", newsletter)
-        else:
-            log.info("Not sending newsletter...")
+        # get referenced media assets in newsletter (default template does not use any assets but other templates do)
+        assets = templates_bucket.get_template_assets()
 
-        if CONFIG.dump_newsletter:
-            log.info("Dumping newsletter")
-            open("./newsletter.html", "w").write(newsletter)
-        else:
-            log.info("Not dumping newsletter...")
+        # send user generated newsletter
+        walter_ses.send_email(user.email, newsletter, "Walter", assets)
 
-        if CONFIG.emit_metrics:
-            walter_cw.emit_metric("WalterBackend.NumberOfEmailsSent", 1)
-            walter_cw.emit_metric("WalterBackend.NumberOfStocksAnalyzed", len(stocks))
-        else:
-            log.info("Not emitting metrics")
+        # dump generated newsletter to archive
+        newsletters_bucket.put_newsletter(user, CONFIG.newsletter.template, newsletter)
 
         return {
             "statusCode": 200,

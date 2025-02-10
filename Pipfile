@@ -24,6 +24,7 @@ pyjwt = "*"
 markdown = "*"
 requests = "*"
 beautifulsoup4 = "*"
+mypy-boto3-events = "*"
 
 [dev-packages]
 black = "*"

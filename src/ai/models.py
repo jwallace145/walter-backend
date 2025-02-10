@@ -3,11 +3,11 @@ from enum import Enum
 
 from src.ai.amazon.models import NovaMicro
 from src.ai.anthropic.models import Claude3Haiku
-from src.ai.meta.models import MetaLlama38B
+from src.ai.meta.models import Llama370B
 
 
 class Model(Enum):
-    META_LLAMA3_70B = MetaLlama38B.MODEL_NAME
+    META_LLAMA3_70B = Llama370B.MODEL_NAME
     ANTHROPIC_CLAUDE_3_HAIKU = Claude3Haiku.MODEL_NAME
     AMAZON_NOVA_MICRO = NovaMicro.MODEL_NAME
 

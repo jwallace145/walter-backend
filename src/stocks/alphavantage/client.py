@@ -83,7 +83,7 @@ class AlphaVantageClient:
 
         return overview
 
-    def get_news(self, symbol: str, date: dt, limit: int = 5) -> CompanyNews | None:
+    def get_news(self, symbol: str, date: dt, limit: int) -> CompanyNews | None:
         """
         Get relevant company news.
 

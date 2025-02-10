@@ -8,6 +8,7 @@ from src.clients import (
     walter_ai,
     news_summaries_queue,
 )
+from src.config import CONFIG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -25,7 +26,7 @@ CONTEXT = "You are a financial AI advisor that summaries market news and gives r
 PROMPT = "Summarize the following news article about the stock '{stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report:\n{news}"
 """(str): The prompt used to give to the LLM to generate news summaries."""
 
-SUMMARY_MAX_LENGTH = 2000
+SUMMARY_MAX_LENGTH = CONFIG.news_summary.max_length
 """(int): The length of the news summary is controlled by the max generation length of the LLM response."""
 
 ###########
@@ -79,7 +80,9 @@ def create_news_summary_and_archive_workflow(event, context) -> dict:
         log.info("News summary not found in S3!")
 
         log.info("Getting market news...")
-        news = walter_stocks_api.get_news(event.stock, event.datestamp)
+        news = walter_stocks_api.get_news(
+            event.stock, event.datestamp, CONFIG.news_summary.number_of_articles
+        )
 
         log.info("Generating summary from news...")
         summary = walter_ai.generate_response(

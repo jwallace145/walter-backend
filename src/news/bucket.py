@@ -42,7 +42,9 @@ class NewsSummariesBucket:
         return self.client.put_object(self.bucket, key, summary)
 
     def get_news_summary(self, stock: str, date: dt = TODAY) -> str | None:
-        log.info(f"Getting news summary from archive for stock '{stock}' with date: '{date.isoformat()}'")
+        log.info(
+            f"Getting news summary from archive for stock '{stock}' with date: '{date.isoformat()}'"
+        )
         key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.get_object(self.bucket, key)
 

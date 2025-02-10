@@ -9,9 +9,9 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class MetaLlama38B(WalterFoundationModel):
+class Llama370B(WalterFoundationModel):
     """
-    Meta Llama 3
+    Meta Llama 3.3 70B
     """
 
     MODEL_NAME = "Meta: Llama3.3 70B"
@@ -23,9 +23,9 @@ class MetaLlama38B(WalterFoundationModel):
     ) -> None:
         super().__init__(
             client,
-            MetaLlama38B.MODEL_NAME,
-            MetaLlama38B.MODEL_ID,
-            MetaLlama38B.MAX_INPUT_TOKENS,
+            Llama370B.MODEL_NAME,
+            Llama370B.MODEL_ID,
+            Llama370B.MAX_INPUT_TOKENS,
             temperature,
             top_p,
         )

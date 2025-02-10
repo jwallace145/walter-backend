@@ -52,9 +52,11 @@ class WalterStocksAPI:
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)
 
-    def get_news(self, stock: str, timestamp: datetime) -> CompanyNews | None:
+    def get_news(
+        self, stock: str, timestamp: datetime, number_of_articles: int
+    ) -> CompanyNews | None:
         log.info(f"Getting news for stock '{stock}'")
-        return self.alpha_vantage.get_news(stock, timestamp)
+        return self.alpha_vantage.get_news(stock, timestamp, number_of_articles)
 
     @staticmethod
     def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:
