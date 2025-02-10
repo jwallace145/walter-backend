@@ -1,12 +1,11 @@
-from dataclasses import dataclass
 import datetime as dt
+from dataclasses import dataclass
 from typing import Tuple
 
 import bcrypt
 import jwt
 
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
-from src.config import CONFIG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -43,7 +42,7 @@ class WalterAuthenticator:
                 "exp": now + dt.timedelta(days=7),
             },
             self.walter_sm.get_jwt_secret_key(),
-            algorithm=CONFIG.jwt_algorithm,
+            algorithm="HS256",
         )
 
     def decode_user_token(self, token: str) -> bool | None:
@@ -60,7 +59,7 @@ class WalterAuthenticator:
             return jwt.decode(
                 token,
                 self.walter_sm.get_jwt_secret_key(),
-                algorithms=[CONFIG.jwt_algorithm],
+                algorithms=["HS256"],
             )
         except jwt.ExpiredSignatureError:
             log.error("Token has expired!")
@@ -92,7 +91,7 @@ class WalterAuthenticator:
                 "exp": now + dt.timedelta(days=7),
             },
             self.walter_sm.get_jwt_verify_email_secret_key(),
-            algorithm=CONFIG.jwt_algorithm,
+            algorithm="HS256",
         )
 
     def decode_email_token(self, token: str) -> bool:
@@ -112,7 +111,7 @@ class WalterAuthenticator:
             return jwt.decode(
                 token,
                 self.walter_sm.get_jwt_verify_email_secret_key(),
-                algorithms=[CONFIG.jwt_algorithm],
+                algorithms=["HS256"],
             )
         except jwt.ExpiredSignatureError:
             log.error("Token has expired!")
@@ -144,7 +143,7 @@ class WalterAuthenticator:
                 "exp": now + dt.timedelta(days=7),
             },
             self.walter_sm.get_jwt_change_password_secret_key(),
-            algorithm=CONFIG.jwt_algorithm,
+            algorithm="HS256",
         )
 
     def decode_change_password_token(self, token: str) -> bool:
@@ -165,7 +164,7 @@ class WalterAuthenticator:
             return jwt.decode(
                 token,
                 self.walter_sm.get_jwt_change_password_secret_key(),
-                algorithms=[CONFIG.jwt_algorithm],
+                algorithms=["HS256"],
             )
         except jwt.ExpiredSignatureError:
             log.error("Token has expired!")

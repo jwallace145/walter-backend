@@ -136,7 +136,7 @@ template_engine = TemplatesEngine(templates_bucket=templates_bucket)
 #############
 
 walter_ai = WalterAI(
-    model=CONFIG.model_id,
+    model=CONFIG.artificial_intelligence.model_name,
     client=WalterBedrockClient(
         bedrock=boto3.client("bedrock", region_name=AWS_REGION),
         bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),

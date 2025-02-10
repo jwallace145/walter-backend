@@ -3,62 +3,146 @@ from dataclasses import dataclass
 
 import yaml
 
+from src.ai.models import Model
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+#############
+# CONSTANTS #
+#############
+
 CONFIG_FILE = "./config.yml"
+"""(str): The location of the YAML config file."""
+
+##########
+# MODELS #
+##########
 
 
-@dataclass
-class WalterConfig:
-    model_id: str = "meta.llama3-70b-instruct-v1:0"
+@dataclass(frozen=True)
+class ArtificialIntelligenceConfig:
+    """Artificial Intelligence Configurations"""
+
+    model_name: str = Model.AMAZON_NOVA_MICRO.value
     temperature: float = 0.5
     top_p: float = 0.9
-    generate_responses: bool = False
-    newsletter_template: str = "default"
-    send_newsletter: bool = False
-    dump_newsletter: bool = False
-    emit_metrics: bool = False
-    jwt_algorithm: str = "HS256"
+
+    def to_dict(self) -> dict:
+        return {
+            "model_name": self.model_name,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+        }
+
+
+@dataclass(frozen=True)
+class NewsSummaryConfig:
+    """News Summary Configurations"""
+
+    number_of_articles: int = 5
+    max_length: int = 2000
+    schedule: str = "0 5 * * ? *"  # every day at midnight EDT
+
+    def to_dict(self) -> dict:
+        return {
+            "number_of_articles": self.number_of_articles,
+            "max_length": self.max_length,
+            "schedule": self.schedule,
+        }
+
+
+@dataclass(frozen=True)
+class NewsletterConfig:
+    """Newsletter Configurations"""
+
+    template: str = "default"
+    max_length: int = 2000
+    schedule: str = "0 11 ? * MON-FRI *"  # every business day at 6am EDT
+
+    def to_dict(self) -> dict:
+        return {
+            "template": self.template,
+            "max_length": self.max_length,
+            "schedule": self.schedule,
+        }
+
+
+@dataclass(frozen=True)
+class WalterConfig:
+    """
+    WalterConfig
+
+    This object maintains the immutable configs of Walter defined in the YAML
+    config file.
+    """
+
+    artificial_intelligence: ArtificialIntelligenceConfig = (
+        ArtificialIntelligenceConfig()
+    )
+    news_summary: NewsSummaryConfig = NewsSummaryConfig()
+    newsletter: NewsletterConfig = NewsletterConfig()
+
+    def to_dict(self) -> dict:
+        return {
+            "walter_config": {
+                "artificial_intelligence": self.artificial_intelligence.to_dict(),
+                "news_summary": self.news_summary.to_dict(),
+                "newsletter": self.newsletter.to_dict(),
+            }
+        }
 
     def __str__(self) -> str:
-        return json.dumps(
-            {
-                "model_id": self.model_id,
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "generate_responses": self.generate_responses,
-                "newsletter_template": self.newsletter_template,
-                "send_newsletter": self.send_newsletter,
-                "dump_newsletter": self.dump_newsletter,
-                "emit_metrics": self.emit_metrics,
-                "jwt_algorithm": self.jwt_algorithm,
-            },
-            indent=4,
-        )
+        return json.dumps(self.to_dict(), indent=4)
+
+
+##########
+# CONFIG #
+##########
 
 
 def get_walter_config() -> WalterConfig:
+    """
+    Get the configurations for Walter from the config YAML file.
+
+    This method reads the given configurations from the specified config YAML file.
+    However, if this method encounters an exception for any reason, it returns the
+    default configs to ensure this method cannot cause Walter to fail.
+
+    Returns:
+        (WalterConfig): The Walter configurations.
+    """
     log.debug(f"Getting configuration file: '{CONFIG_FILE}'")
+
+    config = WalterConfig()  # assume default configs
     try:
-        config = yaml.safe_load(open(CONFIG_FILE).read())["walter_config"]
-        return WalterConfig(
-            model_id=config["model_id"],
-            temperature=config["temperature"],
-            top_p=config["top_p"],
-            generate_responses=config["generate_responses"],
-            newsletter_template=config["newsletter_template"],
-            send_newsletter=config["send_newsletter"],
-            dump_newsletter=config["dump_newsletter"],
-            emit_metrics=config["emit_metrics"],
-            jwt_algorithm=config["jwt_algorithm"],
+        config_yaml = yaml.safe_load(open(CONFIG_FILE).read())["walter_config"]
+        config = WalterConfig(
+            artificial_intelligence=ArtificialIntelligenceConfig(
+                model_name=config_yaml["artificial_intelligence"]["model_name"],
+                temperature=config_yaml["artificial_intelligence"]["temperature"],
+                top_p=config_yaml["artificial_intelligence"]["top_p"],
+            ),
+            news_summary=NewsSummaryConfig(
+                number_of_articles=config_yaml["news_summary"]["number_of_articles"],
+                max_length=config_yaml["news_summary"]["max_length"],
+                schedule=config_yaml["news_summary"]["schedule"],
+            ),
+            newsletter=NewsletterConfig(
+                template=config_yaml["newsletter"]["template"],
+                max_length=config_yaml["newsletter"]["max_length"],
+                schedule=config_yaml["newsletter"]["schedule"],
+            ),
         )
     except Exception as exception:
         log.error(
-            "Unexpected error occurred attempting to get configuration file!", exception
+            "Unexpected error occurred attempting to get configurations!", exception
         )
-        return WalterConfig()
+
+    log.debug(f"Configurations:\n{json.dumps(config.to_dict(), indent=4)}")
+
+    return config
 
 
 CONFIG = get_walter_config()
+"""(WalterConfig): Config object to be used throughout Walter """

@@ -204,7 +204,7 @@ def search_stocks(stock: str = None) -> None:
 
 @app.command()
 def send_newsletters():
-    log.info("WalterCLI: Creating and sending newsletters to all users...")
+    log.info("WalterCLI: AddNewsletterRequests")
     response = add_newsletter_requests_entrypoint({}, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
@@ -219,7 +219,7 @@ def create_and_send_newsletter(email: str = None) -> None:
 
 @app.command()
 def create_news_summaries() -> None:
-    log.info("WalterCLI: Creating news summaries...")
+    log.info("WalterCLI: AddNewsSummaryRequests")
     response = add_news_summary_requests_entrypoint({}, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
