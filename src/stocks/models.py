@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
-from src.stocks.polygon.models import StockPrices, StockNews
+from src.stocks.polygon.models import StockPrices
 
 
 @dataclass(frozen=True)
@@ -30,7 +30,6 @@ class Portfolio:
     stocks: Dict[str, Stock]  # indexed by stock symbol
     user_stocks: Dict[str, UserStock]  # indexed by stock symbol
     prices: Dict[str, StockPrices]  # indexed by stock symbol
-    news: Dict[str, StockNews]  # indexed by stock symbol
 
     def get_stock_symbols(self) -> List[str]:
         return list(self.user_stocks.keys())
@@ -54,15 +53,6 @@ class Portfolio:
         for stock in self.user_stocks.keys():
             equity += self.get_equity(stock)
         return equity
-
-    def get_all_news(self) -> List[StockNews]:
-        news = []
-        for stock in self.get_stock_symbols():
-            news.append(self.get_news(stock))
-        return news
-
-    def get_news(self, symbol: str) -> StockNews:
-        return self.news[symbol]
 
     def get_stock_equities(self) -> List[StockEquity]:
         stock_equities = []

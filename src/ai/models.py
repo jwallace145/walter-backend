@@ -16,7 +16,9 @@ def get_model(model_name: str) -> Model:
     for model in Model:
         if model.value == model_name:
             return model
-    raise ValueError(f"Unexpected model '{model_name}' given! Acceptable models: {[model.value for model in Model]}")
+    raise ValueError(
+        f"Unexpected model '{model_name}' given! Acceptable models: {[model.value for model in Model]}"
+    )
 
 
 @dataclass

@@ -1,5 +1,5 @@
 walter_config:
-  model_id: "Amazon: Nova Micro"
+  model_id: "Amazon: Nova Micro" # the least expensive model with sufficient input token size https://aws.amazon.com/bedrock/pricing/ (2025-02-10)
   temperature: 0.5
   top_p: 0.9
   generate_responses: true

@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 
 from src.aws.bedrock.client import WalterBedrockClient
@@ -7,6 +8,12 @@ log = Logger(__name__).get_logger()
 
 
 class WalterFoundationModel(ABC):
+    """
+    WalterAI - Foundation Model Base Class
+
+    This class contains the core, undifferentiated logic to generate a response
+    given a Bedrock model and a prompt.
+    """
 
     def __init__(
         self,
@@ -30,7 +37,7 @@ class WalterFoundationModel(ABC):
         )
         self._verify_prompt(prompt)
         body = self._get_body(prompt, max_output_tokens)
-        log.debug(f"Prompt body:\n{body}")
+        log.debug(f"Prompt body:\n{json.dumps(body, indent=4)}")
         response = self.client.generate_response(self.model_id, body)
         response = self._parse_response(response)
         log.debug(f"Response:\n{response}")
@@ -41,6 +48,17 @@ class WalterFoundationModel(ABC):
         return self.model_name
 
     def _verify_prompt(self, prompt: str) -> None:
+        """
+        This method verifies that the input prompt is valid.
+
+        The main requirement to verify is that the prompt size is less than the
+        max input tokens allowed for the given model. Some models have relatively
+        small context windows which Walter can break if it is including too much
+        data in the prompt.
+
+        Args:
+            prompt: The prompt to verify.
+        """
         log.debug("Verifying prompt...")
         if len(prompt) > self.max_input_tokens:
             raise ValueError("Prompt too long!")

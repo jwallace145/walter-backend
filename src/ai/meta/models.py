@@ -41,6 +41,4 @@ class MetaLlama38B(WalterFoundationModel):
         )
 
     def _parse_response(self, response: dict) -> str:
-        print(response)
-        input()
         return response["content"][0]["text"]

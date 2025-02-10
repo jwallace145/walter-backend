@@ -20,8 +20,13 @@ class WalterAI:
     def __post_init__(self) -> None:
         log.debug("Creating WalterAI")
 
-    def generate_response(self, prompt: str, max_output_tokens: int) -> str:
-        return self.get_model().generate_response(prompt, max_output_tokens)
+    def generate_response(
+        self, context: str, prompt: str, max_output_tokens: int
+    ) -> str:
+        prompt_with_context = f"Context: {context}\nPrompt: {prompt}"
+        return self.get_model().generate_response(
+            prompt_with_context, max_output_tokens
+        )
 
     def get_model(self) -> MetaLlama38B:
         model = get_model(self.model)

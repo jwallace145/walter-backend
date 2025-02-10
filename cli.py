@@ -211,7 +211,7 @@ def send_newsletters():
 
 @app.command()
 def create_and_send_newsletter(email: str = None) -> None:
-    log.info("WalterCLI: Creating and sending newsletter...")
+    log.info("WalterCLI: CreatingNewsletterAndSend")
     event = get_walter_backend_event(email)
     response = create_newsletter_and_send_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
@@ -226,7 +226,7 @@ def create_news_summaries() -> None:
 
 @app.command()
 def create_news_summary_and_archive(stock: str = None, datestamp: str = None) -> None:
-    log.info("WalterCLI: Creating news summary and archiving...")
+    log.info("WalterCLI: CreateNewsSummaryAndArchive")
     event = get_create_news_summary_and_archive_event(stock, datestamp)
     response = create_news_summary_and_archive_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")

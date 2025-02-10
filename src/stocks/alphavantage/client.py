@@ -4,8 +4,6 @@ import re
 from dataclasses import dataclass
 from typing import List
 
-from bs4 import BeautifulSoup
-
 import requests
 
 from src.stocks.alphavantage.models import (
@@ -15,14 +13,23 @@ from src.stocks.alphavantage.models import (
     NewsArticle,
 )
 from src.utils.log import Logger
+from src.utils.web_scraper import WebScraper
 
 log = Logger(__name__).get_logger()
+
+#############
+# CONSTANTS #
+#############
 
 ONE_YEAR_AGO = dt.datetime.today() - dt.timedelta(days=365)
 """(datetime): Exactly one year ago from the current date."""
 
 TODAY = dt.datetime.today()
 """(datetime): The current date."""
+
+##########
+# CLIENT #
+##########
 
 
 @dataclass
@@ -37,6 +44,7 @@ class AlphaVantageClient:
     METHOD_URL_FORMAT = "{base_url}/query?function={method}{args}{key}"
 
     api_key: str
+    web_scraper: WebScraper
 
     def __post_init__(self) -> None:
         log.debug("Initializing AlphaVantage Client")
@@ -75,7 +83,7 @@ class AlphaVantageClient:
 
         return overview
 
-    def get_news(self, symbol: str, date: dt, limit: int = 3) -> CompanyNews | None:
+    def get_news(self, symbol: str, date: dt, limit: int = 5) -> CompanyNews | None:
         """
         Get relevant company news.
 
@@ -104,18 +112,12 @@ class AlphaVantageClient:
 
         log.info(f"Parsing {limit} articles for '{symbol}'")
 
-        # TODO: Move web scraping to its own class with its own dedicated logic (i.e. a Beautiful Soup wrapper)
-
         articles = []
         for article in response["feed"][:limit]:
             title = self._format_title(article["title"])
             url = article["url"]
-            log.info(f"Parsing '{url}'")
-            response = requests.get(url)
-            soup = BeautifulSoup(response.text, "html.parser")
-            page_text = soup.get_text()
-            cleaned_text = " ".join(page_text.split())
-            articles.append(NewsArticle(title=title, url=url, contents=cleaned_text))
+            text = self.web_scraper.scrape(url)
+            articles.append(NewsArticle(title=title, url=url, contents=text))
 
         return CompanyNews(stock=symbol, articles=articles)
 

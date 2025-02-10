@@ -29,7 +29,8 @@ class WalterEventParser:
         Returns:
             The NewsSummaries message as CreateNewsSummaryAndArchiveEvent.
         """
-        log.info(f"Parsing event:\n{json.dumps(event, indent=4)}")
+        log.info("Parsing CreateNewsSummaryAndArchive event...")
+        log.debug(f"Event:\n{json.dumps(event, indent=4)}")
 
         WalterEventParser.verify_one_record(event)
         records = event["Records"]
@@ -55,13 +56,16 @@ class WalterEventParser:
         Returns:
             The SQS event as a CreateNewsletterAndSendEvent event.
         """
-        log.info(f"Parsing event:\n{json.dumps(event, indent=4)}")
+        log.info("Parsing CreateNewsletterAndSend event...")
+        log.debug(f"Event:\n{json.dumps(event, indent=4)}")
 
         WalterEventParser.verify_one_record(event)
         records = event["Records"]
         record = records[0]
         receipt_handle = record["receiptHandle"]
         body = json.loads(record["body"])
+
+        log.info(f"Parsed CreateNewsletterAndSend event for email: '{body['email']}'")
 
         return CreateNewsletterAndSendEvent(
             receipt_handle=receipt_handle,

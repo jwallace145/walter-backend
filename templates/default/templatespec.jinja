@@ -22,11 +22,11 @@ TemplateSpec:
         Equity: {{ stock.equity }}
       {% endfor %}
     News:
-      {% for news in stock_news %}
-      - Symbol: {{ news.symbol }}
-        News: {{ news.descriptions }}
+      {% for news_summary in news_summaries %}
+      - Symbol: {{ news_summary.stock}}
+        News: |
+          {{ news_summary.summary }}
       {% endfor %}
-
 
   ########
   # KEYS #
@@ -50,4 +50,4 @@ TemplateSpec:
     - Key: Newsletter
       Prompt: |
         Introduce yourself as Walter, an AI bot that writes a daily financial newsletter in a business casual fashion for the given user about their stocks. Focus on the user's specific stocks and provide insights into their composition of the portfolio. Add line breaks and section titles so that the email is nicely organized and easy to read. Give the output in valid markdown.
-      MaxGenLength: 600
+      MaxGenLength: 2000
