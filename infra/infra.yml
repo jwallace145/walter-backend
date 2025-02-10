@@ -1705,7 +1705,10 @@ Resources:
           - Effect: Allow
             Action:
               - "bedrock:InvokeModel"
-            Resource: "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
+            Resource:
+              - "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"
+              - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+              - "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
@@ -2021,6 +2024,7 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt WalterAPIRole.Arn
+                - !GetAtt WalterBackendRole.Arn
                 - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
           - Action:
               - "s3:ListBucket"
@@ -2029,6 +2033,7 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt WalterAPIRole.Arn
+                - !GetAtt WalterBackendRole.Arn
                 - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
 
   TemplatesBucket:
