@@ -52,6 +52,9 @@ SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE = "test-jwt-secret-key"
 SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_NAME = "JWTChangePasswordSecretKey"
 SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_VALUE = "test-change-password-key"
 
+SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_NAME = "JWTVerifyEmailSecretAccessKey"
+SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_VALUE = "test-verify-email-key"
+
 STOCKS_TABLE_NAME = "Stocks-unittest"
 USERS_TABLE_NAME = "Users-unittest"
 USERS_STOCKS_TABLE_NAME = "UsersStocks-unittest"
@@ -171,6 +174,14 @@ def secrets_manager_client() -> SecretsManagerClient:
             SecretString=json.dumps(
                 {
                     "JWT_CHANGE_PASSWORD_SECRET_KEY": SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_VALUE
+                }
+            ),
+        )
+        mock_secrets_manager.create_secret(
+            Name=SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_NAME,
+            SecretString=json.dumps(
+                {
+                    "JWTVerifyEmailSecretKey": SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_VALUE
                 }
             ),
         )
