@@ -36,6 +36,7 @@ class VerifyEmail(WalterAPIMethod):
     ) -> None:
         super().__init__(
             VerifyEmail.API_NAME,
+            VerifyEmail.REQUIRED_HEADERS,
             VerifyEmail.REQUIRED_FIELDS,
             VerifyEmail.EXCEPTIONS,
             walter_authenticator,
@@ -46,8 +47,8 @@ class VerifyEmail(WalterAPIMethod):
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
         token = self.authenticator.get_token(event)
         email = self._validate_token(token)
-        user = self._verify_user_exists(email)
-        self.walter_db.verify_user(user)
+        user = self._verify_user(email)
+        self._verify_user_email(user)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -73,10 +74,21 @@ class VerifyEmail(WalterAPIMethod):
         log.info(f"Validated email verification token for user email: '{email}'")
         return email
 
-    def _verify_user_exists(self, email: str) -> User:
+    def _verify_user(self, email: str) -> User:
         log.info(f"Verifying user exists with email: '{email}'")
         user = self.walter_db.get_user(email)
         if user is None:
             raise UserDoesNotExist("User does not exist!")
         log.info("Verified user exists!")
+
+        log.info(f"Verifying user email is not already verified: '{email}'")
+        if user.verified:
+            raise EmailAlreadyVerified("User already verified!")
+        log.info("Verified user email is not already verified!")
+
         return user
+
+    def _verify_user_email(self, user: User) -> None:
+        log.info(f"Verifying user email '{user.email}'...")
+        self.walter_db.verify_user(user)
+        log.info(f"Successfully verified user email '{user.email}'!")
