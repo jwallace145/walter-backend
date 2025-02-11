@@ -26,7 +26,7 @@ from src.clients import (
     templates_bucket,
     walter_ses,
     news_summaries_bucket,
-    walter_ai,
+    news_summaries_queue,
 )
 from src.workflows.add_news_summary_requests import (
     add_news_summary_requests_workflow,
@@ -92,8 +92,8 @@ def get_news_summary_entrypoint(event, context) -> dict:
         walter_cw,
         walter_db,
         walter_stocks_api,
-        walter_ai,
         news_summaries_bucket,
+        news_summaries_queue,
     ).invoke(event)
 
 
