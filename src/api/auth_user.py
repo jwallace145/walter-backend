@@ -22,7 +22,7 @@ class AuthUser(WalterAPIMethod):
 
     Validate the given password against the stored hash for the given user email.
     If the password is correct, return a unique identity token for the user to
-    utilize to make authenticated requests.
+    use to make authenticated requests.
     """
 
     API_NAME = "AuthUser"
@@ -67,7 +67,7 @@ class AuthUser(WalterAPIMethod):
         body = json.loads(event["body"])
 
         # verify email is valid
-        email = body["email"]
+        email = body["email"].lower()
         if not is_valid_email(email):
             raise InvalidEmail("Invalid email!")
 
@@ -75,7 +75,7 @@ class AuthUser(WalterAPIMethod):
         return False
 
     def _verify_user_exists(self, event: dict) -> User:
-        email = json.loads(event["body"])["email"]
+        email = json.loads(event["body"])["email"].lower()
         log.info(f"Verifying user exists with email '{email}'")
         user = self.walter_db.get_user(email)
         if user is None:
