@@ -65,7 +65,7 @@ class CreateUser(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
         self._create_new_user(event)
-        self._sending_verification_email(event)
+        self._send_verification_email(event)
         return self._create_response(
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
@@ -74,9 +74,13 @@ class CreateUser(WalterAPIMethod):
 
     def validate_fields(self, event: dict) -> None:
         body = json.loads(event["body"])
-        self._verify_email(body["email"])
-        self._verify_username(body["username"])
-        self._verify_user_does_not_already_exist(body["email"])
+        email = body[
+            "email"
+        ].lower()  # lowercase email for case-insensitive matching for login
+        username = body["username"]
+        self._verify_email(email)
+        self._verify_username(username)
+        self._verify_user_does_not_already_exist(email)
 
     def is_authenticated_api(self) -> bool:
         return False
@@ -103,18 +107,22 @@ class CreateUser(WalterAPIMethod):
     def _create_new_user(self, event: dict) -> None:
         log.info("Creating new user")
         body = json.loads(event["body"])
+        email = body[
+            "email"
+        ].lower()  # store the user email as lower-case for case-insensitive matching
         self.walter_db.create_user(
-            email=body["email"],
+            email=email,
             username=body["username"],
             password=body["password"],
         )
 
-    def _sending_verification_email(self, event: dict) -> None:
+    def _send_verification_email(self, event: dict) -> None:
         log.info("Sending verification email to user")
 
         # generate token for user to send verification email
         body = json.loads(event["body"])
-        token = self.authenticator.generate_user_token(body["email"])
+        email = body["email"].lower()  # lower-case email for case-insensitive matching
+        token = self.authenticator.generate_user_token(email)
 
         event["headers"]["Authorization"] = f"Bearer {token}"
         self.send_verify_email.invoke(event)
