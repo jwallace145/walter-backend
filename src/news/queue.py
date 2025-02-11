@@ -8,15 +8,23 @@ from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+#############
+# CONSTANTS #
+#############
+
+TODAY = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+"""(str): The current date."""
+
+
 ##########
 # MODELS #
 ##########
 
 
-@dataclass
+@dataclass(frozen=True)
 class NewsSummaryRequest:
-    datestamp: dt.datetime
     stock: str
+    datestamp: dt.datetime = TODAY
 
     def __post_init__(self) -> None:
         self._verify_datestamp()

@@ -1493,6 +1493,7 @@ Resources:
         S3Key: walter-backend.zip
       Timeout: 60
       Runtime: python3.11
+      MemorySize: 512
       Architectures:
         - "arm64"
       Layers:
@@ -1535,6 +1536,7 @@ Resources:
           S3Key: walter-backend.zip
         Timeout: 60
         Runtime: python3.11
+        MemorySize: 512
         Architectures:
           - "arm64"
         Layers:
@@ -1777,6 +1779,7 @@ Resources:
               - "sqs:SendMessage"
             Resource: !GetAtt NewsSummariesQueue.Arn
       Roles:
+        - !Ref WalterAPIRole
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
         - !Ref WalterBackendRole
         - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole

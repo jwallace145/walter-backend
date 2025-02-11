@@ -1,14 +1,13 @@
 import json
 from dataclasses import dataclass
 
-from src.ai.client import WalterAI
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.news.bucket import NewsSummariesBucket
-from src.stocks.alphavantage.models import CompanyNews
+from src.news.queue import NewsSummariesQueue, NewsSummaryRequest
 from src.stocks.client import WalterStocksAPI
 from src.utils.log import Logger
 
@@ -28,8 +27,8 @@ class GetNewsSummary(WalterAPIMethod):
 
     walter_db: WalterDB
     walter_stocks_api: WalterStocksAPI
-    walter_ai: WalterAI
     news_summaries_bucket: NewsSummariesBucket
+    news_summaries_queue: NewsSummariesQueue
 
     def __init__(
         self,
@@ -37,8 +36,8 @@ class GetNewsSummary(WalterAPIMethod):
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_stocks_api: WalterStocksAPI,
-        walter_ai: WalterAI,
         news_summaries_bucket: NewsSummariesBucket,
+        news_summaries_queue: NewsSummariesQueue,
     ) -> None:
         super().__init__(
             GetNewsSummary.API_NAME,
@@ -50,8 +49,8 @@ class GetNewsSummary(WalterAPIMethod):
         )
         self.walter_db = walter_db
         self.walter_stocks_api = walter_stocks_api
-        self.walter_ai = walter_ai
         self.news_summaries_bucket = news_summaries_bucket
+        self.news_summaries_queue = news_summaries_queue
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
         body = json.loads(event["body"])
@@ -66,15 +65,13 @@ class GetNewsSummary(WalterAPIMethod):
                 data={"summary": summary},
             )
 
-        news = self._get_news(stock)
-        summary = self._generate_summary(news)
-        self.news_summaries_bucket.put_news_summary(stock, summary)
+        self._add_news_summary_request(stock)
 
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved news!",
-            data={"news_summary": summary},
+            data={"summary": "Generating news summary, check back later..."},
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -102,14 +99,7 @@ class GetNewsSummary(WalterAPIMethod):
             return summary
         log.info("News summary not found in S3!")
 
-    def _get_news(self, stock: str) -> CompanyNews | None:
-        log.info("Getting recent market news from AlphaVantage...")
-        return self.walter_stocks_api.get_news(stock)
-
-    def _generate_summary(self, news: CompanyNews, max_gen_len: int = 1000) -> str:
-        log.info("Generating summary from news...")
-        return self.walter_ai.generate_response(
-            context="You are a financial AI advisor that summaries market news and gives readers digestible, business casual insights about the latest market movements.",
-            prompt=f"Summarize the following news article about the stock '{news.symbol}':\n{news.news}",
-            max_gen_len=max_gen_len,
-        )
+    def _add_news_summary_request(self, stock: str) -> None:
+        log.info(f"Adding news summary request for stock '{stock}' to queue...")
+        request = NewsSummaryRequest(stock=stock)
+        self.news_summaries_queue.add_news_summary_request(request)
