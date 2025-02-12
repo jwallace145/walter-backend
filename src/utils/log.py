@@ -32,7 +32,7 @@ class Logger:
     def get_logger(self) -> Logger:
         logger = getLogger(self.name)
         logger.setLevel(self.log_level)
-        logger.addHandler(self._get_console_handler())
+        # logger.addHandler(self._get_console_handler())
         # logger.addHandler(self._get_file_handler(filename=LOG_FILE))
         coloredlogs.install(
             fmt="%(asctime)s :: %(levelname)s :: %(name)s :: %(message)s",
