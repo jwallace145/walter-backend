@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import List
 
@@ -36,7 +37,7 @@ class WalterDDBClient:
         Returns:
             None.
         """
-        log.debug(f"Adding item to table '{table}':\n{item}")
+        log.debug(f"Adding item to table '{table}':\n{json.dumps(item, indent=4)}")
         try:
             self.client.put_item(TableName=table, Item=item)
         except ClientError as error:
@@ -76,7 +77,9 @@ class WalterDDBClient:
         Returns:
             The DDB item of the item with the given primary key.
         """
-        log.debug(f"Getting item from table '{table}' with key:\n{key}")
+        log.debug(
+            f"Getting item from table '{table}' with key:\n{json.dumps(key, indent=4)}"
+        )
         try:
             return self.client.get_item(TableName=table, Key=key)["Item"]
         except ClientError as clientError:

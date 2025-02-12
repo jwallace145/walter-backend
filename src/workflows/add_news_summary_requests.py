@@ -1,7 +1,9 @@
 import datetime as dt
 import json
+from typing import List
 
 from src.clients import walter_db, news_summaries_queue, walter_cw
+from src.database.stocks.models import Stock
 from src.news.queue import NewsSummaryRequest
 from src.utils.log import Logger
 
@@ -13,6 +15,12 @@ log = Logger(__name__).get_logger()
 
 METRICS_NUMBER_OF_STOCKS = "NumberOfStocks"
 """(str): The total number of unique stocks analyzed by WalterDB."""
+
+
+def emit_metrics(stocks: List[Stock]) -> None:
+    log.info("Emitting total number of stocks metric...")
+    walter_cw.emit_metric(metric_name=METRICS_NUMBER_OF_STOCKS, count=len(stocks))
+
 
 ############
 # WORKFLOW #
@@ -47,8 +55,8 @@ def add_news_summary_requests_workflow(event, context) -> dict:
         "Successfully scanned WalterDB Stocks table and submitted news summary requests for all stocks!"
     )
 
-    log.info("Emitting total number of stocks metric...")
-    walter_cw.emit_metric(metric_name=METRICS_NUMBER_OF_STOCKS, count=len(stocks))
+    # emit metrics about the total number of stocks in db
+    emit_metrics(stocks)
 
     return {
         "statusCode": 200,

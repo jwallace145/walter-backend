@@ -77,9 +77,8 @@ class AlphaVantageClient:
             official_site=response["OfficialSite"],
             address=response["Address"],
         )
-        log.info(
-            f"Returned company overview for '{symbol}':\n{json.dumps(overview.to_dict(), indent=4)}"
-        )
+        log.info(f"Returned company overview for '{symbol}'")
+        log.debug(f"CompanyOverview:\n{json.dumps(overview.to_dict(), indent=4)}")
 
         return overview
 

@@ -44,7 +44,7 @@ class StocksTable:
         Returns:
             The Stock object if it exists in the Stocks table.
         """
-        log.info(f"Getting stock with symbol '{symbol}' from table '{self.table}'")
+        log.info(f"Getting stock '{symbol}' from Stocks table")
         key = StocksTable._get_stock_key(symbol)
         item = self.ddb.get_item(self.table, key)
         return StocksTable._get_stock_from_ddb_item(item) if item is not None else None
@@ -75,9 +75,8 @@ class StocksTable:
         Returns:
             None.
         """
-        log.info(
-            f"Putting stock to table '{self.table}':\n{json.dumps(stock.to_dict(), indent=4)}"
-        )
+        log.info(f"Putting stock '{stock.symbol}' to Stocks table")
+        log.debug(f"Stock:\n{json.dumps(stock.to_dict(), indent=4)}")
         self.ddb.put_item(self.table, stock.to_ddb_item())
 
     @staticmethod
