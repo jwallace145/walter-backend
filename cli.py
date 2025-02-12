@@ -102,6 +102,14 @@ def add_stock(token: str = None, stock: str = None, quantity: float = None) -> N
 
 
 @app.command()
+def get_stock(symbol: str = None) -> None:
+    log.info("WalterCLI: GetStock")
+    event = get_get_stock_event(symbol)
+    response = get_stock_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetStock Response:\n{parse_response(response)}")
+
+
+@app.command()
 def get_prices(stock: str = None) -> None:
     log.info("Walter CLI: Getting prices...")
     event = get_get_prices_event(stock)
@@ -162,14 +170,6 @@ def send_change_password_email(email: str = None) -> None:
     log.info("Walter CLI: Sending change password email...")
     event = get_send_change_password_email_event(email)
     response = send_change_password_email_entrypoint(event, CONTEXT)
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_stock(symbol: str = None) -> None:
-    log.info("Walter CLI: Getting stock...")
-    event = get_get_stock_event(symbol)
-    response = get_stock_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 

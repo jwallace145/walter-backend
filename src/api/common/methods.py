@@ -61,9 +61,8 @@ class WalterAPIMethod(ABC):
         Returns:
             The API response.
         """
-        log.info(
-            f"Invoking '{self.api_name}' API with event:\n{json.dumps(event, indent=4)}"
-        )
+        log.info(f"Invoking '{self.api_name}' API")
+        log.debug(f"Event:\n{json.dumps(event, indent=4)}")
 
         response = None
         try:
@@ -218,6 +217,7 @@ class WalterAPIMethod(ABC):
         Args:
             response: The API response object.
         """
+        log.info(f"Emitting metrics for '{self.api_name}' API")
         success = response["statusCode"] == HTTPStatus.OK.value
         self.metrics.emit_metric(
             self._get_success_count_metric_name(), 1 if success else 0
