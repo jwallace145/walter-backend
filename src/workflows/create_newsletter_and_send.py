@@ -15,6 +15,7 @@ from src.clients import (
     walter_authenticator,
     news_summaries_bucket,
     newsletters_queue,
+    walter_cw,
 )
 from src.config import CONFIG
 from src.utils.log import Logger
@@ -30,6 +31,14 @@ END_DATE = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 START_DATE = END_DATE - timedelta(days=7)
 """(str): The start date of the stock pricing data from Polygon to include in the newsletter context."""
+
+###########
+# METRICS #
+###########
+
+METRICS_SEND_NEWSLETTER_SUCCESS = "SendNewsletterSuccess"
+"""(str): The metric name for the number of successful newsletter sends."""
+
 
 ###########
 # METHODS #
@@ -126,6 +135,9 @@ def create_newsletter_and_send_workflow(event, context) -> dict:
 
         # dump generated newsletter to archive
         newsletters_bucket.put_newsletter(user, CONFIG.newsletter.template, newsletter)
+
+        log.info("Emitting send newsletter success metric...")
+        walter_cw.emit_metric(metric_name=METRICS_SEND_NEWSLETTER_SUCCESS, count=1)
 
         return {
             "statusCode": 200,
