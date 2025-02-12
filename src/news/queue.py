@@ -75,7 +75,8 @@ class NewsSummariesQueue:
         log.debug(f"Creating NewsSummaryQueue with queue URL: '{self.queue_url}'")
 
     def add_news_summary_request(self, request: NewsSummaryRequest) -> str:
-        log.info(f"Adding news summary request to queue:\n{request}")
+        log.info("Adding news summary request to queue")
+        log.debug(f"NewsSummaryRequest:\n{request}")
         message_id = self.client.send_message(
             queue_url=self.queue_url, message=request.to_message()
         )

@@ -38,11 +38,12 @@ class NewslettersQueue:
         log.debug(f"Creating NewslettersQueue with queue URL: '{self.queue_url}'")
 
     def add_newsletter_request(self, request: NewsletterRequest) -> str:
-        log.info(f"Adding newsletter request to queue:\n{request}")
+        log.info("Adding newsletter request to queue")
+        log.debug(f"NewsletterRequest:\n{request}")
         message_id = self.client.send_message(
             queue_url=self.queue_url, message=request.to_message()
         )
-        log.info(f"Added newsletter request to queue with message ID: {message_id}")
+        log.info(f"Added newsletter request to queue with message ID: '{message_id}'")
         return message_id
 
     def delete_newsletter_request(self, receipt_handle: str) -> None:
