@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass
 from typing import List
 
@@ -55,11 +56,13 @@ class CompanyNews:
     """
 
     stock: str
+    datestamp: datetime.datetime
     articles: List[NewsArticle]
 
     def to_dict(self) -> dict:
         return {
             "stock": self.stock,
+            "datestamp": self.datestamp.strftime("%Y-%m-%d"),
             "articles": [article.to_dict() for article in self.articles],
         }
 

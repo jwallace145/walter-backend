@@ -22,6 +22,7 @@ from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
+from src.summaries.client import WalterNewsSummaryClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.utils.log import Logger
@@ -141,4 +142,12 @@ walter_ai = WalterAI(
         bedrock=boto3.client("bedrock", region_name=AWS_REGION),
         bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
     ),
+)
+
+##############################
+# WALTER NEWS SUMMARY CLIENT #
+##############################
+
+walter_news_summary_client = WalterNewsSummaryClient(
+    walter_stock_api=walter_stocks_api, walter_ai=walter_ai
 )

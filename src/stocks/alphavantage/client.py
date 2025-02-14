@@ -118,7 +118,7 @@ class AlphaVantageClient:
             text = self.web_scraper.scrape(url)
             articles.append(NewsArticle(title=title, url=url, contents=text))
 
-        return CompanyNews(stock=symbol, articles=articles)
+        return CompanyNews(stock=symbol, datestamp=date, articles=articles)
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks with tickers similar to '{symbol}'")
@@ -168,7 +168,7 @@ class AlphaVantageClient:
         )
 
     @staticmethod
-    def _get_company_search(stock: dict) -> str:
+    def _get_company_search(stock: dict) -> CompanySearch:
         return CompanySearch(
             symbol=stock["1. symbol"],
             name=stock["2. name"],
