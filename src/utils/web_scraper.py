@@ -22,7 +22,7 @@ class WebScraper:
         log.debug("Initializing WebScraper")
 
     def scrape(self, url: str) -> str | None:
-        log.info(f"Scraping text contents from web page with URL: '{url}'")
+        log.debug(f"Scraping text contents from web page with URL: '{url}'")
 
         response = self._get_response(url)
         if response is None:

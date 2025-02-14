@@ -1,9 +1,11 @@
+import datetime as dt
+
 import pytest
 
 from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
 from src.news.bucket import NewsSummariesBucket
-import datetime as dt
+from src.summaries.models import NewsSummary
 
 ##########################
 # NEWS SUMMARIES BUCKETS #
@@ -18,8 +20,22 @@ NEWS_SUMMARIES_BUCKET_PROD = "walterai-news-summaries-prod"
 # NEWS SUMMARIES #
 ##################
 
+DATESTAMP = dt.datetime(
+    year=2025, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+)
+
+MSFT_SUMMARY_METADATA_KEY = "summaries/MSFT/y=2025/m=01/d=01/metadata.json"
 MSFT_SUMMARY_KEY = "summaries/MSFT/y=2025/m=01/d=01/summary.html"
+
+ABNB_SUMMARY_METADATA_KEY = "summaries/ABNB/y=2025/m=01/d=01/metadata.json"
 ABNB_SUMMARY_KEY = "summaries/ABNB/y=2025/m=01/d=01/summary.html"
+ABNB_SUMMARY = NewsSummary(
+    stock="ABNB",
+    datestamp=DATESTAMP,
+    model_name="unit-test",
+    articles=[],
+    summary="",
+)
 
 ################################
 # NEWS SUMMARIES BUCKET CLIENT #
@@ -40,19 +56,32 @@ def test_put_summary(
     news_summaries_bucket: NewsSummariesBucket, walter_s3: WalterS3Client
 ) -> None:
     stock = "ABNB"
-    now = dt.datetime.now()
     assert (
         walter_s3.get_object(
             NEWS_SUMMARIES_BUCKET_TEST,
-            f"summaries/{stock}/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            f"summaries/{stock}/{DATESTAMP.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
         )
         is None
     )
-    news_summaries_bucket.put_news_summary(stock, "summary")
     assert (
         walter_s3.get_object(
             NEWS_SUMMARIES_BUCKET_TEST,
-            f"summaries/{stock}/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            f"summaries/{stock}/{DATESTAMP.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+        )
+        is None
+    )
+    news_summaries_bucket.put_news_summary(ABNB_SUMMARY)
+    assert (
+        walter_s3.get_object(
+            NEWS_SUMMARIES_BUCKET_TEST,
+            f"summaries/{stock}/{DATESTAMP.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
+        )
+        is not None
+    )
+    assert (
+        walter_s3.get_object(
+            NEWS_SUMMARIES_BUCKET_TEST,
+            f"summaries/{stock}/{DATESTAMP.strftime('y=%Y/m=%m/d=%d')}/summary.html",
         )
         is not None
     )
@@ -104,6 +133,18 @@ def test_get_news_summaries_bucket_name() -> None:
     assert (
         NewsSummariesBucket._get_bucket_name(Domain.PRODUCTION)
         == NEWS_SUMMARIES_BUCKET_PROD
+    )
+
+
+def test_get_news_summary_metadata_key() -> None:
+    datestamp = dt.datetime(year=2025, month=1, day=1)
+    assert (
+        NewsSummariesBucket._get_metadata_key("MSFT", datestamp)
+        == MSFT_SUMMARY_METADATA_KEY
+    )
+    assert (
+        NewsSummariesBucket._get_metadata_key("ABNB", datestamp)
+        == ABNB_SUMMARY_METADATA_KEY
     )
 
 

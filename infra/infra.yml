@@ -1423,7 +1423,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: 300
       Runtime: python3.11
       Architectures:
         - "arm64"
@@ -1457,7 +1457,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: 300
       Runtime: python3.11
       Architectures:
         - "arm64"
@@ -1491,7 +1491,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: 300
       Runtime: python3.11
       MemorySize: 512
       Architectures:
@@ -1534,7 +1534,7 @@ Resources:
         Code:
           S3Bucket: walter-backend-src
           S3Key: walter-backend.zip
-        Timeout: 60
+        Timeout: 300
         Runtime: python3.11
         MemorySize: 512
         Architectures:

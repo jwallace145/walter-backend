@@ -4,9 +4,7 @@ from src.api.common.models import Status, HTTPStatus
 from src.clients import (
     walter_event_parser,
     news_summaries_bucket,
-    walter_stocks_api,
-    walter_ai,
-    news_summaries_queue,
+    walter_news_summary_client,
 )
 from src.config import CONFIG
 from src.utils.log import Logger
@@ -20,22 +18,10 @@ log = Logger(__name__).get_logger()
 WORKFLOW_NAME = "CreateNewsSummaryAndArchive"
 """(str): The name of the workflow that processes events asynchronously to generate stock news summary and archive them."""
 
-CONTEXT = "You are a financial AI advisor that summaries market news and gives readers digestible, business casual insights about the latest market movements."
-"""(str): The context used to give to the LLM to generate news summaries."""
-
-PROMPT = "Summarize the following news article about the stock '{stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report:\n{news}"
-"""(str): The prompt used to give to the LLM to generate news summaries."""
-
-SUMMARY_MAX_LENGTH = CONFIG.news_summary.max_length
-"""(int): The length of the news summary is controlled by the max generation length of the LLM response."""
 
 ###########
 # METHODS #
 ###########
-
-
-def get_prompt(stock: str, news: str) -> str:
-    return PROMPT.format(stock=stock, news=news)
 
 
 def get_response(status: HTTPStatus, body: dict) -> dict:
@@ -65,49 +51,39 @@ def create_news_summary_and_archive_workflow(event, context) -> dict:
 
     event = walter_event_parser.parse_create_news_summary_and_archive_event(event)
 
-    try:
-        log.info(f"Checking for news summary in archive for stock '{event.stock}'...")
-        summary = news_summaries_bucket.get_news_summary(event.stock, event.datestamp)
-        if summary is not None:
-            log.info(f"Found news summary for stock '{event.stock}' in archive!")
-            body = {
-                "WalterWorkflow": WORKFLOW_NAME,
-                "Status": Status.SUCCESS.name,
-                "Message": "News summary already exists!",
-            }
-            return get_response(HTTPStatus.OK, body)
-
-        log.info("News summary not found in S3!")
-
-        log.info("Getting market news...")
-        news = walter_stocks_api.get_news(
-            event.stock, event.datestamp, CONFIG.news_summary.number_of_articles
-        )
-
-        log.info("Generating summary from news...")
-        summary = walter_ai.generate_response(
-            context=CONTEXT,
-            prompt=get_prompt(news.stock, news.to_dict()),
-            max_output_tokens=SUMMARY_MAX_LENGTH,
-        )
-
-        s3uri = news_summaries_bucket.put_news_summary(
-            event.stock, summary, event.datestamp
-        )
-
-        # create response bodyp
+    log.info(f"Checking for news summary in archive for stock '{event.stock}'...")
+    summary = news_summaries_bucket.get_news_summary(event.stock, event.datestamp)
+    if summary is not None:
+        log.info(f"Found news summary for stock '{event.stock}' in archive!")
         body = {
-            "Workflow": WORKFLOW_NAME,
-            "Status": Status.SUCCESS.value,
-            "Message": "News summary created.",
-            "Data": {
-                "s3uri": s3uri,
-                "model": walter_ai.get_model().get_name(),
-                "articles": [url for url in news.get_article_urls()],
-            },
+            "WalterWorkflow": WORKFLOW_NAME,
+            "Status": Status.SUCCESS.name,
+            "Message": "News summary already exists!",
         }
-
         return get_response(HTTPStatus.OK, body)
-    except Exception:
-        log.error("Unexpected error occurred creating news summary!")
-        news_summaries_queue.delete_news_summary_request(event.receipt_handle)
+
+    log.info("News summary not found in S3! Generating news summary now...")
+    summary = walter_news_summary_client.generate(
+        stock=event.stock,
+        datestamp=event.datestamp,
+        number_of_articles=CONFIG.news_summary.number_of_articles,
+    )
+
+    log.info(f"Writing news summary for stock '{summary.stock.upper()}' to archive...")
+    s3uri = news_summaries_bucket.put_news_summary(summary)
+
+    # create response body
+    body = {
+        "Workflow": WORKFLOW_NAME,
+        "Status": Status.SUCCESS.value,
+        "Message": "News summary created.",
+        "Data": {
+            "s3uri": s3uri,
+            "summary": summary.get_summary(),
+        },
+    }
+
+    return get_response(HTTPStatus.OK, body)
+    # except Exception:
+    #     log.error("Unexpected error occurred creating news summary!")
+    #     news_summaries_queue.delete_news_summary_request(event.receipt_handle)
