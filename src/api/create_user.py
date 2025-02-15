@@ -29,6 +29,7 @@ class CreateUser(WalterAPIMethod):
     """
 
     API_NAME = "CreateUser"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "username", "password"]
     EXCEPTIONS = [BadRequest, InvalidEmail, InvalidUsername, UserAlreadyExists]
@@ -47,6 +48,7 @@ class CreateUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             CreateUser.API_NAME,
+            CreateUser.REQUIRED_QUERY_FIELDS,
             CreateUser.REQUIRED_HEADERS,
             CreateUser.REQUIRED_FIELDS,
             CreateUser.EXCEPTIONS,

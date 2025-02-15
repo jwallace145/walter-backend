@@ -15,6 +15,7 @@ from src.stocks.client import WalterStocksAPI
 class DeleteStock(WalterAPIMethod):
 
     API_NAME = "DeleteStock"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [
@@ -37,6 +38,7 @@ class DeleteStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             DeleteStock.API_NAME,
+            DeleteStock.REQUIRED_QUERY_FIELDS,
             DeleteStock.REQUIRED_HEADERS,
             DeleteStock.REQUIRED_FIELDS,
             DeleteStock.EXCEPTIONS,

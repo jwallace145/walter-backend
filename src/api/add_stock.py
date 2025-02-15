@@ -29,6 +29,7 @@ class AddStock(WalterAPIMethod):
     """
 
     API_NAME = "AddStock"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["stock", "quantity"]
     EXCEPTIONS = [
@@ -52,6 +53,7 @@ class AddStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             AddStock.API_NAME,
+            AddStock.REQUIRED_QUERY_FIELDS,
             AddStock.REQUIRED_HEADERS,
             AddStock.REQUIRED_FIELDS,
             AddStock.EXCEPTIONS,

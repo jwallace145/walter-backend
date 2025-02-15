@@ -26,6 +26,7 @@ class AuthUser(WalterAPIMethod):
     """
 
     API_NAME = "AuthUser"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "password"]
     EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
@@ -42,6 +43,7 @@ class AuthUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             AuthUser.API_NAME,
+            AuthUser.REQUIRED_QUERY_FIELDS,
             AuthUser.REQUIRED_HEADERS,
             AuthUser.REQUIRED_FIELDS,
             AuthUser.EXCEPTIONS,

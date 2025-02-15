@@ -17,6 +17,7 @@ class GetUser(WalterAPIMethod):
     """
 
     API_NAME = "GetUser"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
@@ -33,6 +34,7 @@ class GetUser(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetUser.API_NAME,
+            GetUser.REQUIRED_QUERY_FIELDS,
             GetUser.REQUIRED_HEADERS,
             GetUser.REQUIRED_FIELDS,
             GetUser.EXCEPTIONS,

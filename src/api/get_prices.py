@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 from typing import List
 
@@ -25,8 +24,9 @@ class GetPrices(WalterAPIMethod):
     """
 
     API_NAME = "GetPrices"
-    REQUIRED_HEADERS = {"content-type": "application/json"}
-    REQUIRED_FIELDS = ["stock"]
+    REQUIRED_QUERY_FIELDS = ["stock"]
+    REQUIRED_HEADERS = {}
+    REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
 
     walter_db: WalterDB
@@ -41,6 +41,7 @@ class GetPrices(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetPrices.API_NAME,
+            GetPrices.REQUIRED_QUERY_FIELDS,
             GetPrices.REQUIRED_HEADERS,
             GetPrices.REQUIRED_FIELDS,
             GetPrices.EXCEPTIONS,
@@ -51,8 +52,7 @@ class GetPrices(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
 
     def execute(self, event: dict, authenticated_email: str) -> dict:
-        body = json.loads(event["body"])
-        stock = body["stock"]
+        stock = self._get_stock_from_url(event)
         stock = self._verify_stock_exists(stock)
         prices = self._get_prices(stock)
         return self._create_response(
@@ -71,11 +71,14 @@ class GetPrices(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return False
 
+    def _get_stock_from_url(self, event: dict) -> str | None:
+        return event["queryStringParameters"]["stock"]
+
     def _verify_stock_exists(self, symbol: str) -> Stock | None:
         log.info("Verifying stock exists...")
         cached_stock = self.walter_db.get_stock(symbol)
         if cached_stock is None:
-            log.info("Stock not found in WalterDB. Checking AlphaVantage...")
+            log.info("Stock not found in WalterDB. Checking WalterStocksAPI...")
             stock = self.walter_stocks_api.get_stock(symbol)
             if stock is None:
                 log.error("Stock does not exist!")
@@ -83,11 +86,9 @@ class GetPrices(WalterAPIMethod):
             log.info("Adding stock to WalterDB...")
             self.walter_db.add_stock(stock)
             return stock
-        log.info(
-            f"Stock found in WalterDB:\n{json.dumps(cached_stock.to_dict(), indent=4)}"
-        )
+        log.info("Stock found in WalterDB!")
         return cached_stock
 
     def _get_prices(self, stock: Stock) -> List[StockPrice]:
-        log.info("Getting prices from Polygon")
+        log.info("Getting prices from WalterStocksAPI...")
         return self.walter_stocks_api.get_prices(stock.symbol).prices

@@ -15,8 +15,8 @@ from src.templates.engine import TemplatesEngine
 class SendChangePasswordEmail(WalterAPIMethod):
 
     API_NAME = "SendChangePasswordEmail"
-    REQUIRED_HEADERS = {}
     REQUIRED_QUERY_FIELDS = ["email"]
+    REQUIRED_HEADERS = {}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, UserDoesNotExist]
 
@@ -36,6 +36,7 @@ class SendChangePasswordEmail(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SendChangePasswordEmail.API_NAME,
+            SendChangePasswordEmail.REQUIRED_QUERY_FIELDS,
             SendChangePasswordEmail.REQUIRED_HEADERS,
             SendChangePasswordEmail.REQUIRED_FIELDS,
             SendChangePasswordEmail.EXCEPTIONS,

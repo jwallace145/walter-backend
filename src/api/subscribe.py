@@ -22,6 +22,7 @@ class Subscribe(WalterAPIMethod):
     """
 
     API_NAME = "Subscribe"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadySubscribed]
@@ -36,6 +37,7 @@ class Subscribe(WalterAPIMethod):
     ) -> None:
         super().__init__(
             Subscribe.API_NAME,
+            Subscribe.REQUIRED_QUERY_FIELDS,
             Subscribe.REQUIRED_HEADERS,
             Subscribe.REQUIRED_FIELDS,
             Subscribe.EXCEPTIONS,
