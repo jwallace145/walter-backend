@@ -389,7 +389,7 @@ Resources:
   WalterAPIGetPortfolioMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: POST
+      HttpMethod: GET
       ResourceId: !Ref WalterAPIGetPortfolioResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
@@ -413,7 +413,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: ''
