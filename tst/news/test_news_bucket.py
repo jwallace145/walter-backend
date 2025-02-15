@@ -5,6 +5,7 @@ import pytest
 from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
 from src.news.bucket import NewsSummariesBucket
+from src.stocks.alphavantage.models import CompanyNews
 from src.summaries.models import NewsSummary
 
 ##########################
@@ -20,9 +21,11 @@ NEWS_SUMMARIES_BUCKET_PROD = "walterai-news-summaries-prod"
 # NEWS SUMMARIES #
 ##################
 
-DATESTAMP = dt.datetime(
+END_DATE = dt.datetime(
     year=2025, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
 )
+START_DATE = END_DATE - dt.timedelta(days=90)
+DATESTAMP = END_DATE
 
 MSFT_SUMMARY_METADATA_KEY = "summaries/MSFT/y=2025/m=01/d=01/metadata.json"
 MSFT_SUMMARY_KEY = "summaries/MSFT/y=2025/m=01/d=01/summary.html"
@@ -33,7 +36,9 @@ ABNB_SUMMARY = NewsSummary(
     stock="ABNB",
     datestamp=DATESTAMP,
     model_name="unit-test",
-    articles=[],
+    news=CompanyNews(
+        stock="ABNB", start_date=START_DATE, end_date=END_DATE, articles=[]
+    ),
     summary="",
 )
 

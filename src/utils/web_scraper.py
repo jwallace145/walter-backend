@@ -31,7 +31,6 @@ class WebScraper:
         return self._parse_response(response)
 
     def _get_response(self, url: str) -> Response | None:
-        log.debug(f"Getting response from web page with URL: '{url}'")
         try:
             return requests.get(url)
         except Exception:
@@ -41,12 +40,12 @@ class WebScraper:
             return None
 
     def _parse_response(self, response: Response) -> str | None:
-        log.debug(f"Parsing response:\n{response}")
         soup = BeautifulSoup(response.text, "html.parser")
         for script in soup(
             ["script", "style", "footer", "nav", "header", "aside", "advertisement"]
         ):
             script.decompose()
-        page_text = soup.get_text(strip=True)
+        page_text = soup.get_text(separator=" ", strip=True)
         cleaned_text = " ".join(page_text.split())
+        cleaned_text = cleaned_text.replace("\u201c", '"').replace("\u201d", '"')
         return cleaned_text

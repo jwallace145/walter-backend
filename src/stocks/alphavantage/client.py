@@ -1,11 +1,12 @@
+import datetime
 import datetime as dt
 import json
-import re
 from dataclasses import dataclass
 from typing import List
 
 import requests
 
+from src.config import CONFIG
 from src.stocks.alphavantage.models import (
     CompanyOverview,
     CompanyNews,
@@ -21,8 +22,10 @@ log = Logger(__name__).get_logger()
 # CONSTANTS #
 #############
 
-ONE_YEAR_AGO = dt.datetime.today() - dt.timedelta(days=365)
-"""(datetime): Exactly one year ago from the current date."""
+LOOKBACK_DATE = dt.datetime.today() - dt.timedelta(
+    days=CONFIG.news_summary.lookback_window_days
+)
+"""(datetime): The lookback date to use for getting stock news."""
 
 TODAY = dt.datetime.today()
 """(datetime): The current date."""
@@ -42,6 +45,12 @@ class AlphaVantageClient:
 
     BASE_URL = "https://www.alphavantage.co"
     METHOD_URL_FORMAT = "{base_url}/query?function={method}{args}{key}"
+
+    GET_COMPANY_OVERVIEW_METHOD = "OVERVIEW"
+    GET_NEWS_SENTIMENT_METHOD = "NEWS_SENTIMENT"
+    GET_SYMBOL_SEARCH_METHOD = "SYMBOL_SEARCH"
+
+    GET_NEWS_SENTIMENT_METHOD_TIMESTAMP_FORMAT = "%Y%m%dT%H%M%S"
 
     api_key: str
     web_scraper: WebScraper
@@ -82,7 +91,9 @@ class AlphaVantageClient:
 
         return overview
 
-    def get_news(self, symbol: str, date: dt, limit: int) -> CompanyNews | None:
+    def get_news(
+        self, symbol: str, start_date: dt, end_date: dt, limit: int
+    ) -> CompanyNews | None:
         """
         Get relevant company news.
 
@@ -93,32 +104,46 @@ class AlphaVantageClient:
 
         Args:
             symbol: The stock symbol of the company.
-            date: The most recent news date to fetch.
+            start_date: The start date of the period to get news.
+            end_date: The end date of the period to get news.
             limit: The number of news articles to return.
 
         Returns:
             The latest company news or `None` if not found.
         """
         log.info(
-            f"Getting company news for '{symbol}' with most recent news date '{date}'"
+            f"Getting news for '{symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}"
         )
-        url = self._get_news_url(symbol, date)
+        url = self._get_news_url(symbol, start_date, end_date)
         response = requests.get(url).json()
 
         if response == {}:
-            log.info("No news found for '{symbol}'")
+            log.info(f"No news found for '{symbol}'")
             return None
 
-        log.info(f"Parsing {limit} articles for '{symbol}'")
+        log.info(
+            f"Returned {len(response['feed'])} articles for '{symbol.upper()}'! Parsing {limit} articles..."
+        )
 
+        # iterate over returned articles and scrape contents until the number of
+        # articles parsed limit is reached or there are no more articles to parse
         articles = []
-        for article in response["feed"][:limit]:
-            title = self._format_title(article["title"])
+        index = 0
+        while len(articles) < limit and index < len(response["feed"]):
+            article = response["feed"][index]
             url = article["url"]
-            text = self.web_scraper.scrape(url)
-            articles.append(NewsArticle(title=title, url=url, contents=text))
+            contents = self.web_scraper.scrape(url)
 
-        return CompanyNews(stock=symbol, datestamp=date, articles=articles)
+            # ensure web scraped news from article is not empty
+            if contents:
+                article = AlphaVantageClient._get_news_article(article, contents)
+                articles.append(article)
+
+            index += 1
+
+        return CompanyNews(
+            stock=symbol, start_date=start_date, end_date=end_date, articles=articles
+        )
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks with tickers similar to '{symbol}'")
@@ -135,26 +160,40 @@ class AlphaVantageClient:
         ]
 
     def _get_company_overview_url(self, symbol: str) -> str:
-        return self._get_method_url(method="OVERVIEW", args={"symbol": symbol})
+        return self._get_method_url(
+            method=AlphaVantageClient.GET_COMPANY_OVERVIEW_METHOD,
+            args={"symbol": symbol},
+        )
 
     def _get_news_url(
         self,
         symbol: str,
-        time_from: dt.datetime = ONE_YEAR_AGO,
-        time_to: dt.datetime = TODAY,
+        start_date: dt.datetime = LOOKBACK_DATE,
+        end_date: dt.datetime = TODAY,
     ) -> str:
+        start_date_str = start_date.strftime("%Y%m%dT%H%M")
+        end_date_str = end_date.strftime("%Y%m%dT%H%M")
+
+        if start_date >= end_date:
+            raise ValueError(
+                f"Cannot create GetNews URL with start date greater than end date! Start: '{start_date_str}' End: '{end_date_str}'"
+            )
+
         return self._get_method_url(
-            method="NEWS_SENTIMENT",
+            method=AlphaVantageClient.GET_NEWS_SENTIMENT_METHOD,
             args={
                 "tickers": symbol,
                 "sort": "RELEVANCE",
-                "time_from": time_from.strftime("%Y%m%dT%H%M"),
-                "time_to": time_to.strftime("%Y%m%dT%H%M"),
+                "time_from": start_date_str,
+                "time_to": end_date_str,
             },
         )
 
     def _get_search_stock_url(self, symbol: str) -> str:
-        return self._get_method_url(method="SYMBOL_SEARCH", args={"keywords": symbol})
+        return self._get_method_url(
+            method=AlphaVantageClient.GET_SYMBOL_SEARCH_METHOD,
+            args={"keywords": symbol},
+        )
 
     def _get_method_url(self, method: str, args: dict) -> str:
         args_str = ""
@@ -179,9 +218,17 @@ class AlphaVantageClient:
         )
 
     @staticmethod
-    def _format_title(title: str) -> str:
-        cleaned_title = re.sub(r"[^a-zA-Z0-9\s]", "", title)
-        cleaned_title = cleaned_title.lower()
-        formatted_title = cleaned_title.replace(" ", "-")
-        truncated_title = formatted_title[:64]
-        return truncated_title
+    def _get_news_article(article: dict, contents: str) -> NewsArticle:
+        published_timestamp = datetime.datetime.strptime(
+            article["time_published"],
+            AlphaVantageClient.GET_NEWS_SENTIMENT_METHOD_TIMESTAMP_FORMAT,
+        )
+        return NewsArticle(
+            title=article["title"],
+            url=article["url"],
+            published_timestamp=published_timestamp,
+            authors=article["authors"],
+            source=article["source"],
+            summary=article["summary"],
+            contents=contents,
+        )

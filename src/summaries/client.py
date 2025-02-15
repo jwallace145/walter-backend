@@ -14,10 +14,10 @@ log = Logger(__name__).get_logger()
 # CONSTANTS #
 #############
 
-CONTEXT = "You are a financial AI advisor that summaries market news and gives readers digestible, business casual insights about the latest market movements."
+CONTEXT = "You are a AI investment portfolio advisor that summarizes stock market news and gives readers digestible, business insights about the latest stock market movements to help them stay informed."
 """(str): The context used to give to the LLM to generate news summaries."""
 
-PROMPT = "Summarize the following news article about the stock '{stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report:\n{news}"
+PROMPT = "Summarize the following news article about the stock '{stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report. Include data where possible and only focus on the most important updates, do not simply summarize each article separately:\n{news}"
 """(str): The prompt used to give to the LLM to generate news summaries."""
 
 SUMMARY_MAX_LENGTH = CONFIG.news_summary.max_length
@@ -43,31 +43,32 @@ class WalterNewsSummaryClient:
     def generate(
         self,
         stock: str,
-        datestamp: dt.datetime,
-        number_of_articles=CONFIG.news_summary.number_of_articles,
+        start_date: dt.datetime,
+        end_date: dt.datetime,
+        number_of_articles: int = CONFIG.news_summary.number_of_articles,
     ) -> NewsSummary | None:
         log.info(
-            f"Generating '{stock.upper()}' stock news summary for date: '{datestamp.strftime('%Y-%m-%d')}'"
+            f"Generating '{stock.upper()}' news summary for date '{end_date.strftime('%Y-%m-%d')}'"
         )
-        news = self._get_stock_news(stock, datestamp, number_of_articles)
+        news = self._get_stock_news(stock, start_date, end_date, number_of_articles)
         return self._generate_news_summary(news)
 
     def _get_stock_news(
         self,
         stock: str,
-        datestamp: dt.datetime,
+        start_date: dt.datetime,
+        end_date: dt.datetime,
         numbers_of_articles: int = CONFIG.news_summary.number_of_articles,
     ) -> CompanyNews:
-        log.info(
-            f"Getting latest '{stock.upper()}' stock news with latest published date: '{datestamp.strftime('%Y-%m-%d')}'"
+        news = self.walter_stock_api.get_news(
+            stock, start_date, end_date, numbers_of_articles
         )
-        news = self.walter_stock_api.get_news(stock, datestamp, numbers_of_articles)
         if not news:
             raise ValueError(
-                f"No '{stock.upper()}' stock news articles returned with latest published date: '{datestamp.strftime('%Y-%m-%d')}'!"
+                f"No '{stock.upper()}' news articles returned from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}'!"
             )
         log.info(
-            f"Successfully returned {len(news.articles)} '{stock.upper()}' stock news articles!"
+            f"Successfully returned {len(news.articles)} '{stock.upper()}' news articles!"
         )
         return news
 
@@ -81,8 +82,8 @@ class WalterNewsSummaryClient:
         log.info(f"Successfully generated '{news.stock.upper()}' stock news summary!")
         return NewsSummary(
             stock=news.stock,
-            datestamp=news.datestamp,
+            datestamp=news.end_date,
             model_name=self.walter_ai.get_model().get_name(),
-            articles=news.articles,
+            news=news,
             summary=summary,
         )
