@@ -62,7 +62,7 @@ class NewsSummariesBucket:
         key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.get_object(self.bucket, key)
 
-    def get_latest_news_summary(self, stock: str) -> NewsSummary | None:
+    def get_latest_news_summary(self, stock: str) -> str | None:
         log.info(f"Getting latest news summary for stock '{stock}'")
         prefix = NewsSummariesBucket._get_summaries_prefix(stock)
         prefixes = self.client.list_objects(self.bucket, prefix)
@@ -74,13 +74,7 @@ class NewsSummariesBucket:
 
         summary = self.client.get_object(self.bucket, prefixes[-1])
 
-        return NewsSummary(
-            stock=stock.upper(),
-            datestamp=dt.today(),
-            model_name="TODO",
-            articles=[],
-            summary=self.remove_non_alphanumeric(summary),
-        )
+        return self.remove_non_alphanumeric(summary)
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:
