@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List
 
+from src.config import CONFIG
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.alphavantage.client import AlphaVantageClient
@@ -53,10 +54,16 @@ class WalterStocksAPI:
         return self.polygon.get_stock_prices(stock)
 
     def get_news(
-        self, stock: str, timestamp: datetime, number_of_articles: int
+        self,
+        stock: str,
+        start_date: datetime,
+        end_date: datetime,
+        number_of_articles: int = CONFIG.news_summary.number_of_articles,
     ) -> CompanyNews | None:
         log.info(f"Getting news for stock '{stock}'")
-        return self.alpha_vantage.get_news(stock, timestamp, number_of_articles)
+        return self.alpha_vantage.get_news(
+            stock, start_date, end_date, number_of_articles
+        )
 
     @staticmethod
     def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:

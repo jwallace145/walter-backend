@@ -40,13 +40,15 @@ class ArtificialIntelligenceConfig:
 class NewsSummaryConfig:
     """News Summary Configurations"""
 
-    number_of_articles: int = 5
-    max_length: int = 2000
+    number_of_articles: int = 10
+    lookback_window_days: int = 90
+    max_length: int = 5000
     schedule: str = "0 5 * * ? *"  # every day at midnight EDT
 
     def to_dict(self) -> dict:
         return {
             "number_of_articles": self.number_of_articles,
+            "lookback_window_days": self.lookback_window_days,
             "max_length": self.max_length,
             "schedule": self.schedule,
         }
@@ -125,6 +127,9 @@ def get_walter_config() -> WalterConfig:
             ),
             news_summary=NewsSummaryConfig(
                 number_of_articles=config_yaml["news_summary"]["number_of_articles"],
+                lookback_window_days=config_yaml["news_summary"][
+                    "lookback_window_days"
+                ],
                 max_length=config_yaml["news_summary"]["max_length"],
                 schedule=config_yaml["news_summary"]["schedule"],
             ),

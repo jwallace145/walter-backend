@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import List
 from datetime import datetime
 
-from src.stocks.alphavantage.models import NewsArticle
+from src.stocks.alphavantage.models import CompanyNews
 
 
 @dataclass(frozen=True)
@@ -16,7 +15,7 @@ class NewsSummary:
     stock: str
     datestamp: datetime
     model_name: str
-    articles: List[NewsArticle]
+    news: CompanyNews
     summary: str
 
     def get_metadata(self) -> dict:
@@ -24,7 +23,7 @@ class NewsSummary:
             "model_name": self.model_name,
             "stock": self.stock,
             "datestamp": self.datestamp.strftime(NewsSummary.DATESTAMP_FORMAT),
-            "articles": [article.to_dict() for article in self.articles],
+            "news": self.news.to_dict(),
         }
 
     def get_summary(self) -> dict:

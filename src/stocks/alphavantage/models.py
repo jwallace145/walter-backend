@@ -43,10 +43,22 @@ class NewsArticle:
 
     title: str
     url: str
+    published_timestamp: datetime.datetime
+    authors: List[str]
+    source: str
+    summary: str
     contents: str
 
     def to_dict(self) -> dict:
-        return {"title": self.title, "url": self.url, "summary": self.contents}
+        return {
+            "title": self.title,
+            "url": self.url,
+            "published_timestamp": self.published_timestamp.strftime("%Y-%m-%d"),
+            "authors": self.authors,
+            "source": self.source,
+            "summary": self.summary,
+            "contents": self.contents,
+        }
 
 
 @dataclass(frozen=True)
@@ -56,13 +68,15 @@ class CompanyNews:
     """
 
     stock: str
-    datestamp: datetime.datetime
+    start_date: datetime.datetime
+    end_date: datetime.datetime
     articles: List[NewsArticle]
 
     def to_dict(self) -> dict:
         return {
             "stock": self.stock,
-            "datestamp": self.datestamp.strftime("%Y-%m-%d"),
+            "start_date": self.start_date.strftime("%Y-%m-%d"),
+            "end_date": self.end_date.strftime("%Y-%m-%d"),
             "articles": [article.to_dict() for article in self.articles],
         }
 

@@ -70,7 +70,7 @@ class GetNewsSummary(WalterAPIMethod):
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Retrieved news!",
+            message="News summary not found, generating summary now...!",
             data={"summary": "Generating news summary, check back later..."},
         )
 
