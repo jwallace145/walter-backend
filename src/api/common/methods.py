@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated
 from src.api.common.models import HTTPStatus, Status, Response
@@ -36,13 +36,15 @@ class WalterAPIMethod(ABC):
     def __init__(
         self,
         api_name: str,
-        required_headers: List[str],
+        required_query_fields: List[str],
+        required_headers: Dict[str, str],
         required_fields: List[str],
         exceptions: List[Exception],
         authenticator: WalterAuthenticator,
         metrics: WalterCloudWatchClient,
     ) -> None:
         self.api_name = api_name
+        self.required_query_fields = required_query_fields
         self.required_headers = required_headers
         self.required_fields = required_fields
         self.exceptions = exceptions
@@ -83,9 +85,27 @@ class WalterAPIMethod(ABC):
 
     def _validate_request(self, event: dict) -> None:
         log.info("Validating request...")
+        self._validate_required_query_fields(event)
         self._validate_required_headers(event)
         self._validate_required_fields(event)
         self.validate_fields(event)
+        log.info("Successfully validated request!")
+
+    def _validate_required_query_fields(self, event: dict) -> None:
+        if len(self.required_query_fields) == 0:
+            log.info("No required query fields to validate!")
+            return
+
+        log.info(f"Validating required query fields: {self.required_query_fields}")
+        query_fields = {}
+        if event["queryStringParameters"] is not None:
+            query_fields = event["queryStringParameters"]
+        for field in self.required_query_fields:
+            if field not in query_fields:
+                raise BadRequest(
+                    f"Client bad request! Missing required query field: '{field}'"
+                )
+        log.info("Successfully validated required query fields!")
 
     def _validate_required_headers(self, event: dict) -> None:
         """

@@ -23,7 +23,7 @@ class GetStock(WalterAPIMethod):
 
     API_NAME = "GetStock"
     REQUIRED_QUERY_FIELDS = ["symbol"]
-    REQUIRED_HEADERS = []
+    REQUIRED_HEADERS = {}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
 
@@ -39,6 +39,7 @@ class GetStock(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetStock.API_NAME,
+            GetStock.REQUIRED_QUERY_FIELDS,
             GetStock.REQUIRED_HEADERS,
             GetStock.REQUIRED_FIELDS,
             GetStock.EXCEPTIONS,

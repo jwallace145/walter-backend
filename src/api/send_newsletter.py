@@ -24,6 +24,7 @@ log = Logger(__name__).get_logger()
 class SendNewsletter(WalterAPIMethod):
 
     API_NAME = "SendNewsletter"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
@@ -48,6 +49,7 @@ class SendNewsletter(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SendNewsletter.API_NAME,
+            SendNewsletter.REQUIRED_QUERY_FIELDS,
             SendNewsletter.REQUIRED_HEADERS,
             SendNewsletter.REQUIRED_FIELDS,
             SendNewsletter.EXCEPTIONS,

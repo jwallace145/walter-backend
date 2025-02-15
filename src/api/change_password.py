@@ -20,6 +20,7 @@ class ChangePassword(WalterAPIMethod):
     """
 
     API_NAME = "ChangePassword"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["new_password"]
     EXCEPTIONS = [BadRequest, NotAuthenticated]
@@ -34,6 +35,7 @@ class ChangePassword(WalterAPIMethod):
     ) -> None:
         super().__init__(
             ChangePassword.API_NAME,
+            ChangePassword.REQUIRED_QUERY_FIELDS,
             ChangePassword.REQUIRED_HEADERS,
             ChangePassword.REQUIRED_FIELDS,
             ChangePassword.EXCEPTIONS,

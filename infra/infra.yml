@@ -275,7 +275,7 @@ Resources:
   WalterAPIGetPricesMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: POST
+      HttpMethod: GET
       ResourceId: !Ref WalterAPIPrices
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
@@ -285,35 +285,6 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPrices.Arn}/invocations"
       MethodResponses:
         - StatusCode: 200
-
-  WalterAPIGetPricesCORSMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIPrices
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-            ResponseTemplates:
-              application/json: ''
-        PassthroughBehavior: WHEN_NO_MATCH
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
 
   WalterAPIGetPricesPermission:
     Type: AWS::Lambda::Permission
@@ -415,6 +386,7 @@ Resources:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Max-Age: "'86400'"
             ResponseTemplates:
               application/json: ''
         PassthroughBehavior: WHEN_NO_MATCH
@@ -428,6 +400,7 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: false
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
+            method.response.header.Access-Control-Max-Age: false
 
   WalterAPIGetPortfolioPermission:
     Type: AWS::Lambda::Permission

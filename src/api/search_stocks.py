@@ -18,7 +18,7 @@ class SearchStocks(WalterAPIMethod):
 
     API_NAME = "SearchStock"
     REQUIRED_QUERY_FIELDS = ["symbol"]
-    REQUIRED_HEADERS = []
+    REQUIRED_HEADERS = {}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest]
 
@@ -32,6 +32,7 @@ class SearchStocks(WalterAPIMethod):
     ) -> None:
         super().__init__(
             SearchStocks.API_NAME,
+            SearchStocks.REQUIRED_QUERY_FIELDS,
             SearchStocks.REQUIRED_HEADERS,
             SearchStocks.REQUIRED_FIELDS,
             SearchStocks.EXCEPTIONS,

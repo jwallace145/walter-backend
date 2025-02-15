@@ -22,6 +22,7 @@ class Unsubscribe(WalterAPIMethod):
     """
 
     API_NAME = "Unsubscribe"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, EmailAlreadyUnsubscribed]
@@ -36,6 +37,7 @@ class Unsubscribe(WalterAPIMethod):
     ) -> None:
         super().__init__(
             Unsubscribe.API_NAME,
+            Unsubscribe.REQUIRED_QUERY_FIELDS,
             Unsubscribe.REQUIRED_HEADERS,
             Unsubscribe.REQUIRED_FIELDS,
             Unsubscribe.EXCEPTIONS,

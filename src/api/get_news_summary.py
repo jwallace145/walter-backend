@@ -21,6 +21,7 @@ class GetNewsSummary(WalterAPIMethod):
     """
 
     API_NAME = "GetNewsSummary"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["stock"]
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
@@ -41,6 +42,7 @@ class GetNewsSummary(WalterAPIMethod):
     ) -> None:
         super().__init__(
             GetNewsSummary.API_NAME,
+            GetNewsSummary.REQUIRED_QUERY_FIELDS,
             GetNewsSummary.REQUIRED_HEADERS,
             GetNewsSummary.REQUIRED_FIELDS,
             GetNewsSummary.EXCEPTIONS,

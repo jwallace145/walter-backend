@@ -38,8 +38,7 @@ def get_delete_stock_event(stock: str, token: str) -> dict:
 
 
 def get_get_prices_event(symbol: str) -> dict:
-    EVENT["body"] = json.dumps({"stock": symbol})
-    EVENT["headers"] = {"content-type": "application/json"}
+    EVENT["queryStringParameters"] = {"stock": symbol}
     return EVENT
 
 

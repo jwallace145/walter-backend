@@ -86,7 +86,7 @@ class PolygonClient:
         self._init_rest_client()
 
         log.info(
-            f"Getting pricing data for '{stock.stock_symbol}' from '{start_date}' to '{end_date}'"
+            f"Getting pricing data for stock '{stock.stock_symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}'"
         )
 
         if start_date >= end_date:
@@ -129,7 +129,7 @@ class PolygonClient:
         self._init_rest_client()
 
         log.info(
-            f"Getting pricing data for '{stock}' from '{start_date}' to '{end_date}'"
+            f"Getting pricing data for stock '{stock}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}'"
         )
 
         if start_date >= end_date:

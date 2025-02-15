@@ -22,6 +22,7 @@ class VerifyEmail(WalterAPIMethod):
     """
 
     API_NAME = "VerifyEmail"
+    REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, NotAuthenticated, UserDoesNotExist, EmailAlreadyVerified]
@@ -36,6 +37,7 @@ class VerifyEmail(WalterAPIMethod):
     ) -> None:
         super().__init__(
             VerifyEmail.API_NAME,
+            VerifyEmail.REQUIRED_QUERY_FIELDS,
             VerifyEmail.REQUIRED_HEADERS,
             VerifyEmail.REQUIRED_FIELDS,
             VerifyEmail.EXCEPTIONS,
