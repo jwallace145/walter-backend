@@ -144,5 +144,7 @@ def create_newsletter_and_send_workflow(event, context) -> dict:
             "body": json.dumps("WalterWorkflow: CreateNewsLetterAndSend"),
         }
     except Exception:
-        log.error("Unexpected error occurred creating and sending newsletter!")
+        log.error(
+            "Unexpected error occurred creating and sending newsletter!", exc_info=True
+        )
         newsletters_queue.delete_newsletter_request(event.receipt_handle)
