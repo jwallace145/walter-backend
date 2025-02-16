@@ -29,7 +29,7 @@ from src.clients import (
     news_summaries_queue,
 )
 from src.workflows.add_news_summary_requests import (
-    add_news_summary_requests_workflow,
+    AddNewsSummaryRequests,
 )
 from src.workflows.add_newsletter_requests import add_newsletter_requests_workflow
 from src.workflows.create_news_summary_and_archive import (
@@ -167,7 +167,9 @@ def create_newsletter_and_send_entrypoint(event, context) -> dict:
 
 
 def add_news_summary_requests_entrypoint(event, context) -> dict:
-    return add_news_summary_requests_workflow(event, context)
+    return AddNewsSummaryRequests(walter_db, news_summaries_queue, walter_cw).invoke(
+        event
+    )
 
 
 def create_news_summary_and_archive_entrypoint(event, context) -> dict:

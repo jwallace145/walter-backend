@@ -25,6 +25,10 @@ METRICS_FAILURE_COUNT = "FailureCount"
 METRICS_TOTAL_COUNT = "TotalCount"
 """The total number of API invocations."""
 
+#########################################
+# WALTER API ABSTRACT BASE METHOD CLASS #
+#########################################
+
 
 class WalterAPIMethod(ABC):
     """
@@ -92,11 +96,26 @@ class WalterAPIMethod(ABC):
         log.info("Successfully validated request!")
 
     def _validate_required_query_fields(self, event: dict) -> None:
+        """
+        Validate the request event contains the APIs required query fields.
+
+        Some APIs, particularly GET methods, require query fields in the request URL.
+        This validation method ensures that the required query fields are present in the request
+        before invoking the core API logic to avoid any unexpected errors.
+
+        Args:
+            event: The request event to invoke the API.
+
+        Raises:
+            BadRequest exception if any of the APIs required query fields are not
+            included in the request.
+        """
+        # early return if no required query fields
         if len(self.required_query_fields) == 0:
-            log.info("No required query fields to validate!")
+            log.debug("No required query fields to validate!")
             return
 
-        log.info(f"Validating required query fields: {self.required_query_fields}")
+        log.debug(f"Validating required query fields: {self.required_query_fields}")
         query_fields = {}
         if event["queryStringParameters"] is not None:
             query_fields = event["queryStringParameters"]
@@ -105,7 +124,7 @@ class WalterAPIMethod(ABC):
                 raise BadRequest(
                     f"Client bad request! Missing required query field: '{field}'"
                 )
-        log.info("Successfully validated required query fields!")
+        log.debug("Successfully validated required query fields!")
 
     def _validate_required_headers(self, event: dict) -> None:
         """
@@ -120,10 +139,10 @@ class WalterAPIMethod(ABC):
         """
         # early return if no required headers
         if len(self.required_headers) == 0:
-            log.info("No required headers to validate!")
+            log.debug("No required headers to validate!")
             return
 
-        log.info(f"Validating required headers: {self.required_headers}")
+        log.debug(f"Validating required headers: {self.required_headers}")
         # lowercase the headers for case-insensitive verification
         headers = {key.lower(): value for key, value in event["headers"].items()}
         for key, value in self.required_headers.items():
@@ -131,7 +150,7 @@ class WalterAPIMethod(ABC):
                 raise BadRequest(
                     f"Client bad request! Missing required header: '{key} : {value}'"
                 )
-        log.info("Successfully validated required headers!")
+        log.debug("Successfully validated required headers!")
 
     def _validate_required_fields(self, event: dict) -> None:
         """
@@ -145,10 +164,10 @@ class WalterAPIMethod(ABC):
         """
         # early return if no request payload
         if len(self.required_fields) == 0:
-            log.info("No required fields to validate!")
+            log.debug("No required fields to validate!")
             return
 
-        log.info(f"Validating required fields: {self.required_fields}")
+        log.debug(f"Validating required fields: {self.required_fields}")
         body = {}
         if event["body"] is not None:
             body = json.loads(event["body"])
@@ -157,7 +176,7 @@ class WalterAPIMethod(ABC):
                 raise BadRequest(
                     f"Client bad request! Missing required field: '{field}'"
                 )
-        log.info("Successfully validated required fields!")
+        log.debug("Successfully validated required fields!")
 
     def _authenticate_request(self, event: dict) -> str:
         """
@@ -168,20 +187,20 @@ class WalterAPIMethod(ABC):
         request is authenticated.
 
         Args:
-            event:
+            event: The request event for the API.
 
         Returns:
-
+            user_email: The email of the authenticated user.
         """
         log.info("Authenticating request")
 
         token = self.authenticator.get_token(event)
         if token is None:
-            raise NotAuthenticated("Not authenticated!")
+            raise NotAuthenticated("Not authenticated! Token is null.")
 
         decoded_token = self.authenticator.decode_user_token(token)
         if decoded_token is None:
-            raise NotAuthenticated("Not authenticated!")
+            raise NotAuthenticated("Not authenticated! Token is invalid.")
 
         user_email = decoded_token["sub"]
         log.info(f"Successfully authenticated request for user '{user_email}'!")
