@@ -78,6 +78,8 @@ class CreateNewsSummaryAndArchive:
 
             s3_uri = self._dump_summary_to_archive(summary)
 
+            self._emit_metrics(summary)
+
             # create success response body
             body = {
                 "Workflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
