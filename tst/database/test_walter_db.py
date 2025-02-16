@@ -2,11 +2,19 @@ from src.database.client import WalterDB
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 
-WALTER = User(email="walter@gmail.com", username="walter", password_hash="walter")
+WALTER = User(
+    email="walter@gmail.com",
+    username="walter",
+    password_hash="walter",
+    verified=True,
+    subscribed=True,
+)
 WALRUS = User(
     email="walrus@gmail.com",
     username="walrus",
     password_hash="walrus",
+    verified=False,
+    subscribed=True,
 )
 
 WALTER_STOCKS = [

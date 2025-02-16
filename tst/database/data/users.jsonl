@@ -1,2 +1,3 @@
 {"email":  "walter@gmail.com", "username":  "walter", "password_hash": "walter", "verified": true}
 {"email":  "walrus@gmail.com", "username":  "walrus", "password_hash": "walrus", "verified": false}
+{"email":  "bob@gmail.com", "username":  "bob", "password_hash": "bob", "verified": true}

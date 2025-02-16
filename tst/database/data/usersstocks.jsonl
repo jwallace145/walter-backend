@@ -5,3 +5,5 @@
 {"user_email": "walter@gmail.com", "stock_symbol": "PYPL", "quantity": 10.0}
 {"user_email": "walrus@gmail.com", "stock_symbol": "AAPL", "quantity": 100.0}
 {"user_email": "walrus@gmail.com", "stock_symbol": "META", "quantity": 100.0}
+{"user_email": "bob@gmail.com", "stock_symbol": "AAPL", "quantity": 1.0}
+{"user_email": "bob@gmail.com", "stock_symbol": "META", "quantity": 2.0}
