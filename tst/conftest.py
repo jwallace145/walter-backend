@@ -27,6 +27,7 @@ from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
+from src.news.queue import NewsSummariesQueue
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.models import CompanyOverview
 from src.stocks.client import WalterStocksAPI
@@ -60,6 +61,7 @@ USERS_TABLE_NAME = "Users-unittest"
 USERS_STOCKS_TABLE_NAME = "UsersStocks-unittest"
 
 NEWSLETTERS_QUEUE_NAME = "NewslettersQueue-unittest"
+NEWS_SUMMARIES_QUEUE_NAME = "NewsSummariesQueue-unittest"
 
 STOCKS_TEST_FILE = "tst/database/data/stocks.jsonl"
 USERS_TEST_FILE = "tst/database/data/users.jsonl"
@@ -200,6 +202,7 @@ def sqs_client() -> SQSClient:
     with mock_aws():
         mock_sqs = boto3.client("sqs", region_name=AWS_REGION)
         mock_sqs.create_queue(QueueName=NEWSLETTERS_QUEUE_NAME)
+        mock_sqs.create_queue(QueueName=NEWS_SUMMARIES_QUEUE_NAME)
         yield mock_sqs
 
 
@@ -499,6 +502,13 @@ def template_engine(templates_bucket: TemplatesBucket) -> None:
 @pytest.fixture
 def newsletters_queue(sqs_client) -> NewslettersQueue:
     return NewslettersQueue(
+        client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
+    )
+
+
+@pytest.fixture
+def news_summaries_queue(sqs_client) -> NewsSummariesQueue:
+    return NewsSummariesQueue(
         client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
     )
 

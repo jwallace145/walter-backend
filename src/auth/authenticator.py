@@ -45,15 +45,16 @@ class WalterAuthenticator:
             algorithm="HS256",
         )
 
-    def decode_user_token(self, token: str) -> bool | None:
+    def decode_user_token(self, token: str) -> dict | None:
         """
-        Decode the given user token to verify user identity.
+        Decode the given user token to verify identity.
 
         Args:
             token: The user identity token
 
         Returns:
-            True if the token is valid, False otherwise.
+            decoded_token_payload: The decoded token payload which includes the
+            email address of the authenticated user.
         """
         try:
             return jwt.decode(
