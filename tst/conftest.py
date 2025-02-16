@@ -27,6 +27,8 @@ from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.environment import Domain
+from src.events.parser import WalterEventParser
+from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.models import CompanyOverview
@@ -514,6 +516,11 @@ def news_summaries_queue(sqs_client) -> NewsSummariesQueue:
 
 
 @pytest.fixture
+def news_summaries_bucket(walter_s3: WalterS3Client) -> NewsSummariesBucket:
+    return NewsSummariesBucket(client=walter_s3, domain=Domain.TESTING)
+
+
+@pytest.fixture
 def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
     return walter_authenticator.generate_user_token("walter@gmail.com")
 
@@ -521,3 +528,8 @@ def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
 @pytest.fixture
 def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
     return walter_authenticator.generate_user_token("walrus@gmail.com")
+
+
+@pytest.fixture
+def walter_event_parser() -> WalterEventParser:
+    return WalterEventParser()
