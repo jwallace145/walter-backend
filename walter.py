@@ -29,13 +29,16 @@ from src.clients import (
     news_summaries_queue,
     walter_event_parser,
     walter_news_summary_client,
+    walter_ai, newsletters_bucket,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
 )
 from src.workflows.add_newsletter_requests import AddNewsletterRequests
 from src.workflows.create_news_summary_and_archive import CreateNewsSummaryAndArchive
-from src.workflows.create_newsletter_and_send import create_newsletter_and_send_workflow
+from src.workflows.create_newsletter_and_send import (
+    CreateNewsletterAndSend,
+)
 
 
 ##############
@@ -163,7 +166,20 @@ def add_newsletter_requests_entrypoint(event, context) -> dict:
 
 
 def create_newsletter_and_send_entrypoint(event, context) -> dict:
-    return create_newsletter_and_send_workflow(event, context)
+    return CreateNewsletterAndSend(
+        walter_authenticator,
+        walter_event_parser,
+        walter_db,
+        walter_stocks_api,
+        walter_ai,
+        walter_ses,
+        walter_cw,
+        template_engine,
+        templates_bucket,
+        news_summaries_bucket,
+        newsletters_bucket,
+        newsletters_queue,
+    ).invoke(event)
 
 
 def add_news_summary_requests_entrypoint(event, context) -> dict:
