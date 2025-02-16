@@ -27,6 +27,15 @@ METRICS_NUMBER_OF_STOCKS = "NumberOfStocks"
 
 @dataclass
 class AddNewsSummaryRequests:
+    """
+    WalterWorkflow: AddNewsSummaryRequests
+
+    This workflow scans WalterDB for all stocks and submits news summary requests
+    for each stock for asynchronous processing by the CreateNewsSummaryAndArchive
+    workflow. This workflow is invoked on a cron schedule and ensures that Walter
+    is continuously generating the most up-to-date news summaries for the stocks
+    contained in its database.
+    """
 
     walter_db: WalterDB
     news_summaries_queue: NewsSummariesQueue

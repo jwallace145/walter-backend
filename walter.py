@@ -27,14 +27,14 @@ from src.clients import (
     walter_ses,
     news_summaries_bucket,
     news_summaries_queue,
+    walter_event_parser,
+    walter_news_summary_client,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
 )
 from src.workflows.add_newsletter_requests import add_newsletter_requests_workflow
-from src.workflows.create_news_summary_and_archive import (
-    create_news_summary_and_archive_workflow,
-)
+from src.workflows.create_news_summary_and_archive import CreateNewsSummaryAndArchive
 from src.workflows.create_newsletter_and_send import create_newsletter_and_send_workflow
 
 
@@ -173,4 +173,10 @@ def add_news_summary_requests_entrypoint(event, context) -> dict:
 
 
 def create_news_summary_and_archive_entrypoint(event, context) -> dict:
-    return create_news_summary_and_archive_workflow(event, context)
+    return CreateNewsSummaryAndArchive(
+        walter_event_parser,
+        walter_news_summary_client,
+        news_summaries_bucket,
+        news_summaries_queue,
+        walter_cw,
+    ).invoke(event)

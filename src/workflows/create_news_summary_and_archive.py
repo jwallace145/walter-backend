@@ -1,36 +1,26 @@
+import datetime as dt
 import json
+from dataclasses import dataclass
 from datetime import timedelta
 
 from src.api.common.models import Status, HTTPStatus
-from src.clients import (
-    walter_event_parser,
-    news_summaries_bucket,
-    walter_news_summary_client,
-    news_summaries_queue,
-)
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.config import CONFIG
+from src.events.parser import WalterEventParser
+from src.news.bucket import NewsSummariesBucket
+from src.news.queue import NewsSummariesQueue
+from src.summaries.client import WalterNewsSummaryClient
+from src.summaries.models import NewsSummary
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
-#############
-# ARGUMENTS #
-#############
-
-WORKFLOW_NAME = "CreateNewsSummaryAndArchive"
-"""(str): The name of the workflow that processes events asynchronously to generate stock news summary and archive them."""
-
-
 ###########
-# METHODS #
+# METRICS #
 ###########
 
-
-def get_response(status: HTTPStatus, body: dict) -> dict:
-    return {
-        "statusCode": status.value,
-        "body": json.dumps(body),
-    }
+METRICS_NUMBER_OF_ARTICLES_PARSED = "NumberOfArticlesParsed"
+"""(str): The total number of articles parsed by Walter to create a news summary."""
 
 
 ############
@@ -38,59 +28,113 @@ def get_response(status: HTTPStatus, body: dict) -> dict:
 ############
 
 
-def create_news_summary_and_archive_workflow(event, context) -> dict:
+@dataclass
+class CreateNewsSummaryAndArchive:
     """
-    Create a summary of the latest market news for the given stock and archive in S3.
+    WalterWorkflow: CreateNewsSummaryAndArchive
 
-    The purpose of this workflow is to create news summaries of various stocks and dump them
-    to S3 daily. To generate the news summaries, this method makes API calls to Bedrock to
-    invoke foundational models and get LLM responses that summarize the given articles. The
-    calls to Bedrock are expensive with respect to both latency and money. So, this method
-    caches the stock news summaries in S3 and does not recompute them if it detects that
-    there is already a daily summary.
+    This workflow listens to the NewsSummariesQueue for news summary events for
+    a stock and date. For each event, this workflow generates a news summary
+    for the stock on the given date by getting related news articles and then
+    feeding the articles into Bedrock for summarization. Because invoking Bedrock
+    can be expensive, this workflow makes use of the NewsSummaryArchive and does
+    not regenerate news summaries if they already exist.
     """
-    log.info(f"WalterWorkflow: {WORKFLOW_NAME} invoked!")
 
-    event = walter_event_parser.parse_create_news_summary_and_archive_event(event)
+    WORKFLOW_NAME = "CreateNewsSummaryAndArchive"
 
-    try:
-        log.info(f"Checking for news summary in archive for stock '{event.stock}'...")
-        summary = news_summaries_bucket.get_news_summary(event.stock, event.datestamp)
-        if summary is not None:
-            log.info(f"Found news summary for stock '{event.stock}' in archive!")
+    walter_event_parser: WalterEventParser
+    walter_news_summary_client: WalterNewsSummaryClient
+    news_summaries_bucket: NewsSummariesBucket
+    news_summaries_queue: NewsSummariesQueue
+    walter_cw: WalterCloudWatchClient
+
+    def invoke(self, event: dict) -> dict:
+        log.info(
+            f"WalterWorkflow: '{CreateNewsSummaryAndArchive.WORKFLOW_NAME}' invoked!"
+        )
+        event = self.walter_event_parser.parse_create_news_summary_and_archive_event(
+            event
+        )
+        try:
+            summary = self._check_archive_for_summary(event.stock, event.datestamp)
+            if summary is not None:
+                log.info(
+                    f"Found news summary for stock '{event.stock.upper()}' in archive!"
+                )
+                body = {
+                    "WalterWorkflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
+                    "Status": Status.SUCCESS.name,
+                    "Message": "News summary already exists!",
+                }
+                return self._get_response(HTTPStatus.OK, body)
+
+            summary = self._generate_news_summary(
+                event.stock,
+                event.datestamp,
+                CONFIG.news_summary.lookback_window_days,
+                CONFIG.news_summary.number_of_articles,
+            )
+
+            s3_uri = self._dump_summary_to_archive(summary)
+
+            # create success response body
             body = {
-                "WalterWorkflow": WORKFLOW_NAME,
-                "Status": Status.SUCCESS.name,
-                "Message": "News summary already exists!",
+                "Workflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
+                "Status": Status.SUCCESS.value,
+                "Message": "News summary created!",
+                "Data": {
+                    "s3_uri": s3_uri,
+                    "summary": summary.get_summary(),
+                },
             }
-            return get_response(HTTPStatus.OK, body)
 
-        log.info("News summary not found in S3! Generating news summary now...")
-        summary = walter_news_summary_client.generate(
-            stock=event.stock,
-            start_date=event.datestamp
-            - timedelta(days=CONFIG.news_summary.lookback_window_days),
-            end_date=event.datestamp,
-            number_of_articles=CONFIG.news_summary.number_of_articles,
+            return self._get_response(HTTPStatus.CREATED, body)
+        except Exception:
+            log.error("Unexpected error occurred creating news summary!", exc_info=True)
+            self.news_summaries_queue.delete_news_summary_request(event.receipt_handle)
+            body = {
+                "Workflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
+                "Status": Status.FAILURE.value,
+                "Message": "Unexpected error occurred creating news summary!",
+            }
+            return self._get_response(HTTPStatus.INTERNAL_SERVER_ERROR, body)
+
+    def _check_archive_for_summary(self, stock: str, date: dt.datetime) -> str:
+        log.info(f"Checking for news summary in archive for stock '{stock.upper()}'...")
+        summary = self.news_summaries_bucket.get_news_summary(stock, date)
+        return summary
+
+    def _generate_news_summary(
+        self,
+        stock: str,
+        date: dt.datetime,
+        lookback_window_days: int = CONFIG.news_summary.lookback_window_days,
+        number_of_articles: int = CONFIG.news_summary.number_of_articles,
+    ) -> NewsSummary:
+        log.info("News summary not found in archive! Generating news summary now...")
+        return self.walter_news_summary_client.generate(
+            stock=stock,
+            start_date=date - timedelta(days=lookback_window_days),
+            end_date=date,
+            number_of_articles=number_of_articles,
         )
 
+    def _dump_summary_to_archive(self, summary: NewsSummary) -> str:
         log.info(
             f"Writing news summary for stock '{summary.stock.upper()}' to archive..."
         )
-        s3uri = news_summaries_bucket.put_news_summary(summary)
+        return self.news_summaries_bucket.put_news_summary(summary)
 
-        # create response body
-        body = {
-            "Workflow": WORKFLOW_NAME,
-            "Status": Status.SUCCESS.value,
-            "Message": "News summary created!",
-            "Data": {
-                "s3uri": s3uri,
-                "summary": summary.get_summary(),
-            },
+    def _emit_metrics(self, summary: NewsSummary) -> None:
+        log.info("Emitting total number of articles parsed metric...")
+        self.walter_cw.emit_metric(
+            metric_name=METRICS_NUMBER_OF_ARTICLES_PARSED,
+            count=len(summary.news.articles),
+        )
+
+    def _get_response(self, status: HTTPStatus, body: dict) -> dict:
+        return {
+            "statusCode": status.value,
+            "body": json.dumps(body),
         }
-
-        return get_response(HTTPStatus.OK, body)
-    except Exception:
-        log.error("Unexpected error occurred creating news summary!", exc_info=True)
-        news_summaries_queue.delete_news_summary_request(event.receipt_handle)
