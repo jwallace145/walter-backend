@@ -33,7 +33,7 @@ from src.clients import (
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
 )
-from src.workflows.add_newsletter_requests import add_newsletter_requests_workflow
+from src.workflows.add_newsletter_requests import AddNewsletterRequests
 from src.workflows.create_news_summary_and_archive import CreateNewsSummaryAndArchive
 from src.workflows.create_newsletter_and_send import create_newsletter_and_send_workflow
 
@@ -159,7 +159,7 @@ def search_stocks_entrypoint(event, context) -> dict:
 
 
 def add_newsletter_requests_entrypoint(event, context) -> dict:
-    return add_newsletter_requests_workflow(event, context)
+    return AddNewsletterRequests(walter_db, newsletters_queue, walter_cw).invoke(event)
 
 
 def create_newsletter_and_send_entrypoint(event, context) -> dict:
