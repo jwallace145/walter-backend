@@ -1705,6 +1705,7 @@ Resources:
         - !Ref WalterBackendRole
         - !Ref WalterNewslettersRole
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   NewslettersBucketAccessPolicy:
     Type: AWS::IAM::Policy
