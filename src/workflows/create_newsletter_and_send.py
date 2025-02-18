@@ -19,6 +19,7 @@ from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
 from src.stocks.models import Portfolio
+from src.summaries.models import NewsSummary
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.templates.models import TemplateSpec
@@ -131,7 +132,7 @@ class CreateNewsletterAndSend:
             user_stocks, stocks, START_DATE, END_DATE
         )
 
-    def _get_latest_news_summaries(self, stocks: List[str]) -> List[str]:
+    def _get_latest_news_summaries(self, stocks: List[str]) -> List[NewsSummary]:
         log.info(
             f"Getting latest news summaries for {len(stocks)} stocks in user's portfolio..."
         )
@@ -145,7 +146,7 @@ class CreateNewsletterAndSend:
         self,
         user: User,
         portfolio: Portfolio,
-        summaries: List[str],
+        summaries: List[NewsSummary],
         template: str = CONFIG.newsletter.template,
     ) -> TemplateSpec:
         log.info(f"Getting template spec for '{template}' template...'")

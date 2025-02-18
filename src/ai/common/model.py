@@ -64,7 +64,7 @@ class WalterFoundationModel(ABC):
             raise ValueError("Prompt too long!")
 
     @abstractmethod
-    def _get_body(self, prompt: str, max_output_tokens: int) -> str:
+    def _get_body(self, prompt: str, max_output_tokens: int) -> dict:
         pass
 
     @abstractmethod

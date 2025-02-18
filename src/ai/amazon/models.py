@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 
 from src.ai.common.model import WalterFoundationModel
@@ -30,8 +29,8 @@ class NovaMicro(WalterFoundationModel):
             top_p,
         )
 
-    def _get_body(self, prompt: str, max_output_tokens: int) -> str:
-        request = {
+    def _get_body(self, prompt: str, max_output_tokens: int) -> dict:
+        return {
             "inferenceConfig": {"max_new_tokens": max_output_tokens},
             "messages": [
                 {
@@ -40,7 +39,6 @@ class NovaMicro(WalterFoundationModel):
                 }
             ],
         }
-        return json.dumps(request)
 
     def _parse_response(self, response: dict) -> str:
         return response["output"]["message"]["content"][0]["text"]

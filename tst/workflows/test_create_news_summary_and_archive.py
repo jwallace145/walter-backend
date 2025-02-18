@@ -57,6 +57,9 @@ class MockWalterNewsSummaryClient:
         start_date: dt.datetime,
         end_date: dt.datetime,
         number_of_articles: int,
+        context: str,
+        prompt: str,
+        max_length: int,
     ) -> NewsSummary | None:
         if stock.upper() == MSFT_STOCK:
             return MSFT_NEWS_SUMMARY

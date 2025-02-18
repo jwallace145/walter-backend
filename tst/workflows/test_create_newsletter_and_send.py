@@ -16,6 +16,7 @@ from src.news.bucket import NewsSummariesBucket
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.client import WalterStocksAPI
+from src.summaries.models import NewsSummary
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.workflows.create_newsletter_and_send import CreateNewsletterAndSend
@@ -131,10 +132,26 @@ def test_create_newsletter_and_send_get_portfolio_success(
 def test_create_newsletter_and_send_get_latest_news_summaries_success(
     create_newsletter_and_send_workflow: CreateNewsletterAndSend,
 ) -> None:
+    today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     summaries = create_newsletter_and_send_workflow._get_latest_news_summaries(
         [AAPL.symbol, META.symbol]
     )
-    assert set(summaries) == {"apple news summary", "meta news summary"}
+    assert set(summaries) == {
+        NewsSummary(
+            stock=AAPL.symbol,
+            datestamp=today,
+            model_name="Test Model",
+            news=None,
+            summary="apple news summary",
+        ),
+        NewsSummary(
+            stock=META.symbol,
+            datestamp=today,
+            model_name="Test Model",
+            news=None,
+            summary="meta news summary",
+        ),
+    }
 
 
 def test_create_newsletter_and_send_get_template_spec_success(
