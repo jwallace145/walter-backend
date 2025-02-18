@@ -163,7 +163,7 @@ class CreateNewsSummaryAndArchive:
             metric_name=METRICS_CREATE_NEWS_SUMMARY_FAILURE,
             count=not archived_summary and not generated_summary,
         )
-        # if generated summary is not null, emit numble of articles parsed metric
+        # if generated summary is not null, emit number of articles parsed metric
         self.walter_cw.emit_metric(
             metric_name=METRICS_NUMBER_OF_ARTICLES_PARSED,
             count=0 if not generated_summary else len(generated_summary.news.articles),
