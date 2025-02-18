@@ -23,9 +23,11 @@ class NewsSummariesBucket:
     BUCKET = "walterai-news-summaries-{domain}"
 
     SUMMARIES_DIR = "summaries"
+    METADATA_FILENAME = "metadata.json"
+    SUMMARY_FILENAME = "summary.html"
     SUMMARIES_PREFIX = "{summaries_dir}/{stock}"
-    METADATA_KEY = "{summaries_dir}/{stock}/{date}/metadata.json"
-    SUMMARY_KEY = "{summaries_dir}/{stock}/{date}/summary.html"
+    METADATA_KEY = "{summaries_dir}/{stock}/{date}/{metadata_filename}"
+    SUMMARY_KEY = "{summaries_dir}/{stock}/{date}/{summary_filename}"
 
     client: WalterS3Client
     domain: Domain
@@ -62,19 +64,38 @@ class NewsSummariesBucket:
         key = NewsSummariesBucket._get_summary_key(stock, date)
         return self.client.get_object(self.bucket, key)
 
-    def get_latest_news_summary(self, stock: str) -> str | None:
+    def get_latest_news_summary(self, stock: str) -> NewsSummary | None:
         log.info(f"Getting latest news summary for stock '{stock}'")
-        prefix = NewsSummariesBucket._get_summaries_prefix(stock)
-        prefixes = self.client.list_objects(self.bucket, prefix)
 
-        # ensure summaries exist for given stockpi
-        if len(prefixes) == 0:
+        prefix = NewsSummariesBucket._get_summaries_prefix(stock)
+        objects = self.client.list_objects(self.bucket, prefix)
+
+        # ensure summaries exist for given stock
+        if len(objects) == 0:
             log.info("No summaries found for stock '{stock}'!")
             return None
 
-        summary = self.client.get_object(self.bucket, prefixes[-1])
+        # filter keys by metadata and summary
+        metadata_keys = [
+            key for key in objects if NewsSummariesBucket.METADATA_FILENAME in key
+        ]
+        summary_keys = [
+            key for key in objects if NewsSummariesBucket.SUMMARY_FILENAME in key
+        ]
 
-        return self.remove_non_alphanumeric(summary)
+        # get latest metadata and summary objects
+        metadata = json.loads(self.client.get_object(self.bucket, metadata_keys[-1]))
+        summary = self.client.get_object(self.bucket, summary_keys[-1])
+
+        return NewsSummary(
+            stock=metadata["stock"],
+            datestamp=dt.strptime(metadata["datestamp"], "%Y-%m-%d"),
+            model_name=metadata["model_name"],
+            news=None,  # TODO: Eventually populate this field? Not need for this method yet as its only used by newsletter generation which doesn't care about the input news articles
+            summary=self.remove_non_alphanumeric(
+                summary
+            ),  # This is necessary because the summary is markdown formatted and can cause YAML issues if markdown format specifiers are not removed
+        )
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:
@@ -86,6 +107,7 @@ class NewsSummariesBucket:
             summaries_dir=NewsSummariesBucket.SUMMARIES_DIR,
             stock=stock.upper(),
             date=NewsSummariesBucket._get_datestamp(datestamp),
+            metadata_filename=NewsSummariesBucket.METADATA_FILENAME,
         )
 
     @staticmethod
@@ -94,6 +116,7 @@ class NewsSummariesBucket:
             summaries_dir=NewsSummariesBucket.SUMMARIES_DIR,
             stock=stock.upper(),
             date=NewsSummariesBucket._get_datestamp(datestamp),
+            summary_filename=NewsSummariesBucket.SUMMARY_FILENAME,
         )
 
     @staticmethod

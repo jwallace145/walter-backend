@@ -48,13 +48,16 @@ class WalterNewsSummaryClient:
         start_date: dt.datetime,
         end_date: dt.datetime,
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
+        context: str = CONFIG.news_summary.context,
+        prompt: str = CONFIG.news_summary.prompt,
+        max_length: int = CONFIG.news_summary.max_length,
     ) -> NewsSummary:
         log.info(
             f"Generating '{stock.upper()}' news summary for date '{end_date.strftime('%Y-%m-%d')}'"
         )
         try:
             news = self._get_stock_news(stock, start_date, end_date, number_of_articles)
-            return self._generate_news_summary(news)
+            return self._generate_news_summary(news, context, prompt, max_length)
         except CompanyNewsNotFound:
             raise GenerateNewsSummaryFailure(
                 f"Cannot generate news summary for stock '{stock.upper()}'! No stock news found."
@@ -75,12 +78,18 @@ class WalterNewsSummaryClient:
         )
         return news
 
-    def _generate_news_summary(self, news: CompanyNews) -> NewsSummary:
+    def _generate_news_summary(
+        self,
+        news: CompanyNews,
+        context: str = CONFIG.news_summary.context,
+        prompt: str = CONFIG.news_summary.prompt,
+        max_length: int = CONFIG.news_summary.max_length,
+    ) -> NewsSummary:
         log.info(f"Generating news summary for '{news.stock.upper()}' stock news...")
         summary = self.walter_ai.generate_response(
-            context=CONTEXT,
-            prompt=PROMPT.format(stock=news.stock, news=news.to_dict()),
-            max_output_tokens=SUMMARY_MAX_LENGTH,
+            context=context,
+            prompt=prompt.format(stock=news.stock.upper(), news=news.to_dict()),
+            max_output_tokens=max_length,
         )
         log.info(f"Successfully generated '{news.stock.upper()}' stock news summary!")
         return NewsSummary(

@@ -229,13 +229,46 @@ def s3_client() -> S3Client:
         now = dt.now()
         mock_s3.put_object(
             Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
+            Body=json.dumps(
+                {
+                    "stock": "MSFT",
+                    "datestamp": now.strftime("%Y-%m-%d"),
+                    "model_name": "Test Model",
+                }
+            ),
+        )
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
             Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
             Body="news summary",
         )
         mock_s3.put_object(
             Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/AAPL/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
+            Body=json.dumps(
+                {
+                    "stock": "AAPL",
+                    "datestamp": now.strftime("%Y-%m-%d"),
+                    "model_name": "Test Model",
+                }
+            ),
+        )
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
             Key=f"summaries/AAPL/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
             Body="apple news summary",
+        )
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/META/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
+            Body=json.dumps(
+                {
+                    "stock": "META",
+                    "datestamp": now.strftime("%Y-%m-%d"),
+                    "model_name": "Test Model",
+                }
+            ),
         )
         mock_s3.put_object(
             Bucket="walterai-news-summaries-unittest",

@@ -1,9 +1,11 @@
+import json
 from dataclasses import dataclass
 from io import BytesIO
 from typing import List
 
 from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
+
 from src.environment import Domain
 from src.utils.log import Logger
 
@@ -38,7 +40,7 @@ class WalterS3Client:
                 )["Contents"]
             ]
             log.debug(
-                f"Objects from S3 with prefix '{WalterS3Client.get_uri(bucket, prefix)}':\n{objects}"
+                f"Objects from S3 with prefix '{WalterS3Client.get_uri(bucket, prefix)}':\n{json.dumps(objects, indent=4)}"
             )
             return objects
         except ClientError as error:

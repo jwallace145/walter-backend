@@ -29,7 +29,7 @@ class WalterBedrockClient:
             f"Creating Bedrock client in region '{self.bedrock.meta.region_name}'"
         )
 
-    def generate_response(self, model_id: str, body: str) -> dict:
+    def generate_response(self, model_id: str, body: dict) -> dict:
         """
         Invoke the model and get a response for a single prompt.
 
@@ -44,7 +44,7 @@ class WalterBedrockClient:
             log.info(f"Generating response with model '{model_id}'")
             response = self.bedrock_runtime.invoke_model(
                 modelId=model_id,
-                body=body,
+                body=json.dumps(body),
             )
             return json.loads(response["body"].read())
         except Exception as exception:

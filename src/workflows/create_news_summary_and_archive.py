@@ -88,6 +88,9 @@ class CreateNewsSummaryAndArchive:
                 event.datestamp,
                 CONFIG.news_summary.lookback_window_days,
                 CONFIG.news_summary.number_of_articles,
+                CONFIG.news_summary.context,
+                CONFIG.news_summary.prompt,
+                CONFIG.news_summary.max_length,
             )
 
             if generated_summary is None:
@@ -135,6 +138,9 @@ class CreateNewsSummaryAndArchive:
         date: dt.datetime,
         lookback_window_days: int = CONFIG.news_summary.lookback_window_days,
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
+        context: str = CONFIG.news_summary.context,
+        prompt: str = CONFIG.news_summary.prompt,
+        max_length: int = CONFIG.news_summary.max_length,
     ) -> NewsSummary | None:
         log.info("News summary not found in archive! Generating news summary now...")
         try:
@@ -143,6 +149,9 @@ class CreateNewsSummaryAndArchive:
                 start_date=date - timedelta(days=lookback_window_days),
                 end_date=date,
                 number_of_articles=number_of_articles,
+                context=context,
+                prompt=prompt,
+                max_length=max_length,
             )
         except GenerateNewsSummaryFailure:
             log.error(f"Failed to generate news summary for stock '{stock.upper()}'!")

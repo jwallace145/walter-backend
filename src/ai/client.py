@@ -31,7 +31,7 @@ class WalterAI:
 
     def get_model(self) -> WalterFoundationModel:
         model = get_model(self.model)
-        log.info(f"Getting model: '{model.value}'")
+        log.debug(f"Getting model: '{model.value}'")
 
         if model == Model.META_LLAMA3_70B:
             return Llama370B(
