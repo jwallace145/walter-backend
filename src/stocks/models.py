@@ -8,8 +8,16 @@ from src.stocks.polygon.models import StockPrices
 
 @dataclass(frozen=True)
 class StockEquity:
+    """
+    StockEquity model class
+
+    The stock model object returned for user stocks contained
+    within their portfolio
+    """
+
     symbol: str
     company: str
+    sector: str
     price: float
     quantity: float
     equity: float
@@ -18,6 +26,7 @@ class StockEquity:
         return {
             "symbol": self.symbol,
             "company": self.company,
+            "sector": self.sector,
             "price": self.price,
             "quantity": self.quantity,
             "equity": self.equity,
@@ -58,8 +67,11 @@ class Portfolio:
         stock_equities = []
         for stock in self.get_stock_symbols():
             company = self.stocks[stock].company
+            sector = self.stocks[stock].sector
             price = self.get_latest_price(stock)
             quantity = self.get_number_of_shares(stock)
             equity = self.get_equity(stock)
-            stock_equities.append(StockEquity(stock, company, price, quantity, equity))
+            stock_equities.append(
+                StockEquity(stock, company, sector, price, quantity, equity)
+            )
         return stock_equities
