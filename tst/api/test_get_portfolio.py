@@ -42,6 +42,7 @@ def test_get_portfolio(
                 {
                     "symbol": "AAPL",
                     "company": "Apple Inc",
+                    "sector": "TECHNOLOGY",
                     "price": 100.0,
                     "quantity": 100.0,
                     "equity": 10_000.0,
@@ -49,6 +50,7 @@ def test_get_portfolio(
                 {
                     "symbol": "META",
                     "company": "Meta Platforms Inc.",
+                    "sector": "TECHNOLOGY",
                     "price": 250.0,
                     "quantity": 100.0,
                     "equity": 25_000.0,
