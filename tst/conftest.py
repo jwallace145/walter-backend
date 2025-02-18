@@ -30,6 +30,7 @@ from src.environment import Domain
 from src.events.parser import WalterEventParser
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
+from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.models import CompanyOverview
 from src.stocks.client import WalterStocksAPI
@@ -223,12 +224,23 @@ def s3_client() -> S3Client:
             Key="templates/default/template.jinja",
             Body=open("./templates/default/template.jinja", "rb").read(),
         )
+        mock_s3.create_bucket(Bucket="walterai-newsletters-unittest")
         mock_s3.create_bucket(Bucket="walterai-news-summaries-unittest")
         now = dt.now()
         mock_s3.put_object(
             Bucket="walterai-news-summaries-unittest",
             Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
             Body="news summary",
+        )
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/AAPL/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            Body="apple news summary",
+        )
+        mock_s3.put_object(
+            Bucket="walterai-news-summaries-unittest",
+            Key=f"summaries/META/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            Body="meta news summary",
         )
         yield mock_s3
 
@@ -509,6 +521,11 @@ def newsletters_queue(sqs_client) -> NewslettersQueue:
 
 
 @pytest.fixture
+def newsletters_bucket(walter_s3: WalterS3Client) -> NewslettersBucket:
+    return NewslettersBucket(client=walter_s3, domain=Domain.TESTING)
+
+
+@pytest.fixture
 def news_summaries_queue(sqs_client) -> NewsSummariesQueue:
     return NewsSummariesQueue(
         client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
@@ -528,6 +545,11 @@ def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
 @pytest.fixture
 def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
     return walter_authenticator.generate_user_token("walrus@gmail.com")
+
+
+@pytest.fixture
+def jwt_bob(walter_authenticator: WalterAuthenticator) -> str:
+    return walter_authenticator.generate_user_token("bob@gmail.com")
 
 
 @pytest.fixture

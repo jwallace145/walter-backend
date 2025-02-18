@@ -29,7 +29,8 @@ from src.clients import (
     news_summaries_queue,
     walter_event_parser,
     walter_news_summary_client,
-    walter_ai, newsletters_bucket,
+    walter_ai,
+    newsletters_bucket,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,

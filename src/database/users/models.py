@@ -19,6 +19,8 @@ class User:
                 self.email == other.email
                 and self.username == other.username
                 and self.password_hash == other.password_hash
+                and self.verified == other.verified
+                and self.subscribed == other.subscribed
             )
         return False
 
