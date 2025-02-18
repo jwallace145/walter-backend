@@ -59,7 +59,7 @@ class WalterStocksAPI:
         start_date: datetime,
         end_date: datetime,
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
-    ) -> CompanyNews | None:
+    ) -> CompanyNews:
         log.info(f"Getting news for stock '{stock}'")
         return self.alpha_vantage.get_news(
             stock, start_date, end_date, number_of_articles

@@ -28,7 +28,9 @@ class WalterCloudWatchClient:
             self.domain
         )
 
-    def emit_metric(self, metric_name: str, count: int) -> None:
+    def emit_metric(self, metric_name: str, count: int | bool) -> None:
+        if type(count) is bool:
+            count = 1 if count else 0
         log.debug(f"Emit metric: '{metric_name}' with count: {count}")
         self.client.put_metric_data(
             Namespace=self.metric_namespace,
