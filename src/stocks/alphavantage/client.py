@@ -7,6 +7,7 @@ from typing import List
 import requests
 
 from src.config import CONFIG
+from src.stocks.alphavantage.exceptions import CompanyNewsNotFound
 from src.stocks.alphavantage.models import (
     CompanyOverview,
     CompanyNews,
@@ -93,7 +94,7 @@ class AlphaVantageClient:
 
     def get_news(
         self, symbol: str, start_date: dt, end_date: dt, limit: int
-    ) -> CompanyNews | None:
+    ) -> CompanyNews:
         """
         Get relevant company news.
 
@@ -110,6 +111,10 @@ class AlphaVantageClient:
 
         Returns:
             The latest company news or `None` if not found.
+
+        Raises:
+            CompanyNewsNotFound: If no news articles were found for the given
+            company.
         """
         log.info(
             f"Getting news for '{symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}"
@@ -117,9 +122,11 @@ class AlphaVantageClient:
         url = self._get_news_url(symbol, start_date, end_date)
         response = requests.get(url).json()
 
-        if response == {}:
-            log.info(f"No news found for '{symbol}'")
-            return None
+        if response == {} or len(response["feed"]) == 0:
+            log.warning(
+                f"No news found for '{symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}!"
+            )
+            raise CompanyNewsNotFound(f"No news found for '{symbol}'!")
 
         log.info(
             f"Returned {len(response['feed'])} articles for '{symbol.upper()}'! Parsing {limit} articles..."

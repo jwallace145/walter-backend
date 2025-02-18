@@ -3,8 +3,10 @@ from dataclasses import dataclass
 
 from src.ai.client import WalterAI
 from src.config import CONFIG
+from src.stocks.alphavantage.exceptions import CompanyNewsNotFound
 from src.stocks.alphavantage.models import CompanyNews
 from src.stocks.client import WalterStocksAPI
+from src.summaries.exceptions import GenerateNewsSummaryFailure
 from src.summaries.models import NewsSummary
 from src.utils.log import Logger
 
@@ -46,12 +48,17 @@ class WalterNewsSummaryClient:
         start_date: dt.datetime,
         end_date: dt.datetime,
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
-    ) -> NewsSummary | None:
+    ) -> NewsSummary:
         log.info(
             f"Generating '{stock.upper()}' news summary for date '{end_date.strftime('%Y-%m-%d')}'"
         )
-        news = self._get_stock_news(stock, start_date, end_date, number_of_articles)
-        return self._generate_news_summary(news)
+        try:
+            news = self._get_stock_news(stock, start_date, end_date, number_of_articles)
+            return self._generate_news_summary(news)
+        except CompanyNewsNotFound:
+            raise GenerateNewsSummaryFailure(
+                f"Cannot generate news summary for stock '{stock.upper()}'! No stock news found."
+            )
 
     def _get_stock_news(
         self,
@@ -63,10 +70,6 @@ class WalterNewsSummaryClient:
         news = self.walter_stock_api.get_news(
             stock, start_date, end_date, numbers_of_articles
         )
-        if not news:
-            raise ValueError(
-                f"No '{stock.upper()}' news articles returned from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}'!"
-            )
         log.info(
             f"Successfully returned {len(news.articles)} '{stock.upper()}' news articles!"
         )
