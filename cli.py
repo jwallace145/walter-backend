@@ -191,10 +191,10 @@ def unsubscribe(token: str = None) -> None:
 
 @app.command()
 def search_stocks(stock: str = None) -> None:
-    log.info("Walter CLI: Searching stocks...")
+    log.info("WalterCLI: SearchStocks")
     event = get_search_stocks_event(stock)
     response = search_stocks_entrypoint(event, CONTEXT)
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: SearchStocks Response:\n{parse_response(response)}")
 
 
 ####################

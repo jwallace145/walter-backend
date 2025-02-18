@@ -48,7 +48,20 @@ class WalterStocksAPI:
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks similar to '{symbol}'")
-        return self.alpha_vantage.search_stock(symbol)
+        stocks = self.alpha_vantage.search_stock(symbol)
+
+        log.debug("Filtering search stock results...")
+        filtered_stocks = []
+        for stock in stocks:
+            if (
+                stock.type == "Equity"
+                and stock.region == "United States"
+                and stock.currency == "USD"
+            ):
+                filtered_stocks.append(stock)
+        log.debug(f"Filtered {len(stocks) - len(filtered_stocks)} stocks")
+
+        return filtered_stocks
 
     def get_prices(self, stock: str) -> StockPrices:
         return self.polygon.get_stock_prices(stock)
