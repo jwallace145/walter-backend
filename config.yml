@@ -6,6 +6,8 @@ walter_config:
   news_summary:
     number_of_articles: 10 # the number of the most relevant news articles to parse when generating news summaries
     lookback_window_days: 365 # the number of days to lookback when querying for recent stock news
+    context: "You are a AI investment portfolio advisor that summarizes stock market news and gives readers digestible, business insights about the latest stock market movements to help them stay informed."
+    prompt: "Summarize the following news article about the stock '{stock}' to give a well-written concise update of the stock and any market news relating to it but write it with headers and bodies so it looks like a formatted report. Include data where possible and only focus on the most important updates, do not simply summarize each article separately:\n{news}"
     max_length: 5000 # the max length of generated news summaries
     schedule: cron(0 5 * * ? *) # the cron schedule to invoke the create news summary and archive workflow
   newsletter:

@@ -42,13 +42,17 @@ class NewsSummaryConfig:
 
     number_of_articles: int = 10
     lookback_window_days: int = 90
+    context: str = "You are an AI investment advisor."
+    prompt: str = "Summarize the following '{stock}' news articles:\n{news}"
     max_length: int = 5000
-    schedule: str = "0 5 * * ? *"  # every day at midnight EDT
+    schedule: str = "cron(0 5 * * ? *)"  # every day at midnight EDT
 
     def to_dict(self) -> dict:
         return {
             "number_of_articles": self.number_of_articles,
             "lookback_window_days": self.lookback_window_days,
+            "context": self.context,
+            "prompt": self.prompt,
             "max_length": self.max_length,
             "schedule": self.schedule,
         }
@@ -60,7 +64,7 @@ class NewsletterConfig:
 
     template: str = "default"
     max_length: int = 2000
-    schedule: str = "0 11 ? * MON-FRI *"  # every business day at 6am EDT
+    schedule: str = "cron(0 11 ? * MON-FRI *)"  # every business day at 6am EDT
 
     def to_dict(self) -> dict:
         return {
@@ -130,6 +134,8 @@ def get_walter_config() -> WalterConfig:
                 lookback_window_days=config_yaml["news_summary"][
                     "lookback_window_days"
                 ],
+                context=config_yaml["news_summary"]["context"],
+                prompt=config_yaml["news_summary"]["prompt"],
                 max_length=config_yaml["news_summary"]["max_length"],
                 schedule=config_yaml["news_summary"]["schedule"],
             ),
