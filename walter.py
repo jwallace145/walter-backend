@@ -192,6 +192,8 @@ def add_news_summary_requests_entrypoint(event, context) -> dict:
 def create_news_summary_and_archive_entrypoint(event, context) -> dict:
     return CreateNewsSummaryAndArchive(
         walter_event_parser,
+        walter_db,
+        walter_stocks_api,
         walter_news_summary_client,
         news_summaries_bucket,
         news_summaries_queue,

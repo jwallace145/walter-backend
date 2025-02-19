@@ -89,6 +89,7 @@ class NewsSummariesBucket:
 
         return NewsSummary(
             stock=metadata["stock"],
+            company=metadata["company"],
             datestamp=dt.strptime(metadata["datestamp"], "%Y-%m-%d"),
             model_name=metadata["model_name"],
             news=None,  # TODO: Eventually populate this field? Not need for this method yet as its only used by newsletter generation which doesn't care about the input news articles

@@ -136,11 +136,10 @@ class CreateNewsletterAndSend:
         log.info(
             f"Getting latest news summaries for {len(stocks)} stocks in user's portfolio..."
         )
-        summaries = []
-        for stock in stocks:
-            summary = self.news_summaries_bucket.get_latest_news_summary(stock)
-            summaries.append(summary)
-        return summaries
+        return [
+            self.news_summaries_bucket.get_latest_news_summary(stock)
+            for stock in stocks
+        ]
 
     def _get_template_spec(
         self,
@@ -195,9 +194,9 @@ class CreateNewsletterAndSend:
         # populate the prompts with responses from llm and add to template args
         context = template_spec.get_context()
         prompt = template_spec.get_prompts().pop()
+        prompt_with_context = f"Context: {context}\nPrompt: {prompt.prompt}"
         response = self.walter_ai.generate_response(
-            context=context,
-            prompt=prompt.prompt,
+            prompt=prompt_with_context,
             max_output_tokens=max_length,
         )
         template_args[prompt.name] = markdown.markdown(response)

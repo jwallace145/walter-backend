@@ -6,25 +6,18 @@ from datetime import timedelta
 from src.api.common.models import Status, HTTPStatus
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.config import CONFIG
+from src.database.client import WalterDB
+from src.database.stocks.models import Stock
 from src.events.parser import WalterEventParser
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
+from src.stocks.client import WalterStocksAPI
 from src.summaries.client import WalterNewsSummaryClient
 from src.summaries.exceptions import GenerateNewsSummaryFailure
 from src.summaries.models import NewsSummary
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-###########
-# METRICS #
-###########
-
-METRICS_NUMBER_OF_ARTICLES_PARSED = "NumberOfArticlesParsed"
-"""(str): The total number of articles parsed by Walter to create a news summary."""
-
-METRICS_CREATE_NEWS_SUMMARY_FAILURE = "CreateNewsSummaryFailure"
-"""(str): This metric emits when Walter cannot a news summary for the given stock."""
 
 
 ############
@@ -48,6 +41,8 @@ class CreateNewsSummaryAndArchive:
     WORKFLOW_NAME = "CreateNewsSummaryAndArchive"
 
     walter_event_parser: WalterEventParser
+    walter_db: WalterDB
+    walter_stocks_api: WalterStocksAPI
     walter_news_summary_client: WalterNewsSummaryClient
     news_summaries_bucket: NewsSummariesBucket
     news_summaries_queue: NewsSummariesQueue
@@ -62,17 +57,28 @@ class CreateNewsSummaryAndArchive:
             event
         )
 
+        symbol = event.stock
+        date = event.datestamp
+
         archived_summary = None
         generated_summary = None
         try:
-            archived_summary = self._check_archive_for_summary(
-                event.stock, event.datestamp
-            )
+            stock = self._verify_stock_exists(symbol)
+            if stock is None:
+                log.warning(
+                    f"Stock '{symbol}' not found in WalterDB or WalterStocksAPI!"
+                )
+                body = {
+                    "WalterWorkflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
+                    "Status": Status.FAILURE.name,
+                    "Message": "Stock not found!",
+                }
+                return self._get_response(HTTPStatus.OK, body)
+
+            archived_summary = self._check_archive_for_summary(stock, date)
 
             if archived_summary is not None:
-                log.info(
-                    f"Found news summary for stock '{event.stock.upper()}' in archive!"
-                )
+                log.info(f"Found news summary for stock '{stock.symbol}' in archive!")
                 body = {
                     "WalterWorkflow": CreateNewsSummaryAndArchive.WORKFLOW_NAME,
                     "Status": Status.SUCCESS.name,
@@ -84,8 +90,8 @@ class CreateNewsSummaryAndArchive:
                 return self._get_response(HTTPStatus.OK, body)
 
             generated_summary = self._generate_news_summary(
-                event.stock,
-                event.datestamp,
+                stock,
+                date,
                 CONFIG.news_summary.lookback_window_days,
                 CONFIG.news_summary.number_of_articles,
                 CONFIG.news_summary.context,
@@ -124,17 +130,28 @@ class CreateNewsSummaryAndArchive:
                 "Message": "Unexpected error occurred creating news summary!",
             }
             return self._get_response(HTTPStatus.INTERNAL_SERVER_ERROR, body)
-        finally:
-            self._emit_metrics(archived_summary, generated_summary)
 
-    def _check_archive_for_summary(self, stock: str, date: dt.datetime) -> str:
-        log.info(f"Checking for news summary in archive for stock '{stock.upper()}'...")
-        summary = self.news_summaries_bucket.get_news_summary(stock, date)
+    def _verify_stock_exists(self, symbol: str) -> Stock | None:
+        log.info(f"Verifying stock '{symbol.upper()}' exists in WalterDB...'")
+        stock = self.walter_db.get_stock(symbol)
+        if stock is None:
+            log.info("Stock not found in WalterDB! Checking WalterStocksAPI...")
+            stock = self.walter_stocks_api.get_stock(symbol)
+            if stock is None:
+                log.error("Stock not found in WalterStocksAPI!")
+                return None
+            log.info("Stock found in WalterStocksAPI! Adding stock to WalterDB...")
+            self.walter_db.add_stock(stock)
+        return stock
+
+    def _check_archive_for_summary(self, stock: Stock, date: dt.datetime) -> str:
+        log.info(f"Checking for news summary in archive for stock '{stock.symbol}'...")
+        summary = self.news_summaries_bucket.get_news_summary(stock.symbol, date)
         return summary
 
     def _generate_news_summary(
         self,
-        stock: str,
+        stock: Stock,
         date: dt.datetime,
         lookback_window_days: int = CONFIG.news_summary.lookback_window_days,
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
@@ -162,21 +179,6 @@ class CreateNewsSummaryAndArchive:
             f"Writing news summary for stock '{summary.stock.upper()}' to archive..."
         )
         return self.news_summaries_bucket.put_news_summary(summary)
-
-    def _emit_metrics(
-        self, archived_summary: str, generated_summary: NewsSummary
-    ) -> None:
-        log.info("Emitting metrics...")
-        # archived summary and generated summary null implies summary generation failure
-        self.walter_cw.emit_metric(
-            metric_name=METRICS_CREATE_NEWS_SUMMARY_FAILURE,
-            count=not archived_summary and not generated_summary,
-        )
-        # if generated summary is not null, emit number of articles parsed metric
-        self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_ARTICLES_PARSED,
-            count=0 if not generated_summary else len(generated_summary.news.articles),
-        )
 
     def _get_response(self, status: HTTPStatus, body: dict) -> dict:
         return {

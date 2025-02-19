@@ -13,6 +13,7 @@ class NewsSummary:
     DATESTAMP_FORMAT = "%Y-%m-%d"
 
     stock: str
+    company: str
     datestamp: datetime
     model_name: str
     news: CompanyNews
@@ -22,6 +23,7 @@ class NewsSummary:
         return {
             "model_name": self.model_name,
             "stock": self.stock,
+            "company": self.company,
             "datestamp": self.datestamp.strftime(NewsSummary.DATESTAMP_FORMAT),
             "news": self.news.to_dict(),
         }
@@ -30,6 +32,7 @@ class NewsSummary:
         return {
             "model_name": self.model_name,
             "stock": self.stock,
+            "company": self.company,
             "datestamp": self.datestamp.strftime(NewsSummary.DATESTAMP_FORMAT),
             "summary": self.summary,
         }

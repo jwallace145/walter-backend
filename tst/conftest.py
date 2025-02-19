@@ -233,6 +233,7 @@ def s3_client() -> S3Client:
             Body=json.dumps(
                 {
                     "stock": "MSFT",
+                    "company": "Microsoft",
                     "datestamp": now.strftime("%Y-%m-%d"),
                     "model_name": "Test Model",
                 }
@@ -249,6 +250,7 @@ def s3_client() -> S3Client:
             Body=json.dumps(
                 {
                     "stock": "AAPL",
+                    "company": "Apple Inc",
                     "datestamp": now.strftime("%Y-%m-%d"),
                     "model_name": "Test Model",
                 }
@@ -265,6 +267,7 @@ def s3_client() -> S3Client:
             Body=json.dumps(
                 {
                     "stock": "META",
+                    "company": "Meta Platforms Inc.",
                     "datestamp": now.strftime("%Y-%m-%d"),
                     "model_name": "Test Model",
                 }

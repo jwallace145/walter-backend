@@ -4,10 +4,13 @@ import pytest
 
 from src.api.common.models import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.client import WalterDB
+from src.database.stocks.models import Stock
 from src.events.parser import WalterEventParser
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
 from src.stocks.alphavantage.models import CompanyNews, NewsArticle
+from src.stocks.client import WalterStocksAPI
 from src.summaries.client import WalterNewsSummaryClient
 from src.summaries.models import NewsSummary
 from src.workflows.create_news_summary_and_archive import CreateNewsSummaryAndArchive
@@ -21,13 +24,16 @@ from tst.events.utils import get_create_news_summary_and_archive_event
 
 MODEL_NAME = "Amazon: Nova Micro"
 MSFT_STOCK = "MSFT"
+MSFT_COMPANY = "Microsoft"
 DATE = dt.datetime(year=2025, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 MSFT_NEWS_SUMMARY = NewsSummary(
     stock=MSFT_STOCK,
+    company=MSFT_COMPANY,
     datestamp=DATE,
     model_name=MODEL_NAME,
     news=CompanyNews(
         stock=MSFT_STOCK,
+        company=MSFT_COMPANY,
         start_date=DATE - dt.timedelta(days=365),
         end_date=DATE,
         articles=[
@@ -53,7 +59,7 @@ MSFT_NEWS_SUMMARY = NewsSummary(
 class MockWalterNewsSummaryClient:
     def generate(
         self,
-        stock: str,
+        stock: Stock,
         start_date: dt.datetime,
         end_date: dt.datetime,
         number_of_articles: int,
@@ -61,7 +67,7 @@ class MockWalterNewsSummaryClient:
         prompt: str,
         max_length: int,
     ) -> NewsSummary | None:
-        if stock.upper() == MSFT_STOCK:
+        if stock.symbol.upper() == MSFT_STOCK:
             return MSFT_NEWS_SUMMARY
         raise ValueError(
             f"MockWalterNewsSummaryClient does not implement generate news summary for stock '{stock.upper()}'!"
@@ -76,6 +82,8 @@ def walter_news_summary_client() -> MockWalterNewsSummaryClient:
 @pytest.fixture
 def create_news_summary_and_archive_workflow(
     walter_event_parser: WalterEventParser,
+    walter_db: WalterDB,
+    walter_stocks_api: WalterStocksAPI,
     walter_news_summary_client: WalterNewsSummaryClient,
     news_summaries_bucket: NewsSummariesBucket,
     news_summaries_queue: NewsSummariesQueue,
@@ -83,6 +91,8 @@ def create_news_summary_and_archive_workflow(
 ) -> CreateNewsSummaryAndArchive:
     return CreateNewsSummaryAndArchive(
         walter_event_parser,
+        walter_db,
+        walter_stocks_api,
         walter_news_summary_client,
         news_summaries_bucket,
         news_summaries_queue,
@@ -114,6 +124,7 @@ def test_create_news_summary_and_archive_success(
                     "summary": {
                         "model_name": MODEL_NAME,
                         "stock": MSFT_STOCK,
+                        "company": MSFT_COMPANY,
                         "datestamp": DATE.strftime("%Y-%m-%d"),
                         "summary": "test-summary",
                     },

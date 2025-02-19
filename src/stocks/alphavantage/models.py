@@ -68,6 +68,7 @@ class CompanyNews:
     """
 
     stock: str
+    company: str
     start_date: datetime.datetime
     end_date: datetime.datetime
     articles: List[NewsArticle]

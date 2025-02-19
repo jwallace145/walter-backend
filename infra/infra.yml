@@ -1682,7 +1682,12 @@ Resources:
               - "bedrock:InvokeModel"
             Resource:
               - "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"
+              - "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
               - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"
+              - "arn:aws:bedrock:us-east-1:010526272437:inference-profile/us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+              - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+              - "arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+              - "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
               - "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
       Roles:
         - !Ref WalterAPIRole
@@ -1871,6 +1876,7 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   TemplatesBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -2056,14 +2062,14 @@ Resources:
     Properties:
       QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 3600
+      VisibilityTimeout: 300
 
   NewsSummariesQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "NewsSummariesQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 3600
+      VisibilityTimeout: 300
 
 ###############
 ### OUTPUTS ###
