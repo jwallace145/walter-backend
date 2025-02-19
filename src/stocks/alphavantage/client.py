@@ -7,6 +7,7 @@ from typing import List
 import requests
 
 from src.config import CONFIG
+from src.database.stocks.models import Stock
 from src.stocks.alphavantage.exceptions import CompanyNewsNotFound
 from src.stocks.alphavantage.models import (
     CompanyOverview,
@@ -93,7 +94,7 @@ class AlphaVantageClient:
         return overview
 
     def get_news(
-        self, symbol: str, start_date: dt, end_date: dt, limit: int
+        self, stock: Stock, start_date: dt, end_date: dt, limit: int
     ) -> CompanyNews:
         """
         Get relevant company news.
@@ -104,7 +105,7 @@ class AlphaVantageClient:
         value of 3 ensures fast response times.
 
         Args:
-            symbol: The stock symbol of the company.
+            stock: The stock to get recent news..
             start_date: The start date of the period to get news.
             end_date: The end date of the period to get news.
             limit: The number of news articles to return.
@@ -117,19 +118,19 @@ class AlphaVantageClient:
             company.
         """
         log.info(
-            f"Getting news for '{symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}"
+            f"Getting news for '{stock.symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}"
         )
-        url = self._get_news_url(symbol, start_date, end_date)
+        url = self._get_news_url(stock.symbol, start_date, end_date)
         response = requests.get(url).json()
 
         if response == {} or len(response["feed"]) == 0:
             log.warning(
-                f"No news found for '{symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}!"
+                f"No news found for '{stock.symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}!"
             )
-            raise CompanyNewsNotFound(f"No news found for '{symbol}'!")
+            raise CompanyNewsNotFound(f"No news found for '{stock.symbol}'!")
 
         log.info(
-            f"Returned {len(response['feed'])} articles for '{symbol.upper()}'! Parsing {limit} articles..."
+            f"Returned {len(response['feed'])} articles for '{stock.symbol.upper()}'! Parsing {limit} articles..."
         )
 
         # iterate over returned articles and scrape contents until the number of
@@ -149,7 +150,11 @@ class AlphaVantageClient:
             index += 1
 
         return CompanyNews(
-            stock=symbol, start_date=start_date, end_date=end_date, articles=articles
+            stock=stock.symbol,
+            company=stock.company,
+            start_date=start_date,
+            end_date=end_date,
+            articles=articles,
         )
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:

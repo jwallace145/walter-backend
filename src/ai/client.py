@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from src.ai.amazon.models import NovaMicro
-from src.ai.anthropic.models import Claude3Haiku
+from src.ai.amazon.models import NovaMicro, NovaLite
+from src.ai.anthropic.models import Claude3Haiku, Claude3SonnetV2
 from src.ai.common.model import WalterFoundationModel
 from src.ai.meta.models import Llama370B
 from src.ai.models import get_model, Model
@@ -21,13 +21,8 @@ class WalterAI:
     def __post_init__(self) -> None:
         log.debug("Creating WalterAI")
 
-    def generate_response(
-        self, context: str, prompt: str, max_output_tokens: int
-    ) -> str:
-        prompt_with_context = f"Context: {context}\nPrompt: {prompt}"
-        return self.get_model().generate_response(
-            prompt_with_context, max_output_tokens
-        )
+    def generate_response(self, prompt: str, max_output_tokens: int) -> str:
+        return self.get_model().generate_response(prompt, max_output_tokens)
 
     def get_model(self) -> WalterFoundationModel:
         model = get_model(self.model)
@@ -45,8 +40,20 @@ class WalterAI:
                 temperature=CONFIG.artificial_intelligence.temperature,
                 top_p=CONFIG.artificial_intelligence.top_p,
             )
+        elif model == Model.ANTHROPIC_CLAUDE_3_SONNET_V2:
+            return Claude3SonnetV2(
+                client=self.client,
+                temperature=CONFIG.artificial_intelligence.temperature,
+                top_p=CONFIG.artificial_intelligence.top_p,
+            )
         elif model == Model.AMAZON_NOVA_MICRO:
             return NovaMicro(
+                client=self.client,
+                temperature=CONFIG.artificial_intelligence.temperature,
+                top_p=CONFIG.artificial_intelligence.top_p,
+            )
+        elif model == Model.AMAZON_NOVA_LITE:
+            return NovaLite(
                 client=self.client,
                 temperature=CONFIG.artificial_intelligence.temperature,
                 top_p=CONFIG.artificial_intelligence.top_p,

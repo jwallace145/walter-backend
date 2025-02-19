@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 
 from src.ai.common.model import WalterFoundationModel
@@ -6,6 +5,51 @@ from src.aws.bedrock.client import WalterBedrockClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
+
+
+@dataclass
+class Claude3SonnetV2(WalterFoundationModel):
+    """
+    Claude 3.5 Sonnet V2
+    """
+
+    MODEL_NAME = "Anthropic: Claude 3.5 Sonnet V2"
+    MODEL_ID = "arn:aws:bedrock:us-east-1:010526272437:inference-profile/us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    MAX_INPUT_TOKENS = 200_000
+
+    def __init__(
+        self,
+        client: WalterBedrockClient,
+        temperature: float,
+        top_p: float,
+    ) -> None:
+        super().__init__(
+            client,
+            Claude3SonnetV2.MODEL_NAME,
+            Claude3SonnetV2.MODEL_ID,
+            Claude3SonnetV2.MAX_INPUT_TOKENS,
+            temperature,
+            top_p,
+        )
+
+    def _get_body(self, prompt: str, max_output_tokens: int) -> dict:
+        return {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": max_output_tokens,
+            "top_k": 250,
+            "stop_sequences": [],
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": prompt}],
+                }
+            ],
+        }
+
+    def _parse_response(self, response: dict) -> str:
+        return response["content"][0]["text"]
 
 
 @dataclass
@@ -39,8 +83,8 @@ class Claude3Haiku(WalterFoundationModel):
             top_p,
         )
 
-    def _get_body(self, prompt: str, max_output_tokens: int) -> str:
-        native_request = {
+    def _get_body(self, prompt: str, max_output_tokens: int) -> dict:
+        return {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": max_output_tokens,
             "temperature": self.temperature,
@@ -52,7 +96,6 @@ class Claude3Haiku(WalterFoundationModel):
                 }
             ],
         }
-        return json.dumps(native_request)
 
     def _parse_response(self, response: dict) -> str:
         return response["content"][0]["text"]

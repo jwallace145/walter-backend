@@ -149,5 +149,5 @@ walter_ai = WalterAI(
 ##############################
 
 walter_news_summary_client = WalterNewsSummaryClient(
-    walter_stock_api=walter_stocks_api, walter_ai=walter_ai
+    walter_stock_api=walter_stocks_api, walter_ai=walter_ai, walter_cw=walter_cw
 )

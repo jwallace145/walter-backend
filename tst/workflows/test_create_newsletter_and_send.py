@@ -139,6 +139,7 @@ def test_create_newsletter_and_send_get_latest_news_summaries_success(
     assert set(summaries) == {
         NewsSummary(
             stock=AAPL.symbol,
+            company=AAPL.company,
             datestamp=today,
             model_name="Test Model",
             news=None,
@@ -146,6 +147,7 @@ def test_create_newsletter_and_send_get_latest_news_summaries_success(
         ),
         NewsSummary(
             stock=META.symbol,
+            company=META.company,
             datestamp=today,
             model_name="Test Model",
             news=None,

@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from src.ai.amazon.models import NovaMicro
-from src.ai.anthropic.models import Claude3Haiku
+from src.ai.amazon.models import NovaMicro, NovaLite
+from src.ai.anthropic.models import Claude3Haiku, Claude3SonnetV2
 from src.ai.meta.models import Llama370B
 
 
 class Model(Enum):
     META_LLAMA3_70B = Llama370B.MODEL_NAME
     ANTHROPIC_CLAUDE_3_HAIKU = Claude3Haiku.MODEL_NAME
+    ANTHROPIC_CLAUDE_3_SONNET_V2 = Claude3SonnetV2.MODEL_NAME
     AMAZON_NOVA_MICRO = NovaMicro.MODEL_NAME
+    AMAZON_NOVA_LITE = NovaLite.MODEL_NAME
 
 
 def get_model(model_name: str) -> Model:

@@ -34,10 +34,15 @@ ABNB_SUMMARY_METADATA_KEY = "summaries/ABNB/y=2025/m=01/d=01/metadata.json"
 ABNB_SUMMARY_KEY = "summaries/ABNB/y=2025/m=01/d=01/summary.html"
 ABNB_SUMMARY = NewsSummary(
     stock="ABNB",
+    company="airbnb",
     datestamp=DATESTAMP,
     model_name="unit-test",
     news=CompanyNews(
-        stock="ABNB", start_date=START_DATE, end_date=END_DATE, articles=[]
+        stock="ABNB",
+        company="airbnb",
+        start_date=START_DATE,
+        end_date=END_DATE,
+        articles=[],
     ),
     summary="",
 )

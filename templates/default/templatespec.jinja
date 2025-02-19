@@ -24,6 +24,7 @@ TemplateSpec:
     News:
       {% for news_summary in news_summaries %}
       - Symbol: {{ news_summary.stock}}
+        Company: {{ news_summary.company }}
         News: |
           {{ news_summary.summary }}
       {% endfor %}
