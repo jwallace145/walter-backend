@@ -1,6 +1,4 @@
-import json
 import os
-from datetime import datetime as dt
 
 import boto3
 import pytest
@@ -11,6 +9,7 @@ from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
+from pytest_mock import MockerFixture
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -26,22 +25,14 @@ from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
+from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
+from tst.aws.mock import MockSecretsManager, MockS3, MockSQS
 from tst.constants import (
     AWS_REGION,
-    SECRETS_MANAGER_POLYGON_API_KEY_NAME,
-    SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
-    SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_NAME,
-    SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE,
-    SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_NAME,
-    SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_VALUE,
-    SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_NAME,
-    SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_VALUE,
-    NEWS_SUMMARIES_QUEUE_NAME,
-    NEWSLETTERS_QUEUE_NAME,
 )
 from tst.database.mock import MockDDB
 from tst.stocks.mock import MockPolygon, MockAlphaVantageClient
@@ -64,34 +55,7 @@ def ddb_client() -> DynamoDBClient:
 def secrets_manager_client() -> SecretsManagerClient:
     with mock_aws():
         mock_secrets_manager = boto3.client("secretsmanager", region_name=AWS_REGION)
-        mock_secrets_manager.create_secret(
-            Name=SECRETS_MANAGER_POLYGON_API_KEY_NAME,
-            SecretString=json.dumps(
-                {"POLYGON_API_KEY": SECRETS_MANAGER_POLYGON_API_KEY_VALUE}
-            ),
-        )
-        mock_secrets_manager.create_secret(
-            Name=SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_NAME,
-            SecretString=json.dumps(
-                {"JWT_SECRET_KEY": SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE}
-            ),
-        )
-        mock_secrets_manager.create_secret(
-            Name=SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_NAME,
-            SecretString=json.dumps(
-                {
-                    "JWT_CHANGE_PASSWORD_SECRET_KEY": SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_VALUE
-                }
-            ),
-        )
-        mock_secrets_manager.create_secret(
-            Name=SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_NAME,
-            SecretString=json.dumps(
-                {
-                    "JWTVerifyEmailSecretKey": SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_VALUE
-                }
-            ),
-        )
+        MockSecretsManager(mock_secrets_manager).initialize()
         yield mock_secrets_manager
 
 
@@ -106,8 +70,7 @@ def cloud_watch_client() -> CloudWatchClient:
 def sqs_client() -> SQSClient:
     with mock_aws():
         mock_sqs = boto3.client("sqs", region_name=AWS_REGION)
-        mock_sqs.create_queue(QueueName=NEWSLETTERS_QUEUE_NAME)
-        mock_sqs.create_queue(QueueName=NEWS_SUMMARIES_QUEUE_NAME)
+        MockSQS(mock_sqs).initialize()
         yield mock_sqs
 
 
@@ -115,71 +78,7 @@ def sqs_client() -> SQSClient:
 def s3_client() -> S3Client:
     with mock_aws():
         mock_s3 = boto3.client("s3", region_name=AWS_REGION)
-        mock_s3.create_bucket(Bucket="walterai-templates-unittest")
-        mock_s3.put_object(
-            Bucket="walterai-templates-unittest",
-            Key="templates/default/templatespec.jinja",
-            Body=open("./templates/default/templatespec.jinja", "rb").read(),
-        )
-        mock_s3.put_object(
-            Bucket="walterai-templates-unittest",
-            Key="templates/default/template.jinja",
-            Body=open("./templates/default/template.jinja", "rb").read(),
-        )
-        mock_s3.create_bucket(Bucket="walterai-newsletters-unittest")
-        mock_s3.create_bucket(Bucket="walterai-news-summaries-unittest")
-        now = dt.now()
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
-            Body=json.dumps(
-                {
-                    "stock": "MSFT",
-                    "company": "Microsoft",
-                    "datestamp": now.strftime("%Y-%m-%d"),
-                    "model_name": "Test Model",
-                }
-            ),
-        )
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/MSFT/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
-            Body="news summary",
-        )
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/AAPL/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
-            Body=json.dumps(
-                {
-                    "stock": "AAPL",
-                    "company": "Apple Inc",
-                    "datestamp": now.strftime("%Y-%m-%d"),
-                    "model_name": "Test Model",
-                }
-            ),
-        )
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/AAPL/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
-            Body="apple news summary",
-        )
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/META/{now.strftime('y=%Y/m=%m/d=%d')}/metadata.json",
-            Body=json.dumps(
-                {
-                    "stock": "META",
-                    "company": "Meta Platforms Inc.",
-                    "datestamp": now.strftime("%Y-%m-%d"),
-                    "model_name": "Test Model",
-                }
-            ),
-        )
-        mock_s3.put_object(
-            Bucket="walterai-news-summaries-unittest",
-            Key=f"summaries/META/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
-            Body="meta news summary",
-        )
+        MockS3(mock_s3).initialize()
         yield mock_s3
 
 
@@ -198,22 +97,36 @@ def env_vars():
 
 
 @pytest.fixture
-def walter_stocks_api(mocker) -> WalterStocksAPI:
-    return WalterStocksAPI(
-        polygon=PolygonClient(
-            api_key=SECRETS_MANAGER_POLYGON_API_KEY_VALUE,
-            client=MockPolygon(mocker).create_client(),
-        ),
-        alpha_vantage=MockAlphaVantageClient(),
-    )
-
-
-@pytest.fixture
 def walter_sm(
     secrets_manager_client: SecretsManagerClient,
 ) -> WalterSecretsManagerClient:
     return WalterSecretsManagerClient(
         client=secrets_manager_client, domain=Domain.TESTING
+    )
+
+
+@pytest.fixture
+def polygon_client(
+    mocker: MockerFixture, walter_sm: WalterSecretsManagerClient
+) -> PolygonClient:
+    return PolygonClient(
+        api_key=walter_sm.get_polygon_api_key(),
+        client=MockPolygon(mocker).create_client(),
+    )
+
+
+@pytest.fixture
+def alpha_vantage_client() -> AlphaVantageClient:
+    return MockAlphaVantageClient()
+
+
+@pytest.fixture
+def walter_stocks_api(
+    polygon_client: PolygonClient, alpha_vantage_client: AlphaVantageClient
+) -> WalterStocksAPI:
+    return WalterStocksAPI(
+        polygon=polygon_client,
+        alpha_vantage=alpha_vantage_client,
     )
 
 

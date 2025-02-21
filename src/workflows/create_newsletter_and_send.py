@@ -194,13 +194,15 @@ class CreateNewsletterAndSend:
 
         # populate the prompts with responses from llm and add to template args
         context = template_spec.get_context()
-        prompt = template_spec.get_prompts().pop()
-        prompt_with_context = f"Context: {context}\nPrompt: {prompt.prompt}"
-        response = self.walter_ai.generate_response(
-            prompt=prompt_with_context,
-            max_output_tokens=max_length,
-        )
-        template_args[prompt.name] = markdown.markdown(response)
+
+        while len(template_spec.get_prompts()) > 0:
+            prompt = template_spec.get_prompts().pop()
+            prompt_with_context = f"Context: {context}\nPrompt: {prompt.prompt}"
+            response = self.walter_ai.generate_response(
+                prompt=prompt_with_context,
+                max_output_tokens=max_length,
+            )
+            template_args[prompt.name] = markdown.markdown(response)
 
         return self.templates_engine.get_template(template, template_args)
 

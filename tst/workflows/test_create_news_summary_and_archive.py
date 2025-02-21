@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 
 import pytest
 
@@ -50,6 +51,30 @@ MSFT_NEWS_SUMMARY = NewsSummary(
     ),
     summary="test-summary",
 )
+MSFT_NEWS_SUMMARY_2 = NewsSummary(
+    stock=MSFT_STOCK,
+    company=MSFT_COMPANY,
+    datestamp=DATE + timedelta(days=1),
+    model_name=MODEL_NAME,
+    news=CompanyNews(
+        stock=MSFT_STOCK,
+        company=MSFT_COMPANY,
+        start_date=DATE - dt.timedelta(days=365),
+        end_date=DATE,
+        articles=[
+            NewsArticle(
+                title="test-title",
+                url="test-url",
+                published_timestamp=DATE,
+                authors=["walter"],
+                source="test-source",
+                summary="test-summary",
+                contents="test-contents",
+            )
+        ],
+    ),
+    summary="test-summary",
+)
 
 ############
 # FIXTURES #
@@ -67,10 +92,14 @@ class MockWalterNewsSummaryClient:
         prompt: str,
         max_length: int,
     ) -> NewsSummary | None:
-        if stock.symbol.upper() == MSFT_STOCK:
+        if stock.symbol.upper() == MSFT_STOCK and end_date == DATE:
             return MSFT_NEWS_SUMMARY
+        elif stock.symbol.upper() == MSFT_STOCK and end_date == (
+            DATE + timedelta(days=1)
+        ):
+            return MSFT_NEWS_SUMMARY_2
         raise ValueError(
-            f"MockWalterNewsSummaryClient does not implement generate news summary for stock '{stock.upper()}'!"
+            f"MockWalterNewsSummaryClient does not implement generate news summary for stock '{stock.symbol.upper()}' and date '{end_date}'!"
         )
 
 
@@ -108,8 +137,9 @@ def create_news_summary_and_archive_workflow(
 def test_create_news_summary_and_archive_success(
     create_news_summary_and_archive_workflow: CreateNewsSummaryAndArchive,
 ) -> None:
+    date = DATE + timedelta(days=1)
     event = get_create_news_summary_and_archive_event(
-        MSFT_STOCK, DATE.strftime("%Y-%m-%d")
+        MSFT_STOCK, date.strftime("%Y-%m-%d")
     )
     response = create_news_summary_and_archive_workflow.invoke(event)
     assert response == {
@@ -120,12 +150,12 @@ def test_create_news_summary_and_archive_success(
                 "Status": Status.SUCCESS.value,
                 "Message": "News summary created!",
                 "Data": {
-                    "s3_uri": "s3://walterai-news-summaries-unittest/summaries/MSFT/y=2025/m=01/d=01/summary.html",
+                    "s3_uri": "s3://walterai-news-summaries-unittest/summaries/MSFT/y=2025/m=01/d=02/summary.html",
                     "summary": {
                         "model_name": MODEL_NAME,
                         "stock": MSFT_STOCK,
                         "company": MSFT_COMPANY,
-                        "datestamp": DATE.strftime("%Y-%m-%d"),
+                        "datestamp": date.strftime("%Y-%m-%d"),
                         "summary": "test-summary",
                     },
                 },

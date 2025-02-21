@@ -132,7 +132,9 @@ def test_create_newsletter_and_send_get_portfolio_success(
 def test_create_newsletter_and_send_get_latest_news_summaries_success(
     create_newsletter_and_send_workflow: CreateNewsletterAndSend,
 ) -> None:
-    today = dt.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    date = dt.datetime(
+        year=2025, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
     summaries = create_newsletter_and_send_workflow._get_latest_news_summaries(
         [AAPL.symbol, META.symbol]
     )
@@ -140,18 +142,18 @@ def test_create_newsletter_and_send_get_latest_news_summaries_success(
         NewsSummary(
             stock=AAPL.symbol,
             company=AAPL.company,
-            datestamp=today,
-            model_name="Test Model",
+            datestamp=date,
+            model_name="Amazon: Nova Lite",
             news=None,
-            summary="apple news summary",
+            summary="Test Apple Summary",
         ),
         NewsSummary(
             stock=META.symbol,
             company=META.company,
-            datestamp=today,
-            model_name="Test Model",
+            datestamp=date,
+            model_name="Amazon: Nova Lite",
             news=None,
-            summary="meta news summary",
+            summary="Test Meta Summary",
         ),
     }
 

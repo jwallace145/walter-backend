@@ -12,20 +12,8 @@ AWS_REGION = "us-east-1"
 # TEST SECRETS #
 ################
 
-SECRETS_MANAGER_ALPHA_VANTAGE_API_KEY_NAME = "AlphaVantageAPIKey"
-SECRETS_MANAGER_ALPHA_VANTAGE_API_KEY_VALUE = "test-alpha-vantage-api-key"
-
-SECRETS_MANAGER_POLYGON_API_KEY_NAME = "PolygonAPIKey"
-SECRETS_MANAGER_POLYGON_API_KEY_VALUE = "test-polygon-api-key"
-
-SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_NAME = "JWTSecretKey"
-SECRETS_MANAGER_JWT_SECRET_KEY_SECRET_VALUE = "test-jwt-secret-key"
-
-SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_NAME = "JWTChangePasswordSecretKey"
-SECRETS_MANAGER_CHANGE_PASSWORD_KEY_SECRET_VALUE = "test-change-password-key"
-
-SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_NAME = "JWTVerifyEmailSecretAccessKey"
-SECRETS_MANAGER_VERIFY_EMAIL_KEY_SECRET_VALUE = "test-verify-email-key"
+SECRETS_TEST_FILE = "tst/aws/data/secrets.jsonl"
+"""(str): The name of the test secrets input file."""
 
 ###################
 # TEST DDB TABLES #
@@ -72,3 +60,19 @@ NEWS_TEST_FILE = "tst/stocks/data/news.jsonl"
 
 COMPANIES_TEST_FILE = "tst/stocks/data/companies.jsonl"
 """(str): The test companies input file to be returned by the mock AlphaVantage client."""
+
+################
+# TEST S3 DATA #
+################
+
+OBJECTS_TEST_FILE = "tst/aws/data/objects.json"
+"""(str): The test objects input file that contains the test S3 objects for unit tests."""
+
+TEMPLATES_BUCKET_NAME = f"walterai-templates-{Domain.TESTING.value}"
+"""(str): The name of the templates bucket for unit tests."""
+
+NEWSLETTERS_BUCKET_NAME = f"walterai-newsletters-{Domain.TESTING.value}"
+"""(str): The name of the newsletters bucket for unit tests."""
+
+SUMMARIES_BUCKET_NAME = f"walterai-news-summaries-{Domain.TESTING.value}"
+"""(str): The name of the summaries bucket for unit tests."""

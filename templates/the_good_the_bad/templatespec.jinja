@@ -1,0 +1,63 @@
+version: 0.0
+
+#########################
+# DEFAULT TEMPLATE SPEC #
+#########################
+
+TemplateSpec:
+
+  ###########
+  # CONTEXT #
+  ###########
+
+  Context:
+    User: {{ user }}
+    Datestamp: {{ datestamp }}
+    PortfolioValue: {{ portfolio_value }}
+    Stocks:
+      {% for stock in stocks %}
+      - Symbol: {{ stock.symbol }}
+        Shares: {{ stock.quantity }}
+        Price: {{ stock.price }}
+        Equity: {{ stock.equity }}
+      {% endfor %}
+    News:
+      {% for news_summary in news_summaries %}
+      - Symbol: {{ news_summary.stock}}
+        Company: {{ news_summary.company }}
+        News: |
+          {{ news_summary.summary }}
+      {% endfor %}
+
+  ########
+  # KEYS #
+  ########
+
+  Keys:
+    - Key: User
+      Value: {{ user }}
+    - Key: Datestamp
+      Value: {{ datestamp }}
+    - Key: PortfolioValue
+      Value: {{ portfolio_value }}
+    - Key: UnsubscribeLink
+      Value: {{ unsubscribe_link }}
+
+  ###########
+  # PROMPTS #
+  ###########
+
+  Prompts:
+    - Key: TheGood
+      Prompt: |
+        Highlight something good that happened to the user's portfolio for a specific stock. Site news examples with a focus on the most recent events to try to explain any price fluctuations. Give the output in valid markdown.
+      MaxGenLength: 1000
+    - Key: TheBad
+      Prompt: |
+        Try to find something that negatively impacted the user's portfolio for a specific stock. Use examples from the news to help explain what may have caused the stock's poor performance. Give the output in valid markdown.
+      MaxGenLength: 1000
+    - Key: WhatYouShouldKnow
+      Prompt: |
+        Select the single most important piece of news that affected any of the stocks in the user's portfolio and update the user with the news and why its important. Use examples from the news. Give the output in valid markdown.
+      MaxGenLength: 1000
+
