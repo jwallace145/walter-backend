@@ -13,6 +13,6 @@ walter_config:
     max_length: 5000 # the max length of generated news summaries
     schedule: cron(0 5 * * ? *) # the cron schedule to invoke the create news summary and archive workflow
   newsletter:
-    template: "default"
+    template: "the_good_the_bad"
     max_length: 3000 # the max length of the generated newsletter
     schedule: cron(0 11 ? * MON-FRI *) # the cron schedule to invoke the create newsletter and send workflow

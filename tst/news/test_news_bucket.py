@@ -100,16 +100,16 @@ def test_put_summary(
 def test_get_summary_does_exist(
     news_summaries_bucket: NewsSummariesBucket, walter_s3: WalterS3Client
 ) -> None:
-    stock = "MSFT"
-    now = dt.datetime.now()
     assert (
         walter_s3.get_object(
             NEWS_SUMMARIES_BUCKET_TEST,
-            f"summaries/{stock}/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            "summaries/MSFT/y=2025/m=01/d=01/summary.html",
         )
         is not None
     )
-    assert news_summaries_bucket.get_news_summary("MSFT") is not None
+    assert (
+        news_summaries_bucket.get_news_summary(stock="MSFT", date=END_DATE) is not None
+    )
 
 
 def test_get_summary_does_not_exist(

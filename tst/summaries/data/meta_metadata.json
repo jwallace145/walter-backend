@@ -1,0 +1,21 @@
+{
+    "model_name": "Amazon: Nova Lite",
+    "stock": "META",
+    "company": "Meta Platforms Inc.",
+    "datestamp": "2025-01-01",
+    "news": {
+        "stock": "META",
+        "start_date": "2024-01-01",
+        "end_date": "2025-01-01",
+        "articles": [
+            {
+                "title": "test-meta-article",
+                "published_timestamp": "2025-01-01",
+                "authors": ["test-author"],
+                "source": "test-source",
+                "summary": "test-summary",
+                "contents": "test-contents"
+            }
+        ]
+    }
+}

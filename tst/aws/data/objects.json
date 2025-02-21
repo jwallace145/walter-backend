@@ -1,0 +1,56 @@
+[
+  {
+    "bucket": "walterai-templates-unittest",
+    "objects": [
+      {
+        "key": "templates/default/templatespec.jinja",
+        "file": "./templates/default/templatespec.jinja"
+      },
+      {
+        "key": "templates/default/template.jinja",
+        "file": "./templates/default/template.jinja"
+      },
+      {
+        "key": "templates/the_good_the_bad/templatespec.jinja",
+        "file": "./templates/the_good_the_bad/templatespec.jinja"
+      },
+      {
+        "key": "templates/the_good_the_bad/template.jinja",
+        "file": "./templates/the_good_the_bad/template.jinja"
+      }
+    ]
+  },
+  {
+    "bucket": "walterai-newsletters-unittest",
+    "objects": []
+  },
+  {
+    "bucket": "walterai-news-summaries-unittest",
+    "objects": [
+      {
+        "key": "summaries/AAPL/y=2025/m=01/d=01/metadata.json",
+        "file": "./tst/summaries/data/aapl_metadata.json"
+      },
+      {
+        "key": "summaries/AAPL/y=2025/m=01/d=01/summary.html",
+        "file": "./tst/summaries/data/aapl_summary.html"
+      },
+      {
+        "key": "summaries/META/y=2025/m=01/d=01/metadata.json",
+        "file": "./tst/summaries/data/meta_metadata.json"
+      },
+      {
+        "key": "summaries/META/y=2025/m=01/d=01/summary.html",
+        "file": "./tst/summaries/data/meta_summary.html"
+      },
+      {
+        "key": "summaries/MSFT/y=2025/m=01/d=01/metadata.json",
+        "file": "./tst/summaries/data/msft_metadata.json"
+      },
+      {
+        "key": "summaries/MSFT/y=2025/m=01/d=01/summary.html",
+        "file": "./tst/summaries/data/msft_summary.html"
+      }
+    ]
+  }
+]
