@@ -127,10 +127,10 @@ def get_portfolio(token: str = None) -> None:
 
 @app.command()
 def get_news_summary(stock: str = None) -> None:
-    log.info("Walter CLI: Getting news summary...")
+    log.info("WalterCLI: GetNewsSummary...")
     event = get_news_summary_event(stock)
     response = get_news_summary_entrypoint(event, CONTEXT)
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: GetNewsSummary Response:\n{parse_response(response)}")
 
 
 @app.command()

@@ -10,6 +10,7 @@
         "articles": [
             {
                 "title": "test-msft-article",
+                "url": "test-msft-url",
                 "published_timestamp": "2025-01-01",
                 "authors": ["test-author"],
                 "source": "test-source",

@@ -199,7 +199,9 @@ def test_create_newsletter_and_send_archive_newsletter_success(
         )
         is None
     )
-    create_newsletter_and_send_workflow._archive_newsletter(BOB, "", SupportedTemplate.DEFAULT)
+    create_newsletter_and_send_workflow._archive_newsletter(
+        BOB, "", SupportedTemplate.DEFAULT
+    )
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",

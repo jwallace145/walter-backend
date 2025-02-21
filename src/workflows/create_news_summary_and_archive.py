@@ -84,7 +84,7 @@ class CreateNewsSummaryAndArchive:
                     "Status": Status.SUCCESS.name,
                     "Message": "News summary already exists!",
                     "Data": {
-                        "summary": archived_summary,
+                        "summary": archived_summary.summary,
                     },
                 }
                 return self._get_response(HTTPStatus.OK, body)
@@ -144,9 +144,11 @@ class CreateNewsSummaryAndArchive:
             self.walter_db.add_stock(stock)
         return stock
 
-    def _check_archive_for_summary(self, stock: Stock, date: dt.datetime) -> str:
+    def _check_archive_for_summary(
+        self, stock: Stock, date: dt.datetime
+    ) -> NewsSummary | None:
         log.info(f"Checking for news summary in archive for stock '{stock.symbol}'...")
-        summary = self.news_summaries_bucket.get_news_summary(stock.symbol, date)
+        summary = self.news_summaries_bucket.get_news_summary(stock, date)
         return summary
 
     def _generate_news_summary(
