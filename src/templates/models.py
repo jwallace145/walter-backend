@@ -1,8 +1,27 @@
 import datetime as dt
 from dataclasses import dataclass
+from enum import Enum
 from io import BytesIO
 from typing import Dict
 from typing import List
+
+
+class SupportedTemplate(Enum):
+    """
+    The Supported Newsletter Templates
+    """
+
+    DEFAULT = "default"
+    THE_GOOD_THE_BAD = "the_good_the_bad"
+
+
+def get_supported_template(template_name: str) -> SupportedTemplate:
+    for template in SupportedTemplate:
+        if template.name == template_name:
+            return template
+    raise ValueError(
+        f"Unexpected template '{template_name}' given! Supported templates: {[template.name for template in SupportedTemplate]}"
+    )
 
 
 @dataclass

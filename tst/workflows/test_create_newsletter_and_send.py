@@ -19,6 +19,7 @@ from src.stocks.client import WalterStocksAPI
 from src.summaries.models import NewsSummary
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
+from src.templates.models import SupportedTemplate
 from src.workflows.create_newsletter_and_send import CreateNewsletterAndSend
 
 #############
@@ -198,7 +199,7 @@ def test_create_newsletter_and_send_archive_newsletter_success(
         )
         is None
     )
-    create_newsletter_and_send_workflow._archive_newsletter(BOB, "", "default")
+    create_newsletter_and_send_workflow._archive_newsletter(BOB, "", SupportedTemplate.DEFAULT)
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",

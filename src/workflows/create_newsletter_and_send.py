@@ -22,7 +22,7 @@ from src.stocks.models import Portfolio
 from src.summaries.models import NewsSummary
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
-from src.templates.models import TemplateSpec
+from src.templates.models import TemplateSpec, SupportedTemplate
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -109,6 +109,7 @@ class CreateNewsletterAndSend:
                 "Unexpected error occurred creating and sending newsletter!",
                 exc_info=True,
             )
+            input()
             self.newsletters_queue.delete_newsletter_request(event.receipt_handle)
             body = {
                 "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
@@ -146,7 +147,7 @@ class CreateNewsletterAndSend:
         user: User,
         portfolio: Portfolio,
         summaries: List[NewsSummary],
-        template: str = CONFIG.newsletter.template,
+        template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> TemplateSpec:
         log.info(f"Getting template spec for '{template}' template...'")
         template_spec_args = {
@@ -160,7 +161,7 @@ class CreateNewsletterAndSend:
 
         # get template spec with user inputs
         return self.templates_engine.get_template_spec(
-            template_name=template,
+            template_name=template.value,
             template_spec_args=template_spec_args,
         )
 
@@ -184,7 +185,7 @@ class CreateNewsletterAndSend:
     def _get_rendered_newsletter(
         self,
         template_spec: TemplateSpec,
-        template: str = CONFIG.newsletter.template,
+        template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> Tuple[str, str]:
         log.info(f"Rendering newsletter for user with '{template}' template...")
         # get template args from the template spec
@@ -206,24 +207,29 @@ class CreateNewsletterAndSend:
             template_args[prompt.name] = response
 
         subject = template_args["NewsletterSubject"].replace('"', "")
-        return (subject, self.templates_engine.get_template(template, template_args))
+        newsletter = self.templates_engine.get_template(template.value, template_args)
+
+        return subject, newsletter
 
     def _send_newsletter(
         self,
         user: User,
         subject: str,
         newsletter: str,
-        template: str = CONFIG.newsletter.template,
+        template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> None:
         log.info(f"Sending newsletter to user with email '{user.email}'...")
-        assets = self.templates_bucket.get_template_assets(template)
+        assets = self.templates_bucket.get_template_assets(template.value)
         self.walter_ses.send_email(user.email, newsletter, subject, assets)
 
     def _archive_newsletter(
-        self, user: User, newsletter: str, template: str = CONFIG.newsletter.template
+        self,
+        user: User,
+        newsletter: str,
+        template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> None:
         log.info(f"Archiving newsletter for user with email '{user.email}'...")
-        self.newsletters_bucket.put_newsletter(user, template, newsletter)
+        self.newsletters_bucket.put_newsletter(user, template.value, newsletter)
 
     def _emit_metrics(self) -> None:
         log.info(f"Emitting '{CreateNewsletterAndSend.WORKFLOW_NAME}' metrics...")
