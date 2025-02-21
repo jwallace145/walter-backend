@@ -303,7 +303,7 @@ Resources:
   WalterAPIGetNewsSummaryMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: POST
+      HttpMethod: GET
       ResourceId: !Ref WalterAPINews
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
