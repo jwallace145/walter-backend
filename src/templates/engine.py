@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 import yaml
 from jinja2 import Environment, BaseLoader
-from src.templates.models import TemplateSpec, template_spec_from_dict
 
 from src.templates.bucket import TemplatesBucket
+from src.templates.models import TemplateSpec, template_spec_from_dict
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -22,6 +22,7 @@ class TemplatesEngine:
         self, template_name: str, template_spec_args: dict
     ) -> TemplateSpec:
         log.info(f"Rendering template spec for '{template_name}' template")
+        log.debug(f"Using template spec args:\n{template_spec_args}")
         template_spec = self.templates_bucket.get_template_spec(template_name)
         rendered_template_spec = (
             Environment(loader=BaseLoader)

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from src.ai.models import Model
+from src.ai.models import WalterModel
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -24,7 +24,7 @@ CONFIG_FILE = "./config.yml"
 class ArtificialIntelligenceConfig:
     """Artificial Intelligence Configurations"""
 
-    model_name: str = Model.AMAZON_NOVA_MICRO.value
+    model_name: str = WalterModel.AMAZON_NOVA_MICRO.value
     temperature: float = 0.5
     top_p: float = 0.9
 

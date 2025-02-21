@@ -35,7 +35,7 @@ class TemplateContext:
     def get_context(self) -> str:
         return f"""
 The current user is {self.user} and the date is {self.datestamp}. The total value of the user's portfolio as of this
-date is ${self.portfolio_value:.2f} and the stocks owned by the user are {self.stocks}. When analyzing stocks, focus on 
+date is ${self.portfolio_value} and the stocks owned by the user are {self.stocks}. When analyzing stocks, focus on 
 the stocks owned by the user to deliver relevant insights about stocks the user owns. 
 
 Also, read the following market news about the stocks in the user's portfolio to help deliver relevant insights about
