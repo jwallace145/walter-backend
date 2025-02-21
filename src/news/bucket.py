@@ -46,7 +46,6 @@ class NewsSummariesBucket:
         log.info(
             f"Putting news summary to archive for stock '{news.stock}' with date: '{news.datestamp.strftime('%Y-%m-%d')}'"
         )
-
         log.debug(
             f"Putting news summary metadata to archive for stock '{news.stock}'..."
         )
