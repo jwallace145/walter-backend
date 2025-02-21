@@ -589,5 +589,10 @@ def jwt_bob(walter_authenticator: WalterAuthenticator) -> str:
 
 
 @pytest.fixture
+def jwt_john(walter_authenticator: WalterAuthenticator) -> str:
+    return walter_authenticator.generate_user_token("john@gmail.com")
+
+
+@pytest.fixture
 def walter_event_parser() -> WalterEventParser:
     return WalterEventParser()
