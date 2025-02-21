@@ -21,14 +21,15 @@ MSFT = Stock(
     address="ONE MICROSOFT WAY, REDMOND, WA, US",
 )
 
-ABNB = Stock(
-    symbol="ABNB",
-    company="Airbnb",
-    description="Airbnb",
-    exchange="NYSE",
-    sector="Trade & Services",
-    industry="Lodging",
-    official_site="https://walterai.dev",
+TEAM = Stock(
+    symbol="TEAM",
+    company="Atlassian Corp Plc",
+    description="Atlassian Corporation Plc designs, develops, licenses and maintains various software products worldwide. The company is headquartered in Sydney, Australia.",
+    exchange="NASDAQ",
+    sector="TECHNOLOGY",
+    industry="SERVICES-PREPACKAGED SOFTWARE",
+    official_site="https://www.atlassian.com",
+    address="350 BUSH STREET, FLOOR 13, SAN FRANCISCO, CA, US",
 )
 
 
@@ -63,19 +64,19 @@ def test_get_stock_success_exists_in_db(
 def test_get_stock_success_does_not_exist_in_db(
     get_stock_api: GetStock, walter_db: WalterDB
 ) -> None:
-    event = get_get_stock_event(symbol=ABNB.symbol)
+    event = get_get_stock_event(symbol=TEAM.symbol)
     expected_response = get_expected_response(
         api_name=get_stock_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.SUCCESS,
         message="Retrieved stock details!",
         data={
-            "stock": ABNB.to_dict(),
+            "stock": TEAM.to_dict(),
         },
     )
-    assert walter_db.get_stock(ABNB.symbol) is None
+    assert walter_db.get_stock(TEAM.symbol) is None
     assert expected_response == get_stock_api.invoke(event)
-    assert walter_db.get_stock(ABNB.symbol) is not None
+    assert walter_db.get_stock(TEAM.symbol) is not None
 
 
 def test_get_stock_failure_stock_does_not_exist(get_stock_api: GetStock) -> None:
