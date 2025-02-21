@@ -3,6 +3,7 @@ import datetime as dt
 import pytest
 
 from src.aws.s3.client import WalterS3Client
+from src.database.stocks.models import Stock
 from src.environment import Domain
 from src.news.bucket import NewsSummariesBucket
 from src.stocks.alphavantage.models import CompanyNews
@@ -27,8 +28,30 @@ END_DATE = dt.datetime(
 START_DATE = END_DATE - dt.timedelta(days=90)
 DATESTAMP = END_DATE
 
+MSFT = Stock(
+    symbol="MSFT",
+    company="Microsoft Corporation",
+    description="Microsoft Corporation is an American multinational technology company which produces computer software, consumer electronics, personal computers, and related services. Its best known software products are the Microsoft Windows line of operating systems, the Microsoft Office suite, and the Internet Explorer and Edge web browsers. Its flagship hardware products are the Xbox video game consoles and the Microsoft Surface lineup of touchscreen personal computers. Microsoft ranked No. 21 in the 2020 Fortune 500 rankings of the largest United States corporations by total revenue; it was the world's largest software maker by revenue as of 2016. It is considered one of the Big Five companies in the U.S. information technology industry, along with Google, Apple, Amazon, and Facebook.",
+    exchange="NASDAQ",
+    sector="TECHNOLOGY",
+    industry="SERVICES-PREPACKAGED SOFTWARE",
+    official_site="https://www.microsoft.com",
+    address="ONE MICROSOFT WAY, REDMOND, WA, US",
+)
+
 MSFT_SUMMARY_METADATA_KEY = "summaries/MSFT/y=2025/m=01/d=01/metadata.json"
 MSFT_SUMMARY_KEY = "summaries/MSFT/y=2025/m=01/d=01/summary.html"
+
+ABNB = Stock(
+    symbol="ABNB",
+    company="Airbnb Inc.",
+    description="Microsoft Corporation is an American multinational technology company which produces computer software, consumer electronics, personal computers, and related services. Its best known software products are the Microsoft Windows line of operating systems, the Microsoft Office suite, and the Internet Explorer and Edge web browsers. Its flagship hardware products are the Xbox video game consoles and the Microsoft Surface lineup of touchscreen personal computers. Microsoft ranked No. 21 in the 2020 Fortune 500 rankings of the largest United States corporations by total revenue; it was the world's largest software maker by revenue as of 2016. It is considered one of the Big Five companies in the U.S. information technology industry, along with Google, Apple, Amazon, and Facebook.",
+    exchange="NASDAQ",
+    sector="TECHNOLOGY",
+    industry="SERVICES-PREPACKAGED SOFTWARE",
+    official_site="https://www.microsoft.com",
+    address="ONE MICROSOFT WAY, REDMOND, WA, US",
+)
 
 ABNB_SUMMARY_METADATA_KEY = "summaries/ABNB/y=2025/m=01/d=01/metadata.json"
 ABNB_SUMMARY_KEY = "summaries/ABNB/y=2025/m=01/d=01/summary.html"
@@ -107,24 +130,20 @@ def test_get_summary_does_exist(
         )
         is not None
     )
-    assert (
-        news_summaries_bucket.get_news_summary(stock="MSFT", date=END_DATE) is not None
-    )
+    assert news_summaries_bucket.get_news_summary(stock=MSFT, date=END_DATE) is not None
 
 
 def test_get_summary_does_not_exist(
     news_summaries_bucket: NewsSummariesBucket, walter_s3: WalterS3Client
 ) -> None:
-    stock = "ABNB"
-    now = dt.datetime.now()
     assert (
         walter_s3.get_object(
             NEWS_SUMMARIES_BUCKET_TEST,
-            f"summaries/{stock}/{now.strftime('y=%Y/m=%m/d=%d')}/summary.html",
+            f"summaries/ABNB/{DATESTAMP.strftime('y=%Y/m=%m/d=%d')}/summary.html",
         )
         is None
     )
-    assert news_summaries_bucket.get_news_summary(stock) is None
+    assert news_summaries_bucket.get_news_summary(ABNB) is None
 
 
 def test_get_news_summaries_bucket_name() -> None:

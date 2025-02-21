@@ -49,6 +49,16 @@ class NewsArticle:
     summary: str
     contents: str
 
+    def get_metadata(self) -> dict:
+        return {
+            "title": self.title,
+            "url": self.url,
+            "published_timestamp": self.published_timestamp.strftime("%Y-%m-%d"),
+            "authors": self.authors,
+            "source": self.source,
+            "summary": self.summary,
+        }
+
     def to_dict(self) -> dict:
         return {
             "title": self.title,

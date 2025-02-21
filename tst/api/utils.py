@@ -47,9 +47,8 @@ def get_portfolio_event(token: str) -> dict:
     return EVENT
 
 
-def get_news_summary_event(stock: str) -> dict:
-    EVENT["body"] = json.dumps({"stock": stock})
-    EVENT["headers"] = {"content-type": "application/json"}
+def get_news_summary_event(symbol: str) -> dict:
+    EVENT["queryStringParameters"] = {"symbol": symbol}
     return EVENT
 
 

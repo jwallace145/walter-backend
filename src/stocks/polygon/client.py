@@ -26,7 +26,7 @@ class PolygonClient:
     for users with the latest prices and relevant news.
     """
 
-    MAX_AGGREGATE_DATA_LIMIT = 50000
+    MAX_AGGREGATE_DATA_LIMIT = 50_000
 
     api_key: str
     client: RESTClient = None  # lazy init
@@ -97,8 +97,8 @@ class PolygonClient:
         prices = []
         for agg in self.client.list_aggs(
             ticker=stock.stock_symbol,
-            multiplier=1,
-            timespan="hour",
+            multiplier=5,
+            timespan="minute",
             from_=PolygonClient._convert_date_to_string(start_date),
             to=PolygonClient._convert_date_to_string(end_date),
             limit=PolygonClient.MAX_AGGREGATE_DATA_LIMIT,
@@ -140,8 +140,8 @@ class PolygonClient:
         prices = []
         for agg in self.client.list_aggs(
             ticker=stock,
-            multiplier=1,
-            timespan="hour",
+            multiplier=10,
+            timespan="minute",
             from_=PolygonClient._convert_date_to_string(start_date),
             to=PolygonClient._convert_date_to_string(end_date),
             limit=PolygonClient.MAX_AGGREGATE_DATA_LIMIT,

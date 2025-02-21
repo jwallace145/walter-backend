@@ -1,10 +1,12 @@
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime as dt
+from datetime import datetime as dt, datetime
 
 from src.aws.s3.client import WalterS3Client
+from src.database.stocks.models import Stock
 from src.environment import Domain
+from src.stocks.alphavantage.models import CompanyNews, NewsArticle
 from src.summaries.models import NewsSummary
 from src.utils.log import Logger
 
@@ -44,7 +46,6 @@ class NewsSummariesBucket:
         log.info(
             f"Putting news summary to archive for stock '{news.stock}' with date: '{news.datestamp.strftime('%Y-%m-%d')}'"
         )
-
         log.debug(
             f"Putting news summary metadata to archive for stock '{news.stock}'..."
         )
@@ -57,12 +58,27 @@ class NewsSummariesBucket:
         summary_key = NewsSummariesBucket._get_summary_key(news.stock, news.datestamp)
         return self.client.put_object(self.bucket, summary_key, summary)
 
-    def get_news_summary(self, stock: str, date: dt = TODAY) -> str | None:
+    def get_news_summary(self, stock: Stock, date: dt = TODAY) -> NewsSummary | None:
         log.info(
-            f"Getting news summary from archive for stock '{stock}' with date: '{date.strftime('%Y-%m-%d')}'..."
+            f"Getting news summary from archive for stock '{stock.symbol}' with date: '{date.strftime('%Y-%m-%d')}'..."
         )
-        key = NewsSummariesBucket._get_summary_key(stock, date)
-        return self.client.get_object(self.bucket, key)
+
+        # attempt to get news summary metadata and return none if not found
+        metadata_key = NewsSummariesBucket._get_metadata_key(stock.symbol, date)
+        metadata = self.client.get_object(self.bucket, metadata_key)
+        if metadata is None:
+            return None
+
+        metadata = NewsSummariesBucket._get_metadata(metadata)
+
+        # attempt to get news summary and return none if not found as both metadata and summary are required
+        summary_key = NewsSummariesBucket._get_summary_key(stock.symbol, date)
+        summary = self.client.get_object(self.bucket, summary_key)
+        if summary is None:
+            return None
+
+        # convert metadata and summary to proper NewsSummary object
+        return NewsSummariesBucket._get_news_summary(metadata, summary)
 
     def get_latest_news_summary(self, stock: str) -> NewsSummary | None:
         log.info(f"Getting latest news summary for stock '{stock}'")
@@ -132,6 +148,49 @@ class NewsSummariesBucket:
         return dt.strftime(
             timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
             "y=%Y/m=%m/d=%d",
+        )
+
+    @staticmethod
+    def _get_metadata(metadata: str) -> dict:
+        return json.loads(metadata)
+
+    @staticmethod
+    def _get_news_summary(metadata: dict, summary: str) -> NewsSummary:
+        return NewsSummary(
+            stock=metadata["stock"],
+            company=metadata["company"],
+            datestamp=datetime.strptime(metadata["datestamp"], "%Y-%m-%d"),
+            model_name=metadata["model_name"],
+            news=NewsSummariesBucket._get_company_news(metadata),
+            summary=summary,
+        )
+
+    @staticmethod
+    def _get_company_news(metadata: dict) -> CompanyNews:
+        print(metadata)
+        return CompanyNews(
+            stock=metadata["stock"],
+            company=metadata["company"],
+            start_date=datetime.strptime(metadata["news"]["start_date"], "%Y-%m-%d"),
+            end_date=datetime.strptime(metadata["news"]["end_date"], "%Y-%m-%d"),
+            articles=[
+                NewsSummariesBucket._get_article(article)
+                for article in metadata["news"]["articles"]
+            ],
+        )
+
+    @staticmethod
+    def _get_article(article: dict) -> NewsArticle:
+        return NewsArticle(
+            title=article["title"],
+            url=article["url"],
+            published_timestamp=datetime.strptime(
+                article["published_timestamp"], "%Y-%m-%d"
+            ),
+            authors=article["authors"],
+            source=article["source"],
+            summary=article["summary"],
+            contents=article["contents"],
         )
 
     def remove_non_alphanumeric(self, text: str) -> str:

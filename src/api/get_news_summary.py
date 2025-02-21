@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
@@ -6,12 +5,17 @@ from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.stocks.models import Stock
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue, NewsSummaryRequest
 from src.stocks.client import WalterStocksAPI
+from src.summaries.models import NewsSummary
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
+
+NUMBER_OF_ARTICLES_TO_RETURN_LIMIT = 3
+"""(int): This config truncates the remaining news articles from the GetNewsSummary response after reaching the limit."""
 
 
 @dataclass
@@ -21,9 +25,9 @@ class GetNewsSummary(WalterAPIMethod):
     """
 
     API_NAME = "GetNewsSummary"
-    REQUIRED_QUERY_FIELDS = []
-    REQUIRED_HEADERS = {"content-type": "application/json"}
-    REQUIRED_FIELDS = ["stock"]
+    REQUIRED_QUERY_FIELDS = ["symbol"]
+    REQUIRED_HEADERS = {}
+    REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
 
     walter_db: WalterDB
@@ -55,20 +59,27 @@ class GetNewsSummary(WalterAPIMethod):
         self.news_summaries_queue = news_summaries_queue
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
-        body = json.loads(event["body"])
-        stock = body["stock"].upper()
+        symbol = self._get_symbol(event)
 
-        summary = self._check_s3_for_summary(stock)
+        stock = self._verify_stock_exists(symbol)
+        if stock is None:
+            raise StockDoesNotExist("Stock does not exist!")
+
+        summary = self._check_archive_for_summary(stock)
         if summary is not None:
             return self._create_response(
                 http_status=HTTPStatus.OK,
                 status=Status.SUCCESS,
                 message="Retrieved news!",
-                data={"summary": summary},
+                data={
+                    "summary": summary.summary,
+                    "articles": [
+                        article.get_metadata() for article in summary.news.articles
+                    ][:NUMBER_OF_ARTICLES_TO_RETURN_LIMIT],
+                },
             )
 
-        self._add_news_summary_request(stock)
-
+        self._add_news_summary_request(stock.symbol)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -77,11 +88,18 @@ class GetNewsSummary(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        body = json.loads(event["body"])
+        pass
 
+    def is_authenticated_api(self) -> bool:
+        return False
+
+    def _get_symbol(self, event: dict) -> str | None:
+        return event["queryStringParameters"]["symbol"]
+
+    def _verify_stock_exists(self, symbol: str) -> Stock | None:
         log.info("Validating stock...")
-        symbol = body["stock"].upper()
-        if self.walter_db.get_stock(symbol) is None:
+        stock = self.walter_db.get_stock(symbol)
+        if stock is None:
             log.info("Stock not found in WalterDB! Getting stock from StocksAPI...")
             stock = self.walter_stocks_api.get_stock(symbol)
             if stock is None:
@@ -89,17 +107,15 @@ class GetNewsSummary(WalterAPIMethod):
                 raise StockDoesNotExist("Stock does not exist!")
             log.info("Stock returned from StocksAPI! Adding stock to WalterDB...")
             self.walter_db.add_stock(stock)
+        return stock
 
-    def is_authenticated_api(self) -> bool:
-        return False
-
-    def _check_s3_for_summary(self, stock: str) -> dict | None:
-        log.info("Checking S3 for news summary...")
+    def _check_archive_for_summary(self, stock: Stock) -> NewsSummary | None:
+        log.info("Checking archive for news summary...")
         summary = self.news_summaries_bucket.get_news_summary(stock)
         if summary is not None:
-            log.info("Found news summary in S3!")
+            log.info("Found news summary in archive!")
             return summary
-        log.info("News summary not found in S3!")
+        log.info("News summary not found in archive!")
 
     def _add_news_summary_request(self, stock: str) -> None:
         log.info(f"Adding news summary request for stock '{stock}' to queue...")
