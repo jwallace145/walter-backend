@@ -32,20 +32,27 @@ class WalterFoundationModel(ABC):
         self.top_p = top_p
 
     def generate_response(self, prompt: str, max_output_tokens: int) -> str:
+        """
+        Generate a response given a prompt and max number of tokens.
+
+        Args:
+            prompt (str): The given prompt.
+            max_output_tokens (int): The maximum number of tokens to include in the output.
+
+        Returns:
+            (str): The generated response.
+        """
         log.info(
-            f"Invoking model '{self.get_name()}' and generating a response with max output tokens: {max_output_tokens}"
+            f"Invoking model '{self.model_name}' and generating a response with max output tokens: {max_output_tokens}"
         )
         self._verify_prompt(prompt)
         body = self._get_body(prompt, max_output_tokens)
         log.debug(f"Prompt body:\n{json.dumps(body, indent=4)}")
         response = self.client.generate_response(self.model_id, body)
-        response = self._parse_response(response)
-        log.debug(f"Response:\n{response}")
+        parsed_response = self._parse_response(response)
+        log.debug(f"Response:\n{parsed_response}")
         log.info("Successfully returned a response!")
-        return response
-
-    def get_name(self) -> str:
-        return self.model_name
+        return parsed_response
 
     def _verify_prompt(self, prompt: str) -> None:
         """

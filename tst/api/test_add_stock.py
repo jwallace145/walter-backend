@@ -45,3 +45,16 @@ def test_add_stock_failure_stock_does_not_exist(
         message="Stock does not exist!",
     )
     assert expected_response == add_stock_api.invoke(event)
+
+
+def test_add_stock_failure_maximum_number_of_stocks(
+    add_stock_api: AddStock, jwt_john: str
+) -> None:
+    event = get_add_stock_event(stock="META", quantity=1.0, token=jwt_john)
+    expected_response = get_expected_response(
+        api_name=add_stock_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Max number of stocks!",
+    )
+    assert expected_response == add_stock_api.invoke(event)

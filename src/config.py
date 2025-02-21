@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from src.ai.models import Model
+from src.ai.models import WalterModel
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -21,10 +21,22 @@ CONFIG_FILE = "./config.yml"
 
 
 @dataclass(frozen=True)
+class UserPortfolioConfig:
+    """User Portfolio Configurations"""
+
+    maximum_number_of_stocks: int = 10
+
+    def to_dict(self) -> dict:
+        return {
+            "maximum_number_of_stocks": self.maximum_number_of_stocks,
+        }
+
+
+@dataclass(frozen=True)
 class ArtificialIntelligenceConfig:
     """Artificial Intelligence Configurations"""
 
-    model_name: str = Model.AMAZON_NOVA_MICRO.value
+    model_name: str = WalterModel.AMAZON_NOVA_MICRO.value
     temperature: float = 0.5
     top_p: float = 0.9
 
@@ -83,6 +95,7 @@ class WalterConfig:
     config file.
     """
 
+    user_portfolio: UserPortfolioConfig = UserPortfolioConfig()
     artificial_intelligence: ArtificialIntelligenceConfig = (
         ArtificialIntelligenceConfig()
     )
@@ -92,6 +105,7 @@ class WalterConfig:
     def to_dict(self) -> dict:
         return {
             "walter_config": {
+                "user_portfolio": self.user_portfolio.to_dict(),
                 "artificial_intelligence": self.artificial_intelligence.to_dict(),
                 "news_summary": self.news_summary.to_dict(),
                 "newsletter": self.newsletter.to_dict(),
@@ -124,6 +138,11 @@ def get_walter_config() -> WalterConfig:
     try:
         config_yaml = yaml.safe_load(open(CONFIG_FILE).read())["walter_config"]
         config = WalterConfig(
+            user_portfolio=UserPortfolioConfig(
+                maximum_number_of_stocks=config_yaml["user_portfolio"][
+                    "maximum_number_of_stocks"
+                ]
+            ),
             artificial_intelligence=ArtificialIntelligenceConfig(
                 model_name=config_yaml["artificial_intelligence"]["model_name"],
                 temperature=config_yaml["artificial_intelligence"]["temperature"],

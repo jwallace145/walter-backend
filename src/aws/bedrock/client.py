@@ -19,6 +19,7 @@ class WalterBedrockClient:
     single or batch calls.
 
     Model IDs: https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+    Supported Models: https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
     """
 
     bedrock: BedrockClient

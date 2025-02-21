@@ -1,6 +1,8 @@
 walter_config:
+  user_portfolio:
+    maximum_number_of_stocks: 10
   artificial_intelligence:
-    model_name: "Amazon: Nova Lite"
+    model_name: "Meta: Llama3.3 70B"
     temperature: 0.75 # controls how random or focused the model's responses to prompts are
     top_p: 1.0 # controls how many words the model considers at each step when generating text
   news_summary:
