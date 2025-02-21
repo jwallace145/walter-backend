@@ -1688,7 +1688,10 @@ Resources:
               - "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
               - "arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
               - "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
-              - "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-70b-instruct-v1:0"
+              - "arn:aws:bedrock:us-east-1:010526272437:inference-profile/us.meta.llama3-3-70b-instruct-v1:0"
+              - "arn:aws:bedrock:us-east-1::foundation-model/meta.llama3-3-70b-instruct-v1:0"
+              - "arn:aws:bedrock:us-east-2::foundation-model/meta.llama3-3-70b-instruct-v1:0"
+              - "arn:aws:bedrock:us-west-2::foundation-model/meta.llama3-3-70b-instruct-v1:0"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
