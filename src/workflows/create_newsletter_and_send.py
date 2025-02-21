@@ -79,7 +79,7 @@ class CreateNewsletterAndSend:
     newsletters_queue: NewslettersQueue
 
     def invoke(self, event: dict) -> dict:
-        log.info(f"WalterWorkflow: '{CreateNewsletterAndSend}' invoked!")
+        log.info(f"WalterWorkflow: '{CreateNewsletterAndSend.WORKFLOW_NAME}' invoked!")
 
         event = self.walter_event_parser.parse_create_newsletter_and_send_event(event)
 
@@ -109,6 +109,7 @@ class CreateNewsletterAndSend:
                 "Unexpected error occurred creating and sending newsletter!",
                 exc_info=True,
             )
+            input()
             self.newsletters_queue.delete_newsletter_request(event.receipt_handle)
             body = {
                 "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
@@ -151,9 +152,9 @@ class CreateNewsletterAndSend:
         log.info(f"Getting template spec for '{template}' template...'")
         template_spec_args = {
             "user": user.username,
-            "datestamp": END_DATE,
-            "portfolio_value": portfolio.get_total_equity(),
-            "stocks": portfolio.get_stock_equities(),
+            "datestamp": END_DATE.strftime("%Y-%m-%d"),
+            "portfolio_value": f"${portfolio.get_total_equity():,.2f}",
+            "stocks": [stock.to_dict() for stock in portfolio.get_stock_equities()],
             "news_summaries": summaries,
             "unsubscribe_link": self._get_unsubscribe_link(user.email),
         }

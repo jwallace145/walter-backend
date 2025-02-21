@@ -168,7 +168,7 @@ def test_create_newsletter_and_send_get_template_spec_success(
         user, portfolio, summaries
     )
     assert template_spec.context.user == BOB.username
-    assert template_spec.context.portfolio_value == 600.0
+    assert template_spec.context.portfolio_value == "$600.00"
     assert template_spec.context.stocks == [
         {"Symbol": AAPL.symbol, "Shares": 1.0, "Price": 100.0, "Equity": 100.0},
         {"Symbol": META.symbol, "Shares": 2.0, "Price": 250.0, "Equity": 500.0},

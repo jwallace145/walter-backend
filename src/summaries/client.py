@@ -115,7 +115,7 @@ class WalterNewsSummaryClient:
             stock=news.stock,
             company=news.company,
             datestamp=news.end_date,
-            model_name=self.walter_ai.get_model().get_name(),
+            model_name=self.walter_ai.model_name,
             news=news,
             summary=summary,
         )

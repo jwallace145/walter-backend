@@ -36,3 +36,6 @@ class NewsSummary:
             "datestamp": self.datestamp.strftime(NewsSummary.DATESTAMP_FORMAT),
             "summary": self.summary,
         }
+
+    def __dict__(self) -> dict:
+        return self.get_summary()
