@@ -34,7 +34,7 @@ def test_add_news_summary_requests_success(
                 "Message": "Added news summary requests!",
                 "Data": {
                     "news_summary_queue": "https://sqs.us-east-1.amazonaws.com/012345678901/NewsSummariesQueue-unittest",
-                    "number_of_stocks": 6,
+                    "number_of_stocks": 10,
                 },
             }
         ),

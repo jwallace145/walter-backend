@@ -7,3 +7,13 @@
 {"user_email": "walrus@gmail.com", "stock_symbol": "META", "quantity": 100.0}
 {"user_email": "bob@gmail.com", "stock_symbol": "AAPL", "quantity": 1.0}
 {"user_email": "bob@gmail.com", "stock_symbol": "META", "quantity": 2.0}
+{"user_email": "john@gmail.com", "stock_symbol": "META", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "PYPL", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "NFLX", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "AAPL", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "MSFT", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "AMZN", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "COF", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "SBUX", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "NKE", "quantity": 1.0}
+{"user_email": "john@gmail.com", "stock_symbol": "VZ", "quantity": 1.0}

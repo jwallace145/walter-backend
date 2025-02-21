@@ -34,7 +34,7 @@ def test_add_newsletter_requests_success(
                 "Message": "Added newsletter requests!",
                 "Data": {
                     "newsletters_queue": "https://sqs.us-east-1.amazonaws.com/012345678901/NewslettersQueue-unittest",
-                    "number_of_users": 3,
+                    "number_of_users": 4,
                 },
             }
         ),

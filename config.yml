@@ -1,4 +1,6 @@
 walter_config:
+  user_portfolio:
+    maximum_number_of_stocks: 10
   artificial_intelligence:
     model_name: "Meta: Llama3.3 70B"
     temperature: 0.75 # controls how random or focused the model's responses to prompts are
