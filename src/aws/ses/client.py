@@ -97,7 +97,8 @@ class WalterSESClient:
         # add sending information
         email["From"] = WalterSESClient.SENDER
         email["To"] = recipient
-        email["Subject"] = subject
+        # subject needs to be stripped or else it will fail to render
+        email["Subject"] = subject.strip()
 
         # add html body
         email_body = MIMEMultipart("alternative")

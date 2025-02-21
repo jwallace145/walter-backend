@@ -44,7 +44,7 @@ class NewslettersBucket:
             template (str): The name of the template.
             contents (str): The contents of the template to put to S3.
         """
-        log.info("Dumping newsletter to S3")
+        log.info("Dumping newsletter to archive...")
         key = NewslettersBucket._get_newsletter_key(user, template)
         self.client.put_object(self.bucket, key, contents)
 

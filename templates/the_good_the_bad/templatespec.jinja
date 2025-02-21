@@ -48,6 +48,10 @@ TemplateSpec:
   ###########
 
   Prompts:
+    - Key: NewsletterSubject
+      Prompt: |
+        Create a fun subject for an investment update newsletter. If there is a punchy headline or news update for a stock in the user's portfolio, try to use it in the subject to intrigue the newsletter recipient. Do not give options, simply return the subject that you think is the best as this will be used directly in the newsletter.
+      MaxGenLength: 100
     - Key: TheGood
       Prompt: |
         Highlight something good that happened to the user's portfolio for a specific stock. Site news examples with a focus on the most recent events to try to explain any price fluctuations. Give the output in valid markdown.

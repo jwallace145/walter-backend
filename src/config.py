@@ -75,13 +75,11 @@ class NewsletterConfig:
     """Newsletter Configurations"""
 
     template: str = "default"
-    max_length: int = 2000
     schedule: str = "cron(0 11 ? * MON-FRI *)"  # every business day at 6am EDT
 
     def to_dict(self) -> dict:
         return {
             "template": self.template,
-            "max_length": self.max_length,
             "schedule": self.schedule,
         }
 
@@ -160,7 +158,6 @@ def get_walter_config() -> WalterConfig:
             ),
             newsletter=NewsletterConfig(
                 template=config_yaml["newsletter"]["template"],
-                max_length=config_yaml["newsletter"]["max_length"],
                 schedule=config_yaml["newsletter"]["schedule"],
             ),
         )
