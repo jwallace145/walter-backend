@@ -10,10 +10,10 @@ from src.stocks.polygon.models import StockPrices, StockPrice
 WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
 
 START_DATE = dt.datetime(
-    year=2024, month=10, day=1, hour=0, minute=0, second=0, microsecond=0
+    year=2025, month=1, day=1, hour=1, minute=0, second=0, microsecond=0
 )
 END_DATE = dt.datetime(
-    year=2024, month=10, day=1, hour=2, minute=0, second=0, microsecond=0
+    year=2025, month=1, day=1, hour=3, minute=0, second=0, microsecond=0
 )
 
 

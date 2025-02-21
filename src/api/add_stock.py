@@ -107,9 +107,7 @@ class AddStock(WalterAPIMethod):
         stocks = self.walter_db.get_stocks_for_user(user)
 
         if len(stocks) >= CONFIG.user_portfolio.maximum_number_of_stocks:
-            raise MaximumNumberOfStocks(
-                "Max number of stocks!"
-            )
+            raise MaximumNumberOfStocks("Max number of stocks!")
 
     def _add_stock_to_user_portfolio(
         self, email: str, stock: Stock, quantity: float
