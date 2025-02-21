@@ -48,7 +48,7 @@ class TemplatesBucket:
         Returns:
             TemplateSpec: The template spec file.
         """
-        log.info(f"Getting '{template}' template spec from S3")
+        log.info(f"Getting '{template}' template spec from archive")
         key = TemplatesBucket._get_template_spec_key(template)
         return self.client.get_object(self.bucket, key)
 

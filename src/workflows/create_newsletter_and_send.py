@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Tuple
 
 import markdown
 
@@ -92,10 +92,10 @@ class CreateNewsletterAndSend:
             template_spec = self._get_template_spec(
                 user, portfolio, summaries, CONFIG.newsletter.template
             )
-            newsletter = self._get_rendered_newsletter(
-                template_spec, CONFIG.newsletter.max_length, CONFIG.newsletter.template
+            subject, newsletter = self._get_rendered_newsletter(
+                template_spec, CONFIG.newsletter.template
             )
-            self._send_newsletter(user, newsletter, CONFIG.newsletter.template)
+            self._send_newsletter(user, subject, newsletter, CONFIG.newsletter.template)
             self._archive_newsletter(user, newsletter, CONFIG.newsletter.template)
             self._emit_metrics()
             body = {
@@ -109,7 +109,6 @@ class CreateNewsletterAndSend:
                 "Unexpected error occurred creating and sending newsletter!",
                 exc_info=True,
             )
-            input()
             self.newsletters_queue.delete_newsletter_request(event.receipt_handle)
             body = {
                 "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
@@ -185,9 +184,8 @@ class CreateNewsletterAndSend:
     def _get_rendered_newsletter(
         self,
         template_spec: TemplateSpec,
-        max_length: int = CONFIG.newsletter.max_length,
         template: str = CONFIG.newsletter.template,
-    ) -> str:
+    ) -> Tuple[str, str]:
         log.info(f"Rendering newsletter for user with '{template}' template...")
         # get template args from the template spec
         template_args = template_spec.get_template_args()
@@ -200,18 +198,26 @@ class CreateNewsletterAndSend:
             prompt_with_context = f"Context: {context}\nPrompt: {prompt.prompt}"
             response = self.walter_ai.generate_response(
                 prompt=prompt_with_context,
-                max_output_tokens=max_length,
+                max_output_tokens=prompt.max_gen_length,
             )
-            template_args[prompt.name] = markdown.markdown(response)
+            # don't render the newsletter subject as markdown
+            if prompt.name != "NewsletterSubject":
+                response = markdown.markdown(response)
+            template_args[prompt.name] = response
 
-        return self.templates_engine.get_template(template, template_args)
+        subject = template_args["NewsletterSubject"].replace('"', "")
+        return (subject, self.templates_engine.get_template(template, template_args))
 
     def _send_newsletter(
-        self, user: User, newsletter: str, template: str = CONFIG.newsletter.template
+        self,
+        user: User,
+        subject: str,
+        newsletter: str,
+        template: str = CONFIG.newsletter.template,
     ) -> None:
         log.info(f"Sending newsletter to user with email '{user.email}'...")
         assets = self.templates_bucket.get_template_assets(template)
-        self.walter_ses.send_email(user.email, newsletter, "Walter", assets)
+        self.walter_ses.send_email(user.email, newsletter, subject, assets)
 
     def _archive_newsletter(
         self, user: User, newsletter: str, template: str = CONFIG.newsletter.template
