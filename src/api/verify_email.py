@@ -51,10 +51,14 @@ class VerifyEmail(WalterAPIMethod):
         email = self._validate_token(token)
         user = self._verify_user(email)
         self._verify_user_email(user)
+        token = self._get_user_token(user)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully verified email!",
+            data={
+                "token": token
+            }
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -94,3 +98,8 @@ class VerifyEmail(WalterAPIMethod):
         log.info(f"Verifying user email '{user.email}'...")
         self.walter_db.verify_user(user)
         log.info(f"Successfully verified user email '{user.email}'!")
+
+    def _get_user_token(self, user: User) -> str:
+        log.info(f"Generating user token for user: '{user.email}'")
+        token = self.authenticator.generate_user_token(user.email)
+        return token
