@@ -81,6 +81,7 @@ class WalterAPIMethod(ABC):
 
             response = self.execute(event, authenticated_email)
         except Exception as exception:
+            log.error("Error occurred during API invocation!", exc_info=True)
             response = self._handle_exception(exception)
         finally:
             self.emit_metrics(response)
