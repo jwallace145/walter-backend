@@ -85,9 +85,20 @@ class CreateNewsletterAndSend:
 
         try:
             user = self._get_user(event.email)
+
+            # TODO: Send empty portfolio email if user has no stocks
+            # early return if user has no stocks in their portfolio
             portfolio = self._get_portfolio(user)
+            if not self._verify_portfolio_contains_stocks(portfolio):
+                body = {
+                    "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
+                    "Status": Status.FAILURE.value,
+                    "Message": "User portfolio empty!"
+                }
+                return self._get_response(HTTPStatus.OK, body)
+
             # TODO: create another helper method in the portfolio model class?
-            stocks = [stock.stock_symbol for stock in portfolio.get_stocks()]
+            stocks = portfolio.get_stock_symbols()
             summaries = self._get_latest_news_summaries(stocks)
             template_spec = self._get_template_spec(
                 user, portfolio, summaries, CONFIG.newsletter.template
@@ -132,6 +143,14 @@ class CreateNewsletterAndSend:
         return self.walter_stocks_api.get_portfolio(
             user_stocks, stocks, START_DATE, END_DATE
         )
+
+    def _verify_portfolio_contains_stocks(self, portfolio: Portfolio) -> bool:
+        log.info("Verifying user portfolio contains stocks...")
+        if len(portfolio.get_stocks()) == 0:
+            log.info("User portfolio does not contain any stocks!")
+            return False
+        log.info("User portfolio contains stocks!")
+        return True
 
     def _get_latest_news_summaries(self, stocks: List[str]) -> List[NewsSummary]:
         log.info(

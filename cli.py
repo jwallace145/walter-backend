@@ -211,7 +211,7 @@ def send_newsletters():
 
 @app.command()
 def create_and_send_newsletter(email: str = None) -> None:
-    log.info("WalterCLI: CreatingNewsletterAndSend")
+    log.info("WalterCLI: CreateNewsletterAndSend")
     event = get_walter_backend_event(email)
     response = create_newsletter_and_send_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
