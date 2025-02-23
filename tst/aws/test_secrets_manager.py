@@ -11,6 +11,12 @@ def test_get_polygon_api_key(
     assert walter_sm.get_polygon_api_key() == "test-polygon-api-key"
 
 
+def test_get_stock_news_api_key(
+    walter_sm: WalterSecretsManagerClient,
+) -> None:
+    assert walter_sm.get_stock_news_api_key() == "test-stock-news-api-key"
+
+
 def test_get_jwt_secret_key(
     walter_sm: WalterSecretsManagerClient,
 ) -> None:
