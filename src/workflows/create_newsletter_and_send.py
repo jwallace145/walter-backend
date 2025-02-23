@@ -93,7 +93,7 @@ class CreateNewsletterAndSend:
                 body = {
                     "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
                     "Status": Status.FAILURE.value,
-                    "Message": "User portfolio empty!"
+                    "Message": "User portfolio empty!",
                 }
                 return self._get_response(HTTPStatus.OK, body)
 
