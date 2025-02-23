@@ -1844,6 +1844,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:JWTChangePasswordSecretKey-f0RsUz"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:StockNewsAPIKey-elCcnH"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole
