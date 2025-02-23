@@ -60,7 +60,10 @@ class MockDDB:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[{"AttributeName": "email", "KeyType": "HASH"}],
-            AttributeDefinitions=[{"AttributeName": "email", "AttributeType": "S"}, {"AttributeName": "username", "AttributeType": "S"}],
+            AttributeDefinitions=[
+                {"AttributeName": "email", "AttributeType": "S"},
+                {"AttributeName": "username", "AttributeType": "S"},
+            ],
             BillingMode="PAY_PER_REQUEST",
             GlobalSecondaryIndexes=[
                 {

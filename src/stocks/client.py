@@ -6,10 +6,16 @@ from src.config import CONFIG
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
 from src.stocks.alphavantage.client import AlphaVantageClient
-from src.stocks.alphavantage.models import CompanyOverview, CompanySearch, CompanyNews
+from src.stocks.alphavantage.models import (
+    CompanyOverview,
+    CompanySearch,
+    CompanyNews,
+    NewsArticle,
+)
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices
+from src.stocks.stocknews.client import StockNewsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -23,6 +29,7 @@ class WalterStocksAPI:
 
     polygon: PolygonClient
     alpha_vantage: AlphaVantageClient
+    stock_news: StockNewsClient
 
     def __post_init__(self) -> None:
         log.debug("Creating WalterStocksAPI")
@@ -74,8 +81,27 @@ class WalterStocksAPI:
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
     ) -> CompanyNews:
         log.info(f"Getting news for stock '{stock.symbol}'")
-        return self.alpha_vantage.get_news(
-            stock, start_date, end_date, number_of_articles
+        news = self.stock_news.get_news(stock, start_date, end_date, number_of_articles)
+
+        articles = []
+        for article in news.articles:
+            articles.append(
+                NewsArticle(
+                    title=article.title,
+                    url=article.news_url,
+                    published_timestamp=article.published_timestamp,
+                    authors="",
+                    source=article.source,
+                    summary=article.text,
+                    contents=article.contents,
+                )
+            )
+        return CompanyNews(
+            stock=stock.symbol,
+            company=stock.company,
+            start_date=news.start_date,
+            end_date=news.end_date,
+            articles=articles,
         )
 
     @staticmethod

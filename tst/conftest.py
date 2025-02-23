@@ -127,6 +127,7 @@ def walter_stocks_api(
     return WalterStocksAPI(
         polygon=polygon_client,
         alpha_vantage=alpha_vantage_client,
+        stock_news=alpha_vantage_client
     )
 
 

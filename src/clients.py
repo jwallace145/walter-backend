@@ -22,6 +22,7 @@ from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
+from src.stocks.stocknews.client import StockNewsClient
 from src.summaries.client import WalterNewsSummaryClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
@@ -83,6 +84,7 @@ walter_sm = WalterSecretsManagerClient(
 
 ALPHA_VANTAGE_API_KEY = walter_sm.get_alpha_vantage_api_key()
 POLYGON_API_KEY = walter_sm.get_polygon_api_key()
+STOCK_NEWS_API_KEY = walter_sm.get_stock_news_api_key()
 JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 
 ########################
@@ -117,13 +119,16 @@ walter_db = WalterDB(
 # WALTER STOCKS API #
 #####################
 
+web_scraper = WebScraper()
+
 walter_stocks_api = WalterStocksAPI(
     polygon=PolygonClient(
         api_key=POLYGON_API_KEY,
     ),
     alpha_vantage=AlphaVantageClient(
-        api_key=ALPHA_VANTAGE_API_KEY, web_scraper=WebScraper()
+        api_key=ALPHA_VANTAGE_API_KEY, web_scraper=web_scraper
     ),
+    stock_news=StockNewsClient(api_key=STOCK_NEWS_API_KEY, web_scraper=web_scraper),
 )
 
 #########################
