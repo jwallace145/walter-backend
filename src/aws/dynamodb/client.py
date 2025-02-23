@@ -66,6 +66,29 @@ class WalterDDBClient:
                 f"Error: {error.response['Error']['Message']}"
             )
 
+    def query_index(
+        self, table: str, index_name: str, expression: str, attributes: dict
+    ) -> dict | None:
+        log.debug(
+            f"Querying items in table '{table}' by index '{index_name}' with query:\n{expression}"
+        )
+        try:
+            return self.client.query(
+                TableName=table,
+                IndexName=index_name,
+                KeyConditionExpression=expression,
+                ExpressionAttributeValues=attributes,
+            )["Items"][0]
+        except ClientError as error:
+            log.error(
+                f"Unexpected error occurred querying items from table '{table}'!\n"
+                f"Error: {error.response['Error']['Message']}"
+            )
+        except IndexError:
+            # key error thrown when trying to index ddb client response
+            # i.e. the item does not exist
+            return None
+
     def get_item(self, table: str, key: dict) -> dict:
         """
         Get an item from a DDB table given its primary key.

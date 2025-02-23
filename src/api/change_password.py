@@ -1,8 +1,9 @@
 import json
 
 from dataclasses import dataclass
-from src.api.common.exceptions import BadRequest, NotAuthenticated
+from src.api.common.exceptions import BadRequest, NotAuthenticated, InvalidPassword
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.utils import is_valid_password
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -23,7 +24,7 @@ class ChangePassword(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["new_password"]
-    EXCEPTIONS = [BadRequest, NotAuthenticated]
+    EXCEPTIONS = [BadRequest, NotAuthenticated, InvalidPassword]
 
     walter_db: WalterDB
 
@@ -54,10 +55,18 @@ class ChangePassword(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        pass  # no additional validations
+        body = json.loads(event["body"])
+        new_password = body["new_password"]
+        self._verify_password(new_password)
 
     def is_authenticated_api(self) -> bool:
         return False
+
+    def _verify_password(self, password: str) -> None:
+        log.info("Validating password...")
+        if not is_valid_password(password):
+            raise InvalidPassword("Invalid password!")
+        log.info("Successfully validated password!")
 
     def _validate_token(self, event: dict) -> str:
         log.info("Validating token")

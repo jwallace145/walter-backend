@@ -17,14 +17,17 @@ class UsersTable:
     """
 
     TABLE_NAME_FORMAT = "Users-{domain}"
+    USERNAMES_INDEX_NAME_FORMAT = "Users-UsernameIndex-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
 
     table: str = None  # set during post init
+    username_index_name: str = None  # set during post init
 
     def __post_init__(self) -> None:
         self.table = UsersTable._get_table_name(self.domain)
+        self.username_index_name = UsersTable._get_username_index_name(self.domain)
         log.debug(f"Creating UsersTable DDB client with table name '{self.table}'")
 
     def create_user(self, user: User) -> None:
@@ -38,6 +41,17 @@ class UsersTable:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         key = UsersTable._get_user_key(email)
         item = self.ddb.get_item(self.table, key)
+        if item is None:
+            return None
+        return UsersTable._get_user_from_ddb_item(item)
+
+    def get_user_by_username(self, username: str) -> User | None:
+        log.info(f"Getting user with username '{username}' from table '{self.table}'")
+        expression = "username = :username"
+        attributes = {":username": {"S": username}}
+        item = self.ddb.query_index(
+            self.table, self.username_index_name, expression, attributes
+        )
         if item is None:
             return None
         return UsersTable._get_user_from_ddb_item(item)
@@ -60,6 +74,10 @@ class UsersTable:
     @staticmethod
     def _get_table_name(domain: Domain) -> str:
         return UsersTable.TABLE_NAME_FORMAT.format(domain=domain.value)
+
+    @staticmethod
+    def _get_username_index_name(domain: Domain) -> str:
+        return UsersTable.USERNAMES_INDEX_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
     def _get_user_key(email: str) -> dict:

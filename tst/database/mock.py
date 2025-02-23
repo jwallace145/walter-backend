@@ -6,6 +6,7 @@ from mypy_boto3_dynamodb.client import DynamoDBClient
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
+from src.environment import Domain
 from tst.constants import (
     STOCKS_TABLE_NAME,
     USERS_TABLE_NAME,
@@ -59,8 +60,15 @@ class MockDDB:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[{"AttributeName": "email", "KeyType": "HASH"}],
-            AttributeDefinitions=[{"AttributeName": "email", "AttributeType": "S"}],
+            AttributeDefinitions=[{"AttributeName": "email", "AttributeType": "S"}, {"AttributeName": "username", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Users-UsernameIndex-{Domain.TESTING.value}",
+                    "KeySchema": [{"AttributeName": "username", "KeyType": "HASH"}],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
         )
         with open(input_file_name) as users_f:
             for user in users_f:

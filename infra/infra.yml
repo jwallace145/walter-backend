@@ -1568,14 +1568,23 @@ Resources:
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub "Users-${AppEnvironment}"
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: email
           AttributeType: S
-      BillingMode: PAY_PER_REQUEST
+        - AttributeName: username
+          AttributeType: S
       KeySchema:
-          - AttributeName: email
-            KeyType: HASH
-      TableName: !Sub "Users-${AppEnvironment}"
+        - AttributeName: email
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: !Sub "Users-UsernameIndex-${AppEnvironment}"
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
 
   #################
   ### IAM ROLES ###

@@ -25,7 +25,7 @@ def test_change_password_success(
     old_password = walter_db.get_user("walter@gmail.com").password_hash
     event = get_change_password_event(
         token=walter_authenticator.generate_change_password_token("walter@gmail.com"),
-        new_password="new-password",
+        new_password="NewPassword1234",
     )
     expected_response = get_expected_response(
         api_name=change_password_api.API_NAME,
@@ -46,7 +46,7 @@ def test_change_password_failure_not_authenticated(
     old_password = walter_db.get_user("walter@gmail.com").password_hash
     event = get_change_password_event(
         token="INVALID_TOKEN",
-        new_password="new-password",
+        new_password="NewPassword1234",
     )
     expected_response = get_expected_response(
         api_name=change_password_api.API_NAME,

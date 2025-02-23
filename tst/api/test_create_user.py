@@ -31,7 +31,9 @@ def create_user_api(
 
 
 def test_create_user(create_user_api: CreateUser) -> None:
-    event = get_create_user_event(email="jim@gmail.com", username="jim", password="jim")
+    event = get_create_user_event(
+        email="jim@gmail.com", username="jim", password="Test1234"
+    )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
         status_code=HTTPStatus.CREATED,
@@ -45,7 +47,7 @@ def test_create_user_success_uppercase_email_stored_as_lowercase(
     create_user_api: CreateUser, walter_db: WalterDB
 ) -> None:
     event = get_create_user_event(
-        email="JIMMY@gmail.com", username="jimmy", password="jimmy"
+        email="JIMMY@gmail.com", username="jimmy", password="Test1234"
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
@@ -59,7 +61,7 @@ def test_create_user_success_uppercase_email_stored_as_lowercase(
 
 
 def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
-    event = get_create_user_event(email="jim", username="jim", password="jim")
+    event = get_create_user_event(email="jim", username="jim", password="Test1234")
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -71,7 +73,7 @@ def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
 
 def test_create_user_failure_invalid_username(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
-        email="jim@gmail.com", username="jim ", password="jim"
+        email="jim@gmail.com", username="jim ", password="Test1234"
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
@@ -84,7 +86,33 @@ def test_create_user_failure_invalid_username(create_user_api: CreateUser) -> No
 
 def test_create_user_failure_user_already_exists(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
-        email="walter@gmail.com", username="walter", password="walter"
+        email="walter@gmail.com", username="walter", password="Test1234"
+    )
+    expected_response = get_expected_response(
+        api_name=create_user_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="User already exists!",
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
+def test_create_user_failure_invalid_password(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(
+        email="jim@gmail.com", username="jim", password="test"
+    )
+    expected_response = get_expected_response(
+        api_name=create_user_api.API_NAME,
+        status_code=HTTPStatus.OK,
+        status=Status.FAILURE,
+        message="Invalid password!",
+    )
+    assert expected_response == create_user_api.invoke(event)
+
+
+def test_create_user_failure_duplicate_username(create_user_api: CreateUser) -> None:
+    event = get_create_user_event(
+        email="newuser@gmail.com", username="walter", password="Test1234"
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
