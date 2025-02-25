@@ -41,7 +41,7 @@ def test_verify_email_success(
     verify_email_api: VerifyEmail,
     walter_authenticator: WalterAuthenticator,
     walter_db: WalterDB,
-    jwt_walter: str
+    jwt_walter: str,
 ) -> None:
     user = walter_db.get_user(USER_EMAIL)
     user.verified = False
@@ -54,9 +54,7 @@ def test_verify_email_success(
         status_code=HTTPStatus.OK,
         status=Status.SUCCESS,
         message="Successfully verified email!",
-        data={
-            "token": jwt_walter
-        }
+        data={"token": jwt_walter},
     )
     assert expected_response == verify_email_api.invoke(event)
     assert walter_db.get_user(USER_EMAIL).verified is True

@@ -10,7 +10,6 @@ from src.stocks.alphavantage.models import (
     CompanyOverview,
     CompanySearch,
     CompanyNews,
-    NewsArticle,
 )
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
@@ -81,27 +80,8 @@ class WalterStocksAPI:
         number_of_articles: int = CONFIG.news_summary.number_of_articles,
     ) -> CompanyNews:
         log.info(f"Getting news for stock '{stock.symbol}'")
-        news = self.stock_news.get_news(stock, start_date, end_date, number_of_articles)
-
-        articles = []
-        for article in news.articles:
-            articles.append(
-                NewsArticle(
-                    title=article.title,
-                    url=article.news_url,
-                    published_timestamp=article.published_timestamp,
-                    authors="",
-                    source=article.source,
-                    summary=article.text,
-                    contents=article.contents,
-                )
-            )
-        return CompanyNews(
-            stock=stock.symbol,
-            company=stock.company,
-            start_date=news.start_date,
-            end_date=news.end_date,
-            articles=articles,
+        return self.alpha_vantage.get_news(
+            stock, start_date, end_date, number_of_articles
         )
 
     @staticmethod
