@@ -6,7 +6,7 @@ walter_config:
     temperature: 0.75 # controls how random or focused the model's responses to prompts are
     top_p: 1.0 # controls how many words the model considers at each step when generating text
   news_summary:
-    number_of_articles: 25
+    number_of_articles: 10
     lookback_window_days: 365 # the number of days to lookback when querying for recent stock news
     context: "You are a AI investment portfolio advisor that summarizes stock market news and gives readers digestible, business insights about the latest stock market movements to help them stay informed."
     prompt: "Summarize the following news article about the stock '{stock}' to give the user a well-written update of the stocks performance and any related market news, focusing on recent events specifically. Include an ample amount of details, especially data retrieved from the given news articles. Author the news summary with headers and section titles to format the content well. Write the news summary with introductions and transitions so that the summary is witty and clever and fun to read for the reader. The news articles to summarize are given below:\n\n\n\n{news}"

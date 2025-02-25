@@ -56,9 +56,7 @@ class VerifyEmail(WalterAPIMethod):
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully verified email!",
-            data={
-                "token": token
-            }
+            data={"token": token},
         )
 
     def validate_fields(self, event: dict) -> None:
