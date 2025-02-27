@@ -14,4 +14,5 @@ walter_config:
     schedule: cron(0 5 * * ? *) # the cron schedule to invoke the create news summary and archive workflow
   newsletter:
     template: "THE_GOOD_THE_BAD"
+    cents_per_month: 100 # price in cents to avoid any precision loss with floats
     schedule: cron(0 11 ? * MON-FRI *) # the cron schedule to invoke the create newsletter and send workflow

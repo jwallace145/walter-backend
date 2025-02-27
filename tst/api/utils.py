@@ -109,6 +109,19 @@ def get_search_stocks_event(stock: str) -> dict:
     return EVENT
 
 
+def get_purchase_newsletter_subscription_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
+def get_verify_purchase_newsletter_subscription_event(
+    token: str, session_id: str
+) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["queryStringParameters"] = {"sessionId": session_id}
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################
