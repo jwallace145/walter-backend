@@ -66,3 +66,8 @@ class EmailAlreadyUnsubscribed(Exception):
 class MaximumNumberOfStocks(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class UnknownPaymentStatus(Exception):
+    def __init__(self, message):
+        super().__init__(message)

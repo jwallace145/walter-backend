@@ -163,13 +163,13 @@ def search_stocks_entrypoint(event, context) -> dict:
 
 def purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return PurchaseNewsletterSubscription(
-        walter_authenticator, walter_cw, walter_sm
+        walter_authenticator, walter_cw, walter_db, walter_sm
     ).invoke(event)
 
 
 def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return VerifyPurchaseNewsletterSubscription(
-        walter_authenticator, walter_cw, walter_sm
+        walter_authenticator, walter_cw, walter_db, walter_sm
     ).invoke(event)
 
 

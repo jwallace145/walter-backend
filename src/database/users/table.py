@@ -85,6 +85,12 @@ class UsersTable:
 
     @staticmethod
     def _get_user_from_ddb_item(item: dict) -> User:
+        stripe_customer_id = None
+        if item["stripe_customer_id"]["S"] != "N/A":
+            stripe_customer_id = item["stripe_customer_id"]["S"]
+        stripe_subscription_id = None
+        if item["stripe_subscription_id"]["S"] != "N/A":
+            stripe_subscription_id = item["stripe_subscription_id"]["S"]
         return User(
             email=item["email"]["S"],
             username=item["username"]["S"],
@@ -93,4 +99,6 @@ class UsersTable:
             sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),
             verified=item["verified"]["BOOL"],
             subscribed=item["subscribed"]["BOOL"],
+            stripe_customer_id=stripe_customer_id,
+            stripe_subscription_id=stripe_subscription_id,
         )
