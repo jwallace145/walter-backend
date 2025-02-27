@@ -25,6 +25,7 @@ markdown = "*"
 requests = "*"
 beautifulsoup4 = "*"
 mypy-boto3-events = "*"
+stripe = "*"
 
 [dev-packages]
 black = "*"

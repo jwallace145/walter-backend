@@ -38,6 +38,8 @@ class WalterSecretsManagerClient:
     JWT_VERIFY_EMAIL_SECRET_KEY_NAME = "JWTVerifyEmailSecretKey"
     JWT_CHANGE_PASSWORD_SECRET_KEY_ID = "JWTChangePasswordSecretKey"
     JWT_CHANGE_PASSWORD_SECRET_KEY_NAME = "JWT_CHANGE_PASSWORD_SECRET_KEY"
+    STRIPE_TEST_SECRET_KEY_ID = "StripeTestSecretKey"
+    STRIPE_TEST_SECRET_KEY_NAME = "STRIPE_TEST_SECRET_KEY"
 
     client: SecretsManagerClient
     domain: Domain
@@ -50,6 +52,7 @@ class WalterSecretsManagerClient:
     jwt_secret_key: str = None
     jwt_verify_email_secret_key: str = None
     jwt_change_password_secret_key: str = None
+    stripe_test_secret_key: str = None
 
     def __post_init__(self) -> None:
         log.debug(
@@ -103,6 +106,14 @@ class WalterSecretsManagerClient:
                 WalterSecretsManagerClient.JWT_CHANGE_PASSWORD_SECRET_KEY_NAME,
             )
         return self.jwt_change_password_secret_key
+
+    def get_stripe_test_secret_key(self) -> str:
+        if self.stripe_test_secret_key is None:
+            self.stripe_test_secret_key = self._get_secret(
+                WalterSecretsManagerClient.STRIPE_TEST_SECRET_KEY_ID,
+                WalterSecretsManagerClient.STRIPE_TEST_SECRET_KEY_NAME,
+            )
+        return self.stripe_test_secret_key
 
     def _get_secret(self, secret_id: str, secret_name: str) -> str:
         return json.loads(
