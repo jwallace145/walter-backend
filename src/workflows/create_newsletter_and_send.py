@@ -120,7 +120,6 @@ class CreateNewsletterAndSend:
                 "Unexpected error occurred creating and sending newsletter!",
                 exc_info=True,
             )
-            input()
             self.newsletters_queue.delete_newsletter_request(event.receipt_handle)
             body = {
                 "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
