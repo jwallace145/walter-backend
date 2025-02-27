@@ -5,6 +5,10 @@ import datetime as dt
 
 @dataclass
 class User:
+    """
+    Walter User Model
+    """
+
     email: str
     username: str
     password_hash: str
@@ -12,6 +16,8 @@ class User:
     last_active_date: dt.datetime = dt.datetime.now(dt.UTC)
     verified: bool = False
     subscribed: bool = True
+    stripe_subscription_id: str = None
+    stripe_customer_id: str = None
 
     def __eq__(self, other) -> bool:
         if isinstance(other, User):
@@ -33,6 +39,8 @@ class User:
             "last_active_date": self.last_active_date.isoformat(),
             "verified": self.verified,
             "subscribed": self.subscribed,
+            "stripe_subscription_id": self.stripe_subscription_id,
+            "stripe_customer_id": self.stripe_customer_id,
         }
 
     def __str__(self) -> str:
@@ -42,6 +50,12 @@ class User:
         )
 
     def to_ddb_item(self) -> dict:
+        stripe_customer_id = "N/A"
+        if self.stripe_customer_id:
+            stripe_customer_id = self.stripe_customer_id
+        stripe_subscription_id = "N/A"
+        if self.stripe_subscription_id:
+            stripe_subscription_id = self.stripe_subscription_id
         return {
             "email": {
                 "S": self.email,
@@ -52,4 +66,6 @@ class User:
             "last_active_date": {"S": self.last_active_date.isoformat()},
             "verified": {"BOOL": self.verified},
             "subscribed": {"BOOL": self.subscribed},
+            "stripe_subscription_id": {"S": stripe_subscription_id},
+            "stripe_customer_id": {"S": stripe_customer_id},
         }
