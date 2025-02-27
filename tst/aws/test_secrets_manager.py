@@ -33,3 +33,9 @@ def test_get_jwt_verify_email_secret_key(
     walter_sm: WalterSecretsManagerClient,
 ) -> None:
     assert walter_sm.get_jwt_verify_email_secret_key() == "test-verify-email-key"
+
+
+def test_get_stripe_test_secret_key(
+    walter_sm: WalterSecretsManagerClient,
+) -> None:
+    assert walter_sm.get_stripe_test_secret_key() == "test-stripe-test-secret-key"

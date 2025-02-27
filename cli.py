@@ -45,7 +45,7 @@ from walter import (
     search_stocks_entrypoint,
     add_newsletter_requests_entrypoint,
     add_news_summary_requests_entrypoint,
-    create_news_summary_and_archive_entrypoint,
+    create_news_summary_and_archive_entrypoint, purchase_newsletter_subscription_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -195,6 +195,16 @@ def search_stocks(stock: str = None) -> None:
     event = get_search_stocks_event(stock)
     response = search_stocks_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: SearchStocks Response:\n{parse_response(response)}")
+
+
+@app.command()
+def purchase_newsletter_subscription(stock: str = None) -> None:
+    log.info("WalterCLI: PurchaseNewsletterSubscription")
+    event = get_search_stocks_event(stock)
+    response = purchase_newsletter_subscription_entrypoint(event, CONTEXT)
+    log.info(
+        f"WalterCLI: PurchaseNewsletterSubscription Response:\n{parse_response(response)}"
+    )
 
 
 ####################
