@@ -10,9 +10,20 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 import stripe
 
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.config import CONFIG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
+
+#############
+# CONSTANTS #
+#############
+
+PRODUCT_NAME = "Walter's Weekly Newsletter"
+"""(str): The name of the product, this is what is shown on the checkout page."""
+
+PRODUCT_DESCRIPTION = "Stay informed with Walter's curated newsletter, powered by AI, delivering insightful updates and recommendations tailored for your portfolio each week."
+"""(str): The description of the product, this is what is shown on the checkout page."""
 
 
 @dataclass
@@ -24,6 +35,10 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
     the user can enter their payment information to subscribe to
     Walter's newsletter.
     """
+
+    # TODO: Implement these pages via WalterFrontend then change these
+    SUCCESS_URL = "https://walterai.dev/login?sessionId={CHECKOUT_SESSION_ID}"
+    CANCEL_URL = "https://walterai.dev/register?sessionId={CHECKOUT_SESSION_ID}"
 
     API_NAME = "PurchaseNewsletterSubscription"
     REQUIRED_QUERY_FIELDS = []
@@ -75,23 +90,29 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
 
     def _create_checkout_session(self) -> Session:
         log.info("Creating checkout session...")
+        newsletter_subscription = self._create_newsletter_subscription_offering()
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "product_data": {
-                            "name": "T-shirt",
-                        },
-                        "unit_amount": 2000,  # Price in cents ($20.00)
-                    },
-                    "quantity": 1,
-                },
-            ],
-            mode="payment",
-            success_url="https://walterai.dev/login",
-            cancel_url="https://walterai.dev/register",
+            line_items=[newsletter_subscription],
+            mode="subscription",
+            success_url=PurchaseNewsletterSubscription.SUCCESS_URL,
+            cancel_url=PurchaseNewsletterSubscription.CANCEL_URL,
         )
         log.info("Successfully created checkout session!")
         return session
+
+    def _create_newsletter_subscription_offering(
+        self, price_in_cents: int = CONFIG.newsletter.cents_per_month
+    ) -> dict:
+        return {
+            "price_data": {
+                "currency": "usd",
+                "product_data": {
+                    "name": PRODUCT_NAME,
+                    "description": PRODUCT_DESCRIPTION,
+                },
+                "recurring": {"interval": "month"},
+                "unit_amount": price_in_cents,
+            },
+            "quantity": 1,
+        }

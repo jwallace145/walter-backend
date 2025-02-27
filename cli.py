@@ -20,6 +20,8 @@ from tst.api.utils import (
     get_news_summary_event,
     get_get_prices_event,
     get_search_stocks_event,
+    get_verify_purchase_newsletter_subscription_event,
+    get_purchase_newsletter_subscription_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -45,7 +47,9 @@ from walter import (
     search_stocks_entrypoint,
     add_newsletter_requests_entrypoint,
     add_news_summary_requests_entrypoint,
-    create_news_summary_and_archive_entrypoint, purchase_newsletter_subscription_entrypoint,
+    create_news_summary_and_archive_entrypoint,
+    purchase_newsletter_subscription_entrypoint,
+    verify_purchase_newsletter_subscription_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -198,12 +202,24 @@ def search_stocks(stock: str = None) -> None:
 
 
 @app.command()
-def purchase_newsletter_subscription(stock: str = None) -> None:
+def purchase_newsletter_subscription(token: str = None) -> None:
     log.info("WalterCLI: PurchaseNewsletterSubscription")
-    event = get_search_stocks_event(stock)
+    event = get_purchase_newsletter_subscription_event(token)
     response = purchase_newsletter_subscription_entrypoint(event, CONTEXT)
     log.info(
         f"WalterCLI: PurchaseNewsletterSubscription Response:\n{parse_response(response)}"
+    )
+
+
+@app.command()
+def verify_purchase_newsletter_subscription(
+    token: str = None, session_id: str = None
+) -> None:
+    log.info("WalterCLI: VerifyPurchaseNewsletterSubscription")
+    event = get_verify_purchase_newsletter_subscription_event(token, session_id)
+    response = verify_purchase_newsletter_subscription_entrypoint(event, CONTEXT)
+    log.info(
+        f"WalterCLI: VerifyPurchaseNewsletterSubscription Response:\n{parse_response(response)}"
     )
 
 

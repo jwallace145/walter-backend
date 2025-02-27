@@ -16,6 +16,9 @@ from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
 from src.api.verify_email import VerifyEmail
+from src.api.verify_purchase_newsletter_subscription import (
+    VerifyPurchaseNewsletterSubscription,
+)
 from src.clients import (
     walter_cw,
     walter_db,
@@ -159,7 +162,15 @@ def search_stocks_entrypoint(event, context) -> dict:
 
 
 def purchase_newsletter_subscription_entrypoint(event, context) -> dict:
-    return PurchaseNewsletterSubscription(walter_authenticator, walter_cw, walter_sm).invoke(event)
+    return PurchaseNewsletterSubscription(
+        walter_authenticator, walter_cw, walter_sm
+    ).invoke(event)
+
+
+def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
+    return VerifyPurchaseNewsletterSubscription(
+        walter_authenticator, walter_cw, walter_sm
+    ).invoke(event)
 
 
 ####################

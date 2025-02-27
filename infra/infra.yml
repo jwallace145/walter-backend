@@ -793,6 +793,63 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPIVerifyPurchaseNewsletterSubscriptionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIVerifyPurchaseNewsletterSubscription
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIVerifyPurchaseNewsletterSubscriptionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIPurchaseNewsletterSubscriptionResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: verify
+
+  WalterAPIVerifyPurchaseNewsletterSubscriptionMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIVerifyPurchaseNewsletterSubscriptionResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIVerifyPurchaseNewsletterSubscription.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIVerifyPurchaseNewsletterSubscriptionCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIVerifyPurchaseNewsletterSubscriptionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPISearchStocksPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1449,6 +1506,40 @@ Resources:
       FunctionName: !Sub "WalterAPI-PurchaseNewsletterSubscription-${AppEnvironment}"
       Description: !Sub "WalterAPI: PurchaseNewsletterSubscription - Creates a checkout session for the user to purchase a newsletter subscription (${AppEnvironment})"
       Handler: walter.purchase_newsletter_subscription_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:30"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIVerifyPurchaseNewsletterSubscriptionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIVerifyPurchaseNewsletterSubscription
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-VerifyPurchaseNewsletterSubscription-${AppEnvironment}"
+
+  WalterAPIVerifyPurchaseNewsletterSubscription:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-VerifyPurchaseNewsletterSubscription-${AppEnvironment}"
+      Description: !Sub "WalterAPI: VerifyPurchaseNewsletterSubscription - Verifies the payment status of a purchased newsletter subscription (${AppEnvironment})"
+      Handler: walter.verify_purchase_newsletter_subscription_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
