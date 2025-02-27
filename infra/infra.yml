@@ -1464,7 +1464,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 300
+      Timeout: 90
       Runtime: python3.11
       MemorySize: 512
       Architectures:
@@ -1481,6 +1481,8 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      DeadLetterConfig:
+        TargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
 
   WalterWorkflowCreateNewsSummaryAndArchiveFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -1524,6 +1526,8 @@ Resources:
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT
+        DeadLetterConfig:
+          TargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
 
   WalterBackendFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -1757,6 +1761,23 @@ Resources:
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
+  NewslettersDeadLetterQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "NewslettersDeadLetterQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
+            Resource: !GetAtt NewslettersDeadLetterQueue.Arn
+      Roles:
+        - !Ref WalterBackendRole
+
   NewsSummariesQueueAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -1775,6 +1796,23 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterWorkflowAddNewsSummaryRequestsRole
         - !Ref WalterBackendRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
+
+  NewsSummariesDeadLetterQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "NewsSummariesDeadLetterQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
+            Resource: !GetAtt NewsSummariesDeadLetterQueue.Arn
+      Roles:
         - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   SecretsManagerAccessPolicy:
@@ -2098,14 +2136,36 @@ Resources:
     Properties:
       QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 300
+      VisibilityTimeout: 90
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
+        maxReceiveCount: 1
+
+  NewslettersDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "NewslettersDeadLetterQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 1209600 # two weeks
 
   NewsSummariesQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "NewsSummariesQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 300
+      VisibilityTimeout: 90
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
+        maxReceiveCount: 1
+
+  NewsSummariesDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "NewsSummariesDeadLetterQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 1209600 # two weeks
 
 ###############
 ### OUTPUTS ###
