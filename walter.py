@@ -152,7 +152,7 @@ def subscribe_entrypoint(event, context) -> dict:
 
 
 def unsubscribe_entrypoint(event, context) -> dict:
-    return Unsubscribe(walter_authenticator, walter_cw, walter_db).invoke(event)
+    return Unsubscribe(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
 
 
 def search_stocks_entrypoint(event, context) -> dict:
