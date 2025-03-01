@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from stripe import Stripe
+import stripe
 from stripe.checkout import Session
 
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -21,20 +21,19 @@ class WalterStripeClient:
     for newsletter subscription purchases.
     """
 
-    stripe: Stripe
     walter_sm: WalterSecretsManagerClient
 
     def __post_init__(self):
         log.debug("Initializing WalterStripeClient")
         # TODO: Add config to switch between test Stripe key and prod Stripe key
-        self.stripe.api_key = self.walter_sm.get_stripe_test_secret_key()
+        stripe.api_key = self.walter_sm.get_stripe_test_secret_key()
 
     def create_checkout_session(self, success_url: str, cancel_url: str) -> Session:
         log.info("Creating checkout session...")
         newsletter_subscription = WalterStripeClient.get_newsletter_subscription_offering(
             CONFIG.newsletter.cents_per_month
         )
-        session = self.stripe.checkout.Session.create(
+        session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[newsletter_subscription],
             mode="subscription",
@@ -47,7 +46,7 @@ class WalterStripeClient:
     def get_session(self, session_id: str) -> Session:
         log.info("Getting checkout session...")
         log.debug(f"Session ID: '{session_id}'")
-        session = self.stripe.checkout.Session.retrieve(session_id)
+        session = stripe.checkout.Session.retrieve(session_id)
         log.info("Successfully retrieved checkout session!")
         return session
 

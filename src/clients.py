@@ -1,7 +1,6 @@
 import os
 
 import boto3
-import stripe
 
 from src.ai.client import WalterAI
 from src.auth.authenticator import WalterAuthenticator
@@ -163,4 +162,4 @@ walter_news_summary_client = WalterNewsSummaryClient(
 # WALTER PAYMENTS #
 ###################
 
-walter_payments = WalterStripeClient(stripe=stripe, walter_sm=walter_sm)
+walter_payments = WalterStripeClient(walter_sm=walter_sm)
