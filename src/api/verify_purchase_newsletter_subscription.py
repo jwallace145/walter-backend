@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from src.api.common.exceptions import (
     NotAuthenticated,
@@ -10,28 +9,14 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-import stripe
-
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.users.models import User
+from src.payments.stripe.client import WalterStripeClient
+from src.payments.stripe.models import PaymentStatus
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-#############
-# CONSTANTS #
-#############
-
-
-class PaymentStatus(Enum):
-    """
-    The possible payment statuses for Stripe checkout sessions.
-    """
-
-    PAID = "paid"
-    UNPAID = "unpaid"
-    PENDING = "pending"
 
 
 @dataclass
@@ -57,6 +42,7 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
 
     walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
+    walter_payments: WalterStripeClient
 
     def __init__(
         self,
@@ -64,6 +50,7 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
+        walter_payments: WalterStripeClient,
     ) -> None:
         super().__init__(
             VerifyPurchaseNewsletterSubscription.API_NAME,
@@ -76,13 +63,14 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm
+        self.walter_payments = walter_payments
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
         user = self._verify_user_exists(authenticated_email)
-        self._set_stripe_api_key()
         session_id = self._get_session_id(event)
-        session = self._get_session(session_id)
-        if session.payment_status == PaymentStatus.PAID.value:
+        session = self.walter_payments.get_session(session_id)
+        payment_status = WalterStripeClient.get_payment_status(session.payment_status)
+        if payment_status == PaymentStatus.PAID:
             log.info("Checkout session has been paid!")
             user.subscribed = True
             user.stripe_subscription_id = session.subscription
@@ -98,14 +86,14 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
                     "stripe_subscription_id": user.stripe_subscription_id,
                 },
             )
-        if session.payment_status == PaymentStatus.UNPAID.value:
+        if payment_status == PaymentStatus.UNPAID:
             log.info("Checkout session has not been paid!")
             return self._create_response(
                 http_status=HTTPStatus.OK,
                 status=Status.FAILURE,
                 message="Checkout session is unpaid!",
             )
-        if session.payment_status == PaymentStatus.PENDING.value:
+        if payment_status == PaymentStatus.PENDING:
             log.info("Checkout session is pending payment!")
             return self._create_response(
                 http_status=HTTPStatus.OK,
@@ -113,7 +101,7 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
                 message="Checkout session is pending payment!",
             )
         raise UnknownPaymentStatus(
-            f"Unknown payment status '{session.payment_status}'!"
+            f"Unknown payment status '{payment_status}'!"
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -130,17 +118,5 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
         log.info("Verified user exists!")
         return user
 
-    def _set_stripe_api_key(self) -> None:
-        if stripe.api_key is None:
-            # TODO: Stop using Stripe test secret key when ready to start accepting payments
-            stripe.api_key = self.walter_sm.get_stripe_test_secret_key()
-
     def _get_session_id(self, event: dict) -> str | None:
         return event["queryStringParameters"]["sessionId"]
-
-    def _get_session(self, session_id: str) -> stripe.checkout.Session:
-        log.info("Getting checkout session...")
-        log.debug(f"Session ID: {session_id}")
-        session = stripe.checkout.Session.retrieve(session_id)
-        log.info("Successfully retrieved checkout session!")
-        return session
