@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-import stripe
-
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
@@ -13,22 +11,12 @@ from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
-from src.config import CONFIG
 from src.database.client import WalterDB
 from src.database.users.models import User
+from src.payments.stripe.client import WalterStripeClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-#############
-# CONSTANTS #
-#############
-
-PRODUCT_NAME = "Walter's Weekly Newsletter"
-"""(str): The name of the product, this is what is shown on the checkout page."""
-
-PRODUCT_DESCRIPTION = "Stay informed with Walter's curated newsletter, powered by AI, delivering insightful updates and recommendations tailored for your portfolio each week."
-"""(str): The description of the product, this is what is shown on the checkout page."""
 
 
 @dataclass
@@ -58,6 +46,7 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
 
     walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
+    walter_payments: WalterStripeClient
 
     def __init__(
         self,
@@ -65,6 +54,7 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
+        walter_payments: WalterStripeClient,
     ) -> None:
         super().__init__(
             PurchaseNewsletterSubscription.API_NAME,
@@ -77,13 +67,16 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm
+        self.walter_payments = walter_payments
 
     def execute(self, event: dict, authenticated_email: str = None) -> dict:
         user = self._verify_user_exists(authenticated_email)
         self._verify_user_email_verified(user)
         self._verify_user_not_already_subscribed(user)
-        self._set_stripe_api_key()
-        checkout_session = self._create_checkout_session()
+        checkout_session = self.walter_payments.create_checkout_session(
+            success_url=PurchaseNewsletterSubscription.SUCCESS_URL,
+            cancel_url=PurchaseNewsletterSubscription.CANCEL_URL,
+        )
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
@@ -120,37 +113,3 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
         if user.stripe_subscription_id:
             raise EmailAlreadySubscribed("User is already subscribed!")
         log.info("User is not already subscribed!")
-
-    def _set_stripe_api_key(self) -> None:
-        if stripe.api_key is None:
-            # TODO: Stop using Stripe test secret key when ready to start accepting payments
-            stripe.api_key = self.walter_sm.get_stripe_test_secret_key()
-
-    def _create_checkout_session(self) -> stripe.checkout.Session:
-        log.info("Creating checkout session...")
-        newsletter_subscription = self._create_newsletter_subscription_offering()
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[newsletter_subscription],
-            mode="subscription",
-            success_url=PurchaseNewsletterSubscription.SUCCESS_URL,
-            cancel_url=PurchaseNewsletterSubscription.CANCEL_URL,
-        )
-        log.info("Successfully created checkout session!")
-        return session
-
-    def _create_newsletter_subscription_offering(
-        self, price_in_cents: int = CONFIG.newsletter.cents_per_month
-    ) -> dict:
-        return {
-            "price_data": {
-                "currency": "usd",
-                "product_data": {
-                    "name": PRODUCT_NAME,
-                    "description": PRODUCT_DESCRIPTION,
-                },
-                "recurring": {"interval": "month"},
-                "unit_amount": price_in_cents,
-            },
-            "quantity": 1,
-        }

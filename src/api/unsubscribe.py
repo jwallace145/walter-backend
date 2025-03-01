@@ -108,9 +108,13 @@ class Unsubscribe(WalterAPIMethod):
                 stripe.Subscription.delete(subscription)
                 user.stripe_subscription_id = None
                 user.stripe_customer_id = None
-                log.info(f"Successfully deleted Stripe subscription for user: '{user.email}'")
+                log.info(
+                    f"Successfully deleted Stripe subscription for user: '{user.email}'"
+                )
             else:
-                log.error("Not deleting Stripe subscription! Customer IDs do not match!")
+                log.error(
+                    "Not deleting Stripe subscription! Customer IDs do not match!"
+                )
 
         self.walter_db.update_user(user)
         log.info("Successfully unsubscribed user from newsletter!")

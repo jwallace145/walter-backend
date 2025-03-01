@@ -35,6 +35,7 @@ from src.clients import (
     walter_news_summary_client,
     walter_ai,
     newsletters_bucket,
+    walter_payments,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
@@ -152,7 +153,9 @@ def subscribe_entrypoint(event, context) -> dict:
 
 
 def unsubscribe_entrypoint(event, context) -> dict:
-    return Unsubscribe(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
+    return Unsubscribe(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(
+        event
+    )
 
 
 def search_stocks_entrypoint(event, context) -> dict:
@@ -163,13 +166,13 @@ def search_stocks_entrypoint(event, context) -> dict:
 
 def purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return PurchaseNewsletterSubscription(
-        walter_authenticator, walter_cw, walter_db, walter_sm
+        walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
     ).invoke(event)
 
 
 def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return VerifyPurchaseNewsletterSubscription(
-        walter_authenticator, walter_cw, walter_db, walter_sm
+        walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
     ).invoke(event)
 
 

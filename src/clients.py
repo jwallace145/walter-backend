@@ -1,6 +1,7 @@
 import os
 
 import boto3
+import stripe
 
 from src.ai.client import WalterAI
 from src.auth.authenticator import WalterAuthenticator
@@ -19,6 +20,7 @@ from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
+from src.payments.stripe.client import WalterStripeClient
 from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
@@ -156,3 +158,9 @@ walter_ai = WalterAI(
 walter_news_summary_client = WalterNewsSummaryClient(
     walter_stock_api=walter_stocks_api, walter_ai=walter_ai, walter_cw=walter_cw
 )
+
+###################
+# WALTER PAYMENTS #
+###################
+
+walter_payments = WalterStripeClient(stripe=stripe, walter_sm=walter_sm)
