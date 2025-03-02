@@ -21,7 +21,7 @@ class NewslettersBucket:
     BUCKET = "walterai-newsletters-{domain}"
 
     NEWSLETTERS_DIR = "newsletters"
-    NEWSLETTER_KEY = "{newsletters_dir}/{date}/{user}/{template}/index.html"
+    NEWSLETTER_KEY = "{newsletters_dir}/{user}/{date}/{template}/index.html"
 
     client: WalterS3Client
     domain: Domain
@@ -56,10 +56,10 @@ class NewslettersBucket:
     def _get_newsletter_key(user: User, template: str) -> str:
         return NewslettersBucket.NEWSLETTER_KEY.format(
             newsletters_dir=NewslettersBucket.NEWSLETTERS_DIR,
+            user=user.username.lower(),
             date=dt.strftime(
                 dt.now().replace(hour=0, minute=0, second=0, microsecond=0),
                 "y=%Y/m=%m/d=%d",
             ),
-            user=user.username,
             template=template,
         )
