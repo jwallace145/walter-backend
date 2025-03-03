@@ -71,3 +71,8 @@ class MaximumNumberOfStocks(Exception):
 class UnknownPaymentStatus(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class NewsletterDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)

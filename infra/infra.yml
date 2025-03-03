@@ -409,6 +409,55 @@ Resources:
       FunctionName: !Ref WalterAPIGetPortfolio
       Principal: apigateway.amazonaws.com
 
+  WalterAPIGetUserNewsletterResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPINewsletters
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: archive
+
+  WalterAPIGetNewsletterPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetNewsletter
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetNewsletterMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIGetUserNewsletterResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletter.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetNewslettersPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetNewsletters
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetNewslettersMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPINewsletters
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletters.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   WalterAPISendNewsletterPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1251,6 +1300,76 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterAPIGetNewsletterAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetNewsletter
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetNewsletter-${AppEnvironment}"
+
+  WalterAPIGetNewsletter:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetNewsletter-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetNewsletter - Get user newsletter for given date from archive (${AppEnvironment})"
+      Handler: walter.get_newsletter_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:30"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+
+  WalterAPIGetNewslettersAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetNewsletters
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetNewsletters-${AppEnvironment}"
+
+  WalterAPIGetNewsletters:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetNewsletters-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetNewsletters - Get newsletters sent to user from archive (${AppEnvironment})"
+      Handler: walter.get_newsletters_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:30"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+
   WalterAPISendVerifyEmailAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -1919,10 +2038,16 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
+              - "s3:GetObject"
               - "s3:PutObject"
             Resource: !Sub "${NewslettersBucket.Arn}/*"
+          - Effect: Allow
+            Action:
+              - "s3:List*"
+            Resource: !GetAtt NewslettersBucket.Arn
       Roles:
         - !Ref WalterBackendRole
+        - !Ref WalterAPIRole
 
   NewslettersQueueAccessPolicy:
     Type: AWS::IAM::Policy

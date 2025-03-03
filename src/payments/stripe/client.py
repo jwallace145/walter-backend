@@ -30,8 +30,10 @@ class WalterStripeClient:
 
     def create_checkout_session(self, success_url: str, cancel_url: str) -> Session:
         log.info("Creating checkout session...")
-        newsletter_subscription = WalterStripeClient.get_newsletter_subscription_offering(
-            CONFIG.newsletter.cents_per_month
+        newsletter_subscription = (
+            WalterStripeClient.get_newsletter_subscription_offering(
+                CONFIG.newsletter.cents_per_month
+            )
         )
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -52,7 +54,7 @@ class WalterStripeClient:
 
     @staticmethod
     def get_newsletter_subscription_offering(
-        cents_per_month: int = CONFIG.newsletter.cents_per_month
+        cents_per_month: int = CONFIG.newsletter.cents_per_month,
     ) -> dict:
         return NewsletterSubscriptionOffering(cents_per_month=cents_per_month).to_dict()
 

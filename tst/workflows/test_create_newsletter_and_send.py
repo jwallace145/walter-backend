@@ -195,7 +195,7 @@ def test_create_newsletter_and_send_archive_newsletter_success(
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/{datestamp}/bob/default/index.html",
+            f"newsletters/bob/{datestamp}/default/index.html",
         )
         is None
     )
@@ -205,7 +205,7 @@ def test_create_newsletter_and_send_archive_newsletter_success(
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/{datestamp}/bob/default/index.html",
+            f"newsletters/bob/{datestamp}/default/index.html",
         )
         is not None
     )
