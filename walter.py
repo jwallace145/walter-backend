@@ -4,6 +4,8 @@ from src.api.change_password import ChangePassword
 from src.api.create_user import CreateUser
 from src.api.delete_stock import DeleteStock
 from src.api.get_news_summary import GetNewsSummary
+from src.api.get_newsletter import GetNewsletter
+from src.api.get_newsletters import GetNewsletters
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_stock import GetStock
@@ -109,6 +111,18 @@ def get_news_summary_entrypoint(event, context) -> dict:
 def send_newsletter_entrypoint(event, context) -> dict:
     return SendNewsletter(
         walter_authenticator, walter_cw, walter_db, newsletters_queue, walter_sm
+    ).invoke(event)
+
+
+def get_newsletter_entrypoint(event, context) -> dict:
+    return GetNewsletter(
+        walter_authenticator, walter_cw, walter_db, newsletters_bucket
+    ).invoke(event)
+
+
+def get_newsletters_entrypoint(event, context) -> dict:
+    return GetNewsletters(
+        walter_authenticator, walter_cw, walter_db, newsletters_bucket
     ).invoke(event)
 
 

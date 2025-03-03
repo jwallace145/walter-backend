@@ -22,6 +22,7 @@ from tst.api.utils import (
     get_search_stocks_event,
     get_verify_purchase_newsletter_subscription_event,
     get_purchase_newsletter_subscription_event,
+    get_get_newsletter_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -50,6 +51,8 @@ from walter import (
     create_news_summary_and_archive_entrypoint,
     purchase_newsletter_subscription_entrypoint,
     verify_purchase_newsletter_subscription_entrypoint,
+    get_newsletters_entrypoint,
+    get_newsletter_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -143,6 +146,22 @@ def send_newsletter(token: str = None) -> None:
     event = get_send_newsletter_event(token)
     response = send_newsletter_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_newsletter(token: str = None, date: str = None) -> None:
+    log.info("WalterCLI: GetNewsletter")
+    event = get_get_newsletter_event(token, date)
+    response = get_newsletter_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetNewsletter Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_newsletters(token: str = None) -> None:
+    log.info("WalterCLI: GetNewsletters")
+    event = get_send_newsletter_event(token)
+    response = get_newsletters_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetNewsletters Response:\n{parse_response(response)}")
 
 
 @app.command()

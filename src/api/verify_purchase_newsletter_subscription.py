@@ -100,9 +100,7 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
                 status=Status.FAILURE,
                 message="Checkout session is pending payment!",
             )
-        raise UnknownPaymentStatus(
-            f"Unknown payment status '{payment_status}'!"
-        )
+        raise UnknownPaymentStatus(f"Unknown payment status '{payment_status}'!")
 
     def validate_fields(self, event: dict) -> None:
         pass

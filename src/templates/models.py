@@ -24,6 +24,15 @@ def get_supported_template(template_name: str) -> SupportedTemplate:
     )
 
 
+def get_supported_template_by_value(template_value: str) -> SupportedTemplate:
+    for template in SupportedTemplate:
+        if template.value == template_value:
+            return template
+    raise ValueError(
+        f"Unexpected template value '{template_value}' given! Supported template values: {[template.value for template in SupportedTemplate]}"
+    )
+
+
 @dataclass
 class Template:
     name: str
