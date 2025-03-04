@@ -8,6 +8,7 @@ from src.api.get_newsletter import GetNewsletter
 from src.api.get_newsletters import GetNewsletters
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
+from src.api.get_statistics import GetStatistics
 from src.api.get_stock import GetStock
 from src.api.get_user import GetUser
 from src.api.purchase_newsletter_subscription import PurchaseNewsletterSubscription
@@ -77,6 +78,12 @@ def get_stock_entrypoint(event, context) -> dict:
     return GetStock(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api
     ).invoke(event)
+
+
+def get_statistics_entrypoint(event, context) -> dict:
+    return GetStatistics(walter_authenticator, walter_cw, walter_stocks_api).invoke(
+        event
+    )
 
 
 def add_stock_entrypoint(event, context) -> dict:

@@ -14,6 +14,7 @@ from src.stocks.alphavantage.models import (
     CompanyNews,
     CompanySearch,
     NewsArticle,
+    CompanyStatistics,
 )
 from src.utils.log import Logger
 from src.utils.web_scraper import WebScraper
@@ -59,6 +60,39 @@ class AlphaVantageClient:
 
     def __post_init__(self) -> None:
         log.debug("Initializing AlphaVantage Client")
+
+    def get_company_statistics(self, symbol: str) -> CompanyStatistics | None:
+        """
+        Get the company statistics.
+
+        Args:
+            symbol: The stock symbol of the company.
+
+        Returns:
+            (CompanyStatistics): The company statistics or `None` if not found.
+        """
+        log.info(f"Getting company statistics for '{symbol}'")
+        url = self._get_company_overview_url(symbol)
+        response = requests.get(url).json()
+
+        # if empty dict response from alpha vantage then assume stock does not exist
+        if response == {}:
+            return None
+
+        statistics = CompanyStatistics(
+            market_cap=response["MarketCapitalization"],
+            ebitda=response["EBITDA"],
+            pe_ratio=response["PERatio"],
+            dividend_yield=response["DividendYield"],
+            eps=response["EPS"],
+            fifty_two_week_high=response["52WeekHigh"],
+            fifty_two_week_low=response["52WeekLow"],
+        )
+
+        log.info(f"Returned company statistics for '{symbol}'")
+        log.debug(f"CompanyStatistics:\n{json.dumps(statistics.to_dict(), indent=4)}")
+
+        return statistics
 
     def get_company_overview(self, symbol: str) -> CompanyOverview | None:
         """

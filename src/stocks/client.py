@@ -10,6 +10,7 @@ from src.stocks.alphavantage.models import (
     CompanyOverview,
     CompanySearch,
     CompanyNews,
+    CompanyStatistics,
 )
 from src.stocks.models import Portfolio
 from src.stocks.polygon.client import PolygonClient
@@ -83,6 +84,9 @@ class WalterStocksAPI:
         return self.alpha_vantage.get_news(
             stock, start_date, end_date, number_of_articles
         )
+
+    def get_statistics(self, symbol: str) -> CompanyStatistics | None:
+        return self.alpha_vantage.get_company_statistics(symbol)
 
     @staticmethod
     def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:

@@ -4,6 +4,32 @@ from typing import List
 
 
 @dataclass(frozen=True)
+class CompanyStatistics:
+    """
+    Company Statistics
+    """
+
+    market_cap: int
+    ebitda: int
+    pe_ratio: float
+    dividend_yield: float
+    eps: float
+    fifty_two_week_high: float
+    fifty_two_week_low: float
+
+    def to_dict(self) -> dict:
+        return {
+            "market_cap": self.market_cap,
+            "ebitda": self.ebitda,
+            "pe_ratio": self.pe_ratio,
+            "dividend_yield": self.dividend_yield,
+            "eps": self.eps,
+            "fifty_two_week_high": self.fifty_two_week_high,
+            "fifty_two_week_low": self.fifty_two_week_low,
+        }
+
+
+@dataclass(frozen=True)
 class CompanyOverview:
     """
     Company Overview

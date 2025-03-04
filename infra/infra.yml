@@ -194,6 +194,63 @@ Resources:
       FunctionName: !Ref WalterAPIGetStock
       Principal: apigateway.amazonaws.com
 
+  WalterAPIStockStatistics:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIStocks
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: statistics
+
+  WalterAPIGetStatisticsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WalterAPIGetStatistics
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetStatisticsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIStockStatistics
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStatistics.Arn}/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetStatisticsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIStockStatistics
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPIAddStockMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -1104,6 +1161,40 @@ Resources:
       FunctionName: !Sub "WalterAPI-GetStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetStock - Get stock and its details from WalterDB (${AppEnvironment})"
       Handler: walter.get_stock_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:30"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIGetStatisticsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetStatistics
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterAPI-GetStatistics-${AppEnvironment}"
+
+  WalterAPIGetStatistics:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetStatistics-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetStatistics - Get statistics about the given stock (${AppEnvironment})"
+      Handler: walter.get_statistics_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
