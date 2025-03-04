@@ -53,6 +53,7 @@ from walter import (
     verify_purchase_newsletter_subscription_entrypoint,
     get_newsletters_entrypoint,
     get_newsletter_entrypoint,
+    get_statistics_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -114,6 +115,14 @@ def get_stock(symbol: str = None) -> None:
     event = get_get_stock_event(symbol)
     response = get_stock_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetStock Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_statistics(symbol: str = None) -> None:
+    log.info("WalterCLI: GetStatistics")
+    event = get_get_stock_event(symbol)
+    response = get_statistics_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetStatistics Response:\n{parse_response(response)}")
 
 
 @app.command()

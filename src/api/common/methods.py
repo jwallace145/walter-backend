@@ -296,3 +296,7 @@ class WalterAPIMethod(ABC):
         APIs that require authentication should return True.
         """
         pass
+
+    @staticmethod
+    def get_query_field(event: dict, field: str) -> str:
+        return event["queryStringParameters"][field]
