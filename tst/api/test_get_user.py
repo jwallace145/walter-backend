@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from src.api.get_user import GetUser
@@ -31,6 +33,9 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
             "username": "walter",
             "verified": True,
             "subscribed": True,
+            "sign_up_date": datetime.datetime(
+                year=2024, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+            ).isoformat(),
         },
     )
     assert expected_response == get_user_api.invoke(event)
