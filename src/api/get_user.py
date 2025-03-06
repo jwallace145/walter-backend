@@ -62,6 +62,7 @@ class GetUser(WalterAPIMethod):
                 "username": user.username,
                 "verified": user.verified,
                 "subscribed": user.subscribed,
+                "sign_up_date": user.sign_up_date.isoformat(),
             },
         )
 

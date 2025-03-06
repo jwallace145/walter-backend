@@ -1,3 +1,4 @@
+import datetime
 import json
 from dataclasses import dataclass
 
@@ -85,6 +86,9 @@ class MockDDB:
                         username=json_user["username"],
                         password_hash=json_user["password_hash"],
                         verified=json_user["verified"],
+                        sign_up_date=datetime.datetime.strptime(
+                            json_user["sign_up_date"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
                     ).to_ddb_item(),
                 )
 
