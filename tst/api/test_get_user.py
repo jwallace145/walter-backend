@@ -35,7 +35,8 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
             "subscribed": True,
             "sign_up_date": datetime.datetime(
                 year=2024, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
-            ).isoformat(),
+            ).strftime("%Y-%m-%d"),
+            "last_active_date": datetime.datetime.now().strftime("%Y-%m-%d"),
         },
     )
     assert expected_response == get_user_api.invoke(event)
