@@ -17,10 +17,6 @@ class StocksTable:
 
     This table contains all the unique stocks owned by Walter subscribers
     and maintains additional metadata about the stocks.
-
-    Item Schema:
-        - symbol (str): The symbol of the stock, e.g. AAPL.
-        - company (str): The company name of the stock, e.g. Apple.
     """
 
     STOCKS_TABLE_NAME_FORMAT = "Stocks-{domain}"

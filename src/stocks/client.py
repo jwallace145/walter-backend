@@ -46,10 +46,10 @@ class WalterStocksAPI:
 
     def get_stock(self, symbol: str) -> Stock | None:
         log.info(f"Getting stock '{symbol}'")
-        overview = self.alpha_vantage.get_company_overview(symbol)
+        alpha_vantage_overview = self.alpha_vantage.get_company_overview(symbol)
         return (
-            WalterStocksAPI._get_stock_from_company_overview(overview)
-            if overview
+            WalterStocksAPI._get_stock(alpha_vantage_overview)
+            if alpha_vantage_overview
             else None
         )
 
@@ -89,7 +89,7 @@ class WalterStocksAPI:
         return self.alpha_vantage.get_company_statistics(symbol)
 
     @staticmethod
-    def _get_stock_from_company_overview(overview: CompanyOverview) -> Stock:
+    def _get_stock(overview: CompanyOverview) -> Stock:
         return Stock(
             symbol=overview.symbol,
             company=overview.name,

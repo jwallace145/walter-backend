@@ -81,10 +81,18 @@ class AddStock(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        pass
+        body = json.loads(event["body"])
+        quantity = body["quantity"]
+        self._verify_quantity_field(quantity)
 
     def is_authenticated_api(self) -> bool:
         return True
+
+    def _verify_quantity_field(self, quantity: str) -> bool:
+        if quantity is None or not isinstance(quantity, (int, float)):
+            raise BadRequest("Quantity must be a number!")
+        if quantity <= 0:
+            raise BadRequest("Quantity must be a positive number!")
 
     def _verify_stock_exists(self, symbol: str) -> Stock:
         log.info(f"Verifying stock exists with symbol '{symbol}'")
