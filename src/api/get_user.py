@@ -16,6 +16,8 @@ class GetUser(WalterAPIMethod):
     WalterAPI - GetUser
     """
 
+    DATE_FORMAT = "%Y-%m-%d"
+
     API_NAME = "GetUser"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
@@ -62,7 +64,8 @@ class GetUser(WalterAPIMethod):
                 "username": user.username,
                 "verified": user.verified,
                 "subscribed": user.subscribed,
-                "sign_up_date": user.sign_up_date.isoformat(),
+                "sign_up_date": user.sign_up_date.strftime(GetUser.DATE_FORMAT),
+                "last_active_date": user.last_active_date.strftime(GetUser.DATE_FORMAT),
             },
         )
 
