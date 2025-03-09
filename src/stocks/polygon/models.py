@@ -39,5 +39,13 @@ class StockNews:
 
 @dataclass(frozen=True)
 class PolygonStock:
+    """
+    Polygon Stock Model Object
+
+    This model object represents a stock and the details returned
+    by Polygon via the GetTicketDetailsV3 API.
+    """
+
     symbol: str
     company: str
+    logo_url: str
