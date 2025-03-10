@@ -197,6 +197,16 @@ def news_summaries_bucket(walter_s3: WalterS3Client) -> NewsSummariesBucket:
 
 
 @pytest.fixture
+def walter_event_parser() -> WalterEventParser:
+    return WalterEventParser()
+
+
+####################
+# TEST USER TOKENS #
+####################
+
+
+@pytest.fixture
 def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
     return walter_authenticator.generate_user_token("walter@gmail.com")
 
@@ -217,5 +227,5 @@ def jwt_john(walter_authenticator: WalterAuthenticator) -> str:
 
 
 @pytest.fixture
-def walter_event_parser() -> WalterEventParser:
-    return WalterEventParser()
+def jwt_lucy(walter_authenticator: WalterAuthenticator) -> str:
+    return walter_authenticator.generate_user_token("lucy@gmail.com")

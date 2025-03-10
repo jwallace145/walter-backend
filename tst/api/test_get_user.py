@@ -38,9 +38,9 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
                 year=2024, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
             ).strftime("%Y-%m-%d"),
             "last_active_date": utc_now.strftime("%Y-%m-%d"),
-            "free_trial_end_date": (utc_now + datetime.timedelta(days=31)).strftime(
-                "%Y-%m-%d"
-            ),
+            "free_trial_end_date": datetime.datetime(
+                year=2024, month=1, day=31, hour=0, minute=0, second=0, microsecond=0
+            ).strftime("%Y-%m-%d"),
         },
     )
     assert expected_response == get_user_api.invoke(event)

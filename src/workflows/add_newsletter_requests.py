@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from typing import List
+import datetime
 
 from src.api.common.models import HTTPStatus, Status
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -11,24 +12,43 @@ from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
+#############
+# CONSTANTS #
+#############
+
+NOW = datetime.datetime.now(datetime.UTC)
+"""(datetime): The current timestamp in UTC."""
+
 ###########
 # METRICS #
 ###########
 
-METRICS_NUMBER_OF_USERS = "NumberOfUsers"
-"""(str): The total number of Walter users (all users count, even unsubscribed/unverified users)."""
 
-METRICS_NUMBER_OF_VERIFIED_USERS = "NumberOfVerifiedUsers"
-"""(str): The total number of verified Walter users."""
+@dataclass(frozen=True)
+class AddNewsletterRequestsMetrics:
+    """Metrics emitted by AddNewsletterRequests workflow."""
 
-METRICS_NUMBER_OF_UNVERIFIED_USERS = "NumberOfUnverifiedUsers"
-"""(str): The total number of unverified Walter users."""
+    # metric names
+    NUMBER_OF_USERS = "NumberOfUsers"
+    NUMBER_OF_VERIFIED_USERS = "NumberOfVerifiedUsers"
+    NUMBER_OF_UNVERIFIED_USERS = "NumberOfUnverifiedUsers"
+    NUMBER_OF_SUBSCRIBED_USERS = "NumberOfSubscribedUsers"
+    NUMBER_OF_UNSUBSCRIBED_USERS = "NumberOfUnsubscribedUsers"
+    NUMBER_OF_PAID_USERS = "NumberOfPaidUsers"
+    NUMBER_OF_FREE_TRIAL_USERS = "NumberOfFreeTrialUsers"
+    NUMBER_OF_EXPIRED_FREE_TRIAL_USERS = "NumberOfExpiredFreeTrialUsers"
+    NUMBER_OF_NEWSLETTERS_SENT = "NumberOfNewslettersSent"
 
-METRICS_NUMBER_OF_SUBSCRIBED_USERS = "NumberOfSubscribedUsers"
-"""(str): The total number of subscribed Walter users."""
-
-METRICS_NUMBER_OF_UNSUBSCRIBED_USERS = "NumberOfUnsubscribedUsers"
-"""(str): The total number of unsubscribed Walter users."""
+    # fields
+    number_of_users: int
+    number_of_verified_users: int
+    number_of_unverified_users: int
+    number_of_subscribed_users: int
+    number_of_unsubscribed_users: int
+    number_of_paid_users: int
+    number_of_free_trial_users: int
+    number_of_expired_free_trial_users: int
+    number_newsletters_sent: int = 0
 
 
 ############
@@ -56,29 +76,45 @@ class AddNewsletterRequests:
 
     def invoke(self, event: dict) -> dict:
         log.info(f"WalterWorkflow: '{AddNewsletterRequests.WORKFLOW_NAME}' invoked!")
-        users = self._get_users()
+        users = self._get_all_users()
+
+        # iterate over all users in db
+        num_newsletters_sent: int = 0
         for user in users:
-            # ensure user email address is verified
+
+            # ensure user is verified
             if not user.verified:
                 log.info(
                     f"Not sending newsletter to '{user.email}' as email address has not been verified."
                 )
                 continue
 
-            # ensure user is currently subscribed to newsletter
+            # ensure the user is subscribed
             if not user.subscribed:
                 log.info(
-                    f"Not sending newsletter to '{user.email}' because user is not currently subscribed."
+                    f"Not sending newsletter to '{user.email}' because user is unsubscribed.."
                 )
                 continue
 
+            # ensure user has active Stripe newsletter subscription or is in free trial
+            if (
+                user.stripe_subscription_id is None
+                and NOW > user.free_trial_end_date.astimezone(datetime.UTC)
+            ):
+                log.info(
+                    f"Not sending newsletter to '{user.email}' because user has no active Stripe newsletter subscription and their free trial expired on '{user.free_trial_end_date}'."
+                )
+                continue
+
+            # send newsletter to user
+            num_newsletters_sent += 1
             self._add_newsletter_request(user)
 
-        self._emit_metrics(users)
+        metrics = self._emit_metrics(users, num_newsletters_sent)
 
-        return self._get_response(users)
+        return self._get_response(metrics)
 
-    def _get_users(self) -> List[User]:
+    def _get_all_users(self) -> List[User]:
         log.info("Scanning WalterDB Users table for all users...")
         users = self.walter_db.get_users()
         log.info(f"WalterDB returned {len(users)} users!")
@@ -89,30 +125,80 @@ class AddNewsletterRequests:
         request = NewsletterRequest(email=user.email)
         self.newsletters_queue.add_newsletter_request(request)
 
-    def _emit_metrics(self, users: List[User]) -> None:
+    def _emit_metrics(
+        self, users: List[User], num_newsletters_sent: int
+    ) -> AddNewsletterRequestsMetrics:
         log.info("Emitting metrics about the total number of users...")
         verified_users = [user for user in users if user.verified]
         unverified_users = [user for user in users if not user.verified]
         subscribed_users = [user for user in users if user.subscribed]
         unsubscribed_users = [user for user in users if not user.subscribed]
-        self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_USERS, count=len(users)
+        paid_users = [user for user in users if user.stripe_subscription_id]
+        free_trial_users = [
+            user
+            for user in users
+            if not user.stripe_subscription_id
+            and NOW <= user.free_trial_end_date.astimezone(datetime.UTC)
+        ]
+        expired_free_trial_users = [
+            user
+            for user in users
+            if not user.stripe_subscription_id
+            and NOW > user.free_trial_end_date.astimezone(datetime.UTC)
+        ]
+        metrics = AddNewsletterRequestsMetrics(
+            number_of_users=len(users),
+            number_of_verified_users=len(verified_users),
+            number_of_unverified_users=len(unverified_users),
+            number_of_subscribed_users=len(subscribed_users),
+            number_of_unsubscribed_users=len(unsubscribed_users),
+            number_of_paid_users=len(paid_users),
+            number_of_free_trial_users=len(free_trial_users),
+            number_of_expired_free_trial_users=len(expired_free_trial_users),
+            number_newsletters_sent=num_newsletters_sent,
         )
         self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_VERIFIED_USERS, count=len(verified_users)
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_USERS,
+            count=metrics.number_of_users,
         )
         self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_UNVERIFIED_USERS, count=len(unverified_users)
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_VERIFIED_USERS,
+            count=metrics.number_of_verified_users,
         )
         self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_SUBSCRIBED_USERS, count=len(subscribed_users)
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_UNVERIFIED_USERS,
+            count=metrics.number_of_unverified_users,
         )
         self.walter_cw.emit_metric(
-            metric_name=METRICS_NUMBER_OF_UNSUBSCRIBED_USERS,
-            count=len(unsubscribed_users),
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_SUBSCRIBED_USERS,
+            count=metrics.number_of_subscribed_users,
         )
+        self.walter_cw.emit_metric(
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_UNSUBSCRIBED_USERS,
+            count=metrics.number_of_unsubscribed_users,
+        )
+        self.walter_cw.emit_metric(
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_PAID_USERS,
+            count=metrics.number_of_paid_users,
+        )
+        self.walter_cw.emit_metric(
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_FREE_TRIAL_USERS,
+            count=metrics.number_of_free_trial_users,
+        )
+        self.walter_cw.emit_metric(
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_EXPIRED_FREE_TRIAL_USERS,
+            count=metrics.number_of_expired_free_trial_users,
+        )
+        self.walter_cw.emit_metric(
+            metric_name=AddNewsletterRequestsMetrics.NUMBER_OF_NEWSLETTERS_SENT,
+            count=metrics.number_newsletters_sent,
+        )
+        return metrics
 
-    def _get_response(self, users: List[User]) -> dict:
+    def _get_response(
+        self,
+        metrics: AddNewsletterRequestsMetrics,
+    ) -> dict:
         return {
             "statusCode": HTTPStatus.OK.value,
             "body": json.dumps(
@@ -122,7 +208,15 @@ class AddNewsletterRequests:
                     "Message": "Added newsletter requests!",
                     "Data": {
                         "newsletters_queue": self.newsletters_queue.queue_url,
-                        "number_of_users": len(users),
+                        "total_number_of_users_count": metrics.number_of_users,
+                        "verified_users_count": metrics.number_of_verified_users,
+                        "unverified_users_count": metrics.number_of_unverified_users,
+                        "subscribed_users_count": metrics.number_of_subscribed_users,
+                        "unsubscribed_users_count": metrics.number_of_unsubscribed_users,
+                        "paid_users_count": metrics.number_of_paid_users,
+                        "free_trial_users_count": metrics.number_of_free_trial_users,
+                        "expired_free_trial_users_count": metrics.number_of_expired_free_trial_users,
+                        "total_number_of_newsletter_sent": metrics.number_newsletters_sent,
                     },
                 }
             ),
