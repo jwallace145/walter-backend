@@ -77,6 +77,7 @@ class NewsletterConfig:
 
     template: SupportedTemplate = SupportedTemplate.DEFAULT
     cents_per_month: int = 100
+    free_trial_length_days: int = 30
     schedule: str = "cron(0 11 ? * MON-FRI *)"  # every business day at 6am EDT
 
     def to_dict(self) -> dict:
@@ -162,6 +163,9 @@ def get_walter_config() -> WalterConfig:
             newsletter=NewsletterConfig(
                 template=get_supported_template(config_yaml["newsletter"]["template"]),
                 cents_per_month=config_yaml["newsletter"]["cents_per_month"],
+                free_trial_length_days=config_yaml["newsletter"][
+                    "free_trial_length_days"
+                ],
                 schedule=config_yaml["newsletter"]["schedule"],
             ),
         )

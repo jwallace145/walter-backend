@@ -66,6 +66,9 @@ class GetUser(WalterAPIMethod):
                 "subscribed": user.subscribed,
                 "sign_up_date": user.sign_up_date.strftime(GetUser.DATE_FORMAT),
                 "last_active_date": user.last_active_date.strftime(GetUser.DATE_FORMAT),
+                "free_trial_end_date": user.free_trial_end_date.strftime(
+                    GetUser.DATE_FORMAT
+                ),
             },
         )
 
