@@ -69,14 +69,7 @@ class GetUser(WalterAPIMethod):
                 "free_trial_end_date": user.free_trial_end_date.strftime(
                     GetUser.DATE_FORMAT
                 ),
-                "stripe_customer_id": (
-                    "N/A" if not user.stripe_customer_id else user.stripe_customer_id
-                ),
-                "stripe_subscription_id": (
-                    "N/A"
-                    if not user.stripe_subscription_id
-                    else user.stripe_subscription_id
-                ),
+                "active_stripe_subscription": True if user.stripe_subscription_id else False,
             },
         )
 
