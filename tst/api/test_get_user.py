@@ -23,6 +23,7 @@ def get_user_api(
 
 def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
     event = get_get_user_event(token=jwt_walter)
+    utc_now = datetime.datetime.now(datetime.UTC)
     expected_response = get_expected_response(
         api_name=get_user_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -36,7 +37,10 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
             "sign_up_date": datetime.datetime(
                 year=2024, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
             ).strftime("%Y-%m-%d"),
-            "last_active_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "last_active_date": utc_now.strftime("%Y-%m-%d"),
+            "free_trial_end_date": (utc_now + datetime.timedelta(days=31)).strftime(
+                "%Y-%m-%d"
+            ),
         },
     )
     assert expected_response == get_user_api.invoke(event)

@@ -2,6 +2,8 @@ import json
 from dataclasses import dataclass
 import datetime as dt
 
+from src.config import CONFIG
+
 
 @dataclass
 class User:
@@ -14,6 +16,9 @@ class User:
     password_hash: str
     sign_up_date: dt.datetime = dt.datetime.now(dt.UTC)
     last_active_date: dt.datetime = dt.datetime.now(dt.UTC)
+    free_trial_end_date: dt.datetime = dt.datetime.now(dt.UTC) + dt.timedelta(
+        days=CONFIG.newsletter.free_trial_length_days
+    )
     verified: bool = False
     subscribed: bool = True
     stripe_subscription_id: str = None
@@ -37,6 +42,7 @@ class User:
             "password_hash": self.password_hash,
             "sign_up_date": self.sign_up_date.isoformat(),
             "last_active_date": self.last_active_date.isoformat(),
+            "free_trial_end_date": self.free_trial_end_date.isoformat(),
             "verified": self.verified,
             "subscribed": self.subscribed,
             "stripe_subscription_id": self.stripe_subscription_id,
@@ -64,6 +70,7 @@ class User:
             "password_hash": {"S": self.password_hash},
             "sign_up_date": {"S": self.sign_up_date.isoformat()},
             "last_active_date": {"S": self.last_active_date.isoformat()},
+            "free_trial_end_date": {"S": self.free_trial_end_date.isoformat()},
             "verified": {"BOOL": self.verified},
             "subscribed": {"BOOL": self.subscribed},
             "stripe_subscription_id": {"S": stripe_subscription_id},

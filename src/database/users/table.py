@@ -97,6 +97,9 @@ class UsersTable:
             password_hash=item["password_hash"]["S"],
             last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
             sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),
+            free_trial_end_date=dt.datetime.fromisoformat(
+                item["free_trial_end_date"]["S"]
+            ),
             verified=item["verified"]["BOOL"],
             subscribed=item["subscribed"]["BOOL"],
             stripe_customer_id=stripe_customer_id,
