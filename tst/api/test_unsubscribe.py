@@ -19,16 +19,13 @@ def unsubscribe_api(
     return Unsubscribe(walter_authenticator, walter_cw, walter_db, walter_sm)
 
 
-def test_unsubscribe_success(
+def test_unsubscribe_success_unsubscribe_during_free_trial(
     unsubscribe_api: Unsubscribe,
-    walter_authenticator: WalterAuthenticator,
     walter_db: WalterDB,
+    jwt_lucy: str,
 ) -> None:
-    user = walter_db.get_user("walter@gmail.com")
-    user.subscribed = True
-    walter_db.update_user(user)
-    token = walter_authenticator.generate_user_token("walter@gmail.com")
-    event = get_unsubscribe_event(token)
+    # test user created with infinite free trial
+    event = get_unsubscribe_event(jwt_lucy)
     expected_response = get_expected_response(
         api_name=unsubscribe_api.API_NAME,
         status_code=HTTPStatus.OK,

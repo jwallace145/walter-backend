@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 import datetime as dt
+from typing import Optional
 
 from src.config import CONFIG
 
@@ -21,8 +22,8 @@ class User:
     )
     verified: bool = False
     subscribed: bool = True
-    stripe_subscription_id: str = None
-    stripe_customer_id: str = None
+    stripe_subscription_id: Optional[str] = None
+    stripe_customer_id: Optional[str] = None
 
     def __eq__(self, other) -> bool:
         if isinstance(other, User):
