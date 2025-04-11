@@ -1,14 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "WalterBackend infrastructure"
+Description: "Walter Backend Infrastructure"
 
 ##################
 ### PARAMETERS ###
 ##################
 
 Parameters:
+
   AppEnvironment:
     Type: String
-    Description: The environment of the Walter backend stack
+    Description: The environment of the Walter Backend stack
     Default: dev
     AllowedValues:
       - dev
@@ -30,6 +31,9 @@ Resources:
     Properties:
       Name: !Sub "WalterAPI-${AppEnvironment}"
       Description: "API Gateway for WalterAPI"
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIAuthResource:
     Type: AWS::ApiGateway::Resource
@@ -1079,6 +1083,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPICreateUserAlias:
     Type: AWS::Lambda::Alias
@@ -1113,6 +1120,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetUserAlias:
     Type: AWS::Lambda::Alias
@@ -1147,6 +1157,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetStockAlias:
     Type: AWS::Lambda::Alias
@@ -1181,6 +1194,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetStatisticsAlias:
     Type: AWS::Lambda::Alias
@@ -1215,6 +1231,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIAddStockAlias:
     Type: AWS::Lambda::Alias
@@ -1249,6 +1268,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIDeleteStockAlias:
     Type: AWS::Lambda::Alias
@@ -1283,6 +1305,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetPricesAlias:
     Type: AWS::Lambda::Alias
@@ -1317,6 +1342,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetNewsSummaryAlias:
     Type: AWS::Lambda::Alias
@@ -1351,6 +1379,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetPortfolioAlias:
     Type: AWS::Lambda::Alias
@@ -1385,6 +1416,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISendNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1419,6 +1453,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1453,6 +1490,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
 
   WalterAPIGetNewslettersAlias:
@@ -1488,6 +1528,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
 
   WalterAPISendVerifyEmailAlias:
@@ -1524,6 +1567,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIVerifyEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1531,7 +1577,6 @@ Resources:
       FunctionName: !Ref WalterAPIVerifyEmail
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-VerifyEmail-${AppEnvironment}"
-
 
   WalterAPIVerifyEmail:
     Type: AWS::Lambda::Function
@@ -1559,6 +1604,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISendChangePasswordEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1566,7 +1614,6 @@ Resources:
       FunctionName: !Ref WalterAPISendChangePasswordEmail
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-SendChangePasswordEmail-${AppEnvironment}"
-
 
   WalterAPISendChangePasswordEmail:
     Type: AWS::Lambda::Function
@@ -1594,6 +1641,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIChangePasswordAlias:
     Type: AWS::Lambda::Alias
@@ -1601,7 +1651,6 @@ Resources:
       FunctionName: !Ref WalterAPIChangePassword
       FunctionVersion: $LATEST
       Name: !Sub "WalterAPI-ChangePassword-${AppEnvironment}"
-
 
   WalterAPIChangePassword:
     Type: AWS::Lambda::Function
@@ -1629,6 +1678,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -1663,6 +1715,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIUnsubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -1697,6 +1752,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISearchStocksAlias:
     Type: AWS::Lambda::Alias
@@ -1731,6 +1789,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -1765,6 +1826,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIVerifyPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -1799,6 +1863,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsletterRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -1833,6 +1900,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsSummaryRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -1867,6 +1937,9 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveAlias:
     Type: AWS::Lambda::Alias
@@ -1904,6 +1977,9 @@ Resources:
           DOMAIN: DEVELOPMENT
       DeadLetterConfig:
         TargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -1949,6 +2025,9 @@ Resources:
             DOMAIN: DEVELOPMENT
         DeadLetterConfig:
           TargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
+        Tags:
+          - Key: "awsApplication"
+            Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterBackendFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -1973,6 +2052,9 @@ Resources:
           - AttributeName: symbol
             KeyType: HASH
       TableName: !Sub "Stocks-${AppEnvironment}"
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   UsersStocksTable:
     Type: AWS::DynamoDB::Table
@@ -1989,6 +2071,9 @@ Resources:
           - AttributeName: stock_symbol
             KeyType: RANGE
       TableName: !Sub "UsersStocks-${AppEnvironment}"
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   UsersTable:
     Type: AWS::DynamoDB::Table
@@ -2010,6 +2095,9 @@ Resources:
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   #################
   ### IAM ROLES ###
@@ -2473,6 +2561,9 @@ Resources:
           - Id: "DeleteOldNewsletters"
             Status: "Enabled"
             ExpirationInDays: 30
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewslettersBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -2504,6 +2595,9 @@ Resources:
           - Id: "DeleteOldNewsSummaries"
             Status: "Enabled"
             ExpirationInDays: 30
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -2543,6 +2637,9 @@ Resources:
               SSEAlgorithm: "AES256"
       VersioningConfiguration:
         Status: Enabled
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   TemplatesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -2577,6 +2674,9 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
         maxReceiveCount: 1
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewslettersDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -2585,6 +2685,9 @@ Resources:
       SqsManagedSseEnabled: true
       VisibilityTimeout: 90
       MessageRetentionPeriod: 1209600 # two weeks
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesQueue:
     Type: AWS::SQS::Queue
@@ -2595,6 +2698,9 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
         maxReceiveCount: 1
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -2603,6 +2709,9 @@ Resources:
       SqsManagedSseEnabled: true
       VisibilityTimeout: 90
       MessageRetentionPeriod: 1209600 # two weeks
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
 ###############
 ### OUTPUTS ###
