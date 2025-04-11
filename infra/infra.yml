@@ -52,7 +52,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}:4/invocations" # provisioned concurrency -> version 4
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}:release/invocations" # provisioned concurrency -> release alias
       MethodResponses:
         - StatusCode: 200
 
@@ -89,7 +89,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIAuth.Arn}:4" # provision concurrency -> version 4
+      FunctionName: !Sub "${WalterAPIAuth.Arn}:release" # provisioned concurrency -> release alias
       Principal: apigateway.amazonaws.com
 
   WalterAPIUsers:
