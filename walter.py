@@ -22,6 +22,7 @@ from src.api.verify_email import VerifyEmail
 from src.api.verify_purchase_newsletter_subscription import (
     VerifyPurchaseNewsletterSubscription,
 )
+from src.canaries.auth_user import AuthUserCanary
 from src.clients import (
     walter_cw,
     walter_db,
@@ -195,6 +196,15 @@ def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return VerifyPurchaseNewsletterSubscription(
         walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
     ).invoke(event)
+
+
+###################
+# WALTER CANARIES #
+###################
+
+
+def auth_user_canary_entrypoint(event, context) -> dict:
+    return AuthUserCanary().invoke()
 
 
 ####################

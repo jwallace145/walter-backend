@@ -41,7 +41,7 @@ def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:
             "free_trial_end_date": datetime.datetime(
                 year=2024, month=1, day=31, hour=0, minute=0, second=0, microsecond=0
             ).strftime("%Y-%m-%d"),
-            "active_stripe_subscription": True
+            "active_stripe_subscription": True,
         },
     )
     assert expected_response == get_user_api.invoke(event)

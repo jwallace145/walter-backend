@@ -54,6 +54,7 @@ from walter import (
     get_newsletters_entrypoint,
     get_newsletter_entrypoint,
     get_statistics_entrypoint,
+    auth_user_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -249,6 +250,18 @@ def verify_purchase_newsletter_subscription(
     log.info(
         f"WalterCLI: VerifyPurchaseNewsletterSubscription Response:\n{parse_response(response)}"
     )
+
+
+###################
+# WALTER CANARIES #
+###################
+
+
+@app.command()
+def auth_user_canary() -> None:
+    log.info("WalterCLI: AuthUserCanary...")
+    response = auth_user_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: AuthUserCanary Response:\n{response}")
 
 
 ####################
