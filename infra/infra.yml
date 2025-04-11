@@ -2119,6 +2119,9 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterNewslettersRole:
     Type: AWS::IAM::Role
@@ -2136,6 +2139,9 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsSummaryRequestsRole:
     Type: AWS::IAM::Role
@@ -2153,6 +2159,9 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveRole:
     Type: AWS::IAM::Role
@@ -2170,6 +2179,9 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterBackendRole:
     Type: AWS::IAM::Role
@@ -2187,6 +2199,9 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   ####################
   ### IAM POLICIES ###
