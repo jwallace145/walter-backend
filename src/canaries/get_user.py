@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import requests
 
 from src.api.common.models import Status
+from src.auth.authenticator import WalterAuthenticator
 from src.canaries.common.models import CanaryResponse
 from src.utils.log import Logger
 
@@ -11,34 +12,33 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class AuthUserCanary:
+class GetUserCanary:
     """
-    WalterCanary: AuthUserCanary
+    WalterCanary: GetUserCanary
 
-    This canary calls the AuthUser API and ensures
-    the canary user is able to authenticate successfully.
+    This canary calls the GetUser API and ensures
+    that Walter can verify authenticated users
+    identity successfully.
     """
 
-    CANARY_NAME = "AuthUserCanary"
-    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/auth"
+    CANARY_NAME = "GetUserCanary"
+    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/users"
     USER_EMAIL = "canary@walterai.dev"
-    USER_PASSWORD = "CanaryPassword1234&"
+
+    authenticator: WalterAuthenticator
 
     def __post_init__(self) -> None:
-        log.debug(f"Initializing {AuthUserCanary.CANARY_NAME}")
+        log.debug(f"Initializing {GetUserCanary.CANARY_NAME}")
 
     def invoke(self) -> dict:
-        log.info(f"Invoked '{AuthUserCanary.CANARY_NAME}'!")
+        log.info(f"Invoked '{GetUserCanary.CANARY_NAME}'!")
 
         start = dt.datetime.now(dt.UTC)
 
-        response = requests.post(
-            url=AuthUserCanary.API_URL,
-            json={
-                "email": AuthUserCanary.USER_EMAIL,
-                "password": AuthUserCanary.USER_PASSWORD,
-            },
-            headers={"content-type": "application/json"},
+        token = self.authenticator.generate_user_token(email=GetUserCanary.USER_EMAIL)
+        response = requests.get(
+            GetUserCanary.API_URL,
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         end = dt.datetime.now(dt.UTC)
@@ -48,7 +48,7 @@ class AuthUserCanary:
         )
 
         return CanaryResponse(
-            canary_name=AuthUserCanary.CANARY_NAME,
+            canary_name=GetUserCanary.CANARY_NAME,
             status=Status.SUCCESS if response.status_code == 200 else Status.FAILURE,
             response_time_millis=(end - start).total_seconds() * 1000,
         ).to_json()

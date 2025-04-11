@@ -55,6 +55,8 @@ from walter import (
     get_newsletter_entrypoint,
     get_statistics_entrypoint,
     auth_user_canary_entrypoint,
+    get_user_canary_entrypoint,
+    get_portfolio_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -261,7 +263,21 @@ def verify_purchase_newsletter_subscription(
 def auth_user_canary() -> None:
     log.info("WalterCLI: AuthUserCanary...")
     response = auth_user_canary_entrypoint({}, CONTEXT)
-    log.info(f"WalterCLI: AuthUserCanary Response:\n{response}")
+    log.info(f"WalterCLI: AuthUserCanary Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_user_canary() -> None:
+    log.info("WalterCLI: GetUserCanary...")
+    response = get_user_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetUserCanary Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_portfolio_canary() -> None:
+    log.info("WalterCLI: GetPortfolioCanary...")
+    response = get_portfolio_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetPortfolioCanary Response:\n{parse_response(response)}")
 
 
 ####################
