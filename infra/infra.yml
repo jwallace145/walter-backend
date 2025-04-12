@@ -345,7 +345,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPrices.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPrices.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -353,7 +353,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetPrices
+      FunctionName: !Sub "${WalterAPIGetPrices.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPINews:
@@ -1321,8 +1321,10 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
-      FunctionVersion: $LATEST
+      FunctionVersion: 3
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetPrices:
     Type: AWS::Lambda::Function
@@ -1966,6 +1968,43 @@ Resources:
       FunctionName: !Sub "WalterCanary-GetPortfolioCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetPortfolio - Call the GetPortfolio API for the canary account to verify users can get their portfolio information (${AppEnvironment})"
       Handler: walter.get_portfolio_canary_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.11
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Join
+          - ""
+          - - "arn:aws:lambda:"
+            - !Ref "AWS::Region"
+            - ":"
+            - !Ref "AWS::AccountId"
+            - ":layer:"
+            - "WalterAILambdaLayer:30"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
+
+  WalterCanaryGetPricesCanaryAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterCanaryGetPricesCanary
+      FunctionVersion: $LATEST
+      Name: "release"
+
+  WalterCanaryGetPricesCanary:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterCanary-GetPricesCanary-${AppEnvironment}"
+      Description: !Sub "WalterCanary: GetPricesCanary - Call the GetPrices API to verify the ability to get the latest stock market pricing data (${AppEnvironment})"
+      Handler: walter.get_prices_canary_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
