@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.stocks.client import WalterStocksAPI
@@ -41,10 +42,11 @@ class SearchStocks(WalterAPIMethod):
         )
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         stock = self._get_symbol(event)
         stocks = self.walter_stocks_api.search_stock(stock)
-        return self._create_response(
+        return Response(
+            api_name=SearchStocks.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved matching stocks!",

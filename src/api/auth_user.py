@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.api.common.utils import is_valid_email
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -53,12 +54,13 @@ class AuthUser(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(event)
         self._verify_password(event, user)
         self._update_last_active_date(user)
         token = self.authenticator.generate_user_token(user.email)
-        return self._create_response(
+        return Response(
+            api_name=AuthUser.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="User authenticated!",

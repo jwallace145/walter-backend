@@ -7,7 +7,7 @@ from src.api.common.exceptions import (
     EmailAlreadySubscribed,
 )
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -69,7 +69,7 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
         self.walter_sm = walter_sm
         self.walter_payments = walter_payments
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(authenticated_email)
         self._verify_user_email_verified(user)
         self._verify_user_not_already_subscribed(user)
@@ -77,7 +77,8 @@ class PurchaseNewsletterSubscription(WalterAPIMethod):
             success_url=PurchaseNewsletterSubscription.SUCCESS_URL,
             cancel_url=PurchaseNewsletterSubscription.CANCEL_URL,
         )
-        return self._create_response(
+        return Response(
+            api_name=PurchaseNewsletterSubscription.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Checkout session created!",

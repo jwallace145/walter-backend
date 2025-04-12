@@ -7,6 +7,7 @@ from src.api.common.exceptions import (
     EmailAlreadyVerified,
 )
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.ses.client import WalterSESClient
@@ -59,11 +60,12 @@ class SendVerifyEmail(WalterAPIMethod):
         self.templates_engine = templates_engine
         self.templates_bucket = templates_bucket
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
         self._verify_user_not_already_verified(user)
         self._generate_and_send_verify_email(user)
-        return self._create_response(
+        return Response(
+            api_name=SendVerifyEmail.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully sent verify email!",

@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, NotAuthenticated, InvalidPassword
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.api.common.utils import is_valid_password
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -45,10 +46,11 @@ class ChangePassword(WalterAPIMethod):
         )
         self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         email = self._validate_token(event)
         self._update_user_password(email, event)
-        return self._create_response(
+        return Response(
+            api_name=ChangePassword.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully changed password!",

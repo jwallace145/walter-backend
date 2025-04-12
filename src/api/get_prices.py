@@ -4,6 +4,7 @@ from typing import List
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -51,11 +52,12 @@ class GetPrices(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         stock = self._get_stock_from_url(event)
         stock = self._verify_stock_exists(stock)
         prices = self._get_prices(stock)
-        return self._create_response(
+        return Response(
+            api_name=GetPrices.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved prices!",

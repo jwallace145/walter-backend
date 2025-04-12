@@ -43,6 +43,9 @@ class Response:
     http_status: HTTPStatus
     status: Status
     message: str
+    response_time_millis: Optional[float] = (
+        None  # optional response time can be included in response
+    )
     data: Optional[dict] = None  # optional data can be included in response
 
     def to_json(self) -> dict:
@@ -51,6 +54,10 @@ class Response:
             "Status": self.status.value,
             "Message": self.message,
         }
+
+        # if response time millis is set, add to response body obj
+        if self.response_time_millis is not None:
+            body["ResponseTimeMillis"] = self.response_time_millis
 
         # if data is included, add to response dict
         if self.data is not None:
@@ -61,3 +68,14 @@ class Response:
             "headers": Response.HEADERS,
             "body": json.dumps(body),
         }
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Response):
+            return False
+        return (
+            self.api_name == other.api_name
+            and self.http_status == other.http_status
+            and self.status == other.status
+            and self.message == other.message
+            and self.data == other.data
+        )

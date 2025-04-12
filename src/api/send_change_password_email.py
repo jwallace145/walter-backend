@@ -3,6 +3,7 @@ from typing import Tuple
 from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.ses.client import WalterSESClient
@@ -48,7 +49,7 @@ class SendChangePasswordEmail(WalterAPIMethod):
         self.templates_engine = templates_engine
         self.templates_bucket = templates_bucket
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         # get email from query parameters
         email = self._get_email(event)
 
@@ -78,7 +79,8 @@ class SendChangePasswordEmail(WalterAPIMethod):
         )
 
         # return success response
-        return self._create_response(
+        return Response(
+            api_name=SendChangePasswordEmail.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully sent change password email!",

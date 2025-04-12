@@ -6,6 +6,7 @@ from src.api.common.exceptions import (
 )
 from dataclasses import dataclass
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -46,13 +47,14 @@ class VerifyEmail(WalterAPIMethod):
         )
         self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         token = self.authenticator.get_token(event)
         email = self._validate_token(token)
         user = self._verify_user(email)
         self._verify_user_email(user)
         token = self._get_user_token(user)
-        return self._create_response(
+        return Response(
+            api_name=VerifyEmail.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully verified email!",

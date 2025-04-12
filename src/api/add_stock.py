@@ -9,6 +9,7 @@ from src.api.common.exceptions import (
     MaximumNumberOfStocks,
 )
 from src.api.common.methods import WalterAPIMethod, Status, HTTPStatus
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -67,14 +68,15 @@ class AddStock(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         body = json.loads(event["body"])
         symbol = body["stock"].upper()
         quantity = body["quantity"]
         stock = self._verify_stock_exists(symbol)
         self._verify_max_num_stocks(authenticated_email)
         self._add_stock_to_user_portfolio(authenticated_email, stock, quantity)
-        return self._create_response(
+        return Response(
+            api_name=AddStock.API_NAME,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
             message="Stock added!",

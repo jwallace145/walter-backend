@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.stocks.client import WalterStocksAPI
@@ -42,14 +42,16 @@ class GetStatistics(WalterAPIMethod):
         )
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         symbol = WalterAPIMethod.get_query_field(
             event, GetStatistics.SYMBOL_QUERY_FIELD
         )
         statistics = self.walter_stocks_api.get_statistics(symbol)
         if not statistics:
             raise StockDoesNotExist("Stock does not exist!")
-        return self._create_response(
+
+        return Response(
+            api_name=GetStatistics.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved company statistics!",

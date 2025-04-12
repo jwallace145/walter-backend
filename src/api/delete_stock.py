@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass
 from src.api.common.exceptions import BadRequest, NotAuthenticated, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, Status, HTTPStatus
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -49,7 +50,7 @@ class DeleteStock(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         body = json.loads(event["body"])
         self.walter_db.delete_stock_from_user_portfolio(
             UserStock(
@@ -58,7 +59,8 @@ class DeleteStock(WalterAPIMethod):
                 quantity=0,
             )
         )
-        return self._create_response(
+        return Response(
+            api_name=DeleteStock.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Stock deleted!",

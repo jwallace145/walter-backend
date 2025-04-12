@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -58,7 +59,7 @@ class GetNewsSummary(WalterAPIMethod):
         self.news_summaries_bucket = news_summaries_bucket
         self.news_summaries_queue = news_summaries_queue
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         symbol = self._get_symbol(event)
 
         stock = self._verify_stock_exists(symbol)
@@ -67,7 +68,8 @@ class GetNewsSummary(WalterAPIMethod):
 
         summary = self._check_archive_for_summary(stock)
         if summary is not None:
-            return self._create_response(
+            return Response(
+                api_name=GetNewsSummary.API_NAME,
                 http_status=HTTPStatus.OK,
                 status=Status.SUCCESS,
                 message="Retrieved news!",
@@ -80,10 +82,11 @@ class GetNewsSummary(WalterAPIMethod):
             )
 
         self._add_news_summary_request(stock.symbol)
-        return self._create_response(
+        return Response(
+            api_name=GetNewsSummary.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="News summary not found, generating summary now...!",
+            message="News summary not found! Generating news summary now...",
             data={"summary": "Generating news summary, check back later..."},
         )
 
