@@ -59,6 +59,7 @@ from walter import (
     get_portfolio_canary_entrypoint,
     get_prices_canary_entrypoint,
     get_news_summary_canary_entrypoint,
+    get_stock_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -273,6 +274,13 @@ def get_user_canary() -> None:
     log.info("WalterCLI: GetUserCanary...")
     response = get_user_canary_entrypoint({}, CONTEXT)
     log.info(f"WalterCLI: GetUserCanary Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_stock_canary() -> None:
+    log.info("WalterCLI: GetStockCanary...")
+    response = get_stock_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetStockCanary Response:\n{parse_response(response)}")
 
 
 @app.command()

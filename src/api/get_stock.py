@@ -55,16 +55,17 @@ class GetStock(WalterAPIMethod):
         symbol = self._get_symbol(event)
 
         # check walter db for stock
-        # stock = self._query_walter_db(symbol)
-        # if stock is not None:
-        #     return self._create_response(
-        #         http_status=HTTPStatus.OK,
-        #         status=Status.SUCCESS,
-        #         message="Retrieved stock details!",
-        #         data={
-        #             "stock": stock.to_dict(),
-        #         },
-        #     )
+        stock = self._query_walter_db(symbol)
+        if stock is not None:
+            return Response(
+                api_name=GetStock.API_NAME,
+                http_status=HTTPStatus.OK,
+                status=Status.SUCCESS,
+                message="Retrieved stock details!",
+                data={
+                    "stock": stock.to_dict(),
+                },
+            )
 
         stock = self._verify_stock_exists(symbol)
         self._add_stock_to_db(stock)
