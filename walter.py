@@ -23,6 +23,7 @@ from src.api.verify_purchase_newsletter_subscription import (
     VerifyPurchaseNewsletterSubscription,
 )
 from src.canaries.auth_user import AuthUserCanary
+from src.canaries.get_news_summary import GetNewsSummaryCanary
 from src.canaries.get_portfolio import GetPortfolioCanary
 from src.canaries.get_prices import GetPricesCanary
 from src.canaries.get_user import GetUserCanary
@@ -288,6 +289,10 @@ def get_portfolio_canary_entrypoint(event, context) -> dict:
 
 def get_prices_canary_entrypoint(event, context) -> dict:
     return GetPricesCanary().invoke()
+
+
+def get_news_summary_canary_entrypoint(event, context) -> dict:
+    return GetNewsSummaryCanary().invoke()
 
 
 ####################
