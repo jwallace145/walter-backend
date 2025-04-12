@@ -373,7 +373,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsSummary.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsSummary.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -410,7 +410,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetNewsSummary
+      FunctionName: !Sub "${WalterAPIGetNewsSummary.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetPortfolioResource:
@@ -1360,8 +1360,10 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsSummary
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetNewsSummary-${AppEnvironment}"
+      FunctionVersion: 1
+      Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetNewsSummary:
     Type: AWS::Lambda::Function
