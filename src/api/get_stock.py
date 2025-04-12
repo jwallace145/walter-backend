@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import BadRequest, StockDoesNotExist
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -49,7 +50,7 @@ class GetStock(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         # get symbol from query params
         symbol = self._get_symbol(event)
 
@@ -68,7 +69,8 @@ class GetStock(WalterAPIMethod):
         stock = self._verify_stock_exists(symbol)
         self._add_stock_to_db(stock)
 
-        return self._create_response(
+        return Response(
+            api_name=GetStock.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved stock details!",

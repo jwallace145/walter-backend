@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from src.api.common.exceptions import UserDoesNotExist, NotAuthenticated
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -14,6 +15,12 @@ from src.database.client import WalterDB
 class GetUser(WalterAPIMethod):
     """
     WalterAPI - GetUser
+
+    This API gets the user from their identity token. Walter
+    uses JSON web tokens to authenticate users and this method
+    is responsible for validating identity tokens and returning
+    user information. This API method is used by the frontend
+    to display all user information.
     """
 
     DATE_FORMAT = "%Y-%m-%d"
@@ -46,7 +53,7 @@ class GetUser(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self.walter_db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User does not exist!")
@@ -55,7 +62,8 @@ class GetUser(WalterAPIMethod):
         user.last_active_date = dt.datetime.now(dt.UTC)
         self.walter_db.update_user(user)
 
-        return self._create_response(
+        return Response(
+            api_name=GetUser.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully retrieved user!",

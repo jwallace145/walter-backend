@@ -12,8 +12,8 @@ echo Publishing new WalterAPI Auth Lambda version \
 && aws lambda publish-version --function-name WalterAPI-DeleteStock-dev \
 && echo Publishing new WalterAPI GetPrices Lambda version \
 && aws lambda publish-version --function-name WalterAPI-GetPrices-dev \
-&& echo Publishing new WalterAPI GetNews Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-GetNews-dev \
+&& echo Publishing new WalterAPI GetNewsSummary Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetNewsSummary-dev \
 && echo Publishing new WalterAPI GetPortfolio Lambda version \
 && aws lambda publish-version --function-name WalterAPI-GetPortfolio-dev \
 && echo Publishing new WalterAPI SendNewsletter Lambda version \

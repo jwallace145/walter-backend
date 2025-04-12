@@ -1,6 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
+import datetime as dt
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated
 from src.api.common.models import HTTPStatus, Status, Response
@@ -17,13 +18,16 @@ log = Logger(__name__).get_logger()
 # Metrics included in this file are emitted for all APIs
 
 METRICS_SUCCESS_COUNT = "SuccessCount"
-"""The number of successful API invocations."""
+"""(str): The number of successful API invocations."""
 
 METRICS_FAILURE_COUNT = "FailureCount"
-"""The number of failed API invocations."""
+"""(str): The number of failed API invocations."""
 
 METRICS_TOTAL_COUNT = "TotalCount"
-"""The total number of API invocations."""
+"""(str): The total number of API invocations."""
+
+METRICS_RESPONSE_TIME_MILLISECONDS = "ResponseTimeMilliseconds"
+"""(str): The response time for the API invocation in milliseconds."""
 
 #########################################
 # WALTER API ABSTRACT BASE METHOD CLASS #
@@ -55,7 +59,7 @@ class WalterAPIMethod(ABC):
         self.authenticator = authenticator
         self.metrics = metrics
 
-    def invoke(self, event: dict) -> dict:
+    def invoke(self, event: dict) -> Response:
         """
         Invoke the API.
 
@@ -69,6 +73,9 @@ class WalterAPIMethod(ABC):
         """
         log.info(f"Invoking '{self.api_name}' API")
         log.debug(f"Event:\n{json.dumps(event, indent=4)}")
+
+        # start timing the invocation for response time metrics
+        start = dt.datetime.now(dt.UTC)
 
         response = None
         try:
@@ -84,6 +91,11 @@ class WalterAPIMethod(ABC):
             log.error("Error occurred during API invocation!", exc_info=True)
             response = self._handle_exception(exception)
         finally:
+            # get invocation time in millis and add to response
+            end = dt.datetime.now(dt.UTC)
+            response.response_time_millis = (end - start).total_seconds() * 1000
+
+            # emit api metrics after adding elapsed time to response obj
             self.emit_metrics(response)
 
         return response
@@ -208,7 +220,7 @@ class WalterAPIMethod(ABC):
 
         return user_email
 
-    def _handle_exception(self, exception: Exception) -> dict:
+    def _handle_exception(self, exception: Exception) -> Response:
         """
         Handle exceptions thrown during API invocation.
 
@@ -233,24 +245,14 @@ class WalterAPIMethod(ABC):
                 break
 
         # return failure response
-        return self._create_response(
-            status,
-            Status.FAILURE,
-            str(exception),
-        )
-
-    def _create_response(
-        self, http_status: HTTPStatus, status: Status, message: str, data: dict = None
-    ) -> dict:
         return Response(
             api_name=self.api_name,
-            http_status=http_status,
-            status=status,
-            message=message,
-            data=data,
-        ).to_json()
+            http_status=status,
+            status=Status.FAILURE,
+            message=str(exception),
+        )
 
-    def emit_metrics(self, response: dict) -> None:
+    def emit_metrics(self, response: Response) -> None:
         """
         Emit the common metrics for the API.
 
@@ -258,7 +260,7 @@ class WalterAPIMethod(ABC):
             response: The API response object.
         """
         log.info(f"Emitting metrics for '{self.api_name}' API")
-        success = response["statusCode"] == HTTPStatus.OK.value
+        success = response.http_status == HTTPStatus.OK
         self.metrics.emit_metric(
             self._get_success_count_metric_name(), 1 if success else 0
         )
@@ -266,6 +268,10 @@ class WalterAPIMethod(ABC):
             self._get_failure_count_metric_name(), 0 if success else 1
         )
         self.metrics.emit_metric(self._get_total_count_metric_name(), 1)
+        response_time_millis = response.response_time_millis
+        self.metrics.emit_metric(
+            self._get_response_time_millis_metric_name(), response_time_millis
+        )
 
     def _get_success_count_metric_name(self) -> str:
         return f"{self.api_name}.{METRICS_SUCCESS_COUNT}"
@@ -276,8 +282,11 @@ class WalterAPIMethod(ABC):
     def _get_total_count_metric_name(self) -> str:
         return f"{self.api_name}.{METRICS_TOTAL_COUNT}"
 
+    def _get_response_time_millis_metric_name(self) -> str:
+        return f"{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}"
+
     @abstractmethod
-    def execute(self, event: dict, email: str) -> dict:
+    def execute(self, event: dict, email: str) -> Response:
         """
         The core action implemented by the API.
         """

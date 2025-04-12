@@ -1,6 +1,7 @@
 import json
 
 from src.api.common.methods import HTTPStatus, Status
+from src.api.common.models import Response
 
 ###############
 # TEST EVENTS #
@@ -139,23 +140,11 @@ def get_expected_response(
     status: Status,
     message: str,
     data: str = None,
-) -> dict:
-    body = {
-        "API": api_name,
-        "Status": status.value,
-        "Message": message,
-    }
-
-    if data is not None:
-        body["Data"] = data
-
-    return {
-        "statusCode": status_code.value,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET,OPTIONS,POST,DELETE",
-        },
-        "body": json.dumps(body),
-    }
+) -> Response:
+    return Response(
+        api_name=api_name,
+        http_status=status_code,
+        status=status,
+        message=message,
+        data=data,
+    )

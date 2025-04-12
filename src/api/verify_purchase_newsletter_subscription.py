@@ -6,7 +6,7 @@ from src.api.common.exceptions import (
     UnknownPaymentStatus,
 )
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -65,7 +65,7 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
         self.walter_sm = walter_sm
         self.walter_payments = walter_payments
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(authenticated_email)
         session_id = self._get_session_id(event)
         session = self.walter_payments.get_session(session_id)
@@ -76,7 +76,8 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
             user.stripe_subscription_id = session.subscription
             user.stripe_customer_id = session.customer
             self.walter_db.update_user(user)
-            return self._create_response(
+            return Response(
+                api_name=VerifyPurchaseNewsletterSubscription.API_NAME,
                 http_status=HTTPStatus.OK,
                 status=Status.SUCCESS,
                 message="Checkout session has been paid!",
@@ -88,14 +89,16 @@ class VerifyPurchaseNewsletterSubscription(WalterAPIMethod):
             )
         if payment_status == PaymentStatus.UNPAID:
             log.info("Checkout session has not been paid!")
-            return self._create_response(
+            return Response(
+                api_name=VerifyPurchaseNewsletterSubscription.API_NAME,
                 http_status=HTTPStatus.OK,
                 status=Status.FAILURE,
-                message="Checkout session is unpaid!",
+                message="Checkout session has not been paid!",
             )
         if payment_status == PaymentStatus.PENDING:
             log.info("Checkout session is pending payment!")
-            return self._create_response(
+            return Response(
+                api_name=VerifyPurchaseNewsletterSubscription.API_NAME,
                 http_status=HTTPStatus.OK,
                 status=Status.FAILURE,
                 message="Checkout session is pending payment!",

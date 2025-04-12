@@ -7,6 +7,7 @@ from src.api.common.exceptions import (
 )
 import stripe
 from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -51,12 +52,13 @@ class Unsubscribe(WalterAPIMethod):
         self.walter_db = walter_db
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
         self._verify_user_is_not_already_unsubscribed(user)
         self._set_stripe_api_key()
         self._unsubscribe_user(user)
-        return self._create_response(
+        return Response(
+            api_name=Unsubscribe.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Unsubscribed user!",

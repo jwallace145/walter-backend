@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from src.api.common.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -48,7 +49,7 @@ class GetPortfolio(WalterAPIMethod):
         self.walter_sm = walter_sm
         self.walter_stocks_api = walter_stocks_api
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self.walter_db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User not found!")
@@ -62,7 +63,8 @@ class GetPortfolio(WalterAPIMethod):
             user_stocks, stocks, start, end
         )
 
-        return self._create_response(
+        return Response(
+            api_name=GetPortfolio.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Retrieved portfolio!",

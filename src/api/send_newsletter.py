@@ -9,6 +9,7 @@ from src.api.common.exceptions import (
 )
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
+from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -60,12 +61,13 @@ class SendNewsletter(WalterAPIMethod):
         self.newsletters_queue = newsletters_queue
         self.walter_sm = walter_sm
 
-    def execute(self, event: dict, authenticated_email: str) -> dict:
+    def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
         self._verify_user_email_verified(user)
         self._verify_user_is_subscribed(user)
         self._send_newsletter(user.email)
-        return self._create_response(
+        return Response(
+            api_name=SendNewsletter.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Newsletter sent!",

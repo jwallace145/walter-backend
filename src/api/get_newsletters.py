@@ -4,7 +4,7 @@ from typing import List
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -50,10 +50,11 @@ class GetNewsletters(WalterAPIMethod):
         self.walter_db = walter_db
         self.newsletters_archive = newsletters_archive
 
-    def execute(self, event: dict, authenticated_email: str = None) -> dict:
+    def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(authenticated_email)
         newsletters = self._get_user_newsletters(user)
-        return self._create_response(
+        return Response(
+            api_name=GetNewsletters.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully retrieved newsletters!",

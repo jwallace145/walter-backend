@@ -42,6 +42,8 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: auth
 
+  # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
+  # to prevent brute force attacks
   WalterAPIAuthMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -52,7 +54,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}:release/invocations" # provisioned concurrency -> release alias
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -89,7 +91,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIAuth.Arn}:release" # provisioned concurrency -> release alias
+      FunctionName: !Sub "${WalterAPIAuth.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIUsers:
@@ -159,7 +161,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetUser.Arn}:3/invocations" # provisioned concurrency -> version 3
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetUser.Arn}:release/invocations" # provisioned concurrency -> release alias
       MethodResponses:
         - StatusCode: 200
 
@@ -167,7 +169,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIGetUser.Arn}:3" # provisioned concurrency -> version 3
+      FunctionName: !Sub "${WalterAPIGetUser.Arn}:release" # provisioned concurrency -> release alias
       Principal: apigateway.amazonaws.com
 
   WalterAPIStocks:
@@ -428,7 +430,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPortfolio.Arn}:3/invocations" # provisioned concurrency -> version 3
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetPortfolio.Arn}:release/invocations" # provisioned concurrency -> release alias
       MethodResponses:
         - StatusCode: 200
 
@@ -467,7 +469,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIGetPortfolio.Arn}:3" # provisioned concurrency -> version 3
+      FunctionName: !Sub "${WalterAPIGetPortfolio.Arn}:release" # provisioned concurrency -> release alias
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetUserNewsletterResource:
@@ -1054,9 +1056,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAuth
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-Auth-${AppEnvironment}"
+      FunctionVersion: 7
+      Name: "release"
 
+  # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
+  # to prevent brute force attacks
   WalterAPIAuth:
     Type: AWS::Lambda::Function
     Properties:
@@ -1129,8 +1133,10 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetUser-${AppEnvironment}"
+      FunctionVersion: 5
+      Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetUser:
     Type: AWS::Lambda::Function
@@ -1316,7 +1322,7 @@ Resources:
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetPrices-${AppEnvironment}"
+      Name: "release"
 
   WalterAPIGetPrices:
     Type: AWS::Lambda::Function
@@ -1389,8 +1395,10 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetPortfolio-${AppEnvironment}"
+      FunctionVersion: 5
+      Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetPortfolio:
     Type: AWS::Lambda::Function

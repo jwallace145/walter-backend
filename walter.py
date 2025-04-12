@@ -66,45 +66,45 @@ def create_user_entrypoint(event, context) -> dict:
         walter_ses,
         template_engine,
         templates_bucket,
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def auth_user_entrypoint(event, context) -> dict:
-    return AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
+    return AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event).to_json()
 
 
 def get_user_entrypoint(event, context) -> dict:
-    return GetUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event)
+    return GetUser(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(event).to_json()
 
 
 def get_stock_entrypoint(event, context) -> dict:
     return GetStock(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_statistics_entrypoint(event, context) -> dict:
     return GetStatistics(walter_authenticator, walter_cw, walter_stocks_api).invoke(
         event
-    )
+    ).to_json()
 
 
 def add_stock_entrypoint(event, context) -> dict:
     return AddStock(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def delete_stock_entrypoint(event, context) -> dict:
     return DeleteStock(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_portfolio_entrypoint(event, context) -> dict:
     return GetPortfolio(
         walter_authenticator, walter_cw, walter_db, walter_sm, walter_stocks_api
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_news_summary_entrypoint(event, context) -> dict:
@@ -115,35 +115,35 @@ def get_news_summary_entrypoint(event, context) -> dict:
         walter_stocks_api,
         news_summaries_bucket,
         news_summaries_queue,
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def send_newsletter_entrypoint(event, context) -> dict:
     return SendNewsletter(
         walter_authenticator, walter_cw, walter_db, newsletters_queue, walter_sm
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_newsletter_entrypoint(event, context) -> dict:
     return GetNewsletter(
         walter_authenticator, walter_cw, walter_db, newsletters_bucket
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_newsletters_entrypoint(event, context) -> dict:
     return GetNewsletters(
         walter_authenticator, walter_cw, walter_db, newsletters_bucket
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def get_prices_entrypoint(event, context) -> dict:
     return GetPrices(
         walter_authenticator, walter_cw, walter_db, walter_stocks_api
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def verify_email_entrypoint(event, context) -> dict:
-    return VerifyEmail(walter_authenticator, walter_cw, walter_db).invoke(event)
+    return VerifyEmail(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
 
 
 def send_verify_email_entrypoint(event, context) -> dict:
@@ -154,11 +154,11 @@ def send_verify_email_entrypoint(event, context) -> dict:
         walter_ses,
         template_engine,
         templates_bucket,
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def change_password_entrypoint(event, context) -> dict:
-    return ChangePassword(walter_authenticator, walter_cw, walter_db).invoke(event)
+    return ChangePassword(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
 
 
 def send_change_password_email_entrypoint(event, context) -> dict:
@@ -169,35 +169,35 @@ def send_change_password_email_entrypoint(event, context) -> dict:
         walter_ses,
         template_engine,
         templates_bucket,
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def subscribe_entrypoint(event, context) -> dict:
-    return Subscribe(walter_authenticator, walter_cw, walter_db).invoke(event)
+    return Subscribe(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
 
 
 def unsubscribe_entrypoint(event, context) -> dict:
     return Unsubscribe(walter_authenticator, walter_cw, walter_db, walter_sm).invoke(
         event
-    )
+    ).to_json()
 
 
 def search_stocks_entrypoint(event, context) -> dict:
     return SearchStocks(walter_authenticator, walter_cw, walter_stocks_api).invoke(
         event
-    )
+    ).to_json()
 
 
 def purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return PurchaseNewsletterSubscription(
         walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     return VerifyPurchaseNewsletterSubscription(
         walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
-    ).invoke(event)
+    ).invoke(event).to_json()
 
 
 ###################
