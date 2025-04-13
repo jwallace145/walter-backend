@@ -1,18 +1,17 @@
-import datetime as dt
 from dataclasses import dataclass
 
 import requests
+from requests import Response
 
-from src.api.common.models import Status
 from src.auth.authenticator import WalterAuthenticator
-from src.canaries.common.models import CanaryResponse
+from src.canaries.common.canary import BaseCanary
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 @dataclass
-class GetUserCanary:
+class GetUserCanary(BaseCanary):
     """
     WalterCanary: GetUserCanary
 
@@ -27,28 +26,13 @@ class GetUserCanary:
 
     authenticator: WalterAuthenticator
 
-    def __post_init__(self) -> None:
-        log.debug(f"Initializing {GetUserCanary.CANARY_NAME}")
+    def __init__(self, authenticator: WalterAuthenticator) -> None:
+        super().__init__(GetUserCanary.CANARY_NAME, GetUserCanary.API_URL)
+        self.authenticator = authenticator
 
-    def invoke(self) -> dict:
-        log.info(f"Invoked '{GetUserCanary.CANARY_NAME}'!")
-
-        start = dt.datetime.now(dt.UTC)
-
+    def call_api(self) -> Response:
         token = self.authenticator.generate_user_token(email=GetUserCanary.USER_EMAIL)
-        response = requests.get(
+        return requests.get(
             GetUserCanary.API_URL,
             headers={"Authorization": f"Bearer {token}"},
         )
-
-        end = dt.datetime.now(dt.UTC)
-
-        log.info(
-            f"API Response - Status Code: {response.status_code}, Response Body: {response.text}"
-        )
-
-        return CanaryResponse(
-            canary_name=GetUserCanary.CANARY_NAME,
-            status=Status.SUCCESS if response.status_code == 200 else Status.FAILURE,
-            response_time_millis=(end - start).total_seconds() * 1000,
-        ).to_json()
