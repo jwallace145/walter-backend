@@ -4,6 +4,8 @@ from typing import Dict, List
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
+from src.database.expenses.models import Expense
+from src.database.expenses.table import ExpensesTable
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
 from src.database.users.models import User
@@ -23,11 +25,13 @@ class WalterDB:
     authenticator: WalterAuthenticator
     domain: Domain
 
+    expenses_table: ExpensesTable = None
     users_table: UsersTable = None
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
 
     def __post_init__(self) -> None:
+        self.expenses_table = ExpensesTable(self.ddb, self.domain)
         self.users_table = UsersTable(self.ddb, self.domain)
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
@@ -105,3 +109,14 @@ class WalterDB:
 
     def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
         self.users_stocks_table.delete_stock_from_user_portfolio(stock)
+
+    def add_expense(self, expense: Expense) -> None:
+        self.expenses_table.put_expense(expense)
+
+    def get_expenses(self, user_email: str) -> List[Expense]:
+        return self.expenses_table.get_expenses(user_email)
+
+    def delete_expense(
+        self, user_email: str, date: dt.datetime, expense_id: str
+    ) -> None:
+        self.expenses_table.delete_expense(user_email, date, expense_id)
