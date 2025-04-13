@@ -995,7 +995,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPISearchStocks
+      FunctionName: !Sub "${WalterAPISearchStocks.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPISearchStocksResource:
@@ -1015,7 +1015,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISearchStocks.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISearchStocks.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -1776,8 +1776,10 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISearchStocks
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-SearchStocks-${AppEnvironment}"
+      FunctionVersion: 1
+      Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 3
 
   WalterAPISearchStocks:
     Type: AWS::Lambda::Function
@@ -2120,7 +2122,7 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-SearchStocksCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: SearchStocksCanary - Call the SearchStocks API to get stocks that are similar to the given identifier to verify user search functionality (${AppEnvironment})"
-      Handler: walter.get_search_stocks_canary_entrypoint
+      Handler: walter.search_stocks_canary_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
