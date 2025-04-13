@@ -28,6 +28,7 @@ from src.canaries.get_portfolio import GetPortfolioCanary
 from src.canaries.get_prices import GetPricesCanary
 from src.canaries.get_stock import GetStockCanary
 from src.canaries.get_user import GetUserCanary
+from src.canaries.search_stocks import SearchStocksCanary
 from src.clients import (
     walter_cw,
     walter_db,
@@ -298,6 +299,10 @@ def get_prices_canary_entrypoint(event, context) -> dict:
 
 def get_news_summary_canary_entrypoint(event, context) -> dict:
     return GetNewsSummaryCanary().invoke()
+
+
+def search_stocks_canary_entrypoint(event, context) -> dict:
+    return SearchStocksCanary().invoke()
 
 
 ####################

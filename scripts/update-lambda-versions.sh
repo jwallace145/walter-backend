@@ -33,4 +33,6 @@ echo Publishing new WalterAPI Auth Lambda version \
 && echo Publishing new WalterNewsletters Lambda version \
 && aws lambda publish-version --function-name WalterNewsletters-dev \
 && echo Publishing new WalterBackend Lambda version \
-&& aws lambda publish-version --function-name WalterBackend-dev
+&& aws lambda publish-version --function-name WalterBackend-dev \
+&& echo Publishing new WalterAPI SearchStocks Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-SearchStocks-dev
