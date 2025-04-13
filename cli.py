@@ -279,9 +279,11 @@ def add_expense(
 
 
 @app.command()
-def get_expenses(token: str = None) -> None:
+def get_expenses(
+    token: str = None, start_date: str = None, end_date: str = None
+) -> None:
     log.info("WalterCLI: GetExpenses")
-    event = get_get_expenses_event(token)
+    event = get_get_expenses_event(token, start_date, end_date)
     response = get_expenses_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetExpenses Response:\n{parse_response(response)}")
 

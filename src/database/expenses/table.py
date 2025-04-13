@@ -25,12 +25,16 @@ class ExpensesTable:
         self.table = ExpensesTable._get_expenses_table_name(self.domain)
         log.debug(f"Creating ExpensesTable DDB client with table name '{self.table}'")
 
-    def get_expenses(self, user_email: str) -> List[Expense]:
+    def get_expenses(
+        self, user_email: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Expense]:
         log.info(f"Getting expenses for user '{user_email}' from table '{self.table}'")
 
         expense_items = self.ddb.query(
             table=self.table,
-            query=ExpensesTable._get_expenses_by_user_query(user_email),
+            query=ExpensesTable._get_expenses_by_user_and_date_range_query(
+                user_email, start_date, end_date
+            ),
         )
 
         expenses = []
@@ -63,12 +67,21 @@ class ExpensesTable:
         return ExpensesTable.EXPENSES_TABLE_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
-    def _get_expenses_by_user_query(user_email: str) -> dict:
+    def _get_expenses_by_user_and_date_range_query(
+        user_email: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> dict:
         return {
             "user_email": {
                 "AttributeValueList": [{"S": user_email}],
                 "ComparisonOperator": "EQ",
-            }
+            },
+            "date_uuid": {
+                "AttributeValueList": [
+                    {"S": f"{start_date.strftime('%Y-%m-%d')}#"},
+                    {"S": f"{end_date.strftime('%Y-%m-%d')}#\uffff"},
+                ],
+                "ComparisonOperator": "BETWEEN",
+            },
         }
 
     @staticmethod
