@@ -1,8 +1,11 @@
+from src.api.add_expense import AddExpense
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
 from src.api.create_user import CreateUser
+from src.api.delete_expense import DeleteExpense
 from src.api.delete_stock import DeleteStock
+from src.api.get_expenses import GetExpenses
 from src.api.get_news_summary import GetNewsSummary
 from src.api.get_newsletter import GetNewsletter
 from src.api.get_newsletters import GetNewsletters
@@ -267,6 +270,26 @@ def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
         VerifyPurchaseNewsletterSubscription(
             walter_authenticator, walter_cw, walter_db, walter_sm, walter_payments
         )
+        .invoke(event)
+        .to_json()
+    )
+
+
+def add_expense_entrypoint(event, context) -> dict:
+    return (
+        AddExpense(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
+    )
+
+
+def get_expenses_entrypoint(event, context) -> dict:
+    return (
+        GetExpenses(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
+    )
+
+
+def delete_expense_entrypoint(event, context) -> dict:
+    return (
+        DeleteExpense(walter_authenticator, walter_cw, walter_db)
         .invoke(event)
         .to_json()
     )

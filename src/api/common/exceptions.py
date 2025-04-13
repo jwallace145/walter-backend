@@ -76,3 +76,8 @@ class UnknownPaymentStatus(Exception):
 class NewsletterDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class InvalidExpenseCategory(Exception):
+    def __init__(self, message):
+        super().__init__(message)

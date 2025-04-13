@@ -129,6 +129,33 @@ def get_verify_purchase_newsletter_subscription_event(
     return EVENT
 
 
+def get_add_expense_event(
+    token: str, date: str, vendor: str, amount: float, category: str
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {"date": date, "vendor": vendor, "amount": amount, "category": category}
+    )
+    return EVENT
+
+
+def get_get_expenses_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
+def get_delete_expense_event(token: str, date: str, expense_id: str) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps({"date": date, "expense_id": expense_id})
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################
