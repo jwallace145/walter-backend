@@ -113,8 +113,10 @@ class WalterDB:
     def add_expense(self, expense: Expense) -> None:
         self.expenses_table.put_expense(expense)
 
-    def get_expenses(self, user_email: str) -> List[Expense]:
-        return self.expenses_table.get_expenses(user_email)
+    def get_expenses(
+        self, user_email: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Expense]:
+        return self.expenses_table.get_expenses(user_email, start_date, end_date)
 
     def delete_expense(
         self, user_email: str, date: dt.datetime, expense_id: str

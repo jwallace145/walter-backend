@@ -7,6 +7,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.utils.log import Logger
+import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -21,7 +22,7 @@ class GetExpenses(WalterAPIMethod):
     """
 
     API_NAME = "GetExpenses"
-    REQUIRED_QUERY_FIELDS = []
+    REQUIRED_QUERY_FIELDS = ["start_date", "end_date"]
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
@@ -50,7 +51,15 @@ class GetExpenses(WalterAPIMethod):
         self.walter_db = walter_db
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        expenses = self.walter_db.get_expenses(authenticated_email)
+        start_date = dt.datetime.strptime(
+            WalterAPIMethod.get_query_field(event, "start_date"), "%Y-%m-%d"
+        )
+        end_date = dt.datetime.strptime(
+            WalterAPIMethod.get_query_field(event, "end_date"), "%Y-%m-%d"
+        )
+        expenses = self.walter_db.get_expenses(
+            authenticated_email, start_date, end_date
+        )
         return Response(
             api_name=GetExpenses.API_NAME,
             http_status=HTTPStatus.OK,

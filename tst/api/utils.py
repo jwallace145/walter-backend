@@ -142,8 +142,9 @@ def get_add_expense_event(
     return EVENT
 
 
-def get_get_expenses_event(token: str) -> dict:
+def get_get_expenses_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}
     return EVENT
 
 
