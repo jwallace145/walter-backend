@@ -17,7 +17,7 @@
 
 ### Architecture
 
-![walter-architecture](https://github.com/user-attachments/assets/ef65ce5b-260d-473d-8ec1-e7b15b714fbf)
+![Walter-ArchDiagram-2025-04](https://github.com/user-attachments/assets/836c3e29-bcef-4c6d-a754-5159ed1416e4)
 
 ### Templates
 
