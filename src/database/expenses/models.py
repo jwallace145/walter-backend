@@ -17,6 +17,7 @@ class ExpenseCategory(Enum):
     HOBBIES = "hobbies"
     HOUSING = "housing"
     INSURANCE = "insurance"
+    MERCHANDISE = "merchandise"
     RESTAURANTS = "restaurants"
     SUBSCRIPTIONS = "subscriptions"
     TRANSPORTATION = "transportation"

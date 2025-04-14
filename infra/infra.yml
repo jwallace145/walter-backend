@@ -9,12 +9,17 @@ Parameters:
 
   AppEnvironment:
     Type: String
-    Description: The environment of the Walter Backend stack
+    Description: The environment of the WalterBackend stack
     Default: dev
     AllowedValues:
       - dev
       - preprod
       - prod
+
+  WalterBackendLambdaLayerVersion:
+    Type: String
+    Description: The version of the Lambda layer that includes the Python dependencies required by WalterBackend
+    Default: 1 # set the default to the latest WalterBackendLambdaPythonDependencies version
 
 #################
 ### RESOURCES ###
@@ -1176,14 +1181,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1213,14 +1211,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1253,14 +1244,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1292,14 +1276,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1329,14 +1306,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1366,14 +1336,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1403,14 +1366,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1442,14 +1398,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1481,14 +1430,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1520,14 +1462,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1557,14 +1492,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1594,14 +1522,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1632,14 +1553,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1671,14 +1585,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1708,14 +1615,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1745,14 +1645,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1782,14 +1675,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1819,14 +1705,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1856,14 +1735,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1895,14 +1767,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1932,14 +1797,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1969,14 +1827,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2006,14 +1857,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2043,14 +1887,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2080,14 +1917,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2118,14 +1948,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2156,14 +1979,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2194,14 +2010,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2231,14 +2040,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2268,14 +2070,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2305,14 +2100,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2342,14 +2130,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2379,14 +2160,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2416,14 +2190,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2454,14 +2221,7 @@ Resources:
       Architectures:
         - "arm64"
       Layers:
-        - !Join
-          - ""
-          - - "arn:aws:lambda:"
-            - !Ref "AWS::Region"
-            - ":"
-            - !Ref "AWS::AccountId"
-            - ":layer:"
-            - "WalterAILambdaLayer:30"
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2502,14 +2262,7 @@ Resources:
         Architectures:
           - "arm64"
         Layers:
-          - !Join
-            - ""
-            - - "arn:aws:lambda:"
-              - !Ref "AWS::Region"
-              - ":"
-              - !Ref "AWS::AccountId"
-              - ":layer:"
-              - "WalterAILambdaLayer:30"
+          - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
         Environment:
           Variables:
             DOMAIN: DEVELOPMENT

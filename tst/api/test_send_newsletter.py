@@ -26,7 +26,7 @@ def send_newsletter_api(
 def test_send_newsletter(
     send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walter: str
 ) -> None:
-    event = get_send_newsletter_event(token=jwt_walter)
+    event = get_send_newsletter_event(token=jwt_walter, page=1)
     expected_response = get_expected_response(
         api_name=send_newsletter_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -42,7 +42,7 @@ def test_send_newsletter(
 def test_send_newsletter_failure_email_not_verified(
     send_newsletter_api: SendNewsletter, sqs_client: SQSClient, jwt_walrus: str
 ) -> None:
-    event = get_send_newsletter_event(token=jwt_walrus)
+    event = get_send_newsletter_event(token=jwt_walrus, page=1)
     expected_response = get_expected_response(
         api_name=send_newsletter_api.API_NAME,
         status_code=HTTPStatus.OK,

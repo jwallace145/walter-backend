@@ -72,8 +72,9 @@ def get_get_newsletter_event(token: str, date: str) -> dict:
     return EVENT
 
 
-def get_send_newsletter_event(token: str) -> dict:
+def get_send_newsletter_event(token: str, page: int) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["queryStringParameters"] = {"page": page}
     return EVENT
 
 
