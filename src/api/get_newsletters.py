@@ -1,6 +1,7 @@
+import math
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
@@ -20,10 +21,19 @@ log = Logger(__name__).get_logger()
 class GetNewsletters(WalterAPIMethod):
     """
     WalterAPI: GetNewsletters
+
+    Get the newsletters for a user from the archives. Walter
+    generates and sends newsletters to users to keep them informed
+    about their financial health and progress. This API retrieves
+    the URIs of previously generated newsletters for the user.
+    This API can be used in conjunction with the GetNewsletter
+    API to retrieve the newsletter content.
     """
 
+    PAGE_SIZE = 5
+
     API_NAME = "GetNewsletters"
-    REQUIRED_QUERY_FIELDS = []
+    REQUIRED_QUERY_FIELDS = ["page"]
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, NotAuthenticated, UserDoesNotExist]
@@ -53,17 +63,14 @@ class GetNewsletters(WalterAPIMethod):
     def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(authenticated_email)
         newsletters = self._get_user_newsletters(user)
+        page, last_page = self._verify_newsletters_page(event, newsletters)
+        data = self._get_newsletters_response_data(newsletters, page, last_page)
         return Response(
             api_name=GetNewsletters.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully retrieved newsletters!",
-            data={
-                "newsletters": [
-                    GetNewsletters._get_newsletter_details(newsletter)
-                    for newsletter in newsletters
-                ],
-            },
+            data=data,
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -82,7 +89,50 @@ class GetNewsletters(WalterAPIMethod):
 
     def _get_user_newsletters(self, user: User) -> List[str]:
         log.info(f"Getting newsletters from archive for user '{user.email}'")
-        return self.newsletters_archive.get_user_newsletters(user)
+        # reverse the list before returning to ensure newsletters are returned in descending
+        # order by creation date
+        return list(reversed(self.newsletters_archive.get_user_newsletters(user)))
+
+    def _verify_newsletters_page(
+        self, event: dict, newsletters: List[str]
+    ) -> Tuple[int, int]:
+        log.info("Verifying newsletters page is valid...")
+
+        page = int(WalterAPIMethod.get_query_field(event, "page"))
+        last_page = math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE)
+
+        if page < 1:
+            log.error(f"Page {page} out of range! Page must be greater than 0!")
+            raise BadRequest(f"Page {page} out of range! Page must be greater than 0!")
+
+        if page > last_page:
+            log.error(f"Page {page} out of range! Last page: {last_page}")
+            raise BadRequest(f"Page {page} out of range! Last page: {last_page}")
+
+        return page, last_page
+
+    def _get_newsletters_response_data(
+        self, newsletters: List[str], page: int, last_page: int
+    ) -> dict:
+        # get newsletters page from page index
+        newsletters_page = newsletters[
+            (page - 1) * GetNewsletters.PAGE_SIZE : (page * GetNewsletters.PAGE_SIZE)
+        ]
+
+        # create get newsletters response data object
+        data = {
+            "newsletters": [
+                GetNewsletters._get_newsletter_details(newsletter)
+                for newsletter in newsletters_page
+            ],
+        }
+
+        # if there are more pages, return next page field to indicate
+        # to caller which page to resume pagination if desired
+        if page < last_page:
+            data["next_page"] = page + 1
+
+        return data
 
     @staticmethod
     def _get_newsletter_details(newsletter_key: str) -> dict:

@@ -179,9 +179,9 @@ def get_newsletter(token: str = None, date: str = None) -> None:
 
 
 @app.command()
-def get_newsletters(token: str = None) -> None:
+def get_newsletters(token: str = None, page: int = None) -> None:
     log.info("WalterCLI: GetNewsletters")
-    event = get_send_newsletter_event(token)
+    event = get_send_newsletter_event(token, page)
     response = get_newsletters_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetNewsletters Response:\n{parse_response(response)}")
 
