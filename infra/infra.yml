@@ -216,7 +216,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetStatistics
+      FunctionName: !Sub "${WalterAPIGetStatistics.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetStatisticsMethod:
@@ -229,7 +229,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStatistics.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetStatistics.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -1292,7 +1292,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStatistics
-      FunctionVersion: 1
+      FunctionVersion: 3
       Name: "release"
 
   WalterAPIGetStatistics:
