@@ -109,6 +109,7 @@ class GetNewsletters(WalterAPIMethod):
             log.error(f"Page {page} out of range! Last page: {last_page}")
             raise BadRequest(f"Page {page} out of range! Last page: {last_page}")
 
+        log.info("Verified newsletters page is valid!")
         return page, last_page
 
     def _get_newsletters_response_data(
@@ -119,26 +120,14 @@ class GetNewsletters(WalterAPIMethod):
             (page - 1) * GetNewsletters.PAGE_SIZE : (page * GetNewsletters.PAGE_SIZE)
         ]
 
-        # create get newsletters response data object
-        data = {
+        return {
+            "current_page": page,
+            "last_page": max(math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE), 1),
             "newsletters": [
                 GetNewsletters._get_newsletter_details(newsletter)
                 for newsletter in newsletters_page
             ],
         }
-
-        # if there are more pages, return next page field to indicate
-        # to caller which page to resume pagination if desired
-        if page < last_page:
-            data["next_page"] = page + 1
-
-        # if there are previous pages, return previous page field to
-        # indicate to caller which page to return to navigate to previous
-        # newsletters page
-        if page > 0:
-            data["previous_page"] = page - 1
-
-        return data
 
     @staticmethod
     def _get_newsletter_details(newsletter_key: str) -> dict:

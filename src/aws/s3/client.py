@@ -51,7 +51,7 @@ class WalterS3Client:
             raise error
         except KeyError:
             # TODO: Is there a better way to handle this?
-            log.error(
+            log.warning(
                 f"No contents returned with prefix '{WalterS3Client.get_uri(bucket, prefix)}'!"
             )
             return []
