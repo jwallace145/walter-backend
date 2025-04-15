@@ -1378,7 +1378,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
-      FunctionVersion: 3
+      FunctionVersion: 5
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 3

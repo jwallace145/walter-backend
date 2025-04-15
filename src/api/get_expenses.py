@@ -66,6 +66,8 @@ class GetExpenses(WalterAPIMethod):
             status=Status.SUCCESS,
             message="Retrieved expenses!",
             data={
+                "num_expenses": len(expenses),
+                "total_expenses": sum([expense.amount for expense in expenses]),
                 "expenses": [expense.to_dict() for expense in expenses],
             },
         )

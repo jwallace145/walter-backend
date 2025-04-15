@@ -12,6 +12,7 @@ from src.database.stocks.models import Stock
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.models import StockPrice
 from src.utils.log import Logger
+import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -21,11 +22,12 @@ class GetPrices(WalterAPIMethod):
     """
     WalterAPI: GetPrices
 
-    This API gets the latest time-series pricing data for the given stock.
+    This API gets stock pricing data from Polygon
+    for a given period of time.
     """
 
     API_NAME = "GetPrices"
-    REQUIRED_QUERY_FIELDS = ["stock"]
+    REQUIRED_QUERY_FIELDS = ["stock", "start_date", "end_date"]
     REQUIRED_HEADERS = {}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [BadRequest, StockDoesNotExist]
@@ -53,9 +55,12 @@ class GetPrices(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        stock = self._get_stock_from_url(event)
+        stock = WalterAPIMethod.get_query_field(event, "stock")
+        start_date = self._get_date_from_url(event, "start_date")
+        end_date = self._get_date_from_url(event, "end_date")
+        self._validate_dates(start_date, end_date)
         stock = self._verify_stock_exists(stock)
-        prices = self._get_prices(stock)
+        prices = self._get_prices(stock, start_date, end_date)
         return Response(
             api_name=GetPrices.API_NAME,
             http_status=HTTPStatus.OK,
@@ -63,6 +68,9 @@ class GetPrices(WalterAPIMethod):
             message="Retrieved prices!",
             data={
                 "stock": stock.symbol,
+                "start_date": start_date.strftime("%Y-%m-%d"),
+                "end_date": end_date.strftime("%Y-%m-%d"),
+                "num_prices": len(prices),
                 "prices": [prices.to_dict() for prices in prices],
             },
         )
@@ -73,8 +81,19 @@ class GetPrices(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return False
 
-    def _get_stock_from_url(self, event: dict) -> str | None:
-        return event["queryStringParameters"]["stock"]
+    def _get_date_from_url(self, event: dict, date: str) -> dt.datetime:
+        date_str = ""
+        try:
+            date_str = WalterAPIMethod.get_query_field(event, date)
+            return dt.datetime.strptime(date_str, "%Y-%m-%d")
+        except Exception:
+            log.warning(f"Unable to parse date: {date_str}!")
+            raise BadRequest(f"Unable to parse date: {date_str}!")
+
+    def _validate_dates(self, start_date: dt.datetime, end_date: dt.datetime) -> None:
+        if start_date > end_date:
+            log.warning("Start date must be before end date!")
+            raise BadRequest("Start date must be before end date!")
 
     def _verify_stock_exists(self, symbol: str) -> Stock | None:
         log.info("Verifying stock exists...")
@@ -91,6 +110,10 @@ class GetPrices(WalterAPIMethod):
         log.info("Stock found in WalterDB!")
         return cached_stock
 
-    def _get_prices(self, stock: Stock) -> List[StockPrice]:
+    def _get_prices(
+        self, stock: Stock, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[StockPrice]:
         log.info("Getting prices from WalterStocksAPI...")
-        return self.walter_stocks_api.get_prices(stock.symbol).prices
+        return self.walter_stocks_api.get_prices(
+            stock.symbol, start_date, end_date
+        ).prices

@@ -139,9 +139,9 @@ def get_statistics(symbol: str = None) -> None:
 
 
 @app.command()
-def get_prices(stock: str = None) -> None:
+def get_prices(stock: str = None, start_date: str = None, end_date: str = None) -> None:
     log.info("WalterCLI: GetPrices")
-    event = get_get_prices_event(stock)
+    event = get_get_prices_event(stock, start_date, end_date)
     response = get_prices_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
