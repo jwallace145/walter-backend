@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 from abc import ABC, abstractmethod
 
 from requests import Response
@@ -65,12 +66,14 @@ class BaseCanary(ABC):
         try:
             api_response = self.call_api()
             api_status_code = api_response.status_code
+            api_response_json = api_response.json()
             api_status = Status.from_string(
-                api_response.json().get("Status", "Failure")
+                api_response_json.get("Status", "Failure")
             )
             log.info(
                 f"API Response - Status Code: {api_status_code} Status: {api_status.value}"
             )
+            log.debug(f"API Response - JSON: {json.dumps(api_response_json, indent=4)}")
         except Exception:
             log.error(
                 f"Unexpected exception occurred invoking '{self.canary_name}'!",
