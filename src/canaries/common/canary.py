@@ -64,12 +64,11 @@ class BaseCanary(ABC):
         # assume api failure until api response status is confirmed as success
         api_status = Status.FAILURE
         try:
+            log.info(f"Calling API at '{self.api_url}'")
             api_response = self.call_api()
             api_status_code = api_response.status_code
             api_response_json = api_response.json()
-            api_status = Status.from_string(
-                api_response_json.get("Status", "Failure")
-            )
+            api_status = Status.from_string(api_response_json.get("Status", "Failure"))
             log.info(
                 f"API Response - Status Code: {api_status_code} Status: {api_status.value}"
             )

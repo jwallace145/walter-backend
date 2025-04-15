@@ -1989,6 +1989,37 @@ Resources:
         - Key: "awsApplication"
           Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
+  WalterCanaryGetExpensesCanaryAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterCanaryGetExpensesCanary
+      FunctionVersion: $LATEST
+      Name: "release"
+
+  WalterCanaryGetExpensesCanary:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterCanary-GetExpensesCanary-${AppEnvironment}"
+      Description: !Sub "WalterCanary: GetExpenses - Call the GetExpenses API to ensure users are able to retrieve expenses from WalterDB (${AppEnvironment})"
+      Handler: walter.get_expenses_canary_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      MemorySize: 128
+      Timeout: 60
+      Runtime: python3.12
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
+
   WalterCanaryGetUserCanaryAlias:
     Type: AWS::Lambda::Alias
     Properties:

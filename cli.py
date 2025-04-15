@@ -68,6 +68,7 @@ from walter import (
     get_expenses_entrypoint,
     delete_expense_entrypoint,
     get_newsletters_canary_entrypoint,
+    get_expenses_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -307,6 +308,13 @@ def auth_user_canary() -> None:
     log.info("WalterCLI: AuthUserCanary...")
     response = auth_user_canary_entrypoint({}, CONTEXT)
     log.info(f"WalterCLI: AuthUserCanary Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_expenses_canary() -> None:
+    log.info("WalterCLI: GetExpensesCanary...")
+    response = get_expenses_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetExpensesCanary Response:\n{parse_response(response)}")
 
 
 @app.command()
