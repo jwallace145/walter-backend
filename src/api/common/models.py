@@ -12,6 +12,13 @@ class Status(Enum):
     SUCCESS = "Success"
     FAILURE = "Failure"
 
+    @staticmethod
+    def from_string(status: str):
+        for status_enum in Status:
+            if status_enum.value.lower() == status.lower():
+                return status_enum
+        raise ValueError(f"{status} is not a valid status!")
+
 
 class HTTPStatus(Enum):
     """

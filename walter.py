@@ -302,35 +302,35 @@ def delete_expense_entrypoint(event, context) -> dict:
 
 
 def auth_user_canary_entrypoint(event, context) -> dict:
-    return AuthUserCanary().invoke()
+    return AuthUserCanary(walter_cw).invoke()
 
 
 def get_user_canary_entrypoint(event, context) -> dict:
-    return GetUserCanary(walter_authenticator).invoke()
+    return GetUserCanary(walter_authenticator, walter_cw).invoke()
 
 
 def get_stock_canary_entrypoint(event, context) -> dict:
-    return GetStockCanary().invoke()
+    return GetStockCanary(walter_cw).invoke()
 
 
 def get_portfolio_canary_entrypoint(event, context) -> dict:
-    return GetPortfolioCanary(walter_authenticator).invoke()
+    return GetPortfolioCanary(walter_authenticator, walter_cw).invoke()
 
 
 def get_prices_canary_entrypoint(event, context) -> dict:
-    return GetPricesCanary().invoke()
+    return GetPricesCanary(walter_cw).invoke()
 
 
 def get_news_summary_canary_entrypoint(event, context) -> dict:
-    return GetNewsSummaryCanary().invoke()
+    return GetNewsSummaryCanary(walter_cw).invoke()
 
 
 def get_newsletters_canary_entrypoint(event, context) -> dict:
-    return GetNewslettersCanary(walter_authenticator).invoke()
+    return GetNewslettersCanary(walter_authenticator, walter_cw).invoke()
 
 
 def search_stocks_canary_entrypoint(event, context) -> dict:
-    return SearchStocksCanary().invoke()
+    return SearchStocksCanary(walter_cw).invoke()
 
 
 ####################

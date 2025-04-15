@@ -4,6 +4,7 @@ import requests
 from requests import Response
 
 from src.auth.authenticator import WalterAuthenticator
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.canaries.common.canary import BaseCanary
 from src.utils.log import Logger
 
@@ -25,10 +26,11 @@ class GetNewslettersCanary(BaseCanary):
 
     authenticator: WalterAuthenticator
 
-    def __init__(self, authenticator: WalterAuthenticator) -> None:
+    def __init__(
+        self, authenticator: WalterAuthenticator, metrics: WalterCloudWatchClient
+    ) -> None:
         super().__init__(
-            GetNewslettersCanary.CANARY_NAME,
-            GetNewslettersCanary.API_URL,
+            GetNewslettersCanary.CANARY_NAME, GetNewslettersCanary.API_URL, metrics
         )
         self.authenticator = authenticator
 

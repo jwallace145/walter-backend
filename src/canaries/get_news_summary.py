@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import requests
 from requests import Response
 
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.canaries.common.canary import BaseCanary
 from src.utils.log import Logger
 
@@ -24,10 +25,9 @@ class GetNewsSummaryCanary(BaseCanary):
     API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/news"
     STOCK_SYMBOL = "META"
 
-    def __init__(self) -> None:
+    def __init__(self, metrics: WalterCloudWatchClient) -> None:
         super().__init__(
-            GetNewsSummaryCanary.CANARY_NAME,
-            GetNewsSummaryCanary.API_URL,
+            GetNewsSummaryCanary.CANARY_NAME, GetNewsSummaryCanary.API_URL, metrics
         )
 
     def call_api(self) -> Response:
