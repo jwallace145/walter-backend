@@ -17,6 +17,7 @@ from src.stocks.polygon.client import PolygonClient
 from src.stocks.polygon.models import StockPrices
 from src.stocks.stocknews.client import StockNewsClient
 from src.utils.log import Logger
+import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -70,8 +71,10 @@ class WalterStocksAPI:
 
         return filtered_stocks
 
-    def get_prices(self, stock: str) -> StockPrices:
-        return self.polygon.get_stock_prices(stock)
+    def get_prices(
+        self, stock: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> StockPrices:
+        return self.polygon.get_stock_prices(stock, start_date, end_date)
 
     def get_news(
         self,

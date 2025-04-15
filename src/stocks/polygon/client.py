@@ -145,7 +145,7 @@ class PolygonClient:
         prices = []
         for agg in self.client.list_aggs(
             ticker=stock,
-            multiplier=10,
+            multiplier=15,
             timespan="minute",
             from_=PolygonClient._convert_date_to_string(start_date),
             to=PolygonClient._convert_date_to_string(end_date),

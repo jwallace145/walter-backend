@@ -38,8 +38,12 @@ def get_delete_stock_event(stock: str, token: str) -> dict:
     return EVENT
 
 
-def get_get_prices_event(symbol: str) -> dict:
-    EVENT["queryStringParameters"] = {"stock": symbol}
+def get_get_prices_event(symbol: str, start_date: str, end_date: str) -> dict:
+    EVENT["queryStringParameters"] = {
+        "stock": symbol,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
     return EVENT
 
 

@@ -133,7 +133,7 @@ class WalterAPIMethod(ABC):
         if event["queryStringParameters"] is not None:
             query_fields = event["queryStringParameters"]
         for field in self.required_query_fields:
-            if field not in query_fields:
+            if field not in query_fields or query_fields[field] is None:
                 raise BadRequest(
                     f"Client bad request! Missing required query field: '{field}'"
                 )
