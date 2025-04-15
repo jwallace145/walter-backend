@@ -24,7 +24,9 @@ def get_prices_api(
 def test_get_prices_success_exists_in_db(
     get_prices_api: GetPrices, walter_db: WalterDB
 ) -> None:
-    event = get_get_prices_event(symbol="META", start_date="2025-01-01", end_date="2025-01-02")
+    event = get_get_prices_event(
+        symbol="META", start_date="2025-01-01", end_date="2025-01-02"
+    )
     expected_response = get_expected_response(
         api_name=get_prices_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -61,7 +63,9 @@ def test_get_prices_success_exists_in_db(
 def test_get_prices_success_does_not_exist_in_db(
     get_prices_api: GetPrices, walter_db: WalterDB
 ) -> None:
-    event = get_get_prices_event(symbol="TEAM", start_date="2025-01-01", end_date="2025-01-02")
+    event = get_get_prices_event(
+        symbol="TEAM", start_date="2025-01-01", end_date="2025-01-02"
+    )
     expected_response = get_expected_response(
         api_name=get_prices_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -102,7 +106,9 @@ def test_get_prices_failure_stock_does_not_exist(
     walter_stocks_api: WalterStocksAPI,
 ) -> None:
     invalid_symbol = "INVALID"
-    event = get_get_prices_event(symbol=invalid_symbol, start_date="2025-01-01", end_date="2025-01-02")
+    event = get_get_prices_event(
+        symbol=invalid_symbol, start_date="2025-01-01", end_date="2025-01-02"
+    )
     expected_response = get_expected_response(
         api_name=get_prices_api.API_NAME,
         status_code=HTTPStatus.OK,

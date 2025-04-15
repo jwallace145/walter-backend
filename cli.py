@@ -67,6 +67,7 @@ from walter import (
     add_expense_entrypoint,
     get_expenses_entrypoint,
     delete_expense_entrypoint,
+    get_newsletters_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -348,6 +349,13 @@ def search_stocks_canary() -> None:
     log.info("WalterCLI: SearchStocksCanary")
     response = search_stocks_canary_entrypoint({}, CONTEXT)
     log.info(f"WalterCLI: SearchStocksCanary Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_newsletters_canary() -> None:
+    log.info("WalterCLI: GetNewslettersCanary...")
+    response = get_newsletters_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetNewslettersCanary Response:\n{parse_response(response)}")
 
 
 ####################

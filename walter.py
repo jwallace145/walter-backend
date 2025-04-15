@@ -27,6 +27,7 @@ from src.api.verify_purchase_newsletter_subscription import (
 )
 from src.canaries.auth_user import AuthUserCanary
 from src.canaries.get_news_summary import GetNewsSummaryCanary
+from src.canaries.get_newsletters import GetNewslettersCanary
 from src.canaries.get_portfolio import GetPortfolioCanary
 from src.canaries.get_prices import GetPricesCanary
 from src.canaries.get_stock import GetStockCanary
@@ -322,6 +323,10 @@ def get_prices_canary_entrypoint(event, context) -> dict:
 
 def get_news_summary_canary_entrypoint(event, context) -> dict:
     return GetNewsSummaryCanary().invoke()
+
+
+def get_newsletters_canary_entrypoint(event, context) -> dict:
+    return GetNewslettersCanary(walter_authenticator).invoke()
 
 
 def search_stocks_canary_entrypoint(event, context) -> dict:
