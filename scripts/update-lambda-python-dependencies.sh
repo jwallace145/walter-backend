@@ -5,7 +5,8 @@ mkdir python \
 && aws lambda publish-layer-version \
   --layer-name WalterBackendLambdaPythonDependencies \
   --zip-file fileb://python.zip \
-  --compatible-runtimes python3.11 \
+  --compatible-runtimes python3.12 \
   --compatible-architectures "arm64" \
+  --description "This Lambda layer contains the Python 3.12 dependencies (arm64) required by WalterBackend." \
 && rm -rf python* \
 && rm -rf requirements.txt

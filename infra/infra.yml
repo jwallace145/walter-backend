@@ -19,7 +19,7 @@ Parameters:
   WalterBackendLambdaLayerVersion:
     Type: String
     Description: The version of the Lambda layer that includes the Python dependencies required by WalterBackend
-    Default: 1 # set the default to the latest WalterBackendLambdaPythonDependencies version
+    Default: 2 # set the default to the latest WalterBackendLambdaPythonDependencies version
 
 #################
 ### RESOURCES ###
@@ -1160,7 +1160,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAuth
-      FunctionVersion: 7
+      FunctionVersion: 10
       Name: "release"
 
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
@@ -1177,7 +1177,9 @@ Resources:
         S3Key: walter-backend.zip
       MemorySize: 128
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1193,8 +1195,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateUser
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
+      FunctionVersion: 7
+      Name: "release"
 
   WalterAPICreateUser:
     Type: AWS::Lambda::Function
@@ -1207,7 +1209,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1223,10 +1227,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: 5
+      FunctionVersion: 7
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetUser:
     Type: AWS::Lambda::Function
@@ -1240,7 +1242,9 @@ Resources:
         S3Key: walter-backend.zip
       MemorySize: 128
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1256,10 +1260,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStock
-      FunctionVersion: 2
+      FunctionVersion: 4
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetStock:
     Type: AWS::Lambda::Function
@@ -1272,7 +1274,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1288,8 +1292,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStatistics
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetStatistics-${AppEnvironment}"
+      FunctionVersion: 1
+      Name: "release"
 
   WalterAPIGetStatistics:
     Type: AWS::Lambda::Function
@@ -1302,7 +1306,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1318,8 +1324,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-AddStock-${AppEnvironment}"
+      FunctionVersion: 7
+      Name: "release"
 
   WalterAPIAddStock:
     Type: AWS::Lambda::Function
@@ -1332,7 +1338,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1348,8 +1356,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-DeleteStock-${AppEnvironment}"
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPIDeleteStock:
     Type: AWS::Lambda::Function
@@ -1362,7 +1370,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1378,10 +1388,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
-      FunctionVersion: 5
+      FunctionVersion: 7
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetPrices:
     Type: AWS::Lambda::Function
@@ -1394,7 +1402,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1410,10 +1420,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsSummary
-      FunctionVersion: 1
+      FunctionVersion: 3
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetNewsSummary:
     Type: AWS::Lambda::Function
@@ -1426,7 +1434,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1442,10 +1452,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: 5
+      FunctionVersion: 7
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPIGetPortfolio:
     Type: AWS::Lambda::Function
@@ -1458,7 +1466,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1474,8 +1484,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendNewsletter
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-SendNewsletter-${AppEnvironment}"
+      FunctionVersion: 7
+      Name: "release"
 
   WalterAPISendNewsletter:
     Type: AWS::Lambda::Function
@@ -1488,7 +1498,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1504,8 +1516,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletter
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetNewsletter-${AppEnvironment}"
+      FunctionVersion: 1
+      Name: "release"
 
   WalterAPIGetNewsletter:
     Type: AWS::Lambda::Function
@@ -1518,7 +1530,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1530,13 +1544,12 @@ Resources:
         - Key: "awsApplication"
           Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
-
   WalterAPIGetNewslettersAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-GetNewsletters-${AppEnvironment}"
+      FunctionVersion: 1
+      Name: "release"
 
   WalterAPIGetNewsletters:
     Type: AWS::Lambda::Function
@@ -1549,7 +1562,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1561,14 +1576,12 @@ Resources:
         - Key: "awsApplication"
           Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
-
   WalterAPISendVerifyEmailAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendVerifyEmail
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-SendVerifyEmail-${AppEnvironment}"
-
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPISendVerifyEmail:
     Type: AWS::Lambda::Function
@@ -1581,7 +1594,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1597,8 +1612,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIVerifyEmail
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-VerifyEmail-${AppEnvironment}"
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPIVerifyEmail:
     Type: AWS::Lambda::Function
@@ -1611,7 +1626,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1628,7 +1645,7 @@ Resources:
     Properties:
       FunctionName: !Ref WalterAPISendChangePasswordEmail
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-SendChangePasswordEmail-${AppEnvironment}"
+      Name: "release"
 
   WalterAPISendChangePasswordEmail:
     Type: AWS::Lambda::Function
@@ -1641,7 +1658,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1657,8 +1676,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIChangePassword
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-ChangePassword-${AppEnvironment}"
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPIChangePassword:
     Type: AWS::Lambda::Function
@@ -1671,7 +1690,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1687,8 +1708,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISubscribe
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-Subscribe-${AppEnvironment}"
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPISubscribe:
     Type: AWS::Lambda::Function
@@ -1701,7 +1722,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1717,8 +1740,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUnsubscribe
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-Unsubscribe-${AppEnvironment}"
+      FunctionVersion: 4
+      Name: "release"
 
   WalterAPIUnsubscribe:
     Type: AWS::Lambda::Function
@@ -1731,7 +1754,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1747,10 +1772,8 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISearchStocks
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
 
   WalterAPISearchStocks:
     Type: AWS::Lambda::Function
@@ -1763,7 +1786,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -1780,7 +1803,7 @@ Resources:
     Properties:
       FunctionName: !Ref WalterAPIPurchaseNewsletterSubscription
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-PurchaseNewsletterSubscription-${AppEnvironment}"
+      Name: "release"
 
   WalterAPIPurchaseNewsletterSubscription:
     Type: AWS::Lambda::Function
@@ -1793,7 +1816,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1810,7 +1835,7 @@ Resources:
     Properties:
       FunctionName: !Ref WalterAPIVerifyPurchaseNewsletterSubscription
       FunctionVersion: $LATEST
-      Name: !Sub "WalterAPI-VerifyPurchaseNewsletterSubscription-${AppEnvironment}"
+      Name: "release"
 
   WalterAPIVerifyPurchaseNewsletterSubscription:
     Type: AWS::Lambda::Function
@@ -1823,7 +1848,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1839,7 +1866,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetExpenses
-      FunctionVersion: $LATEST
+      FunctionVersion: 1
       Name: "release"
 
   WalterAPIGetExpenses:
@@ -1853,7 +1880,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1869,7 +1898,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddExpense
-      FunctionVersion: $LATEST
+      FunctionVersion: 1
       Name: "release"
 
   WalterAPIAddExpense:
@@ -1883,7 +1912,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1899,7 +1930,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteExpense
-      FunctionVersion: $LATEST
+      FunctionVersion: 1
       Name: "release"
 
   WalterAPIDeleteExpense:
@@ -1913,7 +1944,9 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
+      SnapStart:
+        ApplyOn: PublishedVersions
       Architectures:
         - "arm64"
       Layers:
@@ -1944,7 +1977,7 @@ Resources:
         S3Key: walter-backend.zip
       MemorySize: 128
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -1975,7 +2008,7 @@ Resources:
         S3Key: walter-backend.zip
       MemorySize: 128
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2006,7 +2039,7 @@ Resources:
         S3Key: walter-backend.zip
       MemorySize: 128
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2036,7 +2069,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2066,7 +2099,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2096,7 +2129,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2126,7 +2159,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 60
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2156,7 +2189,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 300
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2186,7 +2219,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 300
-      Runtime: python3.11
+      Runtime: python3.12
       Architectures:
         - "arm64"
       Layers:
@@ -2216,7 +2249,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       Timeout: 90
-      Runtime: python3.11
+      Runtime: python3.12
       MemorySize: 512
       Architectures:
         - "arm64"
@@ -2257,7 +2290,7 @@ Resources:
           S3Bucket: walter-backend-src
           S3Key: walter-backend.zip
         Timeout: 300
-        Runtime: python3.11
+        Runtime: python3.12
         MemorySize: 512
         Architectures:
           - "arm64"
