@@ -99,7 +99,7 @@ class GetNewsletters(WalterAPIMethod):
         log.info("Verifying newsletters page is valid...")
 
         page = int(WalterAPIMethod.get_query_field(event, "page"))
-        last_page = math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE)
+        last_page = max(math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE), 1)
 
         if page < 1:
             log.error(f"Page {page} out of range! Page must be greater than 0!")
@@ -131,6 +131,12 @@ class GetNewsletters(WalterAPIMethod):
         # to caller which page to resume pagination if desired
         if page < last_page:
             data["next_page"] = page + 1
+
+        # if there are previous pages, return previous page field to
+        # indicate to caller which page to return to navigate to previous
+        # newsletters page
+        if page > 0:
+            data["previous_page"] = page - 1
 
         return data
 

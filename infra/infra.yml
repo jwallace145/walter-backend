@@ -538,7 +538,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetNewsletters
+      FunctionName: !Sub "${WalterAPIGetNewsletters.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetNewslettersMethod:
@@ -551,7 +551,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletters.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletters.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -1548,7 +1548,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
 
   WalterAPIGetNewsletters:
@@ -2124,6 +2124,36 @@ Resources:
       FunctionName: !Sub "WalterCanary-GetNewsSummaryCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetNewsSummaryCanary - Call the GetNewsSummary API and get the latest stock market news summaries (${AppEnvironment})"
       Handler: walter.get_news_summary_canary_entrypoint
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        S3Bucket: walter-backend-src
+        S3Key: walter-backend.zip
+      Timeout: 60
+      Runtime: python3.12
+      Architectures:
+        - "arm64"
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
+
+  WalterCanaryGetNewslettersCanaryAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterCanaryGetNewslettersCanary
+      FunctionVersion: $LATEST
+      Name: "release"
+
+  WalterCanaryGetNewslettersCanary:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterCanary-GetNewsletters-${AppEnvironment}"
+      Description: !Sub "WalterCanary: GetNewsletters - Call the GetNewsletters API and get the latest newsletters for the user (${AppEnvironment})"
+      Handler: walter.get_newsletters_canary_entrypoint
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         S3Bucket: walter-backend-src
