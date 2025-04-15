@@ -55,4 +55,20 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterAPI AddExpense source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-AddExpense-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
 && echo Updating WalterAPI DeleteExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip
+&& aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary AuthUser source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-AuthUserCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetNewsletters source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetNewsletters-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetNewsSummary source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetNewsSummaryCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetPortfolio source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetPortfolioCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetPrices source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetPricesCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetStock source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetStockCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary GetUser source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-GetUserCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip \
+&& echo Updating WalterCanary SearchStocks source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterCanary-SearchStocksCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip

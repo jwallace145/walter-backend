@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import requests
 from requests import Response
 
+from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.canaries.common.canary import BaseCanary
 from src.utils.log import Logger
 
@@ -23,11 +24,8 @@ class AuthUserCanary(BaseCanary):
     USER_EMAIL = "canary@walterai.dev"
     USER_PASSWORD = "CanaryPassword1234&"
 
-    def __init__(self) -> None:
-        super().__init__(
-            AuthUserCanary.CANARY_NAME,
-            AuthUserCanary.API_URL,
-        )
+    def __init__(self, metrics: WalterCloudWatchClient) -> None:
+        super().__init__(AuthUserCanary.CANARY_NAME, AuthUserCanary.API_URL, metrics)
 
     def call_api(self) -> Response:
         return requests.post(
