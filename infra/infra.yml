@@ -1866,7 +1866,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetExpenses
-      FunctionVersion: 1
+      FunctionVersion: 4
       Name: "release"
 
   WalterAPIGetExpenses:
