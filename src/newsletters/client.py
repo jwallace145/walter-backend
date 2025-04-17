@@ -83,6 +83,8 @@ class NewslettersBucket:
                 f"No newsletter found in archive for user '{user.username}' and date '{date.strftime('%Y-%m-%d')}'!"
             )
             return None
+        # filter out metadata keys
+        keys = [key for key in keys if "metadata" not in key]
         log.info(f"Returned {len(keys)} newsletters from archive for user and date!")
         return self.client.get_object(self.bucket, keys[0])
 
