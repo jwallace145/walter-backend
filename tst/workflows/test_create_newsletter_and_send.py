@@ -1,4 +1,5 @@
 import datetime as dt
+from dataclasses import dataclass, field
 
 import pytest
 
@@ -70,10 +71,20 @@ BOBS_STOCKS = [
 ############
 
 
+@dataclass
+class MockFoundationModel:
+    model_name: str = "Unit Test Model"
+
+
+@dataclass
+class MockWalterAI:
+    model: MockFoundationModel = field(default_factory=MockFoundationModel)
+
+
 # TODO: Mock this
 @pytest.fixture
 def walter_ai() -> WalterAI:
-    pass
+    return MockWalterAI()
 
 
 # TODO: Mock this
@@ -195,17 +206,17 @@ def test_create_newsletter_and_send_archive_newsletter_success(
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/bob/{datestamp}/default/index.html",
+            f"newsletters/bob/{datestamp}/newsletter.html",
         )
         is None
     )
     create_newsletter_and_send_workflow._archive_newsletter(
-        BOB, "", SupportedTemplate.DEFAULT
+        BOB, "Title", "Newsletter", SupportedTemplate.DEFAULT
     )
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/bob/{datestamp}/default/index.html",
+            f"newsletters/bob/{datestamp}/newsletter.html",
         )
         is not None
     )

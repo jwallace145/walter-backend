@@ -11,6 +11,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.users.models import User
 from src.newsletters.client import NewslettersBucket
+from src.newsletters.models import NewsletterMetadata
 from src.templates.models import get_supported_template_by_value
 from src.utils.log import Logger
 
@@ -62,9 +63,10 @@ class GetNewsletters(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str = None) -> Response:
         user = self._verify_user_exists(authenticated_email)
-        newsletters = self._get_user_newsletters(user)
-        page, last_page = self._verify_newsletters_page(event, newsletters)
-        data = self._get_newsletters_response_data(newsletters, page, last_page)
+        newsletter_keys = self._get_newsletter_keys(user)
+        page, last_page = self._verify_newsletters_page(event, len(newsletter_keys))
+        newsletter_metadata = self._get_newsletter_metadata(user, newsletter_keys, page)
+        data = self._get_newsletters_response_data(newsletter_metadata, page, last_page)
         return Response(
             api_name=GetNewsletters.API_NAME,
             http_status=HTTPStatus.OK,
@@ -87,19 +89,17 @@ class GetNewsletters(WalterAPIMethod):
         log.info("Verified user exists!")
         return user
 
-    def _get_user_newsletters(self, user: User) -> List[str]:
-        log.info(f"Getting newsletters from archive for user '{user.email}'")
-        # reverse the list before returning to ensure newsletters are returned in descending
-        # order by creation date
-        return list(reversed(self.newsletters_archive.get_user_newsletters(user)))
+    def _get_newsletter_keys(self, user: User) -> List[str]:
+        log.info(f"Getting newsletter keys from archive for user '{user.email}'")
+        return self.newsletters_archive.get_newsletter_keys_for_user(user)
 
     def _verify_newsletters_page(
-        self, event: dict, newsletters: List[str]
+        self, event: dict, num_newsletters: int
     ) -> Tuple[int, int]:
         log.info("Verifying newsletters page is valid...")
 
         page = int(WalterAPIMethod.get_query_field(event, "page"))
-        last_page = max(math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE), 1)
+        last_page = max(math.ceil(num_newsletters / GetNewsletters.PAGE_SIZE), 1)
 
         if page < 1:
             log.error(f"Page {page} out of range! Page must be greater than 0!")
@@ -112,21 +112,34 @@ class GetNewsletters(WalterAPIMethod):
         log.info("Verified newsletters page is valid!")
         return page, last_page
 
+    def _get_newsletter_metadata(
+        self, user: User, newsletter_keys: List[str], page: int
+    ) -> List[dict]:
+        log.info(f"Getting newsletter metadata for user '{user.email}' from archive")
+
+        metadata = []
+        for newsletter_key in newsletter_keys:
+            date = datetime.strptime(
+                "".join(newsletter_key.split("/")[2:5]), "y=%Ym=%md=%d"
+            )
+            metadata.append(
+                self.newsletters_archive.get_newsletter_metadata(user, date)
+            )
+
+        return metadata
+
     def _get_newsletters_response_data(
-        self, newsletters: List[str], page: int, last_page: int
+        self, newsletter_metadata: List[NewsletterMetadata], page: int, last_page: int
     ) -> dict:
         # get newsletters page from page index
-        newsletters_page = newsletters[
+        newsletters_page = newsletter_metadata[
             (page - 1) * GetNewsletters.PAGE_SIZE : (page * GetNewsletters.PAGE_SIZE)
         ]
 
         return {
             "current_page": page,
-            "last_page": max(math.ceil(len(newsletters) / GetNewsletters.PAGE_SIZE), 1),
-            "newsletters": [
-                GetNewsletters._get_newsletter_details(newsletter)
-                for newsletter in newsletters_page
-            ],
+            "last_page": last_page,
+            "newsletters": [newsletter.to_dict() for newsletter in newsletters_page],
         }
 
     @staticmethod

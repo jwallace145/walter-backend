@@ -1548,7 +1548,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
-      FunctionVersion: 4
+      FunctionVersion: 6
       Name: "release"
 
   WalterAPIGetNewsletters:

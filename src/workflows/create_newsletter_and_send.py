@@ -107,7 +107,9 @@ class CreateNewsletterAndSend:
                 template_spec, CONFIG.newsletter.template
             )
             self._send_newsletter(user, subject, newsletter, CONFIG.newsletter.template)
-            self._archive_newsletter(user, newsletter, CONFIG.newsletter.template)
+            self._archive_newsletter(
+                user, subject, newsletter, CONFIG.newsletter.template
+            )
             self._emit_metrics()
             body = {
                 "Workflow": CreateNewsletterAndSend.WORKFLOW_NAME,
@@ -243,11 +245,14 @@ class CreateNewsletterAndSend:
     def _archive_newsletter(
         self,
         user: User,
+        title: str,
         newsletter: str,
         template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> None:
         log.info(f"Archiving newsletter for user with email '{user.email}'...")
-        self.newsletters_bucket.put_newsletter(user, template.value, newsletter)
+        self.newsletters_bucket.put_newsletter(
+            user, title, template, self.walter_ai.model.model_name, newsletter
+        )
 
     def _emit_metrics(self) -> None:
         log.info(f"Emitting '{CreateNewsletterAndSend.WORKFLOW_NAME}' metrics...")
