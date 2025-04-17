@@ -17,7 +17,7 @@ class SupportedTemplate(Enum):
 
 def get_supported_template(template_name: str) -> SupportedTemplate:
     for template in SupportedTemplate:
-        if template.name == template_name:
+        if template.name.lower() == template_name.lower():
             return template
     raise ValueError(
         f"Unexpected template '{template_name}' given! Supported templates: {[template.name for template in SupportedTemplate]}"
