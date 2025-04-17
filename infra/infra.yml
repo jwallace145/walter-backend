@@ -488,7 +488,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIGetNewsletter
+      FunctionName: !Sub "${WalterAPIGetNewsletter.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetNewsletterMethod:
@@ -501,7 +501,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletter.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetNewsletter.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -1516,7 +1516,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletter
-      FunctionVersion: 1
+      FunctionVersion: 6
       Name: "release"
 
   WalterAPIGetNewsletter:
