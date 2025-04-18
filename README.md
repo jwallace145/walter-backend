@@ -69,6 +69,40 @@ TemplateSpec:
 After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 
 [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) and then sends the custom newsletter to the subscriber!
 
+### Local Testing
+
+WalterAPI historically has used ZIP packages for Lambda deployments but ever since the addition of scikit-learn, the deployment package is now >250 MB and Walter can no longer use ZIP packages...
+
+So, WalterAPI is forced to use container images for the Lambdas! Woot woot, deployment packages can be up to 10 GB in size now (I think, surely more than >250 MB). However, local testing just got a bit harder...
+
+I can still test WalterAPI locally with the API containers but need to utilize the [AWS Lambda Runtime Interface Emulator](https://github.com/aws/aws-lambda-runtime-interface-emulator) as it sents up the HTTP server that is usually orchestrated by API Gateway. The HTTP server created by the AWS Lambda RIE accepts incoming curl requests and marshals the request to JSON that the Lambda container can understand and process.
+
+The AWS RIE is included in AWS base images which WalterAPIs utilize so no issue installing it. However, coming up with the command to invoke a Lambda behind an API with AWS RIE was a bit troublesome. Putting the commands here for later reference and until I find a better place to put this stuff...
+
+#### Build Docker Image
+
+```bash
+docker build -t walter/api:latest . 
+```
+
+#### Docker Run AWS Lambda RIE
+
+AWS Lambda RIE runs on port 9000 and needs creds exported as env vars to make authenticated AWS API calls. 
+
+```bash
+docker run -p 9000:8080 --env-file .env walter/api:latest walter.auth_user_entrypoint
+```
+
+#### Invoke WalterAPI Container via AWS Lambda RIE
+```bash
+curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+  -d '{
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\"email\": \"testuser@walterai.dev\", \"password\": \"testpassword\"}"
+      }' | jq -r '.body | fromjson'
+```
 ### Dependencies
 
 * [AlphaVantage](https://www.alphavantage.co/documentation/)

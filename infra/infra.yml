@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Walter Backend Infrastructure"
+Description: "WalterBackend Infrastructure"
 
 ##################
 ### PARAMETERS ###
@@ -21,6 +21,24 @@ Parameters:
     Description: The version of the Lambda layer that includes the Python dependencies required by WalterBackend
     Default: 2 # set the default to the latest WalterBackendLambdaPythonDependencies version
 
+  WalterAPIImageURI:
+    Type: String
+    Description: The image URI of the WalterAPI container
+    Default: 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest
+
+  WalterAPITimeoutSeconds:
+    Type: Number
+    Description: The timeout in seconds of each API included in WalterAPI
+    Default: 30
+
+  WalterAPILambdaArchitecture:
+    Type: String
+    Description: The desired architecture of the Lambda environments that serve the WalterAPI endpoints
+    Default: arm64
+    AllowedValues:
+      - arm64
+      - x86_64
+
 #################
 ### RESOURCES ###
 #################
@@ -36,9 +54,6 @@ Resources:
     Properties:
       Name: !Sub "WalterAPI-${AppEnvironment}"
       Description: "API Gateway for WalterAPI"
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIAuthResource:
     Type: AWS::ApiGateway::Resource
@@ -1176,7 +1191,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       MemorySize: 128
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1187,9 +1202,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPICreateUserAlias:
     Type: AWS::Lambda::Alias
@@ -1208,7 +1220,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1219,9 +1231,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetUserAlias:
     Type: AWS::Lambda::Alias
@@ -1241,7 +1250,7 @@ Resources:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
       MemorySize: 128
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1252,9 +1261,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetStockAlias:
     Type: AWS::Lambda::Alias
@@ -1273,7 +1279,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1284,9 +1290,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetStatisticsAlias:
     Type: AWS::Lambda::Alias
@@ -1305,7 +1308,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1316,9 +1319,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIAddStockAlias:
     Type: AWS::Lambda::Alias
@@ -1337,7 +1337,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1348,9 +1348,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIDeleteStockAlias:
     Type: AWS::Lambda::Alias
@@ -1369,7 +1366,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1380,9 +1377,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetPricesAlias:
     Type: AWS::Lambda::Alias
@@ -1401,7 +1395,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1412,9 +1406,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetNewsSummaryAlias:
     Type: AWS::Lambda::Alias
@@ -1433,7 +1424,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1444,9 +1435,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetPortfolioAlias:
     Type: AWS::Lambda::Alias
@@ -1465,7 +1453,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1476,9 +1464,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISendNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1497,7 +1482,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1508,9 +1493,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1529,7 +1511,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1540,9 +1522,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetNewslettersAlias:
     Type: AWS::Lambda::Alias
@@ -1561,7 +1540,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1572,9 +1551,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISendVerifyEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1593,7 +1569,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1604,9 +1580,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIVerifyEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1625,7 +1598,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1636,9 +1609,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISendChangePasswordEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1657,7 +1627,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1668,9 +1638,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIChangePasswordAlias:
     Type: AWS::Lambda::Alias
@@ -1689,7 +1656,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1700,9 +1667,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -1721,7 +1685,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1732,9 +1696,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIUnsubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -1753,7 +1714,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1764,9 +1725,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPISearchStocksAlias:
     Type: AWS::Lambda::Alias
@@ -1785,7 +1743,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       Architectures:
         - "arm64"
@@ -1794,9 +1752,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -1815,7 +1770,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1826,9 +1781,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIVerifyPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -1847,7 +1799,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      Timeout: 60
+      Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
         ApplyOn: PublishedVersions
@@ -1858,105 +1810,84 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIGetExpensesAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetExpenses
-      FunctionVersion: 4
+      FunctionVersion: 10
       Name: "release"
 
   WalterAPIGetExpenses:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetExpenses-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetExpenses - Gets expenses for the given user from WalterDB (${AppEnvironment})"
-      Handler: walter.get_expenses_entrypoint
+      Description: !Sub "WalterAPI: GetExpenses - Gets user expenses from WalterDB (${AppEnvironment})"
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_expenses_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIAddExpenseAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddExpense
-      FunctionVersion: 1
+      FunctionVersion: 13
       Name: "release"
 
   WalterAPIAddExpense:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-AddExpense-${AppEnvironment}"
-      Description: !Sub "WalterAPI: AddExpense - Adds new expense for the user to WalterDB (${AppEnvironment})"
-      Handler: walter.add_expense_entrypoint
+      Description: !Sub "WalterAPI: AddExpense - Adds user expense to WalterDB (${AppEnvironment})"
       Role: !GetAtt WalterAPIRole.Arn
+      PackageType: Image
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.add_expense_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterAPIDeleteExpenseAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteExpense
-      FunctionVersion: 1
+      FunctionVersion: 10
       Name: "release"
 
   WalterAPIDeleteExpense:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-DeleteExpense-${AppEnvironment}"
-      Description: !Sub "WalterAPI: DeleteExpense - Deletes a user expense from WalterDB (${AppEnvironment})"
-      Handler: walter.delete_expense_entrypoint
+      Description: !Sub "WalterAPI: DeleteExpense - Delete user expense from WalterDB (${AppEnvironment})"
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.delete_expense_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryAuthUserCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -1985,9 +1916,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetExpensesCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2016,9 +1944,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetUserCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2047,9 +1972,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetStockCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2078,9 +2000,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetPortfolioCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2108,9 +2027,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetPricesCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2138,9 +2054,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetNewsSummaryCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2168,9 +2081,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanaryGetNewslettersCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2198,9 +2108,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterCanarySearchStocksCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2228,9 +2135,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsletterRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -2258,9 +2162,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsSummaryRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -2288,9 +2189,6 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveAlias:
     Type: AWS::Lambda::Alias
@@ -2321,9 +2219,6 @@ Resources:
           DOMAIN: DEVELOPMENT
       DeadLetterConfig:
         TargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -2393,9 +2288,6 @@ Resources:
         - AttributeName: date_uuid
           KeyType: RANGE
       TableName: !Sub "Expenses-${AppEnvironment}"
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   StocksTable:
     Type: AWS::DynamoDB::Table
@@ -2408,9 +2300,6 @@ Resources:
           - AttributeName: symbol
             KeyType: HASH
       TableName: !Sub "Stocks-${AppEnvironment}"
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   UsersStocksTable:
     Type: AWS::DynamoDB::Table
@@ -2427,9 +2316,6 @@ Resources:
           - AttributeName: stock_symbol
             KeyType: RANGE
       TableName: !Sub "UsersStocks-${AppEnvironment}"
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   UsersTable:
     Type: AWS::DynamoDB::Table
@@ -2451,9 +2337,6 @@ Resources:
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   #################
   ### IAM ROLES ###
@@ -2475,9 +2358,6 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterNewslettersRole:
     Type: AWS::IAM::Role
@@ -2495,9 +2375,6 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsSummaryRequestsRole:
     Type: AWS::IAM::Role
@@ -2515,9 +2392,6 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowCreateNewsSummaryAndArchiveRole:
     Type: AWS::IAM::Role
@@ -2535,9 +2409,6 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterBackendRole:
     Type: AWS::IAM::Role
@@ -2555,9 +2426,6 @@ Resources:
                 - "lambda.amazonaws.com"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   ####################
   ### IAM POLICIES ###
@@ -2953,9 +2821,6 @@ Resources:
           - Id: "DeleteOldNewsletters"
             Status: "Enabled"
             ExpirationInDays: 30
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewslettersBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -2987,9 +2852,6 @@ Resources:
           - Id: "DeleteOldNewsSummaries"
             Status: "Enabled"
             ExpirationInDays: 30
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -3029,9 +2891,6 @@ Resources:
               SSEAlgorithm: "AES256"
       VersioningConfiguration:
         Status: Enabled
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   TemplatesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -3062,13 +2921,10 @@ Resources:
     Properties:
       QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 90
+      VisibilityTimeout: 360
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
         maxReceiveCount: 1
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewslettersDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -3077,22 +2933,16 @@ Resources:
       SqsManagedSseEnabled: true
       VisibilityTimeout: 90
       MessageRetentionPeriod: 1209600 # two weeks
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "NewsSummariesQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
-      VisibilityTimeout: 90
+      VisibilityTimeout: 360
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
         maxReceiveCount: 1
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   NewsSummariesDeadLetterQueue:
     Type: AWS::SQS::Queue
@@ -3101,9 +2951,6 @@ Resources:
       SqsManagedSseEnabled: true
       VisibilityTimeout: 90
       MessageRetentionPeriod: 1209600 # two weeks
-      Tags:
-        - Key: "awsApplication"
-          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
 ###############
 ### OUTPUTS ###
