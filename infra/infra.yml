@@ -16,6 +16,7 @@ Parameters:
       - preprod
       - prod
 
+  # TODO: Get rid of this Lambda layer after migrating all Lambdas to containers
   WalterBackendLambdaLayerVersion:
     Type: String
     Description: The version of the Lambda layer that includes the Python dependencies required by WalterBackend
@@ -38,6 +39,16 @@ Parameters:
     AllowedValues:
       - arm64
       - x86_64
+
+  WalterAPILambdaMemorySizeMegabytes:
+    Type: Number
+    Description: The memory in Megabytes (MB) allocated to the Lambda environments that serve the WalterAPI endpoints
+    Default: 128
+
+  WalterAPILambdaProvisionedConcurrencyCount:
+    Type: Number
+    Description: The number of Lambdas to keep warm for provisioned concurrency to improve WalterAPI latency.
+    Default: 5
 
 #################
 ### RESOURCES ###
@@ -171,7 +182,7 @@ Resources:
       FunctionName: !Ref WalterAPICreateUser
       Principal: apigateway.amazonaws.com
 
-  WalterAPIGetUsersMethod:
+  WalterAPIGetUserMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: GET
@@ -489,7 +500,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIGetPortfolio.Arn}:release" # provisioned concurrency -> release alias
+      FunctionName: !Sub "${WalterAPIGetPortfolio.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIGetUserNewsletterResource:
@@ -1190,7 +1201,7 @@ Resources:
       Code:
         S3Bucket: walter-backend-src
         S3Key: walter-backend.zip
-      MemorySize: 128
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Timeout: !Ref WalterAPITimeoutSeconds
       Runtime: python3.12
       SnapStart:
@@ -1236,28 +1247,25 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: 7
+      FunctionVersion: 19
       Name: "release"
 
   WalterAPIGetUser:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetUser-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetUser - get user from token (${AppEnvironment})"
-      Handler: walter.get_user_entrypoint
+      Description: !Sub "WalterAPI: GetUser - Get user from WalterDB with JWT (${AppEnvironment})"
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: 128
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_user_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1266,27 +1274,27 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStock
-      FunctionVersion: 4
+      FunctionVersion: 14
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
   WalterAPIGetStock:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetStock - Get stock and its details from WalterDB (${AppEnvironment})"
-      Handler: walter.get_stock_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_stock_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1382,27 +1390,27 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
-      FunctionVersion: 7
+      FunctionVersion: 18
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
   WalterAPIGetPrices:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetPrices-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetPrices - Get pricing data for a given stock over a timeframe (${AppEnvironment})"
-      Handler: walter.get_prices_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_prices_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1440,27 +1448,27 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: 7
+      FunctionVersion: 16
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
   WalterAPIGetPortfolio:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetPortfolio-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetPortfolio - Get user portfolio with latest market data (${AppEnvironment})"
-      Handler: walter.get_portfolio_entrypoint
+      Description: !Sub "WalterAPI: GetPortfolio - Get user portfolio from WalterDB (${AppEnvironment})"
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_portfolio_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1817,6 +1825,8 @@ Resources:
       FunctionName: !Ref WalterAPIGetExpenses
       FunctionVersion: 10
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
   WalterAPIGetExpenses:
     Type: AWS::Lambda::Function
@@ -1831,6 +1841,7 @@ Resources:
         Command:
           - walter.get_expenses_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - !Ref WalterAPILambdaArchitecture
       Environment:
@@ -1857,6 +1868,7 @@ Resources:
         Command:
           - walter.add_expense_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - !Ref WalterAPILambdaArchitecture
       Environment:
@@ -1883,6 +1895,7 @@ Resources:
         Command:
           - walter.delete_expense_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - !Ref WalterAPILambdaArchitecture
       Environment:
