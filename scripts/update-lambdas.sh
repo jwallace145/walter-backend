@@ -51,11 +51,11 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterWorkflow CreateNewsSummaryAndArchive source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-CreateNewsSummaryAndArchive-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI GetExpenses source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-GetExpenses-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterAPI-GetExpenses-dev --image-uri 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest --no-cli-pager \
 && echo Updating WalterAPI AddExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-AddExpense-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterAPI-AddExpense-dev --image-uri 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest --no-cli-pager \
 && echo Updating WalterAPI DeleteExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --image-uri 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest --no-cli-pager \
 && echo Updating WalterCanary AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterCanary-AuthUserCanary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterCanary GetNewsletters source code with artifact from S3 \
