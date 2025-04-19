@@ -48,7 +48,7 @@ Parameters:
   WalterAPILambdaProvisionedConcurrencyCount:
     Type: Number
     Description: The number of Lambdas to keep warm for provisioned concurrency to improve WalterAPI latency.
-    Default: 5
+    Default: 1
 
 #################
 ### RESOURCES ###
