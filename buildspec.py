@@ -110,7 +110,7 @@ def create_change_set(client: CloudFormationClient) -> None:
         ChangeSetName=CHANGE_SET_NAME,
         Description=f"This change set tests updates for {STACK_NAME}.",
     )
-    time.sleep(30)
+    time.sleep(20)
 
 
 def describe_change_set(client: CloudFormationClient) -> str:
@@ -125,7 +125,7 @@ def change_set_contains_changes(status: str) -> bool:
 
 
 def execute_change_set(client: CloudFormationClient) -> None:
-    time.sleep(30)
+    time.sleep(20)
     client.execute_change_set(StackName=STACK_NAME, ChangeSetName=CHANGE_SET_NAME)
 
 
