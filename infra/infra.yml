@@ -48,7 +48,7 @@ Parameters:
   WalterAPILambdaProvisionedConcurrencyCount:
     Type: Number
     Description: The number of Lambdas to keep warm for provisioned concurrency to improve WalterAPI latency.
-    Default: 5
+    Default: 1
 
 #################
 ### RESOURCES ###
@@ -1535,27 +1535,27 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
-      FunctionVersion: 6
+      FunctionVersion: 12
       Name: "release"
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
   WalterAPIGetNewsletters:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterAPI-GetNewsletters-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetNewsletters - Get newsletters sent to user from archive (${AppEnvironment})"
-      Handler: walter.get_newsletters_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_newsletters_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
