@@ -2,9 +2,10 @@
 # WALTER API #
 ##############
 
+# To browse AWS Lambda Python base images: https://gallery.ecr.aws/lambda/python
 # AWS Lambda Python 3.12 base image includes the
 # AWS Lambda Runtime Interface Emulator (RIE) by default
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/python:3.12-arm64
 
 # install pipenv to convert Pipfile to requirements.txt file
 # to install with pip
