@@ -17,3 +17,5 @@ walter_config:
     cents_per_month: 100 # price in cents to avoid any precision loss with floats
     free_trial_length_days: 31 # 31-day free trial before needing a subscription
     schedule: cron(0 11 ? * MON-FRI *) # the cron schedule to invoke the create newsletter and send workflow
+  canaries:
+    schedule: cron(0/5 * * * ? *) # canary cron schedule to ensure WalterAPI health

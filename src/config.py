@@ -89,6 +89,18 @@ class NewsletterConfig:
 
 
 @dataclass(frozen=True)
+class CanariesConfig:
+    """Canaries Configurations"""
+
+    schedule: str = "cron(0/5 * * * ? *)"  # once every five minutes
+
+    def to_dict(self) -> dict:
+        return {
+            "schedule": self.schedule,
+        }
+
+
+@dataclass(frozen=True)
 class WalterConfig:
     """
     WalterConfig
@@ -103,6 +115,7 @@ class WalterConfig:
     )
     news_summary: NewsSummaryConfig = NewsSummaryConfig()
     newsletter: NewsletterConfig = NewsletterConfig()
+    canaries: CanariesConfig = CanariesConfig()
 
     def to_dict(self) -> dict:
         return {
@@ -111,6 +124,7 @@ class WalterConfig:
                 "artificial_intelligence": self.artificial_intelligence.to_dict(),
                 "news_summary": self.news_summary.to_dict(),
                 "newsletter": self.newsletter.to_dict(),
+                "canaries": self.canaries.to_dict(),
             }
         }
 
@@ -168,6 +182,7 @@ def get_walter_config() -> WalterConfig:
                 ],
                 schedule=config_yaml["newsletter"]["schedule"],
             ),
+            canaries=CanariesConfig(schedule=config_yaml["canaries"]["schedule"]),
         )
     except Exception as exception:
         log.error(
