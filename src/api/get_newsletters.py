@@ -93,7 +93,9 @@ class GetNewsletters(WalterAPIMethod):
         log.info(f"Getting newsletter keys from archive for user '{user.email}'")
         # sort newsletter keys in reverse order to ensure results are
         # chronologically descending order
-        return sorted(self.newsletters_archive.get_newsletter_keys_for_user(user), reverse=True)
+        return sorted(
+            self.newsletters_archive.get_newsletter_keys_for_user(user), reverse=True
+        )
 
     def _verify_newsletters_page(
         self, event: dict, num_newsletters: int

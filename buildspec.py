@@ -48,6 +48,27 @@ ADD_NEWSLETTER_REQUESTS_WORKFLOW_TRIGGER_NAME = (
 )
 """(str): The EventBridge cron schedule used to trigger the AddNewsletterRequests workflow."""
 
+AUTH_USER_CANARY_TRIGGER_NAME = "WalterCanary-AuthUserCanary-Trigger"
+"""(str): The EventBridge trigger for the AuthUser Canary API."""
+
+GET_EXPENSES_CANARY_TRIGGER_NAME = "WalterCanary-GetExpenses-Trigger"
+"""(str): The EventBridge trigger for the GetExpenses Canary API."""
+
+GET_NEWSLETTERS_CANARY_TRIGGER_NAME = "WalterCanary-GetNewsletters-Trigger"
+"""(str): The EventBridge trigger for the GetNewsletters Canary API."""
+
+GET_NEWS_SUMMARY_CANARY_TRIGGER_NAME = "WalterCanary-GetNewsSummary-Trigger"
+"""(str): The EventBridge trigger for the GetNewsSummary Canary API."""
+
+GET_PORTFOLIO_CANARY_TRIGGER_NAME = "WalterCanary-GetPortfolioCanary-Trigger"
+"""(str): The EventBridge trigger for the GetPortfolio Canary API."""
+
+GET_PRICES_CANARY_TRIGGER_NAME = "WalterCanary-GetPrices-Trigger"
+"""(str): The EventBridge trigger for the GetPrices Canary API."""
+
+GET_STOCK_CANARY_TRIGGER_NAME = "WalterCanary-GetStock-Trigger"
+"""(str): The EventBridge trigger for the GetStock Canary API."""
+
 TEMPLATE_URL = "https://walter-backend-src.s3.us-east-1.amazonaws.com/infra.yml"
 """(str): The template url of the CloudFormation YAML file to use for infrastructure updates."""
 
@@ -73,6 +94,24 @@ def update_add_newsletter_requests_workflow_trigger(client: EventBridgeClient) -
         ScheduleExpression=CONFIG.newsletter.schedule,
         State="ENABLED",
     )
+
+
+def update_all_canary_triggers(client: EventBridgeClient) -> None:
+    canary_triggers = [
+        AUTH_USER_CANARY_TRIGGER_NAME,
+        GET_EXPENSES_CANARY_TRIGGER_NAME,
+        GET_NEWSLETTERS_CANARY_TRIGGER_NAME,
+        GET_NEWS_SUMMARY_CANARY_TRIGGER_NAME,
+        GET_PORTFOLIO_CANARY_TRIGGER_NAME,
+        GET_PRICES_CANARY_TRIGGER_NAME,
+        GET_STOCK_CANARY_TRIGGER_NAME,
+    ]
+    for trigger_name in canary_triggers:
+        client.put_rule(
+            Name=trigger_name,
+            ScheduleExpression=CONFIG.canaries.schedule,
+            State="ENABLED",
+        )
 
 
 def get_stacks(client: CloudFormationClient) -> List[str]:
@@ -148,6 +187,9 @@ cloudformation = boto3.client("cloudformation", region_name=REGION)
 print("Updating WalterWorkflow triggers...")
 update_add_news_summary_requests_workflow_trigger(events)
 update_add_newsletter_requests_workflow_trigger(events)
+
+print("Updating WalterCanary triggers...")
+update_all_canary_triggers(events)
 
 print("Uploading CloudFormation template to S3...")
 upload_template(s3)
