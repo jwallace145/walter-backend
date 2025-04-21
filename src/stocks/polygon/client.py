@@ -1,4 +1,3 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timedelta, UTC
 from typing import Dict, List
@@ -68,21 +67,8 @@ class PolygonClient:
         self._init_rest_client()
 
         prices = {}
-        with ThreadPoolExecutor() as executor:
-            future_to_symbol = {
-                executor.submit(
-                    self.get_prices, stock, start_date, end_date
-                ): stock.stock_symbol
-                for stock in stocks.values()
-            }
-
-            for future in as_completed(future_to_symbol):
-                symbol = future_to_symbol[future]
-                try:
-                    prices[symbol] = future.result()
-                except Exception as e:
-                    log.error(f"Error getting prices for {symbol}: {str(e)}")
-                    prices[symbol] = StockPrices(prices=[])
+        for stock in stocks.values():
+            prices[stock.stock_symbol] = self.get_prices(stock, start_date, end_date)
 
         return prices
 
