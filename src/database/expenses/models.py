@@ -19,6 +19,7 @@ class ExpenseCategory(Enum):
     INSURANCE = "insurance"
     MERCHANDISE = "merchandise"
     RESTAURANTS = "restaurants"
+    SHOPPING = "shopping"
     SUBSCRIPTIONS = "subscriptions"
     TRANSPORTATION = "transportation"
     TRAVEL = "travel"

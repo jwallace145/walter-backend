@@ -51,6 +51,7 @@ from src.clients import (
     walter_ai,
     newsletters_bucket,
     walter_payments,
+    expense_categorizer,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
@@ -279,7 +280,9 @@ def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
 
 def add_expense_entrypoint(event, context) -> dict:
     return (
-        AddExpense(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
+        AddExpense(walter_authenticator, walter_cw, walter_db, expense_categorizer)
+        .invoke(event)
+        .to_json()
     )
 
 

@@ -3,6 +3,7 @@ import os
 import boto3
 
 from src.ai.client import WalterAI
+from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -149,6 +150,8 @@ walter_ai = WalterAI(
         bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
     ),
 )
+
+expense_categorizer = ExpenseCategorizerMLP()
 
 ##############################
 # WALTER NEWS SUMMARY CLIENT #
