@@ -26,6 +26,9 @@ markdown = "*"
 requests = "*"
 beautifulsoup4 = "*"
 stripe = "*"
+numpy = "*"
+joblib = "*"
+scikit-learn = "*"
 
 [dev-packages]
 black = "*"

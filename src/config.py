@@ -50,6 +50,18 @@ class ArtificialIntelligenceConfig:
 
 
 @dataclass(frozen=True)
+class ExpenseCategorizationConfig:
+    """Expense Categorization Configurations"""
+
+    num_hidden_layers: int = 32
+
+    def to_dict(self) -> dict:
+        return {
+            "num_hidden_layers": self.num_hidden_layers,
+        }
+
+
+@dataclass(frozen=True)
 class NewsSummaryConfig:
     """News Summary Configurations"""
 
@@ -113,6 +125,7 @@ class WalterConfig:
     artificial_intelligence: ArtificialIntelligenceConfig = (
         ArtificialIntelligenceConfig()
     )
+    expense_categorization: ExpenseCategorizationConfig = ExpenseCategorizationConfig()
     news_summary: NewsSummaryConfig = NewsSummaryConfig()
     newsletter: NewsletterConfig = NewsletterConfig()
     canaries: CanariesConfig = CanariesConfig()
@@ -122,6 +135,7 @@ class WalterConfig:
             "walter_config": {
                 "user_portfolio": self.user_portfolio.to_dict(),
                 "artificial_intelligence": self.artificial_intelligence.to_dict(),
+                "expense_categorization": self.expense_categorization.to_dict(),
                 "news_summary": self.news_summary.to_dict(),
                 "newsletter": self.newsletter.to_dict(),
                 "canaries": self.canaries.to_dict(),
@@ -163,6 +177,11 @@ def get_walter_config() -> WalterConfig:
                 model_name=config_yaml["artificial_intelligence"]["model_name"],
                 temperature=config_yaml["artificial_intelligence"]["temperature"],
                 top_p=config_yaml["artificial_intelligence"]["top_p"],
+            ),
+            expense_categorization=ExpenseCategorizationConfig(
+                num_hidden_layers=config_yaml["expense_categorization"][
+                    "num_hidden_layers"
+                ]
             ),
             news_summary=NewsSummaryConfig(
                 number_of_articles=config_yaml["news_summary"]["number_of_articles"],

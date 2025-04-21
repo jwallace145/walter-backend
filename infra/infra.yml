@@ -43,7 +43,7 @@ Parameters:
   WalterAPILambdaMemorySizeMegabytes:
     Type: Number
     Description: The memory in Megabytes (MB) allocated to the Lambda environments that serve the WalterAPI endpoints
-    Default: 128
+    Default: 256
 
   WalterAPILambdaProvisionedConcurrencyCount:
     Type: Number
@@ -1852,7 +1852,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddExpense
-      FunctionVersion: 13
+      FunctionVersion: 21
       Name: "release"
 
   WalterAPIAddExpense:

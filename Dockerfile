@@ -26,6 +26,8 @@ RUN pipenv requirements > requirements.txt && \
 COPY src/ ${LAMBDA_TASK_ROOT}/src/
 COPY walter.py ${LAMBDA_TASK_ROOT}/
 COPY config.yml ${LAMBDA_TASK_ROOT}/
+COPY expense_category_encoder.pkl ${LAMBDA_TASK_ROOT}/
+COPY expense_categorization_pipeline.pkl ${LAMBDA_TASK_ROOT}/
 
 # Override the command for each API to use the correct entrypoint
 CMD [ "OVERRIDE ME!" ]

@@ -272,10 +272,9 @@ def add_expense(
     date: str = None,
     vendor: str = None,
     amount: float = None,
-    category: str = None,
 ) -> None:
     log.info("WalterCLI: AddExpense")
-    event = get_add_expense_event(token, date, vendor, amount, category)
+    event = get_add_expense_event(token, date, vendor, amount)
     response = add_expense_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: AddExpense Response:\n{parse_response(response)}")
 
