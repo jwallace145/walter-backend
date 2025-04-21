@@ -73,6 +73,13 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: auth
 
+  WalterAPIAuthPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIAuth.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
   # to prevent brute force attacks
   WalterAPIAuthMethod:
@@ -117,13 +124,6 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: false
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
-
-  WalterAPIAuthPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIAuth.Arn}:release"
-      Principal: apigateway.amazonaws.com
 
   WalterAPIUsers:
     Type: AWS::ApiGateway::Resource
@@ -1914,18 +1914,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-AuthUserCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: AuthUser - Call the AuthUser API with the canary account credentials to verify authentication (${AppEnvironment})"
-      Handler: walter.auth_user_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: 128
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.auth_user_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1942,18 +1941,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetExpensesCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetExpenses - Call the GetExpenses API to ensure users are able to retrieve expenses from WalterDB (${AppEnvironment})"
-      Handler: walter.get_expenses_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: 128
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_expenses_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1970,18 +1968,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetUserCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetUser - Call the GetUser API with the canary account identity token and verify user identification (${AppEnvironment})"
-      Handler: walter.get_user_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: 128
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_user_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1998,18 +1995,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetStockCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetStock - Call the GetStock API to get the stock information stored in WalterDB (${AppEnvironment})"
-      Handler: walter.get_stock_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: 128
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_stock_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2026,17 +2022,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetPortfolioCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetPortfolio - Call the GetPortfolio API for the canary account to verify users can get their portfolio information (${AppEnvironment})"
-      Handler: walter.get_portfolio_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_portfolio_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2053,17 +2049,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetPricesCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetPricesCanary - Call the GetPrices API to verify the ability to get the latest stock market pricing data (${AppEnvironment})"
-      Handler: walter.get_prices_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_prices_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2080,17 +2076,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetNewsSummaryCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetNewsSummaryCanary - Call the GetNewsSummary API and get the latest stock market news summaries (${AppEnvironment})"
-      Handler: walter.get_news_summary_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_news_summary_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2107,17 +2103,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-GetNewsletters-${AppEnvironment}"
       Description: !Sub "WalterCanary: GetNewsletters - Call the GetNewsletters API and get the latest newsletters for the user (${AppEnvironment})"
-      Handler: walter.get_newsletters_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.get_newsletters_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2134,17 +2130,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterCanary-SearchStocksCanary-${AppEnvironment}"
       Description: !Sub "WalterCanary: SearchStocksCanary - Call the SearchStocks API to get stocks that are similar to the given identifier to verify user search functionality (${AppEnvironment})"
-      Handler: walter.search_stocks_canary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 60
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.search_stocks_canary_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
