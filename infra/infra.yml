@@ -1823,7 +1823,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetExpenses
-      FunctionVersion: 10
+      FunctionVersion: 19
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount

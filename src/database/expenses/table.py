@@ -43,7 +43,8 @@ class ExpensesTable:
 
         log.info(f"Returned {len(expenses)} expenses for user '{user_email}'")
 
-        return expenses
+        # return expenses sorted by date in descending order
+        return sorted(expenses, key=lambda e: e.date, reverse=True)
 
     def put_expense(self, expense: Expense) -> None:
         log.info(f"Putting expense for user '{expense.user_email}' to Expenses table")
@@ -55,7 +56,7 @@ class ExpensesTable:
     ) -> None:
         log.info(f"Deleting expense for user '{user_email}' from Expenses table")
         log.debug(
-            f"Expense:\n{json.dumps({ 'user_email': user_email, 'date': date.strftime('%Y-%m-%d'), 'expense_id': expense_id}, indent=4)}"
+            f"Expense:\n{json.dumps({'user_email': user_email, 'date': date.strftime('%Y-%m-%d'), 'expense_id': expense_id}, indent=4)}"
         )
         self.ddb.delete_item(
             self.table,
