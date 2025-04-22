@@ -15,6 +15,12 @@
 * [Contributions](#contributions)
 * [Links](#links)
 
+### Features
+
+* Track expenses with intelligent-categorization
+* Track portfolio performance with AI insights
+* Deliver weekly financial wellness newsletters
+
 ### Architecture
 
 ![Walter-ArchDiagram](https://github.com/user-attachments/assets/5cbac20f-8366-4904-a5b5-0b2a43eb669c)

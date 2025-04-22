@@ -2176,24 +2176,24 @@ Resources:
     Properties:
       FunctionName: !Ref WalterWorkflowAddNewsSummaryRequests
       FunctionVersion: $LATEST
-      Name: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment}"
+      Name: "release"
 
   WalterWorkflowAddNewsSummaryRequests:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment}"
       Description: !Sub "WalterWorkflow: AddNewsSummaryRequests - Scan WalterDB and add news summary requests for all stocks for asynchronous processing (${AppEnvironment})"
-      Handler: walter.add_news_summary_requests_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterWorkflowAddNewsSummaryRequestsRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 300
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.add_news_summary_requests_entrypoint
+      Timeout: 60
+      MemorySize: 512
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -2203,25 +2203,24 @@ Resources:
     Properties:
       FunctionName: !Ref WalterWorkflowCreateNewsSummaryAndArchive
       FunctionVersion: $LATEST
-      Name: !Sub "WalterWorkflow-CreateNewsletterAndArchive-${AppEnvironment}"
+      Name: "release"
 
   WalterWorkflowCreateNewsSummaryAndArchive:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub "WalterWorkflow-CreateNewsSummaryAndArchive-${AppEnvironment}"
       Description: !Sub "WalterWorkflow: CreateNewsSummaryAndArchive - Get recent stock news and generate AI summary to archive (${AppEnvironment})"
-      Handler: walter.create_news_summary_and_archive_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      Timeout: 90
-      Runtime: python3.12
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.create_news_summary_and_archive_entrypoint
+      Timeout: 300
       MemorySize: 512
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT

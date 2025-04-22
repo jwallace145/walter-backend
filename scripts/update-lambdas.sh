@@ -50,11 +50,11 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterWorkflow AddNewsletterRequests source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-AddNewsletterRequests-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterWorkflow AddNewsSummaryRequests source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterWorkflow-AddNewsSummaryRequests-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterWorkflow-AddNewsSummaryRequests-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterWorkflow CreateNewsletterAndSend source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-CreateNewsletterAndSend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterWorkflow CreateNewsSummaryAndArchive source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterWorkflow-CreateNewsSummaryAndArchive-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterWorkflow-CreateNewsSummaryAndArchive-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI GetExpenses source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetExpenses-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI AddExpense source code with artifact from S3 \
