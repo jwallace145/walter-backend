@@ -13,7 +13,7 @@ walter_config:
     context: "You are a AI investment portfolio advisor that summarizes stock market news and gives readers digestible, business insights about the latest stock market movements to help them stay informed."
     prompt: "Summarize the following news article about the stock '{stock}' to give the user a well-written update of the stocks performance and any related market news, focusing on recent events specifically. Include an ample amount of details, especially data retrieved from the given news articles. Author the news summary with headers and section titles to format the content well. Write the news summary with introductions and transitions so that the summary is witty and clever and fun to read for the reader. The news articles to summarize are given below:\n\n\n\n{news}"
     max_length: 5000 # the max length of generated news summaries
-    schedule: cron(0 5 * * ? *) # the cron schedule to invoke the create news summary and archive workflow
+    schedule: cron(0 5 ? * MON-FRI *) # the cron schedule to invoke the create news summary and archive workflow
   newsletter:
     template: "THE_GOOD_THE_BAD"
     cents_per_month: 100 # price in cents to avoid any precision loss with floats
