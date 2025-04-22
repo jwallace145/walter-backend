@@ -59,6 +59,8 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetExpenses-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI AddExpense source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-AddExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI EditExpense source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-EditExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI DeleteExpense source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary AuthUser source code with artifact from S3 \

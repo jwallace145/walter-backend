@@ -1072,6 +1072,27 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPIEditExpensePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIEditExpense.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIEditExpenseMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: PUT
+      ResourceId: !Ref WalterAPIExpensesResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIEditExpense.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   WalterAPIDeleteExpensePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1866,6 +1887,33 @@ Resources:
       ImageConfig:
         Command:
           - walter.add_expense_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIEditExpenseAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIEditExpense
+      FunctionVersion: 2
+      Name: "release"
+
+  WalterAPIEditExpense:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-EditExpense-${AppEnvironment}"
+      Description: !Sub "WalterAPI: EditExpense - Edit existing user expense in WalterDB (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.edit_expense_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:

@@ -222,4 +222,8 @@ class WalterAuthenticator:
         """
         if event["headers"] is None or "Authorization" not in event["headers"]:
             return None
-        return event["headers"]["Authorization"].split(" ")[1]
+        try:
+            return event["headers"]["Authorization"].split(" ")[1]
+        except Exception:
+            log.error("Unexpected error occurred while parsing token!")
+            return None

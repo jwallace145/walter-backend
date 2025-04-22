@@ -143,6 +143,25 @@ def get_add_expense_event(token: str, date: str, vendor: str, amount: float) -> 
     return EVENT
 
 
+def get_edit_expense_event(
+    token: str, date: str, expense_id: str, vendor: str, amount: float, category: str
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "date": date,
+            "expense_id": expense_id,
+            "vendor": vendor,
+            "amount": amount,
+            "category": category,
+        }
+    )
+    return EVENT
+
+
 def get_get_expenses_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}

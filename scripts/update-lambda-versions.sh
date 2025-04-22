@@ -8,6 +8,8 @@ echo Publishing new WalterAPI AddExpense Lambda version \
 && aws lambda publish-version --function-name WalterAPI-ChangePassword-dev --no-cli-pager \
 && echo Publishing new WalterAPI CreateUser Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateUser-dev --no-cli-pager \
+&& echo Publishing new WalterAPI EditExpense Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-EditExpense-dev --no-cli-pager \
 && echo Publishing new WalterAPI DeleteExpense Lambda version \
 && aws lambda publish-version --function-name WalterAPI-DeleteExpense-dev --no-cli-pager \
 && echo Publishing new WalterAPI DeleteStock Lambda version \

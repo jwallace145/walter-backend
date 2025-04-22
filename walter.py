@@ -5,6 +5,7 @@ from src.api.change_password import ChangePassword
 from src.api.create_user import CreateUser
 from src.api.delete_expense import DeleteExpense
 from src.api.delete_stock import DeleteStock
+from src.api.edit_expense import EditExpense
 from src.api.get_expenses import GetExpenses
 from src.api.get_news_summary import GetNewsSummary
 from src.api.get_newsletter import GetNewsletter
@@ -283,6 +284,12 @@ def add_expense_entrypoint(event, context) -> dict:
         AddExpense(walter_authenticator, walter_cw, walter_db, expense_categorizer)
         .invoke(event)
         .to_json()
+    )
+
+
+def edit_expense_entrypoint(event, context) -> dict:
+    return (
+        EditExpense(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
     )
 
 

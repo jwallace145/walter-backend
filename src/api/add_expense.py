@@ -66,7 +66,7 @@ class AddExpense(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         expense = self._get_expense(event, authenticated_email)
-        self.walter_db.add_expense(expense)
+        self.walter_db.put_expense(expense)
         return Response(
             api_name=AddExpense.API_NAME,
             http_status=HTTPStatus.CREATED,

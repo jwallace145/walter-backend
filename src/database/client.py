@@ -110,13 +110,17 @@ class WalterDB:
     def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
         self.users_stocks_table.delete_stock_from_user_portfolio(stock)
 
-    def add_expense(self, expense: Expense) -> None:
-        self.expenses_table.put_expense(expense)
+    ############
+    # EXPENSES #
+    ############
 
     def get_expenses(
         self, user_email: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Expense]:
         return self.expenses_table.get_expenses(user_email, start_date, end_date)
+
+    def put_expense(self, expense: Expense) -> None:
+        self.expenses_table.put_expense(expense)
 
     def delete_expense(
         self, user_email: str, date: dt.datetime, expense_id: str

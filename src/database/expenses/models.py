@@ -61,10 +61,11 @@ class Expense:
     date_uuid: str = None  # sort key -> format: `<date>#<uuid>` set during post init
 
     def __post_init__(self):
-        # set date uuid from date and expense unique identifier if null
+        if self.expense_id is None:
+            self.expense_id = str(uuid.uuid4())[:8]
+
         if self.date_uuid is None:
             datestamp = self.date.strftime(Expense.DATE_FORMAT)
-            self.expense_id = str(uuid.uuid4())[:8]
             self.date_uuid = f"{datestamp}#{self.expense_id}"
 
     def to_dict(self) -> dict:

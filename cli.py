@@ -26,6 +26,7 @@ from tst.api.utils import (
     get_add_expense_event,
     get_get_expenses_event,
     get_delete_expense_event,
+    get_edit_expense_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -69,6 +70,7 @@ from walter import (
     delete_expense_entrypoint,
     get_newsletters_canary_entrypoint,
     get_expenses_canary_entrypoint,
+    edit_expense_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -267,6 +269,16 @@ def verify_purchase_newsletter_subscription(
 
 
 @app.command()
+def get_expenses(
+    token: str = None, start_date: str = None, end_date: str = None
+) -> None:
+    log.info("WalterCLI: GetExpenses")
+    event = get_get_expenses_event(token, start_date, end_date)
+    response = get_expenses_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetExpenses Response:\n{parse_response(response)}")
+
+
+@app.command()
 def add_expense(
     token: str = None,
     date: str = None,
@@ -280,13 +292,18 @@ def add_expense(
 
 
 @app.command()
-def get_expenses(
-    token: str = None, start_date: str = None, end_date: str = None
+def edit_expense(
+    token: str = None,
+    date: str = None,
+    expense_id: str = None,
+    vendor: str = None,
+    amount: float = None,
+    category: str = None,
 ) -> None:
-    log.info("WalterCLI: GetExpenses")
-    event = get_get_expenses_event(token, start_date, end_date)
-    response = get_expenses_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: GetExpenses Response:\n{parse_response(response)}")
+    log.info("WalterCLI: EditExpense")
+    event = get_edit_expense_event(token, date, expense_id, vendor, amount, category)
+    response = edit_expense_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: EditExpense Response:\n{parse_response(response)}")
 
 
 @app.command()
