@@ -20,7 +20,7 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterAPI GetPrices source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetPrices-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI GetNewsSummary source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-GetNewsSummary-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterAPI-GetNewsSummary-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI GetPortfolio source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetPortfolio-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI SendNewsletter source code with artifact from S3 \

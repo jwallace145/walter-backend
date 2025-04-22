@@ -394,6 +394,14 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: news
 
+  WalterAPIGetNewsSummaryPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIGetNewsSummary.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+
   WalterAPIGetNewsSummaryMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -436,13 +444,6 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: false
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
-
-  WalterAPIGetNewsSummaryPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIGetNewsSummary.Arn}:release"
-      Principal: apigateway.amazonaws.com
 
   WalterAPIGetPortfolioResource:
     Type: AWS::ApiGateway::Resource
@@ -1419,7 +1420,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsSummary
-      FunctionVersion: 3
+      FunctionVersion: 18
       Name: "release"
 
   WalterAPIGetNewsSummary:
@@ -1427,19 +1428,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-GetNewsSummary-${AppEnvironment}"
       Description: !Sub "WalterAPI: GetNewsSummary - Get AI summary of recent news for a given stock (${AppEnvironment})."
-      Handler: walter.get_news_summary_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_news_summary_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
