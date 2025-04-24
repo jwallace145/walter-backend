@@ -298,7 +298,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAddStock.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAddStock.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -335,7 +335,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIAddStock
+      FunctionName: !Sub "${WalterAPIAddStock.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIDeleteStockMethod:
@@ -1127,7 +1127,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: ''
@@ -1354,7 +1354,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: 7
+      FunctionVersion: 26
       Name: "release"
 
   WalterAPIAddStock:
@@ -1362,19 +1362,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-AddStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: AddStock - Add stock and number of shares to user portfolio (${AppEnvironment})"
-      Handler: walter.add_stock_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.add_stock_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1899,7 +1897,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditExpense
-      FunctionVersion: 2
+      FunctionVersion: 3
       Name: "release"
 
   WalterAPIEditExpense:
