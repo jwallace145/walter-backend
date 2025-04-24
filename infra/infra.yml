@@ -348,7 +348,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteStock.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteStock.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -356,7 +356,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIDeleteStock
+      FunctionName: !Sub "${WalterAPIDeleteStock.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIPrices:
@@ -1381,7 +1381,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: 4
+      FunctionVersion: 24
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -1389,19 +1389,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-DeleteStock-${AppEnvironment}"
       Description: !Sub "WalterAPI: DeleteStock - Delete a stock from user portfolio (${AppEnvironment})"
-      Handler: walter.delete_stock_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.delete_stock_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
