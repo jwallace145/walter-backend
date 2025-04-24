@@ -7,8 +7,13 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+
+from src.utils.log import Logger
+
+log = Logger(__name__).get_logger()
 
 
 @dataclass
@@ -33,6 +38,7 @@ class GetUser(WalterAPIMethod):
 
     walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
+    walter_s3: WalterS3Client
 
     def __init__(
         self,
@@ -40,6 +46,7 @@ class GetUser(WalterAPIMethod):
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
+        walter_s3: WalterS3Client,
     ) -> None:
         super().__init__(
             GetUser.API_NAME,
@@ -52,6 +59,7 @@ class GetUser(WalterAPIMethod):
         )
         self.walter_db = walter_db
         self.walter_sm = walter_sm
+        self.walter_s3 = walter_s3
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self.walter_db.get_user(authenticated_email)
@@ -60,6 +68,23 @@ class GetUser(WalterAPIMethod):
 
         # update user last active date
         user.last_active_date = dt.datetime.now(dt.UTC)
+
+        # update user profile picture url if it has expired
+        now = dt.datetime.now(dt.UTC)
+        if user.profile_picture_s3_uri and now > user.profile_picture_url_expiration:
+            log.info(
+                "User custom profile picture presigned URL has expired! Generating new one now..."
+            )
+            bucket, key = WalterS3Client.get_bucket_and_key(user.profile_picture_s3_uri)
+            user.profile_picture_url, user.profile_picture_url_expiration = (
+                self.walter_s3.create_presigned_get_object_url(
+                    bucket=bucket,
+                    key=key,
+                    expiration_in_seconds=3600,
+                )
+            )
+
+        # save user and any updates to db
         self.walter_db.update_user(user)
 
         return Response(
@@ -74,6 +99,7 @@ class GetUser(WalterAPIMethod):
                 "subscribed": user.subscribed,
                 "sign_up_date": user.sign_up_date.strftime(GetUser.DATE_FORMAT),
                 "last_active_date": user.last_active_date.strftime(GetUser.DATE_FORMAT),
+                "profile_picture_url": user.profile_picture_url,
                 "free_trial_end_date": user.free_trial_end_date.strftime(
                     GetUser.DATE_FORMAT
                 ),

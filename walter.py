@@ -22,6 +22,7 @@ from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
+from src.api.update_user import UpdateUser
 from src.api.verify_email import VerifyEmail
 from src.api.verify_purchase_newsletter_subscription import (
     VerifyPurchaseNewsletterSubscription,
@@ -53,6 +54,7 @@ from src.clients import (
     newsletters_bucket,
     walter_payments,
     expense_categorizer,
+    s3,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
@@ -94,7 +96,15 @@ def auth_user_entrypoint(event, context) -> dict:
 
 def get_user_entrypoint(event, context) -> dict:
     return (
-        GetUser(walter_authenticator, walter_cw, walter_db, walter_sm)
+        GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def update_user_entrypoint(event, context) -> dict:
+    return (
+        UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
         .invoke(event)
         .to_json()
     )

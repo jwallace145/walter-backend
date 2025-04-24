@@ -22,6 +22,9 @@ class User:
     )
     verified: bool = False
     subscribed: bool = True
+    profile_picture_s3_uri: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+    profile_picture_url_expiration: Optional[dt.datetime] = None
     stripe_subscription_id: Optional[str] = None
     stripe_customer_id: Optional[str] = None
 
@@ -46,6 +49,9 @@ class User:
             "free_trial_end_date": self.free_trial_end_date.isoformat(),
             "verified": self.verified,
             "subscribed": self.subscribed,
+            "profile_picture_s3_uri": self.profile_picture_s3_uri,
+            "profile_picture_url": self.profile_picture_url,
+            "profile_picture_url_expiration": self.profile_picture_url_expiration.isoformat(),
             "stripe_subscription_id": self.stripe_subscription_id,
             "stripe_customer_id": self.stripe_customer_id,
         }
@@ -57,12 +63,32 @@ class User:
         )
 
     def to_ddb_item(self) -> dict:
+        # set default values for optional fields
+        profile_picture_s3_uri = "N/A"
+        if self.profile_picture_s3_uri:
+            profile_picture_s3_uri = self.profile_picture_s3_uri
+
+        profile_picture_url = "N/A"
+        if self.profile_picture_url:
+            profile_picture_url = self.profile_picture_url
+
+        profile_picture_url_expiration = "N/A"
+        if self.profile_picture_url_expiration and isinstance(
+            self.profile_picture_url_expiration, dt.datetime
+        ):
+            profile_picture_url_expiration = (
+                self.profile_picture_url_expiration.isoformat()
+            )
+
         stripe_customer_id = "N/A"
         if self.stripe_customer_id:
             stripe_customer_id = self.stripe_customer_id
+
         stripe_subscription_id = "N/A"
         if self.stripe_subscription_id:
             stripe_subscription_id = self.stripe_subscription_id
+
+        # return ddb item with all fields set (even optional ones with default values)
         return {
             "email": {
                 "S": self.email,
@@ -74,6 +100,9 @@ class User:
             "free_trial_end_date": {"S": self.free_trial_end_date.isoformat()},
             "verified": {"BOOL": self.verified},
             "subscribed": {"BOOL": self.subscribed},
+            "profile_picture_s3_uri": {"S": profile_picture_s3_uri},
+            "profile_picture_url": {"S": profile_picture_url},
+            "profile_picture_url_expiration": {"S": profile_picture_url_expiration},
             "stripe_subscription_id": {"S": stripe_subscription_id},
             "stripe_customer_id": {"S": stripe_customer_id},
         }

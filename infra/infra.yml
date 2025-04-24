@@ -159,7 +159,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: ''
@@ -201,6 +201,27 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Sub "${WalterAPIGetUser.Arn}:release" # provisioned concurrency -> release alias
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIUpdateUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: PUT
+      ResourceId: !Ref WalterAPIUsers
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIUpdateUser.Arn}:release/invocations" # provisioned concurrency -> release alias
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIUpdateUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIUpdateUser.Arn}:release"
       Principal: apigateway.amazonaws.com
 
   WalterAPIStocks:
@@ -1284,6 +1305,33 @@ Resources:
       ImageConfig:
         Command:
           - walter.get_user_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIUpdateUserAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIUpdateUser
+      FunctionVersion: 3
+      Name: "release"
+
+  WalterAPIUpdateUser:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-UpdateUser-${AppEnvironment}"
+      Description: !Sub "WalterAPI: UpdateUser - Update user details stored in WalterDB (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.update_user_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -2855,6 +2903,41 @@ Resources:
   ##########
   ### S3 ###
   ##########
+
+  MediaBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "walterai-media-${AppEnvironment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      VersioningConfiguration:
+        Status: Enabled
+
+  MediaBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MediaBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+            Effect: Allow
+            Resource: !Sub "${MediaBucket.Arn}/*"
+            Principal:
+              AWS:
+                - !GetAtt WalterAPIRole.Arn
+          - Action:
+              - "s3:ListBucket"
+            Effect: Allow
+            Resource: !GetAtt MediaBucket.Arn
+            Principal:
+              AWS:
+                - !GetAtt WalterAPIRole.Arn
 
   NewslettersBucket:
     Type: AWS::S3::Bucket
