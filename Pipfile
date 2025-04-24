@@ -29,6 +29,7 @@ stripe = "*"
 numpy = "*"
 joblib = "*"
 scikit-learn = "*"
+requests-toolbelt = "*"
 
 [dev-packages]
 black = "*"

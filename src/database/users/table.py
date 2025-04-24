@@ -85,9 +85,25 @@ class UsersTable:
 
     @staticmethod
     def _get_user_from_ddb_item(item: dict) -> User:
+        # set optional fields, if not provided then set as None
+        profile_picture_s3_uri = None
+        if item["profile_picture_s3_uri"]["S"] != "N/A":
+            profile_picture_s3_uri = item["profile_picture_s3_uri"]["S"]
+
+        profile_picture_url = None
+        if item["profile_picture_url"]["S"] != "N/A":
+            profile_picture_url = item["profile_picture_url"]["S"]
+
+        profile_picture_url_expiration = None
+        if item["profile_picture_url_expiration"]["S"] != "N/A":
+            profile_picture_url_expiration = dt.datetime.fromisoformat(
+                item["profile_picture_url_expiration"]["S"]
+            ).replace(tzinfo=dt.UTC)
+
         stripe_customer_id = None
         if item["stripe_customer_id"]["S"] != "N/A":
             stripe_customer_id = item["stripe_customer_id"]["S"]
+
         stripe_subscription_id = None
         if item["stripe_subscription_id"]["S"] != "N/A":
             stripe_subscription_id = item["stripe_subscription_id"]["S"]
@@ -102,6 +118,9 @@ class UsersTable:
             ),
             verified=item["verified"]["BOOL"],
             subscribed=item["subscribed"]["BOOL"],
+            profile_picture_s3_uri=profile_picture_s3_uri,
+            profile_picture_url=profile_picture_url,
+            profile_picture_url_expiration=profile_picture_url_expiration,
             stripe_customer_id=stripe_customer_id,
             stripe_subscription_id=stripe_subscription_id,
         )
