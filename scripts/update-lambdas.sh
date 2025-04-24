@@ -14,7 +14,7 @@ echo Updating WalterAPI Auth source code with artifact from S3 \
 && echo Updating WalterAPI GetStatistics source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-GetStatistics-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI AddStock source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-AddStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& aws lambda update-function-code --function-name WalterAPI-AddStock-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI DeleteStock source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-DeleteStock-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI GetPrices source code with artifact from S3 \
