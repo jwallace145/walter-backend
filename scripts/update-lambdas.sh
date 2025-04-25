@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Define the image URI as a variable
+# Walter API Image URI
 IMAGE_URI="010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest"
 
-echo Updating WalterAPI Auth source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-Auth-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+echo Updating WalterAPI AuthUser source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-AuthUser-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI CreateUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateUser-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI GetUser source code with artifact from S3 \
