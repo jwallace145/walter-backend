@@ -1290,7 +1290,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: 19
+      FunctionVersion: 36
       Name: "release"
 
   WalterAPIGetUser:
