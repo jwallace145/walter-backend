@@ -73,16 +73,14 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: auth
 
-  WalterAPIAuthPermission:
+  WalterAPIAuthUserPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIAuth.Arn}:release"
+      FunctionName: !Sub "${WalterAPIAuthUser.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
-  # to prevent brute force attacks
-  WalterAPIAuthMethod:
+  WalterAPIAuthUserMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
@@ -92,11 +90,11 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuth.Arn}:release/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAuthUser.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIAuthCORSMethod:
+  WalterAPIAuthUserCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
@@ -1225,34 +1223,33 @@ Resources:
   ### LAMBDA ###
   ##############
 
-  WalterAPIAuthAlias:
+  # NOTE: Do not add provisioned concurrency to AuthUser release alias. Authentication is intentionally slow to
+  # impede brute force attacks. The additional cost in latency from the occasional cold-start is fine and slightly ideal.
+  WalterAPIAuthUserAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIAuth
-      FunctionVersion: 10
+      FunctionName: !Ref WalterAPIAuthUser
+      FunctionVersion: 2
       Name: "release"
 
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
   # to prevent brute force attacks
-  WalterAPIAuth:
+  WalterAPIAuthUser:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-Auth-${AppEnvironment}"
-      Description: !Sub "WalterAPI: Auth - authenticate a user (${AppEnvironment})"
-      Handler: walter.auth_user_entrypoint
+      FunctionName: !Sub "WalterAPI-AuthUser-${AppEnvironment}"
+      Description: !Sub "WalterAPI: AuthUser - authenticate a user (${AppEnvironment})"
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.auth_user_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -3091,7 +3088,7 @@ Resources:
 ###############
 
 Outputs:
-  WalterAPIAuthEndpoint:
+  WalterAPIAuthUserEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/auth"
   WalterAPICreateUserEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"

@@ -107,6 +107,7 @@ class UsersTable:
         stripe_subscription_id = None
         if item["stripe_subscription_id"]["S"] != "N/A":
             stripe_subscription_id = item["stripe_subscription_id"]["S"]
+
         return User(
             email=item["email"]["S"],
             username=item["username"]["S"],
