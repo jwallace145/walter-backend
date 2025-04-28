@@ -57,6 +57,7 @@ class Response:
 
     def to_json(self) -> dict:
         body = {
+            "Service": "WalterAPI",
             "API": self.api_name,
             "Status": self.status.value,
             "Message": self.message,

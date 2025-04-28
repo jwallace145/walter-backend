@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
 from typing import List
@@ -20,7 +21,7 @@ class UsersStocksTable:
     user portfolios.
 
     Item Schema
-    - user_email (HASH key): The primary key of the user.
+    - user_id (HASH key): The foreign key to the user.
     - stock_symbol (RANGE key): The primary key of the stock.
     - quantity: The quantity of the stock owned by the user.
     """
@@ -46,9 +47,8 @@ class UsersStocksTable:
         Returns:
             None.
         """
-        log.info(
-            f"Adding stock to user portfolio:\n{json.dumps(stock.to_dict(), indent=4)}"
-        )
+        log.info("Adding stock to user portfolio...")
+        log.debug(f"UserStock: \n{json.dumps(stock.to_dict(), indent=4)}")
         self.ddb.put_item(self.table, stock.to_ddb_item())
         log.info("Added stock to user portfolio!")
 
@@ -72,7 +72,7 @@ class UsersStocksTable:
         log.info(f"Getting stocks for user '{user.email}' from table '{self.table}'")
         stocks = []
         for item in self.ddb.query(
-            self.table, UsersStocksTable._get_user_stocks_query_key(user.email)
+            self.table, UsersStocksTable._get_user_stocks_query_key(user.user_id)
         ):
             stocks.append(UsersStocksTable._get_user_stock_from_ddb_item(item))
         log.info(f"Returned {len(stocks)} stocks for user '{user.email}'")
@@ -85,15 +85,15 @@ class UsersStocksTable:
     @staticmethod
     def _get_user_stocks_primary_key(stock: UserStock) -> dict:
         return {
-            "user_email": {"S": stock.user_email},
+            "user_id": {"S": stock.user_id},
             "stock_symbol": {"S": stock.stock_symbol},
         }
 
     @staticmethod
-    def _get_user_stocks_query_key(user_email: str) -> dict:
+    def _get_user_stocks_query_key(user_id: str) -> dict:
         return {
-            "user_email": {
-                "AttributeValueList": [{"S": user_email}],
+            "user_id": {
+                "AttributeValueList": [{"S": user_id}],
                 "ComparisonOperator": "EQ",
             }
         }
@@ -101,7 +101,8 @@ class UsersStocksTable:
     @staticmethod
     def _get_user_stock_from_ddb_item(item: dict) -> UserStock:
         return UserStock(
-            user_email=item["user_email"]["S"],
+            user_id=item["user_id"]["S"],
             stock_symbol=item["stock_symbol"]["S"],
             quantity=float(item["quantity"]["S"]),
+            timestamp=dt.datetime.fromisoformat(item["timestamp"]["S"]),
         )

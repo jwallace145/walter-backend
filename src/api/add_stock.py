@@ -16,6 +16,7 @@ from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.config import CONFIG
 from src.database.client import WalterDB
 from src.database.stocks.models import Stock
+from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
 from src.utils.log import Logger
@@ -73,13 +74,19 @@ class AddStock(WalterAPIMethod):
         symbol = body["stock"].upper()
         quantity = body["quantity"]
         stock = self._verify_stock_exists(symbol)
+        user = self._verify_user_exists(authenticated_email)
         self._verify_max_num_stocks(authenticated_email)
-        self._add_stock_to_user_portfolio(authenticated_email, stock, quantity)
+        user_stock = self._add_stock_to_user_portfolio(user.user_id, stock, quantity)
         return Response(
             api_name=AddStock.API_NAME,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
             message="Stock added!",
+            data={
+                "user": user.email,
+                "stock": user_stock.stock_symbol.upper(),
+                "quantity": user_stock.quantity,
+            },
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -111,6 +118,14 @@ class AddStock(WalterAPIMethod):
         log.info("Verified stock exists!")
         return stock
 
+    def _verify_user_exists(self, email: str) -> User:
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user_by_email(email)
+        if user is None:
+            raise UserDoesNotExist("User does not exist!")
+        log.info("Verified user exists!")
+        return user
+
     def _verify_max_num_stocks(self, email: str) -> None:
         log.info("Verifying max number of stocks in user's portfolio...")
         user = self.walter_db.get_user(email)  # TODO: this is a pointless network call
@@ -120,15 +135,15 @@ class AddStock(WalterAPIMethod):
             raise MaximumNumberOfStocks("Max number of stocks!")
 
     def _add_stock_to_user_portfolio(
-        self, email: str, stock: Stock, quantity: float
-    ) -> None:
+        self, user_id: str, stock: Stock, quantity: float
+    ) -> UserStock:
         log.info(
             f"Adding {quantity} shares of stock '{stock.symbol.upper()}' to user's portfolio..."
         )
-        self.walter_db.add_stock_to_user_portfolio(
-            UserStock(
-                user_email=email,
-                stock_symbol=stock.symbol,
-                quantity=quantity,
-            )
+        user_stock = UserStock(
+            user_id=user_id,
+            stock_symbol=stock.symbol,
+            quantity=quantity,
         )
+        self.walter_db.add_stock_to_user_portfolio(user_stock)
+        return user_stock

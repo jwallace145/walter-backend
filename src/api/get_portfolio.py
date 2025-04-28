@@ -1,5 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import UserDoesNotExist, InvalidEmail, NotAuthenticated
 from src.api.common.methods import HTTPStatus, Status
@@ -9,6 +10,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.users.models import User
 from src.stocks.client import WalterStocksAPI
 from src.utils.log import Logger
 
@@ -50,9 +52,7 @@ class GetPortfolio(WalterAPIMethod):
         self.walter_stocks_api = walter_stocks_api
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self.walter_db.get_user(authenticated_email)
-        if user is None:
-            raise UserDoesNotExist("User not found!")
+        user = self._verify_user_exists(authenticated_email)
 
         user_stocks = self.walter_db.get_stocks_for_user(user)
         stocks = self.walter_db.get_stocks(list(user_stocks.keys()))
@@ -79,3 +79,11 @@ class GetPortfolio(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return True
+
+    def _verify_user_exists(self, email: str) -> Optional[User]:
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user(email)
+        if user is None:
+            raise UserDoesNotExist(f"User not found with email '{email}'!")
+        log.info("Verified user exists!")
+        return user

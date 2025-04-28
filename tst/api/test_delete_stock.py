@@ -11,6 +11,7 @@ from src.stocks.client import WalterStocksAPI
 from tst.api.utils import get_expected_response, get_delete_stock_event
 
 WALTER = User(
+    user_id="f47ac10b-58cc-4372-a567-0e02b2c3d479",
     email="walter@gmail.com",
     first_name="Walter",
     last_name="Walrus",

@@ -1,7 +1,7 @@
+import datetime as dt
 import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
-import datetime as dt
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated
 from src.api.common.models import HTTPStatus, Status, Response
