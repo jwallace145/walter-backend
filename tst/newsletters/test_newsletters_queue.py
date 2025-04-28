@@ -8,7 +8,12 @@ from src.database.users.models import User
 from src.environment import Domain
 from src.newsletters.queue import NewslettersQueue, NewsletterRequest
 
-WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
+WALTER = User(
+    email="walter@gmail.com",
+    first_name="Walter",
+    last_name="Walrus",
+    password_hash="password",
+)
 
 ADD_NEWSLETTER_REQUEST = NewsletterRequest(
     email=WALTER.email,

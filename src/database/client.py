@@ -36,12 +36,15 @@ class WalterDB:
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
 
-    def create_user(self, email: str, username: str, password: str) -> None:
+    def create_user(
+        self, email: str, first_name: str, last_name: str, password: str
+    ) -> None:
         # generate salt and hash the given password to store in users table
         salt, password_hash = self.authenticator.hash_password(password)
         user = User(
             email=email,
-            username=username,
+            first_name=first_name,
+            last_name=last_name,
             password_hash=password_hash.decode(),
             sign_up_date=dt.datetime.now(dt.UTC),
             last_active_date=dt.datetime.now(dt.UTC),
@@ -49,10 +52,10 @@ class WalterDB:
         self.users_table.create_user(user)
 
     def get_user(self, email: str) -> User:
-        return self.users_table.get_user(email)
+        return self.users_table.get_user_by_email(email)
 
-    def get_user_by_username(self, username: str) -> User:
-        return self.users_table.get_user_by_username(username)
+    def get_user_by_email(self, email: str) -> User:
+        return self.users_table.get_user_by_email(email)
 
     def get_users(self) -> List[User]:
         return self.users_table.get_users()
@@ -61,7 +64,7 @@ class WalterDB:
         self.users_table.update_user(user)
 
     def update_user_password(self, email: str, password_hash: str) -> None:
-        user = self.users_table.get_user(email)
+        user = self.users_table.get_user_by_email(email)
         user.password_hash = password_hash.decode()
         self.users_table.update_user(user)
 

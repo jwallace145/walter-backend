@@ -94,7 +94,8 @@ class GetUser(WalterAPIMethod):
             message="Successfully retrieved user!",
             data={
                 "email": authenticated_email,
-                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
                 "verified": user.verified,
                 "subscribed": user.subscribed,
                 "sign_up_date": user.sign_up_date.strftime(GetUser.DATE_FORMAT),

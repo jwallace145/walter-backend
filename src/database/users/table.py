@@ -17,17 +17,17 @@ class UsersTable:
     """
 
     TABLE_NAME_FORMAT = "Users-{domain}"
-    USERNAMES_INDEX_NAME_FORMAT = "Users-UsernameIndex-{domain}"
+    EMAIL_INDEX_NAME_FORMAT = "Users-EmailIndex-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
 
     table: str = None  # set during post init
-    username_index_name: str = None  # set during post init
+    email_index_name: str = None  # set during post init
 
     def __post_init__(self) -> None:
         self.table = UsersTable._get_table_name(self.domain)
-        self.username_index_name = UsersTable._get_username_index_name(self.domain)
+        self.email_index_name = UsersTable._get_email_index_name(self.domain)
         log.debug(f"Creating UsersTable DDB client with table name '{self.table}'")
 
     def create_user(self, user: User) -> None:
@@ -45,16 +45,14 @@ class UsersTable:
             return None
         return UsersTable._get_user_from_ddb_item(item)
 
-    def get_user_by_username(self, username: str) -> User | None:
-        log.info(f"Getting user with username '{username}' from table '{self.table}'")
-        expression = "username = :username"
-        attributes = {":username": {"S": username}}
+    def get_user_by_email(self, email: str) -> User | None:
+        log.info(f"Getting user with email '{email}' from table '{self.table}'")
+        expression = "email = :email"
+        attributes = {":email": {"S": email}}
         item = self.ddb.query_index(
-            self.table, self.username_index_name, expression, attributes
+            self.table, self.email_index_name, expression, attributes
         )
-        if item is None:
-            return None
-        return UsersTable._get_user_from_ddb_item(item)
+        return None if item is None else UsersTable._get_user_from_ddb_item(item)
 
     def update_user(self, user: User) -> None:
         log.info(f"Updating user with email '{user.email}'")
@@ -76,8 +74,8 @@ class UsersTable:
         return UsersTable.TABLE_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
-    def _get_username_index_name(domain: Domain) -> str:
-        return UsersTable.USERNAMES_INDEX_NAME_FORMAT.format(domain=domain.value)
+    def _get_email_index_name(domain: Domain) -> str:
+        return UsersTable.EMAIL_INDEX_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
     def _get_user_key(email: str) -> dict:
@@ -109,8 +107,10 @@ class UsersTable:
             stripe_subscription_id = item["stripe_subscription_id"]["S"]
 
         return User(
+            user_id=item["user_id"]["S"],
             email=item["email"]["S"],
-            username=item["username"]["S"],
+            first_name=item["first_name"]["S"],
+            last_name=item["last_name"]["S"],
             password_hash=item["password_hash"]["S"],
             last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
             sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),

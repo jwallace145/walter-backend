@@ -29,7 +29,8 @@ from src.workflows.create_newsletter_and_send import CreateNewsletterAndSend
 
 BOB = User(
     email="bob@gmail.com",
-    username="bob",
+    first_name="Bob",
+    last_name="Walrus",
     password_hash="bob",
     verified=True,
     subscribed=True,
@@ -181,7 +182,6 @@ def test_create_newsletter_and_send_get_template_spec_success(
     template_spec = create_newsletter_and_send_workflow._get_template_spec(
         user, portfolio, summaries
     )
-    assert template_spec.context.user == BOB.username
     assert template_spec.context.portfolio_value == "$600.00"
     assert template_spec.context.stocks == [
         {"Symbol": AAPL.symbol, "Shares": 1.0, "Price": 100.0, "Equity": 100.0},
@@ -201,12 +201,13 @@ def test_create_newsletter_and_send_get_unsubscribe_link_success(
 def test_create_newsletter_and_send_archive_newsletter_success(
     create_newsletter_and_send_workflow: CreateNewsletterAndSend,
     walter_s3: WalterS3Client,
+    walter_db: WalterDB,
 ) -> None:
     datestamp = dt.datetime.now().strftime("y=%Y/m=%m/d=%d")
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/bob/{datestamp}/newsletter.html",
+            f"newsletters/{BOB.user_id}/{datestamp}/newsletter.html",
         )
         is None
     )
@@ -216,7 +217,7 @@ def test_create_newsletter_and_send_archive_newsletter_success(
     assert (
         walter_s3.get_object(
             "walterai-newsletters-unittest",
-            f"newsletters/bob/{datestamp}/newsletter.html",
+            f"newsletters/{BOB.user_id}/{datestamp}/newsletter.html",
         )
         is not None
     )

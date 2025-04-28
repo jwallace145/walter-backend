@@ -3,15 +3,19 @@ from dataclasses import dataclass
 
 from src.api.common.exceptions import (
     InvalidEmail,
-    InvalidUsername,
     UserAlreadyExists,
     BadRequest,
     InvalidPassword,
+    InvalidName,
 )
 from src.api.common.methods import HTTPStatus, Status
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response
-from src.api.common.utils import is_valid_email, is_valid_username, is_valid_password
+from src.api.common.utils import (
+    is_valid_email,
+    is_valid_password,
+    is_valid_name,
+)
 from src.api.send_verify_email import SendVerifyEmail
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -33,11 +37,11 @@ class CreateUser(WalterAPIMethod):
     API_NAME = "CreateUser"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
-    REQUIRED_FIELDS = ["email", "username", "password"]
+    REQUIRED_FIELDS = ["email", "first_name", "last_name", "password"]
     EXCEPTIONS = [
         BadRequest,
         InvalidEmail,
-        InvalidUsername,
+        InvalidName,
         InvalidPassword,
         UserAlreadyExists,
     ]
@@ -88,12 +92,13 @@ class CreateUser(WalterAPIMethod):
         email = body[
             "email"
         ].lower()  # lowercase email for case-insensitive matching for login
-        username = body["username"]
+        first_name = body["first_name"]
+        last_name = body["last_name"]
         password = body["password"]
         self._verify_email(email)
-        self._verify_username(username)
+        self._verify_name(first_name, last_name)
         self._verify_password(password)
-        self._verify_user(email, username)
+        self._verify_user(email)
 
     def is_authenticated_api(self) -> bool:
         return False
@@ -104,11 +109,11 @@ class CreateUser(WalterAPIMethod):
             raise InvalidEmail("Invalid email!")
         log.info("Successfully validated email!")
 
-    def _verify_username(self, username: str) -> None:
-        log.info(f"Validating username: '{username}'")
-        if not is_valid_username(username):
-            raise InvalidUsername("Invalid username!")
-        log.info("Successfully validated username!")
+    def _verify_name(self, first_name: str, last_name: str) -> None:
+        log.info(f"Validating name: '{first_name} {last_name}'")
+        if not is_valid_name(first_name, last_name):
+            raise InvalidName(f"Invalid name '{first_name} {last_name}'!")
+        log.info("Successfully validated name!")
 
     def _verify_password(self, password: str) -> None:
         log.info("Validating password...")
@@ -116,13 +121,9 @@ class CreateUser(WalterAPIMethod):
             raise InvalidPassword("Invalid password!")
         log.info("Successfully validated password!")
 
-    def _verify_user(self, email: str, username: str) -> None:
+    def _verify_user(self, email: str) -> None:
         log.info(f"Validate user does not already exist with email: '{email}'")
-        user = self.walter_db.get_user(email)
-        if user is not None:
-            raise UserAlreadyExists("User already exists!")
-        log.info(f"Validate user does not already exist with username: '{username}'")
-        user = self.walter_db.get_user_by_username(username)
+        user = self.walter_db.get_user_by_email(email)
         if user is not None:
             raise UserAlreadyExists("User already exists!")
         log.info("Successfully validated that user does not already exist!")
@@ -133,13 +134,13 @@ class CreateUser(WalterAPIMethod):
         email = body[
             "email"
         ].lower()  # store the user email as lower-case for case-insensitive matching
-        username = body[
-            "username"
-        ].lower()  # store the user username as lower-case for case-insensitive matching
+        first_name = body["first_name"]
+        last_name = body["last_name"]
         password = body["password"]
         self.walter_db.create_user(
             email=email,
-            username=username,
+            first_name=first_name,
+            last_name=last_name,
             password=password,
         )
 

@@ -70,7 +70,7 @@ class WalterDDBClient:
         self, table: str, index_name: str, expression: str, attributes: dict
     ) -> dict | None:
         log.debug(
-            f"Querying items in table '{table}' by index '{index_name}' with query:\n{expression}"
+            f"Querying items in table '{table}' by index '{index_name}' with query:\n{expression}\n{attributes}"
         )
         try:
             return self.client.query(

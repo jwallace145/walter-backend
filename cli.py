@@ -103,9 +103,14 @@ def auth_user(email: str = None, password: str = None) -> None:
 
 
 @app.command()
-def create_user(email: str = None, username: str = None, password: str = None) -> None:
+def create_user(
+    email: str = None,
+    first_name: str = None,
+    last_name: str = None,
+    password: str = None,
+) -> None:
     log.info("Walter CLI: Creating user...")
-    event = get_create_user_event(email, username, password)
+    event = get_create_user_event(email, first_name, last_name, password)
     response = create_user_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 

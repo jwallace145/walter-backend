@@ -72,7 +72,7 @@ class NewslettersBucket:
 
     def get_newsletter(self, user: User, date: dt) -> str:
         log.info(
-            f"Getting '{date.strftime('%Y-%m-%d')}' newsletter from archive for user '{user.username}'"
+            f"Getting '{date.strftime('%Y-%m-%d')}' newsletter from archive for user '{user.first_name}'"
         )
         prefix = NewslettersBucket._get_user_newsletters_prefix(user) + date.strftime(
             "y=%Y/m=%m/d=%d/"
@@ -80,7 +80,7 @@ class NewslettersBucket:
         keys = self.client.list_objects(self.bucket, prefix)
         if len(keys) == 0:
             log.info(
-                f"No newsletter found in archive for user '{user.username}' and date '{date.strftime('%Y-%m-%d')}'!"
+                f"No newsletter found in archive for user '{user.user_id}' and date '{date.strftime('%Y-%m-%d')}'!"
             )
             return None
         # filter out metadata keys
@@ -90,7 +90,7 @@ class NewslettersBucket:
 
     def get_newsletter_metadata(self, user: User, date: dt) -> NewsletterMetadata:
         log.info(
-            f"Getting '{date.strftime('%Y-%m-%d')}' newsletter metadata from archive for user '{user.username}'"
+            f"Getting '{date.strftime('%Y-%m-%d')}' newsletter metadata from archive for user '{user.user_id}'"
         )
         newsletter_metadata_key = NewslettersBucket._get_metadata_key(user, date)
         metadata = json.loads(
@@ -113,19 +113,19 @@ class NewslettersBucket:
         Returns:
             The list of newsletter keys for all newsletters sent to the user.
         """
-        log.info(f"Getting list of newsletter keys for '{user.username}'")
+        log.info(f"Getting list of newsletter keys for '{user.user_id}'")
 
         # search keys by user newsletter key prefix
         prefix = NewslettersBucket._get_user_newsletters_prefix(user)
         keys = self.client.list_objects(self.bucket, prefix)
 
         if len(keys) == 0:
-            log.info(f"No newsletters found in archive for user '{user.username}'!")
+            log.info(f"No newsletters found in archive for user '{user.user_id}'!")
         else:
             # filter out metadata keys and only get the newsletter keys
             keys = [key for key in keys if "metadata" not in key]
             log.info(
-                f"Found {len(keys)} newsletters in the archive for user '{user.username}'"
+                f"Found {len(keys)} newsletters in the archive for user '{user.user_id}'"
             )
 
         return keys
@@ -148,7 +148,7 @@ class NewslettersBucket:
     def _get_metadata_key(user: User, date: dt) -> str:
         return NewslettersBucket.NEWSLETTER_METADATA_KEY.format(
             newsletters_dir=NewslettersBucket.NEWSLETTERS_DIR,
-            user=user.username.lower(),
+            user=user.user_id.lower(),
             date=dt.strftime(date, "y=%Y/m=%m/d=%d"),
         )
 
@@ -156,7 +156,7 @@ class NewslettersBucket:
     def _get_newsletter_key(user: User, date: dt) -> str:
         return NewslettersBucket.NEWSLETTER_KEY.format(
             newsletters_dir=NewslettersBucket.NEWSLETTERS_DIR,
-            user=user.username.lower(),
+            user=user.user_id.lower(),
             date=dt.strftime(
                 date,
                 "y=%Y/m=%m/d=%d",
@@ -167,5 +167,5 @@ class NewslettersBucket:
     def _get_user_newsletters_prefix(user: User) -> str:
         return NewslettersBucket.USER_NEWSLETTERS_PREFIX.format(
             newsletters_dir=NewslettersBucket.NEWSLETTERS_DIR,
-            user=user.username.lower(),
+            user=user.user_id.lower(),
         )

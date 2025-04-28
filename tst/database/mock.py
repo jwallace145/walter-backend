@@ -60,16 +60,16 @@ class MockDDB:
     def _create_users_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
             TableName=table_name,
-            KeySchema=[{"AttributeName": "email", "KeyType": "HASH"}],
+            KeySchema=[{"AttributeName": "user_id", "KeyType": "HASH"}],
             AttributeDefinitions=[
+                {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "email", "AttributeType": "S"},
-                {"AttributeName": "username", "AttributeType": "S"},
             ],
             BillingMode="PAY_PER_REQUEST",
             GlobalSecondaryIndexes=[
                 {
-                    "IndexName": f"Users-UsernameIndex-{Domain.TESTING.value}",
-                    "KeySchema": [{"AttributeName": "username", "KeyType": "HASH"}],
+                    "IndexName": f"Users-EmailIndex-{Domain.TESTING.value}",
+                    "KeySchema": [{"AttributeName": "email", "KeyType": "HASH"}],
                     "Projection": {"ProjectionType": "ALL"},
                 }
             ],
@@ -89,7 +89,8 @@ class MockDDB:
                     TableName=USERS_TABLE_NAME,
                     Item=User(
                         email=json_user["email"],
-                        username=json_user["username"],
+                        first_name=json_user["first_name"],
+                        last_name=json_user["last_name"],
                         password_hash=json_user["password_hash"],
                         verified=json_user["verified"],
                         sign_up_date=datetime.datetime.strptime(

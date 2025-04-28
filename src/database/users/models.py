@@ -1,4 +1,5 @@
 import json
+import uuid
 from dataclasses import dataclass
 import datetime as dt
 from typing import Optional
@@ -13,8 +14,10 @@ class User:
     """
 
     email: str
-    username: str
+    first_name: str
+    last_name: str
     password_hash: str
+    user_id: str = None  # user primary key, set during post init as unique id
     sign_up_date: dt.datetime = dt.datetime.now(dt.UTC)
     last_active_date: dt.datetime = dt.datetime.now(dt.UTC)
     free_trial_end_date: dt.datetime = dt.datetime.now(dt.UTC) + dt.timedelta(
@@ -28,11 +31,17 @@ class User:
     stripe_subscription_id: Optional[str] = None
     stripe_customer_id: Optional[str] = None
 
+    def __post_init__(self) -> None:
+        # if user_id is not set during instantiation, set it
+        if self.user_id is None:
+            self.user_id = str(uuid.uuid4())
+
     def __eq__(self, other) -> bool:
         if isinstance(other, User):
             return (
                 self.email == other.email
-                and self.username == other.username
+                and self.first_name == other.first_name
+                and self.last_name == other.last_name
                 and self.password_hash == other.password_hash
                 and self.verified == other.verified
                 and self.subscribed == other.subscribed
@@ -41,8 +50,10 @@ class User:
 
     def __dict__(self) -> dict:
         return {
+            "user_id": self.user_id,
             "email": self.email,
-            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
             "password_hash": self.password_hash,
             "sign_up_date": self.sign_up_date.isoformat(),
             "last_active_date": self.last_active_date.isoformat(),
@@ -51,7 +62,11 @@ class User:
             "subscribed": self.subscribed,
             "profile_picture_s3_uri": self.profile_picture_s3_uri,
             "profile_picture_url": self.profile_picture_url,
-            "profile_picture_url_expiration": self.profile_picture_url_expiration.isoformat() if self.profile_picture_url_expiration else None,
+            "profile_picture_url_expiration": (
+                self.profile_picture_url_expiration.isoformat()
+                if self.profile_picture_url_expiration
+                else None
+            ),
             "stripe_subscription_id": self.stripe_subscription_id,
             "stripe_customer_id": self.stripe_customer_id,
         }
@@ -90,10 +105,14 @@ class User:
 
         # return ddb item with all fields set (even optional ones with default values)
         return {
+            "user_id": {
+                "S": self.user_id,
+            },
             "email": {
                 "S": self.email,
             },
-            "username": {"S": self.username},
+            "first_name": {"S": self.first_name},
+            "last_name": {"S": self.last_name},
             "password_hash": {"S": self.password_hash},
             "sign_up_date": {"S": self.sign_up_date.isoformat()},
             "last_active_date": {"S": self.last_active_date.isoformat()},

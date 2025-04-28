@@ -61,7 +61,9 @@ def create_user_api(
 
 
 def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
-    event = get_create_user_event(email="jim", username="jim", password="Test1234")
+    event = get_create_user_event(
+        email="jim", first_name="Jimmy", last_name="Smith", password="Test1234"
+    )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -71,22 +73,12 @@ def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
     assert expected_response == create_user_api.invoke(event)
 
 
-def test_create_user_failure_invalid_username(create_user_api: CreateUser) -> None:
-    event = get_create_user_event(
-        email="jim@gmail.com", username="jim ", password="Test1234"
-    )
-    expected_response = get_expected_response(
-        api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
-        status=Status.FAILURE,
-        message="Invalid username!",
-    )
-    assert expected_response == create_user_api.invoke(event)
-
-
 def test_create_user_failure_user_already_exists(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
-        email="walter@gmail.com", username="walter", password="Test1234"
+        email="walter@gmail.com",
+        first_name="Walter",
+        last_name="Walrus",
+        password="Test1234",
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
@@ -99,25 +91,12 @@ def test_create_user_failure_user_already_exists(create_user_api: CreateUser) ->
 
 def test_create_user_failure_invalid_password(create_user_api: CreateUser) -> None:
     event = get_create_user_event(
-        email="jim@gmail.com", username="jim", password="test"
+        email="jim@gmail.com", first_name="Jimmy", last_name="Smith", password="test"
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
         message="Invalid password!",
-    )
-    assert expected_response == create_user_api.invoke(event)
-
-
-def test_create_user_failure_duplicate_username(create_user_api: CreateUser) -> None:
-    event = get_create_user_event(
-        email="newuser@gmail.com", username="walter", password="Test1234"
-    )
-    expected_response = get_expected_response(
-        api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
-        status=Status.FAILURE,
-        message="User already exists!",
     )
     assert expected_response == create_user_api.invoke(event)

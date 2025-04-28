@@ -81,7 +81,7 @@ class AuthUser(WalterAPIMethod):
     def _verify_user_exists(self, event: dict) -> User:
         email = json.loads(event["body"])["email"].lower()
         log.info(f"Verifying user exists with email '{email}'")
-        user = self.walter_db.get_user(email)
+        user = self.walter_db.get_user_by_email(email)
         if user is None:
             raise UserDoesNotExist("User not found!")
         log.info("Verified user exists!")
