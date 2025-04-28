@@ -88,6 +88,7 @@ class MockDDB:
                 self.mock_ddb.put_item(
                     TableName=USERS_TABLE_NAME,
                     Item=User(
+                        user_id=json_user["user_id"],
                         email=json_user["email"],
                         first_name=json_user["first_name"],
                         last_name=json_user["last_name"],
@@ -108,11 +109,11 @@ class MockDDB:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
-                {"AttributeName": "user_email", "KeyType": "HASH"},
+                {"AttributeName": "user_id", "KeyType": "HASH"},
                 {"AttributeName": "stock_symbol", "KeyType": "RANGE"},
             ],
             AttributeDefinitions=[
-                {"AttributeName": "user_email", "AttributeType": "S"},
+                {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "stock_symbol", "AttributeType": "S"},
             ],
             BillingMode="PAY_PER_REQUEST",
@@ -125,7 +126,7 @@ class MockDDB:
                 self.mock_ddb.put_item(
                     TableName=USERS_STOCKS_TABLE_NAME,
                     Item=UserStock(
-                        user_email=json_userstock["user_email"],
+                        user_id=json_userstock["user_id"],
                         stock_symbol=json_userstock["stock_symbol"],
                         quantity=json_userstock["quantity"],
                     ).to_ddb_item(),

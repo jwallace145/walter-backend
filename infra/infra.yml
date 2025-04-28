@@ -1397,7 +1397,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: 35
+      FunctionVersion: 36
       Name: "release"
 
   WalterAPIAddStock:
@@ -1424,7 +1424,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: 32
+      FunctionVersion: 33
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -1507,7 +1507,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: 37
+      FunctionVersion: 39
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2399,13 +2399,13 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: user_email
+        - AttributeName: user_id
           AttributeType: S
         - AttributeName: stock_symbol
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
-          - AttributeName: user_email
+          - AttributeName: user_id
             KeyType: HASH
           - AttributeName: stock_symbol
             KeyType: RANGE

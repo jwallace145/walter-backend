@@ -1,15 +1,25 @@
 import json
 
 from dataclasses import dataclass
-from src.api.common.exceptions import BadRequest, NotAuthenticated, StockDoesNotExist
+from src.api.common.exceptions import (
+    BadRequest,
+    NotAuthenticated,
+    StockDoesNotExist,
+    UserDoesNotExist,
+)
 from src.api.common.methods import WalterAPIMethod, Status, HTTPStatus
 from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.users.models import User
 from src.database.userstocks.models import UserStock
 from src.stocks.client import WalterStocksAPI
+
+from src.utils.log import Logger
+
+log = Logger(__name__).get_logger()
 
 
 @dataclass
@@ -51,10 +61,11 @@ class DeleteStock(WalterAPIMethod):
         self.walter_sm = walter_sm
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
+        user = self._verify_user_exists(authenticated_email)
         body = json.loads(event["body"])
         self.walter_db.delete_stock_from_user_portfolio(
             UserStock(
-                user_email=authenticated_email,
+                user_id=user.user_id,
                 stock_symbol=body["stock"],
                 quantity=0,
             )
@@ -76,3 +87,11 @@ class DeleteStock(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return True
+
+    def _verify_user_exists(self, email: str) -> User:
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user_by_email(email)
+        if user is None:
+            raise UserDoesNotExist("User does not exist!")
+        log.info("Verified user exists!")
+        return user

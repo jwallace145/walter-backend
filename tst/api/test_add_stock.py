@@ -30,6 +30,7 @@ def test_add_stock(add_stock_api: AddStock, jwt_walter: str) -> None:
         status_code=HTTPStatus.CREATED,
         status=Status.SUCCESS,
         message="Stock added!",
+        data={"user": "walter@gmail.com", "stock": "ABNB", "quantity": 100.0},
     )
     assert expected_response == add_stock_api.invoke(event)
 

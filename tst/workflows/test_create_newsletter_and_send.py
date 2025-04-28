@@ -28,6 +28,7 @@ from src.workflows.create_newsletter_and_send import CreateNewsletterAndSend
 #############
 
 BOB = User(
+    user_id="d3c8f191-6a2c-4d3e-8c99-c8d67d5c8af1",
     email="bob@gmail.com",
     first_name="Bob",
     last_name="Walrus",
@@ -62,8 +63,8 @@ META = Stock(
 """(Stock): The model stock object for Meta."""
 
 BOBS_STOCKS = [
-    UserStock(user_email=BOB.email, stock_symbol=AAPL.symbol, quantity=1.0),
-    UserStock(user_email=BOB.email, stock_symbol=META.symbol, quantity=2.0),
+    UserStock(user_id=BOB.user_id, stock_symbol=AAPL.symbol, quantity=1.0),
+    UserStock(user_id=BOB.user_id, stock_symbol=META.symbol, quantity=2.0),
 ]
 """(List[UserStock]): The stocks owned by the Walter user Bob."""
 

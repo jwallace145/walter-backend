@@ -13,15 +13,15 @@ class UserStock:
     primary keys to store user portfolios.
     """
 
-    user_email: str
+    user_id: str
     stock_symbol: str
     quantity: float
     timestamp: dt.datetime = dt.datetime.now(dt.UTC)
 
     def to_ddb_item(self) -> dict:
         return {
-            "user_email": {
-                "S": self.user_email,
+            "user_id": {
+                "S": self.user_id,
             },
             "stock_symbol": {"S": self.stock_symbol},
             "quantity": {"S": str(self.quantity)},
@@ -30,7 +30,7 @@ class UserStock:
 
     def to_dict(self) -> dict:
         return {
-            "user_email": self.user_email,
+            "user_id": self.user_id,
             "stock_symbol": self.stock_symbol,
             "quantity": self.quantity,
             "timestamp": self.timestamp.isoformat(),
@@ -39,7 +39,7 @@ class UserStock:
     def __str__(self) -> str:
         return json.dumps(
             {
-                "email": self.user_email,
+                "user_id": self.user_id,
                 "stock": self.stock_symbol,
                 "quantity": self.quantity,
                 "timestamp": self.timestamp.isoformat(),

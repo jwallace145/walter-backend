@@ -8,6 +8,7 @@ from src.stocks.models import Portfolio
 from src.stocks.polygon.models import StockPrices, StockPrice
 
 WALTER = User(
+    user_id="f47ac10b-58cc-4372-a567-0e02b2c3d479",
     email="walter@gmail.com",
     first_name="Walter",
     last_name="Walrus",
@@ -27,10 +28,10 @@ META = Stock(symbol="META", company="Facebook")
 
 USER_STOCKS = {
     AAPL.symbol: UserStock(
-        user_email=WALTER.email, stock_symbol=AAPL.symbol, quantity=1.0
+        user_id=WALTER.user_id, stock_symbol=AAPL.symbol, quantity=1.0
     ),
     META.symbol: UserStock(
-        user_email=WALTER.email, stock_symbol=META.symbol, quantity=2.0
+        user_id=WALTER.user_id, stock_symbol=META.symbol, quantity=2.0
     ),
 }
 
