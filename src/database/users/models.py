@@ -51,7 +51,7 @@ class User:
             "subscribed": self.subscribed,
             "profile_picture_s3_uri": self.profile_picture_s3_uri,
             "profile_picture_url": self.profile_picture_url,
-            "profile_picture_url_expiration": self.profile_picture_url_expiration.isoformat(),
+            "profile_picture_url_expiration": self.profile_picture_url_expiration.isoformat() if self.profile_picture_url_expiration else None,
             "stripe_subscription_id": self.stripe_subscription_id,
             "stripe_customer_id": self.stripe_customer_id,
         }
