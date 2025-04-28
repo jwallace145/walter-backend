@@ -63,7 +63,7 @@ class SendChangePasswordEmail(WalterAPIMethod):
         change_password_template = self.templates_engine.get_template(
             template_name="change_password",
             template_args={
-                "User": user.username,
+                "User": user.first_name,
                 "Url": url,
             },
         )

@@ -79,7 +79,7 @@ class SendVerifyEmail(WalterAPIMethod):
 
     def _verify_user_exists(self, email: str) -> User:
         log.info(f"Verifying user exists with email: '{email}'")
-        user = self.walter_db.get_user(email)
+        user = self.walter_db.get_user_by_email(email)
         if user is None:
             raise UserDoesNotExist("User does not exist!")
         log.info("Verified user exists!")
@@ -97,7 +97,7 @@ class SendVerifyEmail(WalterAPIMethod):
         verify_email_template = self.templates_engine.get_template(
             template_name="verify",
             template_args={
-                "User": user.username,
+                "User": user.first_name,
                 "Url": url,
             },
         )

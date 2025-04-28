@@ -130,6 +130,13 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: users
 
+  WalterAPICreateUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPICreateUser.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
   WalterAPICreateUserMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -140,7 +147,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateUser.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateUser.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -172,13 +179,6 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: false
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
-
-  WalterAPICreateUserPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPICreateUser
-      Principal: apigateway.amazonaws.com
 
   WalterAPIGetUserMethod:
     Type: AWS::ApiGateway::Method
@@ -1229,7 +1229,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAuthUser
-      FunctionVersion: 2
+      FunctionVersion: 3
       Name: "release"
 
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
@@ -1258,7 +1258,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateUser
-      FunctionVersion: 7
+      FunctionVersion: 34
       Name: "release"
 
   WalterAPICreateUser:
@@ -1266,19 +1266,17 @@ Resources:
     Properties:
       FunctionName: !Sub "WalterAPI-CreateUser-${AppEnvironment}"
       Description: !Sub "WalterAPI: CreateUser - create user and add to database (${AppEnvironment})"
-      Handler: walter.create_user_entrypoint
+      PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
-        S3Bucket: walter-backend-src
-        S3Key: walter-backend.zip
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.create_user_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
-      Runtime: python3.12
-      SnapStart:
-        ApplyOn: PublishedVersions
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
-        - "arm64"
-      Layers:
-        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
@@ -1287,7 +1285,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: 36
+      FunctionVersion: 39
       Name: "release"
 
   WalterAPIGetUser:
@@ -1314,7 +1312,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateUser
-      FunctionVersion: 3
+      FunctionVersion: 8
       Name: "release"
 
   WalterAPIUpdateUser:
@@ -1399,7 +1397,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: 26
+      FunctionVersion: 35
       Name: "release"
 
   WalterAPIAddStock:
@@ -1426,7 +1424,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: 24
+      FunctionVersion: 32
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -1509,7 +1507,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: 16
+      FunctionVersion: 37
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1913,7 +1911,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddExpense
-      FunctionVersion: 21
+      FunctionVersion: 36
       Name: "release"
 
   WalterAPIAddExpense:
@@ -1967,7 +1965,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteExpense
-      FunctionVersion: 10
+      FunctionVersion: 33
       Name: "release"
 
   WalterAPIDeleteExpense:
@@ -2419,17 +2417,17 @@ Resources:
       TableName: !Sub "Users-${AppEnvironment}"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: email
+        - AttributeName: user_id
           AttributeType: S
-        - AttributeName: username
+        - AttributeName: email
           AttributeType: S
       KeySchema:
-        - AttributeName: email
+        - AttributeName: user_id
           KeyType: HASH
       GlobalSecondaryIndexes:
-        - IndexName: !Sub "Users-UsernameIndex-${AppEnvironment}"
+        - IndexName: !Sub "Users-EmailIndex-${AppEnvironment}"
           KeySchema:
-            - AttributeName: 'username'
+            - AttributeName: 'email'
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
@@ -2891,7 +2889,7 @@ Resources:
                   - ":table/"
                   - !Sub "Users-${AppEnvironment}"
                   - "/index/"
-                  - !Sub "Users-UsernameIndex-${AppEnvironment}"
+                  - !Sub "Users-EmailIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole

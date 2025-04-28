@@ -8,7 +8,7 @@ class InvalidPassword(Exception):
         super().__init__(message)
 
 
-class InvalidUsername(Exception):
+class InvalidName(Exception):
     def __init__(self, message):
         super().__init__(message)
 

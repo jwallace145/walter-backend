@@ -74,7 +74,7 @@ class UpdateUser(WalterAPIMethod):
             raise BadRequest("Missing image file!")
 
         bucket = "walterai-media-dev"
-        key = f"profile-pictures/{user.username}.jpeg"
+        key = f"profile-pictures/{user.user_id}.jpeg"
         s3_uri = WalterS3Client.get_uri(bucket, key)
         self.walter_s3.put_object(
             bucket=bucket,
@@ -83,7 +83,7 @@ class UpdateUser(WalterAPIMethod):
             content_type="image/jpeg",
         )
 
-        # update profile picture and set expirate date to now to force
+        # update profile picture and set expiration date to force
         # profile picture url refresh on next GetUser API call
         user.profile_picture_s3_uri = s3_uri
         user.profile_picture_url_expiration = dt.datetime.now(dt.UTC)

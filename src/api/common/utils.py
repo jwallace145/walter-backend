@@ -15,19 +15,24 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(pattern, email))
 
 
-def is_valid_username(username: str) -> bool:
+def is_valid_name(first_name: str, last_name: str) -> bool:
     """
-    Validate username.
+    Validate name.
 
-    Validates a username only contains alphanumeric characters.
+    This method validates user's names. Special characters that are still
+    valid include accented characters, hyphens, and spaces.
 
     Args:
-        username: The given username.
+        first_name: The first name of the user.
+        last_name: The last name of the user.
 
     Returns:
-        True if the given username is contains exclusively alphanumeric characters; otherwise, False.
+        True if the given name is valid; otherwise, False.
     """
-    return username.isalnum()
+    pattern = r"^[a-zA-ZÀ-ÖØ-öø-ÿ' -]+$"
+    return bool(re.fullmatch(pattern, first_name.strip())) and bool(
+        re.fullmatch(pattern, last_name.strip())
+    )
 
 
 def is_valid_password(password: str) -> bool:

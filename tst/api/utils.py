@@ -57,9 +57,16 @@ def get_news_summary_event(symbol: str) -> dict:
     return EVENT
 
 
-def get_create_user_event(email: str, username: str, password: str) -> dict:
+def get_create_user_event(
+    email: str, first_name: str, last_name: str, password: str
+) -> dict:
     EVENT["body"] = json.dumps(
-        {"email": email, "username": username, "password": password}
+        {
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "password": password,
+        }
     )
     EVENT["headers"] = {"content-type": "application/json"}
     return EVENT

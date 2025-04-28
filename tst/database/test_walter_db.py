@@ -4,14 +4,16 @@ from src.database.userstocks.models import UserStock
 
 WALTER = User(
     email="walter@gmail.com",
-    username="walter",
+    first_name="Walter",
+    last_name="Walrus",
     password_hash="walter",
     verified=True,
     subscribed=True,
 )
 WALRUS = User(
     email="walrus@gmail.com",
-    username="walrus",
+    first_name="Walrus",
+    last_name="Walrus",
     password_hash="walrus",
     verified=False,
     subscribed=True,

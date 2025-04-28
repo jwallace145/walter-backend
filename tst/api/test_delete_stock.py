@@ -10,7 +10,12 @@ from src.database.users.models import User
 from src.stocks.client import WalterStocksAPI
 from tst.api.utils import get_expected_response, get_delete_stock_event
 
-WALTER = User(email="walter@gmail.com", username="walter", password_hash="walter")
+WALTER = User(
+    email="walter@gmail.com",
+    first_name="Walter",
+    last_name="Walrus",
+    password_hash="walter",
+)
 
 
 @pytest.fixture

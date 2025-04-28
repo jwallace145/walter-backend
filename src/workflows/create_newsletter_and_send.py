@@ -132,7 +132,7 @@ class CreateNewsletterAndSend:
 
     def _get_user(self, email: str) -> User:
         log.info(f"Getting user from WalterDB with email '{email}'...")
-        user = self.walter_db.get_user(email)
+        user = self.walter_db.get_user_by_email(email)
         return user
 
     def _get_portfolio(self, user: User) -> Portfolio:
@@ -171,7 +171,7 @@ class CreateNewsletterAndSend:
     ) -> TemplateSpec:
         log.info(f"Getting template spec for '{template}' template...'")
         template_spec_args = {
-            "user": user.username,
+            "user": user.first_name,
             "datestamp": END_DATE.strftime("%Y-%m-%d"),
             "portfolio_value": f"${portfolio.get_total_equity():,.2f}",
             "stocks": [stock.to_dict() for stock in portfolio.get_stock_equities()],
@@ -249,7 +249,7 @@ class CreateNewsletterAndSend:
         newsletter: str,
         template: SupportedTemplate = CONFIG.newsletter.template,
     ) -> None:
-        log.info(f"Archiving newsletter for user with email '{user.email}'...")
+        log.info(f"Archiving newsletter for user '{user.user_id}'...")
         self.newsletters_bucket.put_newsletter(
             user, title, template, self.walter_ai.model.model_name, newsletter
         )

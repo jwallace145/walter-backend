@@ -7,7 +7,12 @@ from src.stocks.client import WalterStocksAPI
 from src.stocks.models import Portfolio
 from src.stocks.polygon.models import StockPrices, StockPrice
 
-WALTER = User(email="walter@gmail.com", username="walter", password_hash="password")
+WALTER = User(
+    email="walter@gmail.com",
+    first_name="Walter",
+    last_name="Walrus",
+    password_hash="password",
+)
 
 START_DATE = dt.datetime(
     year=2025, month=1, day=1, hour=1, minute=0, second=0, microsecond=0
