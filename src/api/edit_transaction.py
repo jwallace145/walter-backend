@@ -12,25 +12,26 @@ from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
-from src.database.expenses.models import Expense, ExpenseCategory
+from src.database.transactions.models import Transaction, TransactionCategory
+from src.database.users.models import User
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 @dataclass
-class EditExpense(WalterAPIMethod):
+class EditTransaction(WalterAPIMethod):
     """
-    WalterAPI: EditExpense
+    WalterAPI: EditTransaction
 
-    This API edits an existing user expense and updates
-    the database accordingly.
+    This API edits an existing user transaction and updates the
+    Transactions table in WalterDB accordingly.
     """
 
-    API_NAME = "EditExpense"
+    API_NAME = "EditTransaction"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
-    REQUIRED_FIELDS = ["date", "expense_id", "vendor", "amount", "category"]
+    REQUIRED_FIELDS = ["date", "transaction_id", "vendor", "amount", "category"]
     EXCEPTIONS = [BadRequest, NotAuthenticated, UserDoesNotExist]
 
     walter_db: WalterDB
@@ -42,43 +43,52 @@ class EditExpense(WalterAPIMethod):
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
-            EditExpense.API_NAME,
-            EditExpense.REQUIRED_QUERY_FIELDS,
-            EditExpense.REQUIRED_HEADERS,
-            EditExpense.REQUIRED_FIELDS,
-            EditExpense.EXCEPTIONS,
+            EditTransaction.API_NAME,
+            EditTransaction.REQUIRED_QUERY_FIELDS,
+            EditTransaction.REQUIRED_HEADERS,
+            EditTransaction.REQUIRED_FIELDS,
+            EditTransaction.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
         )
         self.walter_db = walter_db
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        expense = self._get_expense(event, authenticated_email)
-        self.walter_db.put_expense(expense)
+        user = self._verify_user_exists(authenticated_email)
+        transaction = self._get_transaction(user.user_id, event)
+        self.walter_db.put_transaction(transaction)
         return Response(
-            api_name=EditExpense.API_NAME,
+            api_name=EditTransaction.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Expense edited!",
+            message="Transaction edited!",
             data={
-                "expense": expense.to_dict(),
+                "transaction": transaction.to_dict(),
             },
         )
 
-    def _get_expense(self, event: dict, authenticated_email: str) -> Expense:
+    def _verify_user_exists(self, email: str) -> User:
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user_by_email(email)
+        if user is None:
+            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
+        log.info("Verified user exists!")
+        return user
+
+    def _get_transaction(self, user_id: str, event: dict) -> Transaction:
         body = json.loads(event["body"])
-        date = EditExpense._get_date(body["date"])
-        expense_id = body["expense_id"]
+        date = EditTransaction._get_date(body["date"])
+        transaction_id = body["transaction_id"]
         vendor = body["vendor"]
-        amount = EditExpense._get_expense_amount(body["amount"])
-        category = EditExpense._get_expense_category(body["category"])
-        return Expense(
-            user_email=authenticated_email,
+        amount = EditTransaction._get_expense_amount(body["amount"])
+        category = EditTransaction._get_expense_category(body["category"])
+        return Transaction(
+            user_id=user_id,
             date=date,
             vendor=vendor,
             amount=amount,
             category=category,
-            expense_id=expense_id,
+            transaction_id=transaction_id,
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -104,9 +114,9 @@ class EditExpense(WalterAPIMethod):
             raise BadRequest(f"Invalid expense amount '{amount}'!")
 
     @staticmethod
-    def _get_expense_category(category: str) -> ExpenseCategory:
+    def _get_expense_category(category: str) -> TransactionCategory:
         try:
-            return ExpenseCategory.from_string(category)
+            return TransactionCategory.from_string(category)
         except Exception:
             log.error(f"Invalid expense category: {category}")
             raise BadRequest(f"Invalid expense category '{category}'!")

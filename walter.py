@@ -1,12 +1,11 @@
-from src.api.add_expense import AddExpense
+from src.api.add_expense import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
 from src.api.create_user import CreateUser
-from src.api.delete_expense import DeleteExpense
 from src.api.delete_stock import DeleteStock
-from src.api.edit_expense import EditExpense
-from src.api.get_expenses import GetExpenses
+from src.api.delete_transaction import DeleteTransaction
+from src.api.edit_transaction import EditTransaction
 from src.api.get_news_summary import GetNewsSummary
 from src.api.get_newsletter import GetNewsletter
 from src.api.get_newsletters import GetNewsletters
@@ -14,6 +13,7 @@ from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_statistics import GetStatistics
 from src.api.get_stock import GetStock
+from src.api.get_transactions import GetTransactions
 from src.api.get_user import GetUser
 from src.api.purchase_newsletter_subscription import PurchaseNewsletterSubscription
 from src.api.search_stocks import SearchStocks
@@ -289,29 +289,33 @@ def verify_purchase_newsletter_subscription_entrypoint(event, context) -> dict:
     )
 
 
-def add_expense_entrypoint(event, context) -> dict:
+def add_transaction_entrypoint(event, context) -> dict:
     return (
-        AddExpense(walter_authenticator, walter_cw, walter_db, expense_categorizer)
+        AddTransaction(walter_authenticator, walter_cw, walter_db, expense_categorizer)
         .invoke(event)
         .to_json()
     )
 
 
-def edit_expense_entrypoint(event, context) -> dict:
+def edit_transaction_entrypoint(event, context) -> dict:
     return (
-        EditExpense(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
+        EditTransaction(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
     )
 
 
-def get_expenses_entrypoint(event, context) -> dict:
+def get_transactions_entrypoint(event, context) -> dict:
     return (
-        GetExpenses(walter_authenticator, walter_cw, walter_db).invoke(event).to_json()
+        GetTransactions(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
     )
 
 
-def delete_expense_entrypoint(event, context) -> dict:
+def delete_transaction_entrypoint(event, context) -> dict:
     return (
-        DeleteExpense(walter_authenticator, walter_cw, walter_db)
+        DeleteTransaction(walter_authenticator, walter_cw, walter_db)
         .invoke(event)
         .to_json()
     )

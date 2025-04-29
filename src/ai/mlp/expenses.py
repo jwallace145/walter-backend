@@ -10,10 +10,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
 
 from src.config import CONFIG
-from src.database.expenses.models import ExpenseCategory
+from src.database.transactions.models import TransactionCategory
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
+
+# TODO: Rename to TransactionsCategorizerMLP
 
 
 @dataclass
@@ -38,7 +40,7 @@ class ExpenseCategorizerMLP:
     def __post_init__(self) -> None:
         log.debug("Creating ExpenseCategorizer...")
 
-    def categorize(self, vendor: str, amount: float) -> ExpenseCategory:
+    def categorize(self, vendor: str, amount: float) -> TransactionCategory:
         """
         Categorize the user expense by vendor and amount.
 
@@ -68,7 +70,7 @@ class ExpenseCategorizerMLP:
         expense_category = self.expense_category_encoder.inverse_transform(
             expense_category_encoded
         )[0]
-        expense_category = ExpenseCategory.from_string(expense_category)
+        expense_category = TransactionCategory.from_string(expense_category)
 
         log.info(f"Expense categorized as '{expense_category}'!")
 

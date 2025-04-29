@@ -1,5 +1,5 @@
-echo Publishing new WalterAPI AddExpense Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-AddExpense-dev --no-cli-pager \
+echo Publishing new WalterAPI AddTransaction Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-AddTransaction-dev --no-cli-pager \
 && echo Publishing new WalterAPI AddStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-AddStock-dev --no-cli-pager \
 && echo Publishing new WalterAPI AuthUser Lambda version \
@@ -8,14 +8,14 @@ echo Publishing new WalterAPI AddExpense Lambda version \
 && aws lambda publish-version --function-name WalterAPI-ChangePassword-dev --no-cli-pager \
 && echo Publishing new WalterAPI CreateUser Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateUser-dev --no-cli-pager \
-&& echo Publishing new WalterAPI EditExpense Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-EditExpense-dev --no-cli-pager \
-&& echo Publishing new WalterAPI DeleteExpense Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-DeleteExpense-dev --no-cli-pager \
+&& echo Publishing new WalterAPI EditTransaction Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-EditTransaction-dev --no-cli-pager \
+&& echo Publishing new WalterAPI DeleteTransaction Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-DeleteTransaction-dev --no-cli-pager \
 && echo Publishing new WalterAPI DeleteStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-DeleteStock-dev --no-cli-pager \
-&& echo Publishing new WalterAPI GetExpenses Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-GetExpenses-dev --no-cli-pager \
+&& echo Publishing new WalterAPI GetTransactions Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetTransactions-dev --no-cli-pager \
 && echo Publishing new WalterAPI GetNewsletter Lambda version \
 && aws lambda publish-version --function-name WalterAPI-GetNewsletter-dev --no-cli-pager \
 && echo Publishing new WalterAPI GetNewsletters Lambda version \
