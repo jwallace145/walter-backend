@@ -13,17 +13,17 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class GetExpensesCanary(BaseCanary):
+class GetTransactionsCanary(BaseCanary):
     """
-    WalterCanary: GetExpensesCanary
+    WalterCanary: GetTransactionsCanary
 
     This canary calls the GetExpenses API to ensure
     that users can get their expenses from WalterDB
     successfully.
     """
 
-    CANARY_NAME = "GetExpensesCanary"
-    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/expenses"
+    CANARY_NAME = "GetTransactionsCanary"
+    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/transactions"
     USER_EMAIL = "canary@walterai.dev"
 
     authenticator: WalterAuthenticator
@@ -32,17 +32,17 @@ class GetExpensesCanary(BaseCanary):
         self, authenticator: WalterAuthenticator, metrics: WalterCloudWatchClient
     ) -> None:
         super().__init__(
-            GetExpensesCanary.CANARY_NAME, GetExpensesCanary.API_URL, metrics
+            GetTransactionsCanary.CANARY_NAME, GetTransactionsCanary.API_URL, metrics
         )
         self.authenticator = authenticator
 
     def call_api(self) -> Response:
-        token = self.authenticator.generate_user_token(GetExpensesCanary.USER_EMAIL)
+        token = self.authenticator.generate_user_token(GetTransactionsCanary.USER_EMAIL)
         today = datetime.today()
         first_day_of_current_month = today.replace(day=1).strftime("%Y-%m-%d")
         current_date = today.strftime("%Y-%m-%d")
         return requests.get(
-            url=GetExpensesCanary.API_URL,
+            url=GetTransactionsCanary.API_URL,
             headers={
                 "Authorization": f"Bearer {token}",
             },

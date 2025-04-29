@@ -28,7 +28,7 @@ from src.api.verify_purchase_newsletter_subscription import (
     VerifyPurchaseNewsletterSubscription,
 )
 from src.canaries.auth_user import AuthUserCanary
-from src.canaries.get_expenses import GetExpensesCanary
+from src.canaries.get_transactions import GetTransactionsCanary
 from src.canaries.get_news_summary import GetNewsSummaryCanary
 from src.canaries.get_newsletters import GetNewslettersCanary
 from src.canaries.get_portfolio import GetPortfolioCanary
@@ -330,8 +330,8 @@ def auth_user_canary_entrypoint(event, context) -> dict:
     return AuthUserCanary(walter_cw).invoke()
 
 
-def get_expenses_canary_entrypoint(event, context) -> dict:
-    return GetExpensesCanary(walter_authenticator, walter_cw).invoke()
+def get_transactions_canary_entrypoint(event, context) -> dict:
+    return GetTransactionsCanary(walter_authenticator, walter_cw).invoke()
 
 
 def get_user_canary_entrypoint(event, context) -> dict:
