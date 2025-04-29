@@ -66,11 +66,11 @@ from walter import (
     get_stock_canary_entrypoint,
     search_stocks_canary_entrypoint,
     get_newsletters_canary_entrypoint,
-    get_expenses_canary_entrypoint,
     edit_transaction_entrypoint,
     get_transactions_entrypoint,
     add_transaction_entrypoint,
     delete_transaction_entrypoint,
+    get_transactions_canary_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -336,10 +336,10 @@ def auth_user_canary() -> None:
 
 
 @app.command()
-def get_expenses_canary() -> None:
-    log.info("WalterCLI: GetExpensesCanary...")
-    response = get_expenses_canary_entrypoint({}, CONTEXT)
-    log.info(f"WalterCLI: GetExpensesCanary Response:\n{parse_response(response)}")
+def get_transactions_canary() -> None:
+    log.info("WalterCLI: GetTransactionsCanary")
+    response = get_transactions_canary_entrypoint({}, CONTEXT)
+    log.info(f"WalterCLI: GetTransactionsCanary Response:\n{parse_response(response)}")
 
 
 @app.command()

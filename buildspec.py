@@ -51,8 +51,8 @@ ADD_NEWSLETTER_REQUESTS_WORKFLOW_TRIGGER_NAME = (
 AUTH_USER_CANARY_TRIGGER_NAME = "WalterCanary-AuthUserCanary-Trigger"
 """(str): The EventBridge trigger for the AuthUser Canary API."""
 
-GET_EXPENSES_CANARY_TRIGGER_NAME = "WalterCanary-GetExpenses-Trigger"
-"""(str): The EventBridge trigger for the GetExpenses Canary API."""
+GET_TRANSACTIONS_CANARY_TRIGGER_NAME = "WalterCanary-GetTransactions-Trigger"
+"""(str): The EventBridge trigger for the GetTransactions Canary."""
 
 GET_NEWSLETTERS_CANARY_TRIGGER_NAME = "WalterCanary-GetNewsletters-Trigger"
 """(str): The EventBridge trigger for the GetNewsletters Canary API."""
@@ -99,7 +99,7 @@ def update_add_newsletter_requests_workflow_trigger(client: EventBridgeClient) -
 def update_all_canary_triggers(client: EventBridgeClient) -> None:
     canary_triggers = [
         AUTH_USER_CANARY_TRIGGER_NAME,
-        GET_EXPENSES_CANARY_TRIGGER_NAME,
+        GET_TRANSACTIONS_CANARY_TRIGGER_NAME,
         GET_NEWSLETTERS_CANARY_TRIGGER_NAME,
         GET_NEWS_SUMMARY_CANARY_TRIGGER_NAME,
         GET_PORTFOLIO_CANARY_TRIGGER_NAME,

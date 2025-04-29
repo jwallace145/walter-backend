@@ -2015,25 +2015,25 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterCanaryGetExpensesCanaryAlias:
+  WalterCanaryGetTransactionsAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterCanaryGetExpensesCanary
+      FunctionName: !Ref WalterCanaryGetTransactions
       FunctionVersion: $LATEST
       Name: "release"
 
-  WalterCanaryGetExpensesCanary:
+  WalterCanaryGetTransactions:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterCanary-GetExpensesCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetExpenses - Call the GetExpenses API to ensure users are able to retrieve expenses from WalterDB (${AppEnvironment})"
+      FunctionName: !Sub "WalterCanary-GetTransactions-${AppEnvironment}"
+      Description: !Sub "WalterCanary: GetTransactions - Call the GetTransactions API to ensure users are able to retrieve transactions from WalterDB (${AppEnvironment})"
       PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         ImageUri: !Sub "${WalterAPIImageURI}"
       ImageConfig:
         Command:
-          - walter.get_expenses_canary_entrypoint
+          - walter.get_transactions_canary_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
