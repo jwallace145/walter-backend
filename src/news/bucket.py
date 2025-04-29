@@ -167,7 +167,6 @@ class NewsSummariesBucket:
 
     @staticmethod
     def _get_company_news(metadata: dict) -> CompanyNews:
-        print(metadata)
         return CompanyNews(
             stock=metadata["stock"],
             company=metadata["company"],

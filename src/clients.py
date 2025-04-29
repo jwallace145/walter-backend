@@ -16,6 +16,7 @@ from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.events.parser import WalterEventParser
+from src.media.bucket import PublicMediaBucket
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
@@ -72,6 +73,7 @@ walter_sqs = WalterSQSClient(
 
 s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
 
+public_media_bucket = PublicMediaBucket(s3, DOMAIN)
 newsletters_bucket = NewslettersBucket(s3, DOMAIN)
 news_summaries_bucket = NewsSummariesBucket(s3, DOMAIN)
 templates_bucket = TemplatesBucket(s3, DOMAIN)

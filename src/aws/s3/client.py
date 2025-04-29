@@ -162,6 +162,34 @@ class WalterS3Client:
             )
             raise error
 
+    def upload_file(self, file_path: str, bucket: str, key: str) -> str:
+        """
+        Upload a file to an S3 bucket.
+
+        Args:
+            file_path: Path to file to upload
+            bucket: Bucket to upload to
+            key: S3 object name
+
+        Returns:
+            s3_uri: URI of uploaded file in S3
+        """
+        s3_uri = WalterS3Client.get_uri(bucket, key)
+        log.debug(f"Uploading file '{file_path}' to S3 with URI '{s3_uri}'")
+        try:
+            self.client.upload_file(Filename=file_path, Bucket=bucket, Key=key)
+            log.debug(f"Uploaded file to S3 with URI '{s3_uri}' successfully!")
+            return s3_uri
+        except ClientError as error:
+            log.error(
+                f"Unexpected error occurred uploading file to S3 with URI '{s3_uri}'!",
+                error,
+            )
+            raise error
+
+    def get_public_url(self, bucket: str, key: str) -> str:
+        return f"https://{bucket}.s3.{self.client.meta.region_name}.amazonaws.com/{key}"
+
     @staticmethod
     def get_uri(bucket: str, key: str) -> str:
         return f"s3://{bucket}/{key}"

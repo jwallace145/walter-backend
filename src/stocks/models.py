@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.database.stocks.models import Stock
 from src.database.userstocks.models import UserStock
@@ -21,6 +21,8 @@ class StockEquity:
     price: float
     quantity: float
     equity: float
+    icon_url: Optional[str] = None
+    logo_url: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -30,6 +32,8 @@ class StockEquity:
             "price": self.price,
             "quantity": self.quantity,
             "equity": self.equity,
+            "icon_url": self.icon_url,
+            "logo_url": self.logo_url,
         }
 
 
@@ -70,8 +74,12 @@ class Portfolio:
             sector = self.stocks[stock].sector
             price = self.get_latest_price(stock)
             quantity = self.get_number_of_shares(stock)
+            icon_url = self.stocks[stock].icon_url
+            logo_url = self.stocks[stock].logo_url
             equity = self.get_equity(stock)
             stock_equities.append(
-                StockEquity(stock, company, sector, price, quantity, equity)
+                StockEquity(
+                    stock, company, sector, price, quantity, equity, icon_url, logo_url
+                )
             )
         return stock_equities
