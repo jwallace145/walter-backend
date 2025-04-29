@@ -4,10 +4,10 @@ from typing import Dict, List
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.expenses.models import Expense
-from src.database.expenses.table import ExpensesTable
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
+from src.database.transactions.models import Transaction
+from src.database.transactions.table import TransactionsTable
 from src.database.users.models import User
 from src.database.users.table import UsersTable
 from src.database.userstocks.models import UserStock
@@ -25,13 +25,13 @@ class WalterDB:
     authenticator: WalterAuthenticator
     domain: Domain
 
-    expenses_table: ExpensesTable = None
+    transactions_table: TransactionsTable = None
     users_table: UsersTable = None
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
 
     def __post_init__(self) -> None:
-        self.expenses_table = ExpensesTable(self.ddb, self.domain)
+        self.transactions_table = TransactionsTable(self.ddb, self.domain)
         self.users_table = UsersTable(self.ddb, self.domain)
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
@@ -113,19 +113,19 @@ class WalterDB:
     def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
         self.users_stocks_table.delete_stock_from_user_portfolio(stock)
 
-    ############
-    # EXPENSES #
-    ############
+    ################
+    # TRANSACTIONS #
+    ################
 
-    def get_expenses(
-        self, user_email: str, start_date: dt.datetime, end_date: dt.datetime
-    ) -> List[Expense]:
-        return self.expenses_table.get_expenses(user_email, start_date, end_date)
+    def get_transactions(
+        self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Transaction]:
+        return self.transactions_table.get_transactions(user_id, start_date, end_date)
 
-    def put_expense(self, expense: Expense) -> None:
-        self.expenses_table.put_expense(expense)
+    def put_transaction(self, transaction: Transaction) -> None:
+        self.transactions_table.put_transaction(transaction)
 
-    def delete_expense(
-        self, user_email: str, date: dt.datetime, expense_id: str
+    def delete_transaction(
+        self, user_id: str, date: dt.datetime, transaction_id: str
     ) -> None:
-        self.expenses_table.delete_expense(user_email, date, expense_id)
+        self.transactions_table.delete_transaction(user_id, date, transaction_id)

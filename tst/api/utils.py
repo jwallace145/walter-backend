@@ -141,7 +141,9 @@ def get_verify_purchase_newsletter_subscription_event(
     return EVENT
 
 
-def get_add_expense_event(token: str, date: str, vendor: str, amount: float) -> dict:
+def get_add_transaction_event(
+    token: str, date: str, vendor: str, amount: float
+) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
         "content-type": "application/json",
@@ -150,8 +152,13 @@ def get_add_expense_event(token: str, date: str, vendor: str, amount: float) -> 
     return EVENT
 
 
-def get_edit_expense_event(
-    token: str, date: str, expense_id: str, vendor: str, amount: float, category: str
+def get_edit_transaction_event(
+    token: str,
+    date: str,
+    transaction_id: str,
+    vendor: str,
+    amount: float,
+    category: str,
 ) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
@@ -160,7 +167,7 @@ def get_edit_expense_event(
     EVENT["body"] = json.dumps(
         {
             "date": date,
-            "expense_id": expense_id,
+            "transaction_id": transaction_id,
             "vendor": vendor,
             "amount": amount,
             "category": category,
@@ -169,18 +176,18 @@ def get_edit_expense_event(
     return EVENT
 
 
-def get_get_expenses_event(token: str, start_date: str, end_date: str) -> dict:
+def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}
     return EVENT
 
 
-def get_delete_expense_event(token: str, date: str, expense_id: str) -> dict:
+def get_delete_transaction_event(token: str, date: str, transaction_id: str) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
         "content-type": "application/json",
     }
-    EVENT["body"] = json.dumps({"date": date, "expense_id": expense_id})
+    EVENT["body"] = json.dumps({"date": date, "transaction_id": transaction_id})
     return EVENT
 
 

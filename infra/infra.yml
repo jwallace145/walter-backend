@@ -1042,102 +1042,102 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  WalterAPIExpensesResource:
+  WalterAPITransactionsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt WalterAPIGateway.RootResourceId
       RestApiId: !Ref WalterAPIGateway
-      PathPart: expenses
+      PathPart: transactions
 
-  WalterAPIGetExpensesPermission:
+  WalterAPIGetTransactionsPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIGetExpenses.Arn}:release"
+      FunctionName: !Sub "${WalterAPIGetTransactions.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  WalterAPIGetExpensesMethod:
+  WalterAPIGetTransactionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: GET
-      ResourceId: !Ref WalterAPIExpensesResource
+      ResourceId: !Ref WalterAPITransactionsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetExpenses.Arn}:release/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetTransactions.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIAddExpensePermission:
+  WalterAPIAddTransactionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIAddExpense.Arn}:release"
+      FunctionName: !Sub "${WalterAPIAddTransaction.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  WalterAPIAddExpenseMethod:
+  WalterAPIAddTransactionMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
-      ResourceId: !Ref WalterAPIExpensesResource
+      ResourceId: !Ref WalterAPITransactionsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAddExpense.Arn}:release/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIAddTransaction.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIEditExpensePermission:
+  WalterAPIEditTransactionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIEditExpense.Arn}:release"
+      FunctionName: !Sub "${WalterAPIEditTransaction.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  WalterAPIEditExpenseMethod:
+  WalterAPIEditTransactionMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: PUT
-      ResourceId: !Ref WalterAPIExpensesResource
+      ResourceId: !Ref WalterAPITransactionsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIEditExpense.Arn}:release/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIEditTransaction.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIDeleteExpensePermission:
+  WalterAPIDeleteTransactionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${WalterAPIDeleteExpense.Arn}:release"
+      FunctionName: !Sub "${WalterAPIDeleteTransaction.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  WalterAPIDeleteExpenseMethod:
+  WalterAPIDeleteTransactionMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: DELETE
-      ResourceId: !Ref WalterAPIExpensesResource
+      ResourceId: !Ref WalterAPITransactionsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteExpense.Arn}:release/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteTransaction.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIGetExpensesCORSMethod:
+  WalterAPITransactionsCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIExpensesResource
+      ResourceId: !Ref WalterAPITransactionsResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -1878,27 +1878,27 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIGetExpensesAlias:
+  WalterAPIGetTransactionsAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIGetExpenses
-      FunctionVersion: 19
+      FunctionName: !Ref WalterAPIGetTransactions
+      FunctionVersion: 1
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
 
-  WalterAPIGetExpenses:
+  WalterAPIGetTransactions:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-GetExpenses-${AppEnvironment}"
-      Description: !Sub "WalterAPI: GetExpenses - Gets user expenses from WalterDB (${AppEnvironment})"
+      FunctionName: !Sub "WalterAPI-GetTransactions-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetTransactions - Gets user transactions from WalterDB (${AppEnvironment})"
       PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         ImageUri: !Ref WalterAPIImageURI
       ImageConfig:
         Command:
-          - walter.get_expenses_entrypoint
+          - walter.get_transactions_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -1907,25 +1907,25 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIAddExpenseAlias:
+  WalterAPIAddTransactionAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIAddExpense
-      FunctionVersion: 36
+      FunctionName: !Ref WalterAPIAddTransaction
+      FunctionVersion: 1
       Name: "release"
 
-  WalterAPIAddExpense:
+  WalterAPIAddTransaction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-AddExpense-${AppEnvironment}"
-      Description: !Sub "WalterAPI: AddExpense - Adds user expense to WalterDB (${AppEnvironment})"
+      FunctionName: !Sub "WalterAPI-AddTransaction-${AppEnvironment}"
+      Description: !Sub "WalterAPI: AddTransaction - Adds user transaction to WalterDB (${AppEnvironment})"
       Role: !GetAtt WalterAPIRole.Arn
       PackageType: Image
       Code:
         ImageUri: !Ref WalterAPIImageURI
       ImageConfig:
         Command:
-          - walter.add_expense_entrypoint
+          - walter.add_transaction_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -1934,25 +1934,25 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIEditExpenseAlias:
+  WalterAPIEditTransactionAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIEditExpense
-      FunctionVersion: 3
+      FunctionName: !Ref WalterAPIEditTransaction
+      FunctionVersion: 1
       Name: "release"
 
-  WalterAPIEditExpense:
+  WalterAPIEditTransaction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-EditExpense-${AppEnvironment}"
-      Description: !Sub "WalterAPI: EditExpense - Edit existing user expense in WalterDB (${AppEnvironment})"
+      FunctionName: !Sub "WalterAPI-EditTransaction-${AppEnvironment}"
+      Description: !Sub "WalterAPI: EditTransaction - Edit existing user transaction in WalterDB (${AppEnvironment})"
       PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         ImageUri: !Sub "${WalterAPIImageURI}"
       ImageConfig:
         Command:
-          - walter.edit_expense_entrypoint
+          - walter.edit_transaction_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -1961,25 +1961,25 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
-  WalterAPIDeleteExpenseAlias:
+  WalterAPIDeleteTransactionAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref WalterAPIDeleteExpense
-      FunctionVersion: 33
+      FunctionName: !Ref WalterAPIDeleteTransaction
+      FunctionVersion: 1
       Name: "release"
 
-  WalterAPIDeleteExpense:
+  WalterAPIDeleteTransaction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterAPI-DeleteExpense-${AppEnvironment}"
-      Description: !Sub "WalterAPI: DeleteExpense - Delete user expense from WalterDB (${AppEnvironment})"
+      FunctionName: !Sub "WalterAPI-DeleteTransaction-${AppEnvironment}"
+      Description: !Sub "WalterAPI: DeleteTransaction - Delete user transaction from WalterDB (${AppEnvironment})"
       PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         ImageUri: !Sub "${WalterAPIImageURI}"
       ImageConfig:
         Command:
-          - walter.delete_expense_entrypoint
+          - walter.delete_transaction_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -2367,21 +2367,21 @@ Resources:
   ### DYNAMODB ###
   ################
 
-  ExpensesTable:
+  TransactionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: user_email
+        - AttributeName: user_id
           AttributeType: S
         - AttributeName: date_uuid
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
-        - AttributeName: user_email
+        - AttributeName: user_id
           KeyType: HASH
         - AttributeName: date_uuid
           KeyType: RANGE
-      TableName: !Sub "Expenses-${AppEnvironment}"
+      TableName: !Sub "Transactions-${AppEnvironment}"
 
   StocksTable:
     Type: AWS::DynamoDB::Table
@@ -2815,10 +2815,10 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
 
-  ExpensesTableAccessPolicy:
+  TransactionsTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "ExpensesTableAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "TransactionsTableAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -2832,7 +2832,7 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !GetAtt ExpensesTable.Arn
+            Resource: !GetAtt TransactionsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 

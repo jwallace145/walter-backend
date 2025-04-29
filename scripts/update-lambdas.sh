@@ -57,14 +57,14 @@ echo Updating WalterAPI AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-CreateNewsletterAndSend-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterWorkflow CreateNewsSummaryAndArchive source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterWorkflow-CreateNewsSummaryAndArchive-dev --image-uri $IMAGE_URI --no-cli-pager \
-&& echo Updating WalterAPI GetExpenses source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-GetExpenses-dev --image-uri $IMAGE_URI --no-cli-pager \
-&& echo Updating WalterAPI AddExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-AddExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
-&& echo Updating WalterAPI EditExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-EditExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
-&& echo Updating WalterAPI DeleteExpense source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterAPI-DeleteExpense-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI GetTransactions source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-GetTransactions-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI AddTransaction source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-AddTransaction-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI EditTransaction source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-EditTransaction-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI DeleteTransaction source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-DeleteTransaction-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterCanary-AuthUserCanary-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary GetNewsletters source code with artifact from S3 \

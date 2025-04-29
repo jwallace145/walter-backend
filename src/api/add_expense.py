@@ -13,22 +13,22 @@ from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
-from src.database.expenses.models import Expense
+from src.database.transactions.models import Transaction
+from src.database.users.models import User
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 @dataclass
-class AddExpense(WalterAPIMethod):
+class AddTransaction(WalterAPIMethod):
     """
-    WalterAPI: AddExpense
+    WalterAPI: AddTransaction
 
-    This API adds an expense for the user to the Expenses
-    table in WalterDB.
+    This API adds a user transaction to the Transactions table.
     """
 
-    API_NAME = "AddExpense"
+    API_NAME = "AddTransaction"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = [
@@ -53,11 +53,11 @@ class AddExpense(WalterAPIMethod):
         expense_categorizer: ExpenseCategorizerMLP,
     ) -> None:
         super().__init__(
-            AddExpense.API_NAME,
-            AddExpense.REQUIRED_QUERY_FIELDS,
-            AddExpense.REQUIRED_HEADERS,
-            AddExpense.REQUIRED_FIELDS,
-            AddExpense.EXCEPTIONS,
+            AddTransaction.API_NAME,
+            AddTransaction.REQUIRED_QUERY_FIELDS,
+            AddTransaction.REQUIRED_HEADERS,
+            AddTransaction.REQUIRED_FIELDS,
+            AddTransaction.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
         )
@@ -65,15 +65,16 @@ class AddExpense(WalterAPIMethod):
         self.expense_categorizer = expense_categorizer
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        expense = self._get_expense(event, authenticated_email)
-        self.walter_db.put_expense(expense)
+        user = self._verify_user_exists(authenticated_email)
+        transaction = self._get_transaction(user.user_id, event)
+        self.walter_db.put_transaction(transaction)
         return Response(
-            api_name=AddExpense.API_NAME,
+            api_name=AddTransaction.API_NAME,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
-            message="Expense added!",
+            message="Transaction added!",
             data={
-                "expense": expense.to_dict(),
+                "transaction": transaction.to_dict(),
             },
         )
 
@@ -83,14 +84,22 @@ class AddExpense(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _get_expense(self, event: dict, authenticated_email: str) -> Expense:
+    def _verify_user_exists(self, email: str) -> User:
+        log.info(f"Verifying user exists with email '{email}'")
+        user = self.walter_db.get_user_by_email(email)
+        if user is None:
+            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
+        log.info("Verified user exists!")
+        return user
+
+    def _get_transaction(self, user_id: str, event: dict) -> Transaction:
         body = json.loads(event["body"])
         date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
         vendor = body["vendor"]
         amount = float(body["amount"])
         category = self.expense_categorizer.categorize(vendor, amount)
-        return Expense(
-            user_email=authenticated_email,
+        return Transaction(
+            user_id=user_id,
             date=date,
             vendor=vendor,
             amount=amount,

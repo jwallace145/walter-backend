@@ -23,10 +23,10 @@ from tst.api.utils import (
     get_verify_purchase_newsletter_subscription_event,
     get_purchase_newsletter_subscription_event,
     get_get_newsletter_event,
-    get_add_expense_event,
-    get_get_expenses_event,
-    get_delete_expense_event,
-    get_edit_expense_event,
+    get_get_transactions_event,
+    get_add_transaction_event,
+    get_edit_transaction_event,
+    get_delete_transaction_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -65,12 +65,12 @@ from walter import (
     get_news_summary_canary_entrypoint,
     get_stock_canary_entrypoint,
     search_stocks_canary_entrypoint,
-    add_expense_entrypoint,
-    get_expenses_entrypoint,
-    delete_expense_entrypoint,
     get_newsletters_canary_entrypoint,
     get_expenses_canary_entrypoint,
-    edit_expense_entrypoint,
+    edit_transaction_entrypoint,
+    get_transactions_entrypoint,
+    add_transaction_entrypoint,
+    delete_transaction_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -274,49 +274,53 @@ def verify_purchase_newsletter_subscription(
 
 
 @app.command()
-def get_expenses(
+def get_transactions(
     token: str = None, start_date: str = None, end_date: str = None
 ) -> None:
-    log.info("WalterCLI: GetExpenses")
-    event = get_get_expenses_event(token, start_date, end_date)
-    response = get_expenses_entrypoint(event, CONTEXT)
+    log.info("WalterCLI: GetTransactions")
+    event = get_get_transactions_event(token, start_date, end_date)
+    response = get_transactions_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetExpenses Response:\n{parse_response(response)}")
 
 
 @app.command()
-def add_expense(
+def add_transaction(
     token: str = None,
     date: str = None,
     vendor: str = None,
     amount: float = None,
 ) -> None:
-    log.info("WalterCLI: AddExpense")
-    event = get_add_expense_event(token, date, vendor, amount)
-    response = add_expense_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: AddExpense Response:\n{parse_response(response)}")
+    log.info("WalterCLI: AddTransaction")
+    event = get_add_transaction_event(token, date, vendor, amount)
+    response = add_transaction_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: AddTransaction Response:\n{parse_response(response)}")
 
 
 @app.command()
-def edit_expense(
+def edit_transaction(
     token: str = None,
     date: str = None,
-    expense_id: str = None,
+    transaction_id: str = None,
     vendor: str = None,
     amount: float = None,
     category: str = None,
 ) -> None:
-    log.info("WalterCLI: EditExpense")
-    event = get_edit_expense_event(token, date, expense_id, vendor, amount, category)
-    response = edit_expense_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: EditExpense Response:\n{parse_response(response)}")
+    log.info("WalterCLI: EditTransaction")
+    event = get_edit_transaction_event(
+        token, date, transaction_id, vendor, amount, category
+    )
+    response = edit_transaction_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
 
 
 @app.command()
-def delete_expense(token: str = None, date: str = None, expense_id: str = None) -> None:
-    log.info("WalterCLI: DeleteExpense")
-    event = get_delete_expense_event(token, date, expense_id)
-    response = delete_expense_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: DeleteExpense Response:\n{parse_response(response)}")
+def delete_expense(
+    token: str = None, date: str = None, transaction_id: str = None
+) -> None:
+    log.info("WalterCLI: DeleteTransaction")
+    event = get_delete_transaction_event(token, date, transaction_id)
+    response = delete_transaction_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
 
 
 ###################
