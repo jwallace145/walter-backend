@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 
 @dataclass(frozen=True, order=True)
@@ -48,4 +48,5 @@ class PolygonStock:
 
     symbol: str
     company: str
-    logo_url: str
+    logo_url: Optional[str] = None
+    icon_url: Optional[str] = None

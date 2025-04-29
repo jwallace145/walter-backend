@@ -38,12 +38,23 @@ class PolygonClient:
         self._init_rest_client()
         try:
             details = self.client.get_ticker_details(ticker=symbol)
-            print(details)
-            return PolygonStock(
-                symbol=details.ticker,
-                company=details.name,
-                logo_url=details.branding.logo_url,
-            )
+
+            kwargs = {
+                "symbol": details.ticker,
+                "company": details.name,
+            }
+
+            # add optional branding info
+            if details.branding:
+                logo_url = details.branding.logo_url
+                if logo_url is not None:
+                    kwargs["logo_url"] = logo_url
+
+                icon_url = details.branding.icon_url
+                if icon_url is not None:
+                    kwargs["icon_url"] = icon_url
+
+            return PolygonStock(**kwargs)
         except polygon.BadResponse:
             log.info(f"{symbol} does not exist in Polygon!")
             return None

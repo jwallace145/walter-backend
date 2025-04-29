@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass
 class Stock:
     """
     The model class for a Stock.
@@ -19,6 +19,8 @@ class Stock:
     description: str = "N/A"
     official_site: str = "N/A"
     address: str = "N/A"
+    icon_url: str = "N/A"
+    logo_url: str = "N/A"
 
     def to_ddb_item(self) -> dict:
         """
@@ -39,6 +41,8 @@ class Stock:
             "description": {"S": self.description},
             "official_site": {"S": self.official_site},
             "address": {"S": self.address},
+            "icon_url": {"S": self.icon_url},
+            "logo_url": {"S": self.logo_url},
         }
 
     def to_dict(self) -> dict:
@@ -58,4 +62,6 @@ class Stock:
             "description": self.description,
             "official_site": self.official_site,
             "address": self.address,
+            "icon_url": self.icon_url,
+            "logo_url": self.logo_url,
         }

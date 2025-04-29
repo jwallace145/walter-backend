@@ -41,7 +41,7 @@ class StocksTable:
             The Stock object if it exists in the Stocks table.
         """
         log.info(f"Getting stock '{symbol}' from Stocks table")
-        key = StocksTable._get_stock_key(symbol)
+        key = StocksTable._get_stock_key(symbol.upper())
         item = self.ddb.get_item(self.table, key)
         return StocksTable._get_stock_from_ddb_item(item) if item is not None else None
 
@@ -112,6 +112,14 @@ class StocksTable:
         Returns:
             The Stock object from the Stocks table.
         """
+        icon_url = None
+        if "icon_url" in item:
+            icon_url = item["icon_url"]["S"]
+
+        logo_url = None
+        if "logo_url" in item:
+            logo_url = item["logo_url"]["S"]
+
         return Stock(
             symbol=item["symbol"]["S"],
             company=item["company"]["S"],
@@ -121,4 +129,6 @@ class StocksTable:
             description=item["description"]["S"],
             official_site=item["official_site"]["S"],
             address=item["address"]["S"],
+            icon_url=icon_url,
+            logo_url=logo_url,
         )

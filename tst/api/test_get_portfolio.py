@@ -46,6 +46,8 @@ def test_get_portfolio(
                     "price": 100.0,
                     "quantity": 100.0,
                     "equity": 10_000.0,
+                    "icon_url": "N/A",
+                    "logo_url": "N/A",
                 },
                 {
                     "symbol": "META",
@@ -54,6 +56,8 @@ def test_get_portfolio(
                     "price": 250.0,
                     "quantity": 100.0,
                     "equity": 25_000.0,
+                    "icon_url": "N/A",
+                    "logo_url": "N/A",
                 },
             ],
         },
