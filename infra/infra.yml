@@ -2410,6 +2410,22 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "Transactions-${AppEnvironment}"
 
+  CashAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: account_id
+          KeyType: RANGE
+      TableName: !Sub "CashAccounts-${AppEnvironment}"
+
   StocksTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -2860,6 +2876,27 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt TransactionsTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
+
+  CashAccountsTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "CashAccountsTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt CashAccountsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 

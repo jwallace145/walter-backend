@@ -4,6 +4,8 @@ from typing import Dict, List
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
+from src.database.cash_accounts.models import CashAccount
+from src.database.cash_accounts.table import CashAccountsTable
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
 from src.database.transactions.models import Transaction
@@ -25,16 +27,19 @@ class WalterDB:
     authenticator: WalterAuthenticator
     domain: Domain
 
+    # all tables created in post init
     transactions_table: TransactionsTable = None
     users_table: UsersTable = None
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
+    cash_accounts_table: CashAccountsTable = None
 
     def __post_init__(self) -> None:
         self.transactions_table = TransactionsTable(self.ddb, self.domain)
         self.users_table = UsersTable(self.ddb, self.domain)
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
+        self.cash_accounts_table = CashAccountsTable(self.ddb, self.domain)
 
     def create_user(
         self, email: str, first_name: str, last_name: str, password: str
@@ -129,3 +134,19 @@ class WalterDB:
         self, user_id: str, date: dt.datetime, transaction_id: str
     ) -> None:
         self.transactions_table.delete_transaction(user_id, date, transaction_id)
+
+    #################
+    # CASH ACCOUNTS #
+    #################
+
+    def get_cash_accounts(self, user_id: str) -> List[CashAccount]:
+        return self.cash_accounts_table.get_accounts(user_id)
+
+    def create_cash_account(self, account: CashAccount) -> CashAccount:
+        return self.cash_accounts_table.create_account(account)
+
+    def update_cash_account(self, account: CashAccount) -> None:
+        self.cash_accounts_table.update_account(account)
+
+    def delete_cash_account(self, user_id: str, account_id: str) -> None:
+        self.cash_accounts_table.delete_account(user_id, account_id)

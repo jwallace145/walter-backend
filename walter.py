@@ -2,10 +2,12 @@ from src.api.add_expense import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
+from src.api.create_cash_account import CreateCashAccount
 from src.api.create_user import CreateUser
 from src.api.delete_stock import DeleteStock
 from src.api.delete_transaction import DeleteTransaction
 from src.api.edit_transaction import EditTransaction
+from src.api.get_cash_accounts import GetCashAccounts
 from src.api.get_news_summary import GetNewsSummary
 from src.api.get_newsletter import GetNewsletter
 from src.api.get_newsletters import GetNewsletters
@@ -328,6 +330,30 @@ def delete_transaction_entrypoint(event, context) -> dict:
         .invoke(event)
         .to_json()
     )
+
+
+def get_cash_accounts_entrypoint(event, context) -> dict:
+    return (
+        GetCashAccounts(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def create_cash_account_entrypoint(event, context) -> dict:
+    return (
+        CreateCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def update_cash_account_entrypoint(event, context) -> dict:
+    pass
+
+
+def delete_cash_account_entrypoint(event, context) -> dict:
+    pass
 
 
 ###################

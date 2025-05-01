@@ -189,6 +189,33 @@ def get_edit_transaction_event(
     return EVENT
 
 
+def get_get_cash_accounts_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
+def get_create_cash_accout_event(
+    token: str,
+    bank_name: str,
+    account_name: str,
+    account_last_four_numbers: str,
+    account_balance: float,
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "bank_name": bank_name,
+            "account_name": account_name,
+            "account_last_four_numbers": account_last_four_numbers,
+            "balance": account_balance,
+        }
+    )
+    return EVENT
+
+
 def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}
