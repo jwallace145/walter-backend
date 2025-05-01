@@ -28,6 +28,8 @@ from tst.api.utils import (
     get_edit_transaction_event,
     get_delete_transaction_event,
     get_update_password_event,
+    get_get_cash_accounts_event,
+    get_create_cash_accout_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -73,6 +75,8 @@ from walter import (
     delete_transaction_entrypoint,
     get_transactions_canary_entrypoint,
     update_password_entrypoint,
+    get_cash_accounts_entrypoint,
+    create_cash_account_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -283,6 +287,30 @@ def verify_purchase_newsletter_subscription(
     log.info(
         f"WalterCLI: VerifyPurchaseNewsletterSubscription Response:\n{parse_response(response)}"
     )
+
+
+@app.command()
+def get_cash_accounts(token: str = None) -> None:
+    log.info("WalterCLI: GetCashAccounts")
+    event = get_get_cash_accounts_event(token)
+    response = get_cash_accounts_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetCashAccounts Response:\n{parse_response(response)}")
+
+
+@app.command()
+def create_cash_account(
+    token: str = None,
+    bank_name: str = None,
+    account_name: str = None,
+    account_last_four_numbers: str = None,
+    account_balance: float = None,
+) -> None:
+    log.info("WalterCLI: CreateCashAccount")
+    event = get_create_cash_accout_event(
+        token, bank_name, account_name, account_last_four_numbers, account_balance
+    )
+    response = create_cash_account_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: CreateCashAccount Response:\n{parse_response(response)}")
 
 
 @app.command()
