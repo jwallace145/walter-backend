@@ -22,6 +22,7 @@ from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
+from src.api.update_password import UpdatePassword
 from src.api.update_user import UpdateUser
 from src.api.verify_email import VerifyEmail
 from src.api.verify_purchase_newsletter_subscription import (
@@ -229,6 +230,14 @@ def send_verify_email_entrypoint(event, context) -> dict:
 def change_password_entrypoint(event, context) -> dict:
     return (
         ChangePassword(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def update_password_entrypoint(event, context) -> dict:
+    return (
+        UpdatePassword(walter_authenticator, walter_cw, walter_db)
         .invoke(event)
         .to_json()
     )

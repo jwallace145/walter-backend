@@ -793,14 +793,14 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  WalterAPIChangePasswordPermission:
+  WalterAPIUpdatePasswordPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref WalterAPIChangePassword
+      FunctionName: !Sub "${WalterAPIUpdatePassword.Arn}:release"
       Principal: apigateway.amazonaws.com
 
-  WalterAPIChangePasswordMethod:
+  WalterAPIUpdatePasswordMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
@@ -810,7 +810,7 @@ Resources:
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIChangePassword.Arn}/invocations"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIUpdatePassword.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
 
@@ -1731,6 +1731,33 @@ Resources:
         - "arm64"
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIUpdatePasswordAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIUpdatePassword
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIUpdatePassword:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-UpdatePassword-${AppEnvironment}"
+      Description: !Sub "WalterAPI: UpdatePassword - Update user password given already authenticated session (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.update_password_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT

@@ -39,6 +39,8 @@ echo Updating WalterAPI AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-SendChangePasswordEmail-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI ChangePassword source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-ChangePassword-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
+&& echo Updating WalterAPI UpdatePassword source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-UpdatePassword-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI Subscribe source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-Subscribe-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI Unsubscribe source code with artifact from S3 \
