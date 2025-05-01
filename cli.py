@@ -27,6 +27,7 @@ from tst.api.utils import (
     get_add_transaction_event,
     get_edit_transaction_event,
     get_delete_transaction_event,
+    get_update_password_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -71,6 +72,7 @@ from walter import (
     add_transaction_entrypoint,
     delete_transaction_entrypoint,
     get_transactions_canary_entrypoint,
+    update_password_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -216,6 +218,16 @@ def change_password(token: str = None, new_password: str = None) -> None:
     log.info("Walter CLI: Changing password...")
     event = get_change_password_event(token, new_password)
     response = change_password_entrypoint(event, CONTEXT)
+    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def update_password(
+    token: str = None, current_password: str = None, new_password: str = None
+) -> None:
+    log.info("WalterCLI: UpdatePassword")
+    event = get_update_password_event(token, current_password, new_password)
+    response = update_password_entrypoint(event, CONTEXT)
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
