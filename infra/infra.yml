@@ -1112,6 +1112,27 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPICreateCashAccountPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPICreateCashAccount.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPICreateCashAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPICashAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateCashAccount.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   WalterAPICashAccountsCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -2077,6 +2098,33 @@ Resources:
       ImageConfig:
         Command:
           - walter.delete_cash_account_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPICreateCashAccountAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPICreateCashAccount
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPICreateCashAccount:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-CreateCashAccount-${AppEnvironment}"
+      Description: !Sub "WalterAPI: CreateCashAccount - Create cash account for user in WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.create_cash_account_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
