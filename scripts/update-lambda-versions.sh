@@ -14,6 +14,8 @@ echo Publishing new WalterAPI AddTransaction Lambda version \
 && aws lambda publish-version --function-name WalterAPI-EditTransaction-dev --no-cli-pager \
 && echo Publishing new WalterAPI DeleteTransaction Lambda version \
 && aws lambda publish-version --function-name WalterAPI-DeleteTransaction-dev --no-cli-pager \
+&& echo Publishing new WalterAPI GetCashAccounts Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetCashAccounts-dev --no-cli-pager \
 && echo Publishing new WalterAPI DeleteStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-DeleteStock-dev --no-cli-pager \
 && echo Publishing new WalterAPI GetTransactions Lambda version \

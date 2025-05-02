@@ -1042,6 +1042,63 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPICashAccountsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: cash-accounts
+
+  WalterAPIGetCashAccountsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIGetCashAccounts.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetCashAccountsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPICashAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetCashAccounts.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPICashAccountsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPICashAccountsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPITransactionsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -1901,6 +1958,33 @@ Resources:
         - "arm64"
       Layers:
         - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:WalterBackendLambdaPythonDependencies:${WalterBackendLambdaLayerVersion}"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIGetCashAccountsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetCashAccounts
+      FunctionVersion: 2
+      Name: "release"
+
+  WalterAPIGetCashAccounts:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetCashAccounts-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetCashAccounts - Get cash accounts for user from WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_cash_accounts_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT

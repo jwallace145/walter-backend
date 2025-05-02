@@ -24,6 +24,7 @@ from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
+from src.api.update_cash_account import UpdateCashAccount
 from src.api.update_password import UpdatePassword
 from src.api.update_user import UpdateUser
 from src.api.verify_email import VerifyEmail
@@ -349,7 +350,11 @@ def create_cash_account_entrypoint(event, context) -> dict:
 
 
 def update_cash_account_entrypoint(event, context) -> dict:
-    pass
+    return (
+        UpdateCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
 
 
 def delete_cash_account_entrypoint(event, context) -> dict:

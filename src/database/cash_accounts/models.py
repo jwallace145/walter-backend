@@ -50,7 +50,7 @@ class CashAccount:
 
     def to_dict(self) -> dict:
         return {
-            "account_id": self.account_id,
+            "account_id": self.account_id.split("#")[1],
             "bank_name": self.bank_name,
             "account_name": self.account_name,
             "account_type": self.account_type.value,

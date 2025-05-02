@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.cash_accounts.models import CashAccount
@@ -25,6 +25,16 @@ class CashAccountsTable:
     def __post_init__(self) -> None:
         self.table_name = CashAccountsTable._get_table_name(self.domain)
         log.debug(f"Initializing CashAccountsTable with table name '{self.table_name}'")
+
+    def get_account(self, user_id: str, account_id: str) -> Optional[CashAccount]:
+        log.info(f"Getting cash account '{account_id}' for user '{user_id}'")
+        account_item = self.ddb.get_item(
+            table=self.table_name,
+            key=CashAccountsTable._get_primary_key(user_id, account_id),
+        )
+        if not account_item:
+            return None
+        return CashAccount.get_account_from_ddb_item(account_item)
 
     def get_accounts(self, user_id: str) -> List[CashAccount]:
         """

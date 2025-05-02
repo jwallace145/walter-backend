@@ -139,6 +139,9 @@ class WalterDB:
     # CASH ACCOUNTS #
     #################
 
+    def get_cash_account(self, user_id: str, account_id: str) -> CashAccount:
+        return self.cash_accounts_table.get_account(user_id, account_id)
+
     def get_cash_accounts(self, user_id: str) -> List[CashAccount]:
         return self.cash_accounts_table.get_accounts(user_id)
 
