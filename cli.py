@@ -29,7 +29,9 @@ from tst.api.utils import (
     get_delete_transaction_event,
     get_update_password_event,
     get_get_cash_accounts_event,
-    get_create_cash_accout_event,
+    get_update_cash_account_event,
+    get_create_cash_account_event,
+    get_delete_cash_account_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -77,6 +79,8 @@ from walter import (
     update_password_entrypoint,
     get_cash_accounts_entrypoint,
     create_cash_account_entrypoint,
+    update_cash_account_entrypoint,
+    delete_cash_account_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -306,11 +310,41 @@ def create_cash_account(
     account_balance: float = None,
 ) -> None:
     log.info("WalterCLI: CreateCashAccount")
-    event = get_create_cash_accout_event(
+    event = get_create_cash_account_event(
         token, bank_name, account_name, account_last_four_numbers, account_balance
     )
     response = create_cash_account_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: CreateCashAccount Response:\n{parse_response(response)}")
+
+
+@app.command()
+def update_cash_account(
+    token: str = None,
+    account_id: str = None,
+    bank_name: str = None,
+    account_name: str = None,
+    account_balance: float = None,
+) -> None:
+    log.info("WalterCLI: UpdateCashAccount")
+    event = get_update_cash_account_event(
+        token, account_id, bank_name, account_name, account_balance
+    )
+    response = update_cash_account_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: UpdateCashAccount Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_cash_account(
+    token: str = None,
+    account_id: str = None,
+) -> None:
+    log.info("WalterCLI: DeleteCashAccount")
+    event = get_delete_cash_account_event(
+        token,
+        account_id,
+    )
+    response = delete_cash_account_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: UpdateCashAccount Response:\n{parse_response(response)}")
 
 
 @app.command()

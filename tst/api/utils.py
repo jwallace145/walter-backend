@@ -194,7 +194,7 @@ def get_get_cash_accounts_event(token: str) -> dict:
     return EVENT
 
 
-def get_create_cash_accout_event(
+def get_create_cash_account_event(
     token: str,
     bank_name: str,
     account_name: str,
@@ -211,6 +211,41 @@ def get_create_cash_accout_event(
             "account_name": account_name,
             "account_last_four_numbers": account_last_four_numbers,
             "balance": account_balance,
+        }
+    )
+    return EVENT
+
+
+def get_update_cash_account_event(
+    token: str,
+    account_id: str,
+    bank_name: str,
+    account_name: str,
+    account_balance: float,
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+            "bank_name": bank_name,
+            "account_name": account_name,
+            "balance": account_balance,
+        }
+    )
+    return EVENT
+
+
+def get_delete_cash_account_event(token: str, account_id: str) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
         }
     )
     return EVENT

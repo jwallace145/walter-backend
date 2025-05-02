@@ -4,6 +4,7 @@ from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
 from src.api.create_cash_account import CreateCashAccount
 from src.api.create_user import CreateUser
+from src.api.delete_cash_account import DeleteCashAccount
 from src.api.delete_stock import DeleteStock
 from src.api.delete_transaction import DeleteTransaction
 from src.api.edit_transaction import EditTransaction
@@ -24,6 +25,7 @@ from src.api.send_newsletter import SendNewsletter
 from src.api.send_verify_email import SendVerifyEmail
 from src.api.subscribe import Subscribe
 from src.api.unsubscribe import Unsubscribe
+from src.api.update_cash_account import UpdateCashAccount
 from src.api.update_password import UpdatePassword
 from src.api.update_user import UpdateUser
 from src.api.verify_email import VerifyEmail
@@ -349,11 +351,19 @@ def create_cash_account_entrypoint(event, context) -> dict:
 
 
 def update_cash_account_entrypoint(event, context) -> dict:
-    pass
+    return (
+        UpdateCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
 
 
 def delete_cash_account_entrypoint(event, context) -> dict:
-    pass
+    return (
+        DeleteCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
 
 
 ###################
