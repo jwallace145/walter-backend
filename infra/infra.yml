@@ -1070,6 +1070,48 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  WalterAPIUpdateCashAccountPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIUpdateCashAccount.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIUpdateCashAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: PUT
+      ResourceId: !Ref WalterAPICashAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIUpdateCashAccount.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIDeleteCashAccountPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIDeleteCashAccount.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIDeleteCashAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId: !Ref WalterAPICashAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteCashAccount.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   WalterAPICashAccountsCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -1966,7 +2008,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCashAccounts
-      FunctionVersion: 2
+      FunctionVersion: 3
       Name: "release"
 
   WalterAPIGetCashAccounts:
@@ -1981,6 +2023,60 @@ Resources:
       ImageConfig:
         Command:
           - walter.get_cash_accounts_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIUpdateCashAccountAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIUpdateCashAccount
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIUpdateCashAccount:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-UpdateCashAccount-${AppEnvironment}"
+      Description: !Sub "WalterAPI: UpdateCashAccount - Update cash account for a user in WalterDB (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.update_cash_account_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
+  WalterAPIDeleteCashAccountAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIDeleteCashAccount
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIDeleteCashAccount:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-DeleteCashAccount-${AppEnvironment}"
+      Description: !Sub "WalterAPI: DeleteCashAccount - Delete cash account for user from WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.delete_cash_account_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:

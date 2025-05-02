@@ -4,6 +4,7 @@ from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
 from src.api.create_cash_account import CreateCashAccount
 from src.api.create_user import CreateUser
+from src.api.delete_cash_account import DeleteCashAccount
 from src.api.delete_stock import DeleteStock
 from src.api.delete_transaction import DeleteTransaction
 from src.api.edit_transaction import EditTransaction
@@ -358,7 +359,11 @@ def update_cash_account_entrypoint(event, context) -> dict:
 
 
 def delete_cash_account_entrypoint(event, context) -> dict:
-    pass
+    return (
+        DeleteCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
 
 
 ###################

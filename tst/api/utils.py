@@ -238,6 +238,19 @@ def get_update_cash_account_event(
     return EVENT
 
 
+def get_delete_cash_account_event(token: str, account_id: str) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+        }
+    )
+    return EVENT
+
+
 def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}
