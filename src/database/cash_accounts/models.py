@@ -37,6 +37,7 @@ class CashAccount:
 
     USER_ID_KEY_FORMAT = "USER#{user_id}"
     ACCOUNT_ID_KEY_FORMAT = "ACCOUNT#{account_id}"
+    DEFAULT_LOGO_URL = "https://walterai-public-media-dev.s3.us-east-1.amazonaws.com/cash-accounts/default/logo.svg"
 
     user_id: str  # hash key
     account_id: str  # sort key
@@ -47,6 +48,7 @@ class CashAccount:
     balance: float
     created_at: dt.datetime
     updated_at: dt.datetime
+    logo_url: str = DEFAULT_LOGO_URL
 
     def to_dict(self) -> dict:
         return {
@@ -58,6 +60,7 @@ class CashAccount:
             "balance": self.balance,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "logo_url": self.logo_url,
         }
 
     def to_ddb_item(self) -> dict:
@@ -89,6 +92,9 @@ class CashAccount:
             "updated_at": {
                 "S": self.updated_at.isoformat(),
             },
+            "logo_url": {
+                "S": self.logo_url,
+            }
         }
 
     @staticmethod
@@ -134,4 +140,5 @@ class CashAccount:
             balance=float(ddb_item["balance"]["N"]),
             created_at=dt.datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=dt.datetime.fromisoformat(ddb_item["updated_at"]["S"]),
+            logo_url=ddb_item["logo_url"]["S"],
         )

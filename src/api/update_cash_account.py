@@ -1,10 +1,11 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
 
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
-    CashAccountDoesNotExist,
+    CashAccountDoesNotExist, BadRequest,
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
@@ -31,6 +32,7 @@ class UpdateCashAccount(WalterAPIMethod):
         "account_id",
         "bank_name",
         "account_name",
+        "account_last_four_numbers",
         "balance",
     ]
     EXCEPTIONS = [
@@ -71,7 +73,10 @@ class UpdateCashAccount(WalterAPIMethod):
         )
 
     def validate_fields(self, event: dict) -> None:
-        pass
+        body = json.loads(event["body"])
+        account_last_four_numbers = body["account_last_four_numbers"]
+        if len(account_last_four_numbers) != 4:
+            raise BadRequest("Account last four numbers must be four digits long!")
 
     def is_authenticated_api(self) -> bool:
         return True
@@ -132,11 +137,14 @@ class UpdateCashAccount(WalterAPIMethod):
         bank_name = body["bank_name"]
         account_name = body["account_name"]
         balance = float(body["balance"])
+        account_last_four_numbers = body["account_last_four_numbers"]
 
         # update cash account fields
         account.bank_name = bank_name
         account.account_name = account_name
+        account.account_last_four_numbers = account_last_four_numbers
         account.balance = balance
+        account.updated_at = dt.datetime.now(dt.UTC)
 
         self.walter_db.update_cash_account(account)
 

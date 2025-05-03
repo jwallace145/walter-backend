@@ -2029,7 +2029,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCashAccounts
-      FunctionVersion: 3
+      FunctionVersion: 7
       Name: "release"
 
   WalterAPIGetCashAccounts:
@@ -2056,7 +2056,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateCashAccount
-      FunctionVersion: 1
+      FunctionVersion: 5
       Name: "release"
 
   WalterAPIUpdateCashAccount:
@@ -2110,7 +2110,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
 
   WalterAPICreateCashAccount:
