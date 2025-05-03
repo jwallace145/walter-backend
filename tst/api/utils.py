@@ -221,6 +221,7 @@ def get_update_cash_account_event(
     account_id: str,
     bank_name: str,
     account_name: str,
+    account_last_four_numbers: str,
     account_balance: float,
 ) -> dict:
     EVENT["headers"] = {
@@ -232,6 +233,7 @@ def get_update_cash_account_event(
             "account_id": account_id,
             "bank_name": bank_name,
             "account_name": account_name,
+            "account_last_four_numbers": account_last_four_numbers,
             "balance": account_balance,
         }
     )

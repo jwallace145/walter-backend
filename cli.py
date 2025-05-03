@@ -323,11 +323,12 @@ def update_cash_account(
     account_id: str = None,
     bank_name: str = None,
     account_name: str = None,
+    account_last_four_numbers: str = None,
     account_balance: float = None,
 ) -> None:
     log.info("WalterCLI: UpdateCashAccount")
     event = get_update_cash_account_event(
-        token, account_id, bank_name, account_name, account_balance
+        token, account_id, bank_name, account_name, account_last_four_numbers, account_balance
     )
     response = update_cash_account_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: UpdateCashAccount Response:\n{parse_response(response)}")
