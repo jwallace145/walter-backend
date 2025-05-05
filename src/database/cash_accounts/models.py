@@ -94,7 +94,7 @@ class CashAccount:
             },
             "logo_url": {
                 "S": self.logo_url,
-            }
+            },
         }
 
     @staticmethod
