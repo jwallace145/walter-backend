@@ -43,7 +43,7 @@ class AddTransaction(WalterAPIMethod):
     ]
 
     walter_db: WalterDB
-    expense_categorizer: ExpenseCategorizerMLP
+    transaction_categorizer: ExpenseCategorizerMLP
 
     def __init__(
         self,
@@ -62,7 +62,7 @@ class AddTransaction(WalterAPIMethod):
             walter_cw,
         )
         self.walter_db = walter_db
-        self.expense_categorizer = expense_categorizer
+        self.transaction_categorizer = expense_categorizer
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
@@ -97,11 +97,12 @@ class AddTransaction(WalterAPIMethod):
         date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
         vendor = body["vendor"]
         amount = float(body["amount"])
-        category = self.expense_categorizer.categorize(vendor, amount)
+        category = self.transaction_categorizer.categorize(vendor, amount)
         return Transaction(
             user_id=user_id,
             date=date,
             vendor=vendor,
             amount=amount,
             category=category,
+            reviewed=False,
         )

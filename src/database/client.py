@@ -1,6 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
@@ -122,17 +122,72 @@ class WalterDB:
     # TRANSACTIONS #
     ################
 
+    def get_transaction(
+        self, user_id: str, date: dt.datetime, transaction_id: str
+    ) -> Optional[Transaction]:
+        """
+        Gets a specific transaction for a given user on a specified date.
+
+        This method retrieves a transaction entry from the Transactions table based
+        on the provided user ID, transaction date, and transaction ID. If the transaction
+        does not exist, it returns None.
+
+        Args:
+            user_id (str): The unique ID of the user that owns the transaction.
+            date (datetime): The date of the specific transaction.
+            transaction_id (str): The unique ID of the transaction.
+
+        Returns:
+            Optional[Transaction]: The transaction object if found; otherwise, None.
+        """
+        return self.transactions_table.get_transaction(user_id, date, transaction_id)
+
     def get_transactions(
         self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Transaction]:
+        """
+        Gets all transactions for the given user within a specified date range.
+
+        This method retrieves transaction records for the given user over the
+        provided data range by executing a query against the Transactions table.
+
+        Args:
+            user_id: The unique ID of the user that owns the returned transactions.
+            start_date: The beginning of the date range for the user-owned transactions.
+            end_date: The end of the date range for the user-owned transactions.
+
+        Returns:
+            The transactions for the given user within the specified date range.
+        """
         return self.transactions_table.get_transactions(user_id, start_date, end_date)
 
     def put_transaction(self, transaction: Transaction) -> None:
+        """
+        This method updates or adds a transaction to the Transactions table.
+
+        Note, if the user updates the date of a transaction, this method will
+        delete the original transaction as transaction date is a part of the
+        sort key and then recreate a new transaction with the updated date.
+        This ensures duplicate entries are not created when users update
+        the date of a transaction.
+
+        Args:
+            transaction: The transaction object to be added or updated.
+        """
         self.transactions_table.put_transaction(transaction)
 
     def delete_transaction(
         self, user_id: str, date: dt.datetime, transaction_id: str
     ) -> None:
+        """
+        Deletes a transaction record from the Transactions table based on the specified
+        user ID, date, and transaction ID.
+
+        Args:
+            user_id: The unique ID of the user that owns the transaction.
+            date: The date of the transaction.
+            transaction_id: The unique ID of the transaction.
+        """
         self.transactions_table.delete_transaction(user_id, date, transaction_id)
 
     #################

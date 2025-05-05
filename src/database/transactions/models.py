@@ -24,8 +24,8 @@ class TransactionCategory(Enum):
     TRANSPORTATION = "Transportation"
     TRAVEL = "Travel"
 
-    @staticmethod
-    def from_string(category_str: str):
+    @classmethod
+    def from_string(cls, category_str: str):
         for category in TransactionCategory:
             # lower case category and replace chars with
             # friendly chars for ease of parsing
@@ -61,6 +61,9 @@ class Transaction:
     date_uuid: str = (
         None  # sort key -> format: `<date>#<transaction_id>` set during post init
     )
+    reviewed: bool = (
+        False  # on transaction creation, transactions are considered "not reviewed"
+    )
 
     def __post_init__(self):
         if self.transaction_id is None:
@@ -77,6 +80,7 @@ class Transaction:
             "vendor": self.vendor,
             "amount": self.amount,
             "category": self.category.value,
+            "reviewed": self.reviewed,
         }
 
     def to_ddb_item(self) -> dict:
@@ -96,10 +100,34 @@ class Transaction:
             "category": {
                 "S": self.category.value,
             },
+            "reviewed": {
+                "BOOL": self.reviewed,
+            },
         }
+
+    def is_reviewed(self) -> bool:
+        return self.reviewed
 
     def is_expense(self) -> bool:
         return self.amount < 0
 
     def is_income(self) -> bool:
         return self.amount > 0
+
+    @classmethod
+    def from_ddb_item(cls, item: dict):
+        date_uuid = item["date_uuid"]["S"]
+        date_str, transaction_id = date_uuid.split("#")
+        date = dt.datetime.strptime(date_str, "%Y-%m-%d")
+        amount = float(item["amount"]["S"])
+        category = TransactionCategory.from_string(item["category"]["S"])
+        return Transaction(
+            user_id=item["user_id"]["S"],
+            date=date,
+            vendor=item["vendor"]["S"],
+            amount=amount,
+            category=category,
+            transaction_id=transaction_id,
+            date_uuid=date_uuid,
+            reviewed=item["reviewed"]["BOOL"],
+        )

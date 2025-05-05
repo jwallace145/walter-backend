@@ -62,6 +62,9 @@ class GetTransactions(WalterAPIMethod):
         transactions = self.walter_db.get_transactions(
             user.user_id, start_date, end_date
         )
+        unreviewed_transactions = [
+            transaction for transaction in transactions if not transaction.is_reviewed()
+        ]
         income_transactions = [
             transaction for transaction in transactions if transaction.is_income()
         ]
@@ -79,6 +82,7 @@ class GetTransactions(WalterAPIMethod):
             message="Retrieved transactions!",
             data={
                 "num_transactions": len(transactions),
+                "num_unreviewed_transactions": len(unreviewed_transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,
                 "cash_flow": total_income - total_expenses,
