@@ -155,13 +155,15 @@ def get_verify_purchase_newsletter_subscription_event(
 
 
 def get_add_transaction_event(
-    token: str, date: str, vendor: str, amount: float
+    token: str, account_id: str, date: str, vendor: str, amount: float
 ) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
         "content-type": "application/json",
     }
-    EVENT["body"] = json.dumps({"date": date, "vendor": vendor, "amount": amount})
+    EVENT["body"] = json.dumps(
+        {"account_id": account_id, "date": date, "vendor": vendor, "amount": amount}
+    )
     return EVENT
 
 
