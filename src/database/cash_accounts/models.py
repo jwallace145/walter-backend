@@ -97,6 +97,9 @@ class CashAccount:
             },
         }
 
+    def get_account_id(self) -> str:
+        return self.account_id.split("#")[1]
+
     @staticmethod
     def get_user_id_key(user_id: str) -> str:
         return CashAccount.USER_ID_KEY_FORMAT.format(user_id=user_id)

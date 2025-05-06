@@ -143,6 +143,7 @@ class EditTransaction(WalterAPIMethod):
 
         return Transaction(
             user_id=transaction.user_id,
+            account_id=transaction.account_id,
             date=updated_date,
             vendor=updated_vendor,
             amount=updated_amount,

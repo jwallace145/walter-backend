@@ -360,18 +360,19 @@ def get_transactions(
     log.info("WalterCLI: GetTransactions")
     event = get_get_transactions_event(token, start_date, end_date)
     response = get_transactions_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: GetExpenses Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: GetTransactions Response:\n{parse_response(response)}")
 
 
 @app.command()
 def add_transaction(
     token: str = None,
+    account_id: str = None,
     date: str = None,
     vendor: str = None,
     amount: float = None,
 ) -> None:
     log.info("WalterCLI: AddTransaction")
-    event = get_add_transaction_event(token, date, vendor, amount)
+    event = get_add_transaction_event(token, account_id, date, vendor, amount)
     response = add_transaction_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: AddTransaction Response:\n{parse_response(response)}")
 
@@ -395,7 +396,7 @@ def edit_transaction(
 
 
 @app.command()
-def delete_expense(
+def delete_transaction(
     token: str = None, date: str = None, transaction_id: str = None
 ) -> None:
     log.info("WalterCLI: DeleteTransaction")

@@ -53,6 +53,7 @@ class Transaction:
 
     user_id: str  # hash key
     date: dt.datetime
+    account_id: str  # foreign key to accounts table
     vendor: str
     amount: float
     category: TransactionCategory
@@ -76,6 +77,7 @@ class Transaction:
     def to_dict(self) -> dict:
         return {
             "date": self.date.strftime(Transaction.DATE_FORMAT),
+            "account_id": self.account_id,
             "transaction_id": self.transaction_id,
             "vendor": self.vendor,
             "amount": self.amount,
@@ -87,6 +89,9 @@ class Transaction:
         return {
             "user_id": {
                 "S": self.user_id,
+            },
+            "account_id": {
+                "S": self.account_id,
             },
             "date_uuid": {
                 "S": self.date_uuid,
@@ -125,6 +130,7 @@ class Transaction:
             user_id=item["user_id"]["S"],
             date=date,
             vendor=item["vendor"]["S"],
+            account_id=item["account_id"]["S"],
             amount=amount,
             category=category,
             transaction_id=transaction_id,
