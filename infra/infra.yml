@@ -2137,7 +2137,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetTransactions
-      FunctionVersion: 1
+      FunctionVersion: 14
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2166,7 +2166,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddTransaction
-      FunctionVersion: 1
+      FunctionVersion: 14
       Name: "release"
 
   WalterAPIAddTransaction:
@@ -2193,7 +2193,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditTransaction
-      FunctionVersion: 1
+      FunctionVersion: 14
       Name: "release"
 
   WalterAPIEditTransaction:
@@ -2220,7 +2220,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteTransaction
-      FunctionVersion: 1
+      FunctionVersion: 14
       Name: "release"
 
   WalterAPIDeleteTransaction:

@@ -1,12 +1,12 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.transactions.models import Transaction, TransactionCategory
+from src.database.transactions.models import Transaction
 from src.environment import Domain
 from src.utils.log import Logger
-import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -23,11 +23,60 @@ class TransactionsTable:
 
     def __post_init__(self) -> None:
         self.table = TransactionsTable._get_table_name(self.domain)
-        log.debug(f"Creating ExpensesTable DDB client with table name '{self.table}'")
+        log.debug(
+            f"Creating Transactions table DynamoDB client with table name '{self.table}'"
+        )
+
+    def get_transaction(
+        self, user_id: str, date: dt.datetime, transaction_id: str
+    ) -> Optional[Transaction]:
+        """
+        Get the transaction for the user on the given date from the
+        Transactions table.
+
+        If the transaction is not found, return None.
+
+        Args:
+            user_id: The unique ID of the user.
+            date: The date of the transaction.
+            transaction_id: The unique ID of the transaction.
+
+        Returns:
+            The transaction if found, else None.
+        """
+        log.info(
+            f"Getting transaction '{transaction_id}' on date '{date}' for user from table '{self.table}'"
+        )
+
+        transaction = self.ddb.get_item(
+            table=self.table,
+            key=TransactionsTable._get_transaction_primary_key(
+                user_id, date, transaction_id
+            ),
+        )
+
+        # return None if transaction not found
+        if not transaction:
+            log.warning(f"Transaction '{transaction_id}' not found for user!")
+            return None
+
+        log.info(f"Found transaction '{transaction_id}' on date '{date}' for user!")
+        return Transaction.from_ddb_item(transaction)
 
     def get_transactions(
         self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Transaction]:
+        """
+        Get the transactions for a user in a given date range.
+
+        Args:
+            user_id: The unique user ID of the user to get transactions for.
+            start_date: The start date of the date range user transactions query.
+            end_date:  The end date of the date range user transactions query.
+
+        Returns:
+            The list of user transactions over the given date range.
+        """
         log.info(f"Getting transactions for user from table '{self.table}'")
 
         transaction_items = self.ddb.query(
@@ -37,13 +86,14 @@ class TransactionsTable:
             ),
         )
 
-        transactions = []
-        for item in transaction_items:
-            transactions.append(TransactionsTable._get_transaction_from_ddb_item(item))
+        transactions = [Transaction.from_ddb_item(item) for item in transaction_items]
 
-        log.info(f"Returned {len(transactions)} expenses for user!")
+        log.info(f"Returned {len(transactions)} transactions for user!")
+        log.debug(
+            f"Transactions:\n{json.dumps([transaction.to_dict() for transaction in transactions], indent=4)}"
+        )
 
-        # return expenses sorted by date in descending order
+        # return transactions sorted by date in descending order
         return sorted(transactions, key=lambda e: e.date, reverse=True)
 
     def put_transaction(self, transaction: Transaction) -> None:
@@ -56,7 +106,7 @@ class TransactionsTable:
     ) -> None:
         log.info("Deleting transaction for user from Transactions table")
         log.debug(
-            f"Expense:\n{json.dumps({'user_id': user_id, 'date': date.strftime('%Y-%m-%d'), 'transaction_id': transaction_id}, indent=4)}"
+            f"Transaction:\n{json.dumps({'user_id': user_id, 'date': date.strftime('%Y-%m-%d'), 'transaction_id': transaction_id}, indent=4)}"
         )
         self.ddb.delete_item(
             self.table,
@@ -95,20 +145,3 @@ class TransactionsTable:
             "user_id": {"S": user_id},
             "date_uuid": {"S": f"{date.strftime('%Y-%m-%d')}#{transaction_id}"},
         }
-
-    @staticmethod
-    def _get_transaction_from_ddb_item(item: dict) -> Transaction:
-        date_uuid = item["date_uuid"]["S"]
-        date_str, transaction_id = date_uuid.split("#")
-        date = dt.datetime.strptime(date_str, "%Y-%m-%d")
-        amount = float(item["amount"]["S"])
-        category = TransactionCategory.from_string(item["category"]["S"])
-        return Transaction(
-            user_id=item["user_id"]["S"],
-            date=date,
-            vendor=item["vendor"]["S"],
-            amount=amount,
-            category=category,
-            transaction_id=transaction_id,
-            date_uuid=date_uuid,
-        )

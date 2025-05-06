@@ -167,8 +167,9 @@ def get_add_transaction_event(
 
 def get_edit_transaction_event(
     token: str,
-    date: str,
+    transaction_date: str,
     transaction_id: str,
+    date: str,
     vendor: str,
     amount: float,
     category: str,
@@ -179,11 +180,12 @@ def get_edit_transaction_event(
     }
     EVENT["body"] = json.dumps(
         {
-            "date": date,
+            "transaction_date": transaction_date,
             "transaction_id": transaction_id,
-            "vendor": vendor,
-            "amount": amount,
-            "category": category,
+            "updated_date": date,
+            "updated_vendor": vendor,
+            "updated_amount": amount,
+            "updated_category": category,
         }
     )
     return EVENT

@@ -86,3 +86,8 @@ class InvalidExpenseCategory(Exception):
 class CashAccountDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class TransactionDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)

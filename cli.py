@@ -328,7 +328,12 @@ def update_cash_account(
 ) -> None:
     log.info("WalterCLI: UpdateCashAccount")
     event = get_update_cash_account_event(
-        token, account_id, bank_name, account_name, account_last_four_numbers, account_balance
+        token,
+        account_id,
+        bank_name,
+        account_name,
+        account_last_four_numbers,
+        account_balance,
     )
     response = update_cash_account_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: UpdateCashAccount Response:\n{parse_response(response)}")
@@ -374,15 +379,16 @@ def add_transaction(
 @app.command()
 def edit_transaction(
     token: str = None,
-    date: str = None,
+    transaction_date: str = None,
     transaction_id: str = None,
+    date: str = None,
     vendor: str = None,
     amount: float = None,
     category: str = None,
 ) -> None:
     log.info("WalterCLI: EditTransaction")
     event = get_edit_transaction_event(
-        token, date, transaction_id, vendor, amount, category
+        token, transaction_date, transaction_id, date, vendor, amount, category
     )
     response = edit_transaction_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")

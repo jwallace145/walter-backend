@@ -1,4 +1,4 @@
-from src.api.add_expense import AddTransaction
+from src.api.transactions.add_transaction import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.change_password import ChangePassword
@@ -6,8 +6,8 @@ from src.api.create_cash_account import CreateCashAccount
 from src.api.create_user import CreateUser
 from src.api.delete_cash_account import DeleteCashAccount
 from src.api.delete_stock import DeleteStock
-from src.api.delete_transaction import DeleteTransaction
-from src.api.edit_transaction import EditTransaction
+from src.api.transactions.delete_transaction import DeleteTransaction
+from src.api.transactions.edit_transaction import EditTransaction
 from src.api.get_cash_accounts import GetCashAccounts
 from src.api.get_news_summary import GetNewsSummary
 from src.api.get_newsletter import GetNewsletter
@@ -16,7 +16,7 @@ from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_statistics import GetStatistics
 from src.api.get_stock import GetStock
-from src.api.get_transactions import GetTransactions
+from src.api.transactions.get_transactions import GetTransactions
 from src.api.get_user import GetUser
 from src.api.purchase_newsletter_subscription import PurchaseNewsletterSubscription
 from src.api.search_stocks import SearchStocks

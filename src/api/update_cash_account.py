@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
-    CashAccountDoesNotExist, BadRequest,
+    CashAccountDoesNotExist,
+    BadRequest,
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
