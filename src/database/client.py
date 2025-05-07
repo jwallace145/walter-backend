@@ -6,6 +6,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.cash_accounts.models import CashAccount
 from src.database.cash_accounts.table import CashAccountsTable
+from src.database.models import AccountTransaction
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
 from src.database.transactions.models import Transaction
@@ -144,7 +145,7 @@ class WalterDB:
 
     def get_transactions(
         self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
-    ) -> List[Transaction]:
+    ) -> List[AccountTransaction]:
         """
         Gets all transactions for the given user within a specified date range.
 
@@ -159,7 +160,27 @@ class WalterDB:
         Returns:
             The transactions for the given user within the specified date range.
         """
-        return self.transactions_table.get_transactions(user_id, start_date, end_date)
+        # create account id to accounts dict
+        accounts = {}
+        for account in self.get_cash_accounts(user_id):
+            accounts[account.get_account_id()] = account
+
+        # get transactions owned by user over given date range
+        transactions = self.transactions_table.get_transactions(
+            user_id, start_date, end_date
+        )
+
+        # merge owning account with transaction before returning
+        account_transactions = []
+        for transaction in transactions:
+            account_transactions.append(
+                AccountTransaction(
+                    account=accounts[transaction.account_id],
+                    transaction=transaction,
+                )
+            )
+
+        return account_transactions
 
     def put_transaction(self, transaction: Transaction) -> None:
         """
