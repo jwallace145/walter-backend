@@ -9,6 +9,7 @@ from src.database.client import WalterDB
 from src.database.users.models import User
 from src.utils.log import Logger
 import datetime as dt
+from typing import Tuple
 
 log = Logger(__name__).get_logger()
 
@@ -52,28 +53,31 @@ class GetTransactions(WalterAPIMethod):
         self.walter_db = walter_db
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        start_date = dt.datetime.strptime(
-            WalterAPIMethod.get_query_field(event, "start_date"), "%Y-%m-%d"
-        )
-        end_date = dt.datetime.strptime(
-            WalterAPIMethod.get_query_field(event, "end_date"), "%Y-%m-%d"
-        )
         user = self._verify_user_exists(authenticated_email)
+        start_date, end_date = self._get_date_range(event)
         transactions = self.walter_db.get_transactions(
             user.user_id, start_date, end_date
         )
         unreviewed_transactions = [
-            transaction for transaction in transactions if not transaction.is_reviewed()
+            transaction
+            for transaction in transactions
+            if not transaction.transaction.is_reviewed()
         ]
         income_transactions = [
-            transaction for transaction in transactions if transaction.is_income()
+            transaction
+            for transaction in transactions
+            if transaction.transaction.is_income()
         ]
-        total_income = sum([transaction.amount for transaction in income_transactions])
+        total_income = sum(
+            [transaction.transaction.amount for transaction in income_transactions]
+        )
         expense_transactions = [
-            transaction for transaction in transactions if transaction.is_expense()
+            transaction
+            for transaction in transactions
+            if transaction.transaction.is_expense()
         ]
         total_expenses = sum(
-            [transaction.amount for transaction in expense_transactions]
+            [transaction.transaction.amount for transaction in expense_transactions]
         )
         return Response(
             api_name=GetTransactions.API_NAME,
@@ -103,3 +107,12 @@ class GetTransactions(WalterAPIMethod):
             raise UserDoesNotExist(f"User with email '{email}' does not exist!")
         log.info("Verified user exists!")
         return user
+
+    def _get_date_range(self, event: dict) -> Tuple[dt.datetime, dt.datetime]:
+        start_date = dt.datetime.strptime(
+            WalterAPIMethod.get_query_field(event, "start_date"), "%Y-%m-%d"
+        )
+        end_date = dt.datetime.strptime(
+            WalterAPIMethod.get_query_field(event, "end_date"), "%Y-%m-%d"
+        )
+        return [start_date, end_date]
