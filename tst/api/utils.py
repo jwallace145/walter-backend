@@ -277,6 +277,19 @@ def get_create_link_token_event(token: str) -> dict:
     return EVENT
 
 
+def get_exchange_public_token_event(
+    token: str, public_token: str, institution_name: str
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {"public_token": public_token, "institution_name": institution_name}
+    )
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################
