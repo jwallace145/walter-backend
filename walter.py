@@ -1,4 +1,5 @@
 from src.api.plaid.create_link_token import CreateLinkToken
+from src.api.plaid.exchange_public_token import ExchangePublicToken
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
@@ -371,6 +372,14 @@ def delete_cash_account_entrypoint(event, context) -> dict:
 def create_link_token_entrypoint(event, context) -> dict:
     return (
         CreateLinkToken(walter_authenticator, walter_cw, walter_db, plaid)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def exchange_public_token_entrypoint(event, context) -> dict:
+    return (
+        ExchangePublicToken(walter_authenticator, walter_cw, walter_db, plaid)
         .invoke(event)
         .to_json()
     )

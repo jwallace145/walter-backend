@@ -14,7 +14,6 @@ class PlaidItem:
     user_id: str
     item_id: str
     access_token: str
-    institution_id: str
     institution_name: str
     created_at: dt.datetime
 
@@ -25,7 +24,6 @@ class PlaidItem:
             },
             "item_id": {"S": self.item_id},
             "access_token": {"S": self.access_token},
-            "institution_id": {"S": self.institution_id},
             "institution_name": {"S": self.institution_name},
             "created_at": {"S": self.created_at.isoformat()},
         }
@@ -50,17 +48,14 @@ class PlaidItem:
         user_id: str,
         item_id: str,
         access_token: str,
-        institution_id: str,
         institution_name: str,
-        created_at: dt.datetime,
     ):
         return PlaidItem(
             user_id=PlaidItem.get_user_id_key(user_id),
             item_id=PlaidItem.get_item_id_key(item_id),
             access_token=access_token,
-            institution_id=institution_id,
             institution_name=institution_name,
-            created_at=created_at,
+            created_at=dt.datetime.now(dt.UTC),
         )
 
     @classmethod

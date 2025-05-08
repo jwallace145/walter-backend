@@ -33,6 +33,7 @@ from tst.api.utils import (
     get_create_cash_account_event,
     get_delete_cash_account_event,
     get_create_link_token_event,
+    get_exchange_public_token_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -83,6 +84,7 @@ from walter import (
     update_cash_account_entrypoint,
     delete_cash_account_entrypoint,
     create_link_token_entrypoint,
+    exchange_public_token_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -412,6 +414,16 @@ def create_link_token(token: str = None) -> None:
     log.info("WalterCLI: CreateLinkToken")
     event = get_create_link_token_event(token)
     response = create_link_token_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
+
+
+@app.command()
+def exchange_public_token(
+    token: str = None, public_token: str = None, institution_name: str = None
+) -> None:
+    log.info("WalterCLI: ExchangePublicToken")
+    event = get_exchange_public_token_event(token, public_token, institution_name)
+    response = exchange_public_token_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
 
 
