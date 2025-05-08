@@ -32,6 +32,7 @@ from tst.api.utils import (
     get_update_cash_account_event,
     get_create_cash_account_event,
     get_delete_cash_account_event,
+    get_create_link_token_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -81,6 +82,7 @@ from walter import (
     create_cash_account_entrypoint,
     update_cash_account_entrypoint,
     delete_cash_account_entrypoint,
+    create_link_token_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -403,6 +405,14 @@ def delete_transaction(
     event = get_delete_transaction_event(token, date, transaction_id)
     response = delete_transaction_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
+
+
+@app.command()
+def create_link_token(token: str = None) -> None:
+    log.info("WalterCLI: CreateLinkToken")
+    event = get_create_link_token_event(token)
+    response = create_link_token_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
 
 
 ###################

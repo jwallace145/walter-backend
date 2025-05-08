@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from plaid import Environment
 
 from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
@@ -22,6 +23,7 @@ from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.payments.stripe.client import WalterStripeClient
+from src.plaid.client import PlaidClient
 from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
@@ -168,3 +170,14 @@ walter_news_summary_client = WalterNewsSummaryClient(
 ###################
 
 walter_payments = WalterStripeClient(walter_sm=walter_sm)
+
+
+#########
+# PLAID #
+#########
+
+plaid = PlaidClient(
+    client_id=walter_sm.get_plaid_sandbox_credentials_client_id(),
+    secret=walter_sm.get_plaid_sandbox_credentials_secret_key(),
+    environment=Environment.Sandbox,
+)

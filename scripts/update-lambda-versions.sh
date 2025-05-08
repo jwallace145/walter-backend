@@ -57,4 +57,6 @@ echo Publishing new WalterAPI AddTransaction Lambda version \
 && echo Publishing new WalterAPI Unsubscribe Lambda version \
 && aws lambda publish-version --function-name WalterAPI-Unsubscribe-dev --no-cli-pager \
 && echo Publishing new WalterAPI VerifyEmail Lambda version \
-&& aws lambda publish-version --function-name WalterAPI-VerifyEmail-dev --no-cli-pager
+&& aws lambda publish-version --function-name WalterAPI-VerifyEmail-dev --no-cli-pager \
+&& echo Publishing new WalterAPI CreateLinkToken Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-CreateLinkToken-dev --no-cli-pager

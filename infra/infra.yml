@@ -1282,6 +1282,63 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPIPlaidResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: plaid
+
+  WalterAPICreateLinkTokenPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPICreateLinkToken.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPICreateLinkTokenMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIPlaidResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateLinkToken.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPICreateLinkTokenCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIPlaidResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPISearchStocksPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -2243,6 +2300,33 @@ Resources:
         Variables:
           DOMAIN: DEVELOPMENT
 
+  WalterAPICreateLinkTokenAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPICreateLinkToken
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPICreateLinkToken:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-CreateLinkToken-${AppEnvironment}"
+      Description: !Sub "WalterAPI: CreateLinkToken - Creates Plaid link token to generate user Plaid connection wizard (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.create_link_token_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
   WalterCanaryAuthUserCanaryAlias:
     Type: AWS::Lambda::Alias
     Properties:
@@ -2703,6 +2787,22 @@ Resources:
           Projection:
             ProjectionType: 'ALL'
 
+  PlaidItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "PlaidItems-${AppEnvironment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: item_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: item_id
+          KeyType: RANGE
+
   #################
   ### IAM ROLES ###
   #################
@@ -3021,6 +3121,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:StripeTestSecretKey-8vIZfy"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:PlaidSandboxCredentials-GtcPUQ"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole

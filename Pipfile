@@ -30,6 +30,7 @@ numpy = "*"
 joblib = "*"
 scikit-learn = "*"
 requests-toolbelt = "*"
+plaid-python = "*"
 
 [dev-packages]
 black = "*"

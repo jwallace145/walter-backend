@@ -1,3 +1,4 @@
+from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
@@ -60,6 +61,7 @@ from src.clients import (
     walter_payments,
     expense_categorizer,
     s3,
+    plaid,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
@@ -361,6 +363,14 @@ def update_cash_account_entrypoint(event, context) -> dict:
 def delete_cash_account_entrypoint(event, context) -> dict:
     return (
         DeleteCashAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def create_link_token_entrypoint(event, context) -> dict:
+    return (
+        CreateLinkToken(walter_authenticator, walter_cw, walter_db, plaid)
         .invoke(event)
         .to_json()
     )

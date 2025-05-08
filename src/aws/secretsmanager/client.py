@@ -40,6 +40,9 @@ class WalterSecretsManagerClient:
     JWT_CHANGE_PASSWORD_SECRET_KEY_NAME = "JWT_CHANGE_PASSWORD_SECRET_KEY"
     STRIPE_TEST_SECRET_KEY_ID = "StripeTestSecretKey"
     STRIPE_TEST_SECRET_KEY_NAME = "STRIPE_TEST_SECRET_KEY"
+    PLAID_SANDBOX_CREDENTIALS_SECRET_NAME = "PlaidSandboxCredentials"
+    PLAID_SANDBOX_CREDENTIALS_CLIENT_ID_KEY = "PLAID_SANDBOX_CREDENTIALS_CLIENT_ID"
+    PLAID_SANDBOX_CREDENTIALS_SECRET_KEY = "PLAID_SANDBOX_CREDENTIALS_SECRET"
 
     client: SecretsManagerClient
     domain: Domain
@@ -53,6 +56,8 @@ class WalterSecretsManagerClient:
     jwt_verify_email_secret_key: str = None
     jwt_change_password_secret_key: str = None
     stripe_test_secret_key: str = None
+    plaid_sandbox_credentials_client_id: str = None
+    plaid_sandbox_credentials_secret_key: str = None
 
     def __post_init__(self) -> None:
         log.debug(
@@ -114,6 +119,22 @@ class WalterSecretsManagerClient:
                 WalterSecretsManagerClient.STRIPE_TEST_SECRET_KEY_NAME,
             )
         return self.stripe_test_secret_key
+
+    def get_plaid_sandbox_credentials_client_id(self) -> str:
+        if self.plaid_sandbox_credentials_client_id is None:
+            self.plaid_sandbox_credentials_client_id = self._get_secret(
+                WalterSecretsManagerClient.PLAID_SANDBOX_CREDENTIALS_SECRET_NAME,
+                WalterSecretsManagerClient.PLAID_SANDBOX_CREDENTIALS_CLIENT_ID_KEY,
+            )
+        return self.plaid_sandbox_credentials_client_id
+
+    def get_plaid_sandbox_credentials_secret_key(self) -> str:
+        if self.plaid_sandbox_credentials_secret_key is None:
+            self.plaid_sandbox_credentials_secret_key = self._get_secret(
+                WalterSecretsManagerClient.PLAID_SANDBOX_CREDENTIALS_SECRET_NAME,
+                WalterSecretsManagerClient.PLAID_SANDBOX_CREDENTIALS_SECRET_KEY,
+            )
+        return self.plaid_sandbox_credentials_secret_key
 
     def _get_secret(self, secret_id: str, secret_name: str) -> str:
         return json.loads(
