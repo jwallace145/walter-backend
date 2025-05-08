@@ -77,6 +77,8 @@ echo Updating WalterAPI AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateCashAccount-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI CreateLinkToken source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateLinkToken-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI ExchangePublicToken source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-ExchangePublicToken-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary AuthUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterCanary-AuthUserCanary-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary GetTransactions source code with artifact from S3 \
