@@ -272,6 +272,11 @@ def get_delete_transaction_event(token: str, date: str, transaction_id: str) -> 
     return EVENT
 
 
+def get_create_link_token_event(token: str) -> dict:
+    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    return EVENT
+
+
 #####################
 # EXPECTED RESPONSE #
 #####################

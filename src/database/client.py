@@ -7,6 +7,8 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.database.cash_accounts.models import CashAccount
 from src.database.cash_accounts.table import CashAccountsTable
 from src.database.models import AccountTransaction
+from src.database.plaid_items.model import PlaidItem
+from src.database.plaid_items.table import PlaidItemsTable
 from src.database.stocks.models import Stock
 from src.database.stocks.table import StocksTable
 from src.database.transactions.models import Transaction
@@ -34,6 +36,7 @@ class WalterDB:
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
     cash_accounts_table: CashAccountsTable = None
+    plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
         self.transactions_table = TransactionsTable(self.ddb, self.domain)
@@ -41,6 +44,7 @@ class WalterDB:
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
         self.cash_accounts_table = CashAccountsTable(self.ddb, self.domain)
+        self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
     def create_user(
         self, email: str, first_name: str, last_name: str, password: str
@@ -229,3 +233,16 @@ class WalterDB:
 
     def delete_cash_account(self, user_id: str, account_id: str) -> None:
         self.cash_accounts_table.delete_account(user_id, account_id)
+
+    ###############
+    # PLAID ITEMS #
+    ###############
+
+    def get_plaid_items(self, user_id: str) -> List[PlaidItem]:
+        return self.plaid_items_table.get_items(user_id)
+
+    def create_plaid_item(self, item: PlaidItem) -> None:
+        self.plaid_items_table.create_item(item)
+
+    def delete_plaid_item(self, user_id: str, item_id: str) -> None:
+        self.plaid_items_table.delete_item(user_id, item_id)
