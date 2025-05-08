@@ -1289,6 +1289,13 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: plaid
 
+  WalterAPICreateLinkTokenResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIPlaidResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: create-link-token
+
   WalterAPICreateLinkTokenPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1300,7 +1307,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
-      ResourceId: !Ref WalterAPIPlaidResource
+      ResourceId: !Ref WalterAPICreateLinkTokenResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
@@ -1314,7 +1321,64 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIPlaidResource
+      ResourceId: !Ref WalterAPICreateLinkTokenResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
+  WalterAPIExchangePublicTokenResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIPlaidResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: exchange-public-token
+
+  WalterAPIExchangePublicTokenPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIExchangePublicToken.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIExchangePublicTokenMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIExchangePublicTokenResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIExchangePublicToken.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIExchangePublicTokenCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIExchangePublicTokenResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -2326,6 +2390,34 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+
+  WalterAPIExchangePublicTokenAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIExchangePublicToken
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIExchangePublicToken:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-ExchangePublicToken-${AppEnvironment}"
+      Description: !Sub "WalterAPI: ExchangePublicToken - Exchanges Plaid item public token for user access token and saves in WalterDB (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.exchange_public_token_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+
 
   WalterCanaryAuthUserCanaryAlias:
     Type: AWS::Lambda::Alias
