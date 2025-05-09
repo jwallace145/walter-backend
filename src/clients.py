@@ -20,6 +20,7 @@ from src.events.parser import WalterEventParser
 from src.media.bucket import PublicMediaBucket
 from src.news.bucket import NewsSummariesBucket
 from src.news.queue import NewsSummariesQueue
+from src.transactions.queue import SyncUserTransactionsQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.payments.stripe.client import WalterStripeClient
@@ -181,3 +182,5 @@ plaid = PlaidClient(
     secret=walter_sm.get_plaid_sandbox_credentials_secret_key(),
     environment=Environment.Sandbox,
 )
+
+sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)

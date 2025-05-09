@@ -2368,7 +2368,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateLinkToken
-      FunctionVersion: 1
+      FunctionVersion: 9
       Name: "release"
 
   WalterAPICreateLinkToken:
@@ -2395,7 +2395,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIExchangePublicToken
-      FunctionVersion: 1
+      FunctionVersion: 11
       Name: "release"
 
   WalterAPIExchangePublicToken:
@@ -2661,6 +2661,46 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+
+  WalterWorkflowSyncUserTransactionsFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      EventSourceArn: !GetAtt SyncUserTransactionsQueue.Arn
+      FunctionName: !GetAtt WalterWorkflowSyncUserTransactions.Arn
+      Enabled: "True"
+
+  WalterWorkflowSyncUserTransactionsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterWorkflowSyncUserTransactions
+      FunctionVersion: $LATEST
+      Name: !Sub "WalterWorkflow-SyncUserTransactions-${AppEnvironment}"
+
+  WalterWorkflowSyncUserTransactions:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterWorkflow-SyncUserTransactions-${AppEnvironment}"
+      Description: !Sub "WalterWorkflow: SyncUserTransactions - Sync user transactions from Plaid to WalterDB (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Sub "${WalterAPIImageURI}"
+      ImageConfig:
+        Command:
+          - walter.sync_user_transactions_entrypoint
+      Timeout: 300
+      MemorySize: 512
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+      DeadLetterConfig:
+        TargetArn: !GetAtt SyncUserTransactionsDeadLetterQueue.Arn
+      Tags:
+        - Key: "awsApplication"
+          Value: "arn:aws:resource-groups:us-east-1:010526272437:group/Walter/06yzmmir0eiy0rnq10avqq9khd"
 
   WalterWorkflowAddNewsletterRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -3014,7 +3054,7 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole
         - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
-  
+
   CloudWatchAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -3071,6 +3111,43 @@ Resources:
         - !Ref WalterAPIRole
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
+
+  SyncUserTransactionsQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "SyncUserTransactionsQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
+            Resource: !GetAtt SyncUserTransactionsQueue.Arn
+      Roles:
+        - !Ref WalterAPIRole
+        - !Ref WalterNewslettersRole
+        - !Ref WalterBackendRole
+
+  SyncUserTransactionsDeadLetterQueueAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "SyncUserTransactionsDeadLetterQueueAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:SendMessage"
+            Resource: !GetAtt SyncUserTransactionsDeadLetterQueue.Arn
+      Roles:
+        - !Ref WalterBackendRole
+        - !Ref WalterAPIRole
 
   NewslettersDeadLetterQueueAccessPolicy:
     Type: AWS::IAM::Policy
@@ -3389,6 +3466,30 @@ Resources:
         - !Ref WalterNewslettersRole
         - !Ref WalterBackendRole
 
+  PlaidItemsTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "PlaidItemsTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt PlaidItemsTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
+        - !Ref WalterBackendRole
+        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
+        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
+
   ##########
   ### S3 ###
   ##########
@@ -3451,12 +3552,12 @@ Resources:
       Bucket: !Ref NewslettersBucket
       PolicyDocument:
         Version: "2012-10-17"
-        Statement: 
-          - Action: 
+        Statement:
+          - Action:
               - "s3:PutObject"
             Effect: Allow
             Resource: !Sub "${NewslettersBucket.Arn}/*"
-            Principal: 
+            Principal:
               AWS: !GetAtt WalterBackendRole.Arn
 
   NewsSummariesBucket:
@@ -3521,23 +3622,41 @@ Resources:
       Bucket: !Ref TemplatesBucket
       PolicyDocument:
         Version: "2012-10-17"
-        Statement: 
-          - Action: 
+        Statement:
+          - Action:
               - "s3:GetObject"
             Effect: Allow
             Resource: !Sub "${TemplatesBucket.Arn}/*"
-            Principal: 
+            Principal:
               AWS: !GetAtt WalterBackendRole.Arn
-          - Action: 
+          - Action:
               - "s3:List*"
             Effect: Allow
             Resource: !GetAtt TemplatesBucket.Arn
-            Principal: 
+            Principal:
               AWS: !GetAtt WalterBackendRole.Arn
 
   ###########
   ### SQS ###
   ###########
+
+  SyncUserTransactionsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "SyncUserTransactionsQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 360
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt SyncUserTransactionsDeadLetterQueue.Arn
+        maxReceiveCount: 1
+
+  SyncUserTransactionsDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "SyncUserTransactionsDeadletterQueue-${AppEnvironment}"
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 90
+      MessageRetentionPeriod: 1209600 # two weeks
 
   NewslettersQueue:
     Type: AWS::SQS::Queue

@@ -3,6 +3,14 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class SyncUserTransactionsEvent:
+
+    receipt_handle: str
+    user_id: str
+    plaid_item_id: str
+
+
+@dataclass(frozen=True)
 class CreateNewsletterAndSendEvent:
     """
     CreateNewsletterAndSendEvent

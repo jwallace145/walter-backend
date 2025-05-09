@@ -63,6 +63,7 @@ from src.clients import (
     expense_categorizer,
     s3,
     plaid,
+    sync_user_transactions_queue,
 )
 from src.workflows.add_news_summary_requests import (
     AddNewsSummaryRequests,
@@ -72,6 +73,7 @@ from src.workflows.create_news_summary_and_archive import CreateNewsSummaryAndAr
 from src.workflows.create_newsletter_and_send import (
     CreateNewsletterAndSend,
 )
+from src.workflows.sync_user_transactions import SyncUserTransactions
 
 
 ##############
@@ -379,7 +381,13 @@ def create_link_token_entrypoint(event, context) -> dict:
 
 def exchange_public_token_entrypoint(event, context) -> dict:
     return (
-        ExchangePublicToken(walter_authenticator, walter_cw, walter_db, plaid)
+        ExchangePublicToken(
+            walter_authenticator,
+            walter_cw,
+            walter_db,
+            plaid,
+            sync_user_transactions_queue,
+        )
         .invoke(event)
         .to_json()
     )
@@ -429,6 +437,10 @@ def search_stocks_canary_entrypoint(event, context) -> dict:
 ####################
 # WALTER WORKFLOWS #
 ####################
+
+
+def sync_user_transactions_entrypoint(event, context) -> dict:
+    return SyncUserTransactions(walter_event_parser, plaid, walter_db).invoke(event)
 
 
 def add_newsletter_requests_entrypoint(event, context) -> dict:

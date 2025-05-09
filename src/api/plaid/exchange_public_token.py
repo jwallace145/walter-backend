@@ -13,6 +13,10 @@ from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User
 from src.plaid.client import PlaidClient
 from src.plaid.models import ExchangePublicTokenResponse
+from src.transactions.queue import (
+    SyncUserTransactionsQueue,
+    SyncUserTransactionsSQSEvent,
+)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -27,11 +31,12 @@ class ExchangePublicToken(WalterAPIMethod):
     API_NAME = "ExchangePublicToken"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
-    REQUIRED_FIELDS = ["public_token", "institution_name", "accounts"]
+    REQUIRED_FIELDS = ["public_token", "institution_id", "institution_name", "accounts"]
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, BadRequest]
 
     walter_db: WalterDB
     plaid_client: PlaidClient
+    queue: SyncUserTransactionsQueue
 
     def __init__(
         self,
@@ -39,6 +44,7 @@ class ExchangePublicToken(WalterAPIMethod):
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
         plaid_client: PlaidClient,
+        queue: SyncUserTransactionsQueue,
     ) -> None:
         super().__init__(
             ExchangePublicToken.API_NAME,
@@ -51,20 +57,24 @@ class ExchangePublicToken(WalterAPIMethod):
         )
         self.walter_db = walter_db
         self.plaid_client = plaid_client
+        self.queue = queue
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
         public_token = self._get_public_token(event)
+        institution_id = self._get_institution_id(event)
         institution_name = self._get_institution_name(event)
         accounts = self._get_accounts(event)
         exchange_response = self._exchange_public_token(public_token)
-        self._save_plaid_item(
+        plaid_item = self._save_plaid_item(
             user.user_id,
             exchange_response.access_token,
             exchange_response.item_id,
+            institution_id,
             institution_name,
         )
         self._save_accounts(user, institution_name, accounts)
+        self._sync_user_transactions(user.user_id, plaid_item.get_item_id())
         return Response(
             api_name=ExchangePublicToken.API_NAME,
             http_status=HTTPStatus.OK,
@@ -106,6 +116,10 @@ class ExchangePublicToken(WalterAPIMethod):
         body = json.loads(event["body"])
         return body["public_token"]
 
+    def _get_institution_id(self, event: dict) -> str:
+        body = json.loads(event["body"])
+        return body["institution_id"]
+
     def _get_institution_name(self, event: dict) -> str:
         body = json.loads(event["body"])
         return body["institution_name"]
@@ -121,8 +135,8 @@ class ExchangePublicToken(WalterAPIMethod):
                     "account_name": account["account_name"],
                     "account_type": account["account_type"],
                     "account_subtype": account["account_subtype"],
-                    "account_mask": account[
-                        "account_mask"
+                    "account_last_four_numbers": account[
+                        "account_last_four_numbers"
                     ],  # account last four numbers
                 }
             )
@@ -147,8 +161,9 @@ class ExchangePublicToken(WalterAPIMethod):
         user_id: str,
         access_token: str,
         item_id: str,
+        institution_id: str,
         institution_name: str,
-    ) -> None:
+    ) -> PlaidItem:
         """
         Stores the resulting Plaid item in the database.
 
@@ -157,15 +172,17 @@ class ExchangePublicToken(WalterAPIMethod):
             exchange_response: The response containing the access token and item ID.
         """
         log.info(f"Saving Plaid item for '{institution_name}' for user '{user_id}'")
-        plaid_item = self.walter_db.plaid_items_table.create_item(
+        plaid_item = self.walter_db.put_plaid_item(
             PlaidItem.create_item(
                 user_id=user_id,
                 item_id=item_id,
                 access_token=access_token,
+                institution_id=institution_id,
                 institution_name=institution_name,
             )
         )
         log.info(f"Plaid item with item ID '{plaid_item.item_id}' saved successfully")
+        return plaid_item
 
     def _save_accounts(
         self, user: User, institution_name: str, accounts: List[dict]
@@ -175,10 +192,17 @@ class ExchangePublicToken(WalterAPIMethod):
             self.walter_db.create_cash_account(
                 CashAccount.create_account(
                     user=user,
+                    account_id=account["account_id"],
                     bank_name=institution_name,
                     account_name=account["account_name"],
                     account_type=CashAccountType.CHECKING,
-                    account_last_four_numbers=account["account_mask"],
+                    account_last_four_numbers=account["account_last_four_numbers"],
                     balance=0.0,
                 )
             )
+
+    def _sync_user_transactions(self, user_id: str, plaid_item_id: str) -> None:
+        log.info("Adding sync user transactions request to queue...")
+        self.queue.add_sync_user_transactions_event(
+            SyncUserTransactionsSQSEvent(user_id=user_id, plaid_item_id=plaid_item_id)
+        )

@@ -1,4 +1,6 @@
+import datetime as dt
 from dataclasses import dataclass
+from typing import Optional
 
 from plaid import ApiClient, Configuration
 from plaid.api.plaid_api import PlaidApi
@@ -10,8 +12,14 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
+from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
-from src.plaid.models import CreateLinkTokenResponse, ExchangePublicTokenResponse
+from src.database.transactions.models import Transaction
+from src.plaid.models import (
+    CreateLinkTokenResponse,
+    ExchangePublicTokenResponse,
+    SyncTransactionsResponse,
+)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -46,7 +54,12 @@ class PlaidClient:
     def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
         log.info(f"Creating link token for user '{user_id}'")
         request = LinkTokenCreateRequest(
-            products=[Products("auth")],
+            products=[
+                Products("auth"),
+                Products("transactions"),
+                Products("investments"),
+                Products("liabilities"),
+            ],
             client_name=PlaidClient.CLIENT_NAME,
             country_codes=[CountryCode("US")],
             redirect_uri=PlaidClient.REDIRECT_URI,
@@ -73,6 +86,52 @@ class PlaidClient:
             public_token=public_token,
             access_token=access_token,
             item_id=item_id,
+        )
+
+    def sync_transactions(
+        self, user_id: str, access_token: str, cursor: Optional[str]
+    ) -> SyncTransactionsResponse:
+        log.info(f"Syncing transactions for user '{user_id}'")
+
+        added, modified, removed = [], [], []
+
+        has_more = True
+        while has_more:
+            kwargs = {
+                "access_token": access_token,
+            }
+
+            if cursor is not None:
+                kwargs["cursor"] = cursor
+
+            response = self.client.transactions_sync(TransactionsSyncRequest(**kwargs))
+
+            added_transactions = [
+                Transaction.from_plaid_transaction(user_id, transaction)
+                for transaction in response["added"]
+            ]
+            modified_transactions = [
+                Transaction.from_plaid_transaction(user_id, transaction)
+                for transaction in response["modified"]
+            ]
+            removed_transactions = [
+                Transaction.from_plaid_transaction(user_id, transaction)
+                for transaction in response["removed"]
+            ]
+
+            added.extend(added_transactions)
+            modified.extend(modified_transactions)
+            removed.extend(removed_transactions)
+
+            cursor = response["next_cursor"]
+            has_more = response["has_more"]
+
+        return SyncTransactionsResponse(
+            cursor=cursor,
+            synced_at=dt.datetime.now(dt.UTC),
+            added_transactions=added,
+            modified_transactions=modified,
+            removed_transactions=removed,
         )
 
     def get_accounts(self, access_token: str) -> None:

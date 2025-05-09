@@ -1,9 +1,8 @@
-import uuid
+import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 
 from src.database.users.models import User
-import datetime as dt
 
 
 class CashAccountType(Enum):
@@ -112,6 +111,7 @@ class CashAccount:
     def create_account(
         cls,
         user: User,
+        account_id: str,
         bank_name: str,
         account_name: str,
         account_type: CashAccountType,
@@ -121,7 +121,7 @@ class CashAccount:
         now = dt.datetime.now(dt.UTC)
         return CashAccount(
             user_id=CashAccount.get_user_id_key(user.user_id),
-            account_id=CashAccount.get_account_id_key(str(uuid.uuid4())),
+            account_id=CashAccount.get_account_id_key(account_id),
             bank_name=bank_name,
             account_name=account_name,
             account_type=account_type,

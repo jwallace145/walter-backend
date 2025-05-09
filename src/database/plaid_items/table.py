@@ -72,7 +72,7 @@ class PlaidItemsTable:
 
         return plaid_items
 
-    def create_item(self, item: PlaidItem) -> PlaidItem:
+    def put_item(self, item: PlaidItem) -> PlaidItem:
         """
         Creates a new Plaid item.
 
@@ -82,7 +82,9 @@ class PlaidItemsTable:
         Returns:
             The same `PlaidItem` object.
         """
-        log.info(f"Creating a new Plaid item with item ID '{item.item_id}'")
+        log.info(
+            f"Putting Plaid item with item ID '{item.item_id}' to table '{self.table_name}'"
+        )
         self.ddb.put_item(self.table_name, item.to_ddb_item())
         return item
 

@@ -1,12 +1,13 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
 
 from src.events.models import (
     CreateNewsletterAndSendEvent,
     CreateNewsSummaryAndArchiveEvent,
+    SyncUserTransactionsEvent,
 )
 from src.utils.log import Logger
-import datetime as dt
 
 log = Logger(__name__).get_logger()
 
@@ -16,6 +17,20 @@ class WalterEventParser:
     """
     WalterEventParser
     """
+
+    def parse_sync_user_transactions_event(
+        self, event: dict
+    ) -> SyncUserTransactionsEvent:
+        WalterEventParser.verify_one_record(event)
+        records = event["Records"]
+        record = records[0]
+        receipt_handle = record["receiptHandle"]
+        body = json.loads(record["body"])
+        return SyncUserTransactionsEvent(
+            receipt_handle=receipt_handle,
+            user_id=body["user_id"],
+            plaid_item_id=body["plaid_item_id"],
+        )
 
     def parse_create_news_summary_and_archive_event(
         self, event: dict

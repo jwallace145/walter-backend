@@ -137,3 +137,23 @@ class Transaction:
             date_uuid=date_uuid,
             reviewed=item["reviewed"]["BOOL"],
         )
+
+    @classmethod
+    def from_plaid_transaction(cls, user_id: str, transaction_dict: dict):
+        vendor = transaction_dict["name"]
+        if len(transaction_dict["counterparties"]) > 0:
+            vendor = transaction_dict["counterparties"][0]["name"]
+        elif (
+            "merchant_name" in transaction_dict
+            and transaction_dict["merchant_name"] is not None
+        ):
+            vendor = transaction_dict["merchant_name"]
+        return Transaction(
+            user_id=user_id,
+            date=transaction_dict["date"],
+            vendor=vendor,
+            account_id=transaction_dict["account_id"],
+            amount=transaction_dict["amount"],
+            category=TransactionCategory.BILLS,
+            reviewed=False,
+        )
