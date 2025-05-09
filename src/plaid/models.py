@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import datetime as dt
 from typing import List
 
+from src.database.transactions.models import Transaction
+
 
 @dataclass(frozen=True)
 class CreateLinkTokenResponse:
@@ -52,3 +54,26 @@ class PlaidAccount:
 class GetAccountsResponse:
 
     accounts: List[PlaidAccount]
+
+
+@dataclass(frozen=True)
+class SyncTransactionsResponse:
+
+    cursor: str
+    synced_at: dt.datetime
+    added_transactions: List[Transaction]
+    removed_transactions: List[Transaction]
+    modified_transactions: List[Transaction]
+
+    def to_dict(self) -> dict:
+        return {
+            "cursor": str,
+            "synced_at": self.synced_at.isoformat(),
+            "added": [transaction.to_dict() for transaction in self.added_transactions],
+            "modified": [
+                transaction.to_dict() for transaction in self.modified_transactions
+            ],
+            "removed": [
+                transaction.to_dict() for transaction in self.removed_transactions
+            ],
+        }

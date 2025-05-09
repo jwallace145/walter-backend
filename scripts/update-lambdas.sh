@@ -96,4 +96,6 @@ echo Updating WalterAPI AuthUser source code with artifact from S3 \
 && echo Updating WalterCanary GetUser source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterCanary-GetUserCanary-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterCanary SearchStocks source code with artifact from S3 \
-&& aws lambda update-function-code --function-name WalterCanary-SearchStocksCanary-dev --image-uri $IMAGE_URI --no-cli-pager
+&& aws lambda update-function-code --function-name WalterCanary-SearchStocksCanary-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterWorkflow SyncUserTransactions source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterWorkflow-SyncUserTransactions-dev --image-uri $IMAGE_URI --no-cli-pager

@@ -241,8 +241,8 @@ class WalterDB:
     def get_plaid_items(self, user_id: str) -> List[PlaidItem]:
         return self.plaid_items_table.get_items(user_id)
 
-    def create_plaid_item(self, item: PlaidItem) -> None:
-        self.plaid_items_table.create_item(item)
+    def put_plaid_item(self, item: PlaidItem) -> PlaidItem:
+        return self.plaid_items_table.put_item(item)
 
     def delete_plaid_item(self, user_id: str, item_id: str) -> None:
         self.plaid_items_table.delete_item(user_id, item_id)
