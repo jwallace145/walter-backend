@@ -34,6 +34,8 @@ from tst.api.utils import (
     get_delete_cash_account_event,
     get_create_link_token_event,
     get_exchange_public_token_event,
+    get_sync_transactions_event,
+    get_refresh_transactions_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -85,6 +87,8 @@ from walter import (
     delete_cash_account_entrypoint,
     create_link_token_entrypoint,
     exchange_public_token_entrypoint,
+    sync_transactions_entrypoint,
+    refresh_transactions_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -419,12 +423,33 @@ def create_link_token(token: str = None) -> None:
 
 @app.command()
 def exchange_public_token(
-    token: str = None, public_token: str = None, institution_name: str = None
+    token: str = None,
+    public_token: str = None,
+    institution_id: str = None,
+    institution_name: str = None,
 ) -> None:
     log.info("WalterCLI: ExchangePublicToken")
-    event = get_exchange_public_token_event(token, public_token, institution_name)
+    event = get_exchange_public_token_event(
+        token, public_token, institution_id, institution_name, []
+    )
     response = exchange_public_token_entrypoint(event, CONTEXT)
-    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: ExchangePublicToken Response:\n{parse_response(response)}")
+
+
+@app.command()
+def sync_transactions(access_token: str = None, webhook_code: str = None) -> None:
+    log.info("WalterCLI: SyncTransactions")
+    event = get_sync_transactions_event(access_token, webhook_code)
+    response = sync_transactions_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: SyncTransactions Response:\n{parse_response(response)}")
+
+
+@app.command()
+def refresh_transactions(token: str = None) -> None:
+    log.info("WalterCLI: RefreshTransactions")
+    event = get_refresh_transactions_event(token)
+    response = refresh_transactions_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: RefreshTransactions Response:\n{parse_response(response)}")
 
 
 ###################

@@ -2,7 +2,12 @@ import json
 from dataclasses import dataclass
 from typing import List
 
-from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist, BadRequest
+from src.api.common.exceptions import (
+    NotAuthenticated,
+    UserDoesNotExist,
+    BadRequest,
+    PlaidItemAlreadyExists,
+)
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
@@ -26,13 +31,40 @@ log = Logger(__name__).get_logger()
 class ExchangePublicToken(WalterAPIMethod):
     """
     WalterAPI: ExchangePublicToken
+
+    Exchanges a temporary public token from Plaid Link for a permanent access token and item ID.
+    This represents a single set of user credentials at a financial institution.
+
+    The API:
+    1. Exchanges the public token with Plaid to get an access token and item ID
+    2. Stores these credentials in WalterDB for future authenticated Plaid API calls
+    3. Uses the credentials to sync transactions, investments, and liabilities
+    4. Creates corresponding accounts in WalterDB
+    5. Triggers initial transaction sync via queue
+
+    Key constraints:
+    - Requires valid user authentication
+    - Only one Plaid item allowed per user/institution combination
+        - Prevents duplicate transaction syncs from webhook events for user/institution
+          combinations
+
+    Required fields:
+    - public_token: Temporary public token from Plaid Link
+    - institution_id: ID of the financial institution
+    - institution_name: Display name of the institution
+    - accounts: List of accounts to link from the institution
     """
 
     API_NAME = "ExchangePublicToken"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["public_token", "institution_id", "institution_name", "accounts"]
-    EXCEPTIONS = [NotAuthenticated, UserDoesNotExist, BadRequest]
+    EXCEPTIONS = [
+        NotAuthenticated,
+        BadRequest,
+        UserDoesNotExist,
+        PlaidItemAlreadyExists,
+    ]
 
     walter_db: WalterDB
     plaid_client: PlaidClient
@@ -64,6 +96,7 @@ class ExchangePublicToken(WalterAPIMethod):
         public_token = self._get_public_token(event)
         institution_id = self._get_institution_id(event)
         institution_name = self._get_institution_name(event)
+        self._verify_user_institution_item_does_not_exist(user.user_id, institution_id)
         accounts = self._get_accounts(event)
         exchange_response = self._exchange_public_token(public_token)
         plaid_item = self._save_plaid_item(
@@ -123,6 +156,21 @@ class ExchangePublicToken(WalterAPIMethod):
     def _get_institution_name(self, event: dict) -> str:
         body = json.loads(event["body"])
         return body["institution_name"]
+
+    def _verify_user_institution_item_does_not_exist(
+        self, user_id: str, institution_id: str
+    ) -> None:
+        item = self.walter_db.plaid_items_table.get_item_by_user_and_institution(
+            user_id, institution_id
+        )
+        if item is not None:
+            raise PlaidItemAlreadyExists(
+                f"Plaid item already exists for user '{user_id}' and institution '{institution_id}'!"
+            )
+        else:
+            log.info(
+                f"Plaid item does not exist for user '{user_id}' and institution '{institution_id}'"
+            )
 
     def _get_accounts(self, event: dict) -> List[dict]:
         body = json.loads(event["body"])
