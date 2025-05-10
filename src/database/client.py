@@ -238,6 +238,9 @@ class WalterDB:
     # PLAID ITEMS #
     ###############
 
+    def get_plaid_item_by_item_id(self, item_id: str) -> Optional[PlaidItem]:
+        return self.plaid_items_table.get_item_by_item_id(item_id)
+
     def get_plaid_items(self, user_id: str) -> List[PlaidItem]:
         return self.plaid_items_table.get_items(user_id)
 

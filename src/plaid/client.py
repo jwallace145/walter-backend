@@ -12,6 +12,7 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
+from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
 from src.database.transactions.models import Transaction
@@ -33,6 +34,7 @@ class PlaidClient:
 
     CLIENT_NAME = "WalterAI"
     REDIRECT_URI = "http://localhost:3000/"  # TODO: Fix me!
+    WEBHOOK_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/plaid/sync-transactions"  # TODO: Fix me! this is hardcoded to point at WalterAPI-dev!
 
     client_id: str
     secret: str
@@ -52,7 +54,9 @@ class PlaidClient:
         self.client = PlaidApi(self.api_client)
 
     def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
-        log.info(f"Creating link token for user '{user_id}'")
+        log.info(
+            f"Creating link token for user '{user_id}' with webhook '{PlaidClient.WEBHOOK_URL}'"
+        )
         request = LinkTokenCreateRequest(
             products=[
                 Products("auth"),
@@ -64,7 +68,7 @@ class PlaidClient:
             country_codes=[CountryCode("US")],
             redirect_uri=PlaidClient.REDIRECT_URI,
             language="en",
-            webhook="https://webhook.example.com",
+            webhook=PlaidClient.WEBHOOK_URL,
             user=LinkTokenCreateRequestUser(client_user_id=user_id),
         )
         response = self.client.link_token_create(request).to_dict()
@@ -133,6 +137,16 @@ class PlaidClient:
             modified_transactions=modified,
             removed_transactions=removed,
         )
+
+    def refresh_transactions(self, access_token: str) -> None:
+        log.info("Refreshing user transactions for given access token...")
+        response = self.client.transactions_refresh(
+            TransactionsRefreshRequest(
+                access_token=access_token,
+            )
+        )
+        print(response.to_dict())
+        log.info("Successfully refreshed user transactions!")
 
     def get_accounts(self, access_token: str) -> None:
         log.info("Getting accounts for user...")

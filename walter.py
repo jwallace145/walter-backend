@@ -1,5 +1,7 @@
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.plaid.exchange_public_token import ExchangePublicToken
+from src.api.plaid.refresh_transactions import RefreshTransactions
+from src.api.plaid.sync_transactions import SyncTransactions
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
@@ -388,6 +390,27 @@ def exchange_public_token_entrypoint(event, context) -> dict:
             plaid,
             sync_user_transactions_queue,
         )
+        .invoke(event)
+        .to_json()
+    )
+
+
+def sync_transactions_entrypoint(event, context) -> dict:
+    return (
+        SyncTransactions(
+            walter_authenticator,
+            walter_cw,
+            walter_db,
+            sync_user_transactions_queue,
+        )
+        .invoke(event)
+        .to_json()
+    )
+
+
+def refresh_transactions_entrypoint(event, context) -> dict:
+    return (
+        RefreshTransactions(walter_authenticator, walter_cw, walter_db, plaid)
         .invoke(event)
         .to_json()
     )

@@ -50,6 +50,14 @@ Parameters:
     Description: The number of Lambdas to keep warm for provisioned concurrency to improve WalterAPI latency.
     Default: 1
 
+  WalterAPILogLevel:
+    Type: String
+    Description: The logging level of WalterAPI.
+    Default: DEBUG
+    AllowedValues:
+      - DEBUG
+      - INFO
+
 #################
 ### RESOURCES ###
 #################
@@ -1403,6 +1411,63 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPISyncTransactionsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIPlaidResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: sync-transactions
+
+  WalterAPISyncTransactionsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPISyncTransactions.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPISyncTransactionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPISyncTransactionsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPISyncTransactions.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPISyncTransactionsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPISyncTransactionsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
   WalterAPISearchStocksPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -1494,6 +1559,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPICreateUserAlias:
     Type: AWS::Lambda::Alias
@@ -1521,6 +1587,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetUserAlias:
     Type: AWS::Lambda::Alias
@@ -1548,6 +1615,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIUpdateUserAlias:
     Type: AWS::Lambda::Alias
@@ -1575,6 +1643,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetStockAlias:
     Type: AWS::Lambda::Alias
@@ -1604,6 +1673,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetStatisticsAlias:
     Type: AWS::Lambda::Alias
@@ -1633,6 +1703,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIAddStockAlias:
     Type: AWS::Lambda::Alias
@@ -1660,6 +1731,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIDeleteStockAlias:
     Type: AWS::Lambda::Alias
@@ -1687,6 +1759,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetPricesAlias:
     Type: AWS::Lambda::Alias
@@ -1716,6 +1789,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetNewsSummaryAlias:
     Type: AWS::Lambda::Alias
@@ -1743,6 +1817,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetPortfolioAlias:
     Type: AWS::Lambda::Alias
@@ -1772,6 +1847,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPISendNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1801,6 +1877,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetNewsletterAlias:
     Type: AWS::Lambda::Alias
@@ -1830,6 +1907,8 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
+
 
   WalterAPIGetNewslettersAlias:
     Type: AWS::Lambda::Alias
@@ -1859,6 +1938,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPISendVerifyEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1888,6 +1968,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIVerifyEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1917,6 +1998,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPISendChangePasswordEmailAlias:
     Type: AWS::Lambda::Alias
@@ -1946,6 +2028,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIChangePasswordAlias:
     Type: AWS::Lambda::Alias
@@ -1975,6 +2058,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIUpdatePasswordAlias:
     Type: AWS::Lambda::Alias
@@ -2002,6 +2086,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPISubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -2031,6 +2116,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIUnsubscribeAlias:
     Type: AWS::Lambda::Alias
@@ -2060,6 +2146,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPISearchStocksAlias:
     Type: AWS::Lambda::Alias
@@ -2087,6 +2174,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -2116,6 +2204,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIVerifyPurchaseNewsletterSubscriptionAlias:
     Type: AWS::Lambda::Alias
@@ -2145,6 +2234,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetCashAccountsAlias:
     Type: AWS::Lambda::Alias
@@ -2172,6 +2262,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIUpdateCashAccountAlias:
     Type: AWS::Lambda::Alias
@@ -2199,6 +2290,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIDeleteCashAccountAlias:
     Type: AWS::Lambda::Alias
@@ -2226,6 +2318,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPICreateCashAccountAlias:
     Type: AWS::Lambda::Alias
@@ -2253,6 +2346,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIGetTransactionsAlias:
     Type: AWS::Lambda::Alias
@@ -2282,6 +2376,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIAddTransactionAlias:
     Type: AWS::Lambda::Alias
@@ -2309,6 +2404,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIEditTransactionAlias:
     Type: AWS::Lambda::Alias
@@ -2336,6 +2432,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIDeleteTransactionAlias:
     Type: AWS::Lambda::Alias
@@ -2363,12 +2460,13 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPICreateLinkTokenAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateLinkToken
-      FunctionVersion: 9
+      FunctionVersion: 16
       Name: "release"
 
   WalterAPICreateLinkToken:
@@ -2390,12 +2488,13 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterAPIExchangePublicTokenAlias:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIExchangePublicToken
-      FunctionVersion: 11
+      FunctionVersion: 15
       Name: "release"
 
   WalterAPIExchangePublicToken:
@@ -2417,7 +2516,35 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
+  WalterAPISyncTransactionsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPISyncTransactions
+      FunctionVersion: 6
+      Name: "release"
+
+  WalterAPISyncTransactions:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-SyncTransactions-${AppEnvironment}"
+      Description: !Sub "WalterAPI: SyncTransactions - The Plaid webhook API endpoint to sync transactions for the given user when updates are available (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.sync_transactions_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryAuthUserCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2445,6 +2572,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetTransactionsAlias:
     Type: AWS::Lambda::Alias
@@ -2472,6 +2600,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetUserCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2499,6 +2628,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetStockCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2526,6 +2656,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetPortfolioCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2553,6 +2684,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetPricesCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2580,6 +2712,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetNewsSummaryCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2607,6 +2740,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanaryGetNewslettersCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2634,6 +2768,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterCanarySearchStocksCanaryAlias:
     Type: AWS::Lambda::Alias
@@ -2661,6 +2796,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterWorkflowSyncUserTransactionsFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -2696,6 +2832,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
       DeadLetterConfig:
         TargetArn: !GetAtt SyncUserTransactionsDeadLetterQueue.Arn
       Tags:
@@ -2728,6 +2865,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterWorkflowAddNewsSummaryRequestsAlias:
     Type: AWS::Lambda::Alias
@@ -2755,6 +2893,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
 
   WalterWorkflowCreateNewsSummaryAndArchiveAlias:
     Type: AWS::Lambda::Alias
@@ -2782,6 +2921,7 @@ Resources:
       Environment:
         Variables:
           DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
       DeadLetterConfig:
         TargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
 
@@ -2929,11 +3069,28 @@ Resources:
           AttributeType: S
         - AttributeName: item_id
           AttributeType: S
+        - AttributeName: institution_id
+          AttributeType: S
       KeySchema:
         - AttributeName: user_id
           KeyType: HASH
         - AttributeName: item_id
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: !Sub "PlaidItems-UserInstitutionIndex-${AppEnvironment}"
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+            - AttributeName: institution_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: !Sub "PlaidItems-ItemIdIndex-${AppEnvironment}"
+          KeySchema:
+            - AttributeName: item_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   #################
   ### IAM ROLES ###
@@ -3484,6 +3641,34 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt PlaidItemsTable.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:Query"
+            Resource:
+              - !Join
+                - ""
+                - - "arn:aws:dynamodb:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":table/"
+                  - !Sub "PlaidItems-${AppEnvironment}"
+                  - "/index/"
+                  - !Sub "PlaidItems-UserInstitutionIndex-${AppEnvironment}"
+          - Effect: Allow
+            Action:
+              - "dynamodb:Query"
+            Resource:
+              - !Join
+                - ""
+                - - "arn:aws:dynamodb:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":table/"
+                  - !Sub "PlaidItems-${AppEnvironment}"
+                  - "/index/"
+                  - !Sub "PlaidItems-ItemIdIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
         - !Ref WalterBackendRole

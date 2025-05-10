@@ -278,15 +278,41 @@ def get_create_link_token_event(token: str) -> dict:
 
 
 def get_exchange_public_token_event(
-    token: str, public_token: str, institution_name: str
+    token: str,
+    public_token: str,
+    institution_id: str,
+    institution_name: str,
+    accounts: [],
 ) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
         "content-type": "application/json",
     }
     EVENT["body"] = json.dumps(
-        {"public_token": public_token, "institution_name": institution_name}
+        {
+            "public_token": public_token,
+            "institution_id": institution_id,
+            "institution_name": institution_name,
+            "accounts": accounts,
+        }
     )
+    return EVENT
+
+
+def get_sync_transactions_event(access_token: str, webhook_code: str) -> dict:
+    EVENT["headers"] = {
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {"access_token": access_token, "webhook_code": webhook_code}
+    )
+    return EVENT
+
+
+def get_refresh_transactions_event(token: str) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+    }
     return EVENT
 
 

@@ -18,13 +18,19 @@ class PlaidItemsTable:
 
     TABLE_NAME_FORMAT = "PlaidItems-{domain}"
 
+    # Global Secondary Indexes (GSIs)
+    USER_INSTITUTION_INDEX_NAME_FORMAT = "PlaidItems-UserInstitutionIndex-{domain}"
+    ITEM_ID_INDEX_NAME_FORMAT = "PlaidItems-ItemIdIndex-{domain}"
+
     ddb: WalterDDBClient
     domain: Domain
 
     table_name: str = None  # set during post init
+    item_id_index_name: str = None  # set during post init
 
     def __post_init__(self) -> None:
         self.table_name = PlaidItemsTable._get_table_name(self.domain)
+        self.item_id_index_name = PlaidItemsTable._get_item_id_index_name(self.domain)
         log.debug(f"Initializing PlaidItemsTable with table name '{self.table_name}'")
 
     def get_item(self, user_id: str, item_id: str) -> Optional[PlaidItem]:
@@ -47,6 +53,36 @@ class PlaidItemsTable:
             log.warning(f"Plaid item '{item_id}' for user '{user_id}' not found")
             return None
         return PlaidItem.get_item_from_ddb_item(item)
+
+    def get_item_by_user_and_institution(
+        self, user_id: str, institution_id: str
+    ) -> Optional[PlaidItem]:
+        log.info(
+            f"Getting Plaid item from table '{self.table_name}' for user '{user_id}' with institution ID '{institution_id}'"
+        )
+        expression = "user_id = :user_id AND institution_id = :institution_id"
+        attributes = {
+            ":user_id": {"S": PlaidItem.get_user_id_key(user_id)},
+            ":institution_id": {"S": institution_id},
+        }
+        item = self.ddb.query_index(
+            self.table_name,
+            self._get_user_institution_index_name(self.domain),
+            expression,
+            attributes,
+        )
+        return None if item is None else PlaidItem.get_item_from_ddb_item(item)
+
+    def get_item_by_item_id(self, item_id: str) -> Optional[PlaidItem]:
+        log.info(
+            f"Getting Plaid item from table '{self.table_name}' with item ID: '{item_id}'"
+        )
+        expression = "item_id = :item_id"
+        attributes = {":item_id": {"S": PlaidItem.get_item_id_key(item_id)}}
+        item = self.ddb.query_index(
+            self.table_name, self.item_id_index_name, expression, attributes
+        )
+        return None if item is None else PlaidItem.get_item_from_ddb_item(item)
 
     def get_items(self, user_id: str) -> List[PlaidItem]:
         """
@@ -143,3 +179,13 @@ class PlaidItemsTable:
             The name of the DynamoDB table.
         """
         return PlaidItemsTable.TABLE_NAME_FORMAT.format(domain=domain.value)
+
+    @staticmethod
+    def _get_user_institution_index_name(domain: Domain) -> str:
+        return PlaidItemsTable.USER_INSTITUTION_INDEX_NAME_FORMAT.format(
+            domain=domain.value
+        )
+
+    @staticmethod
+    def _get_item_id_index_name(domain: Domain) -> str:
+        return PlaidItemsTable.ITEM_ID_INDEX_NAME_FORMAT.format(domain=domain.value)

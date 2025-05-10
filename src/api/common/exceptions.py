@@ -91,3 +91,13 @@ class CashAccountDoesNotExist(Exception):
 class TransactionDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class PlaidItemDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class PlaidItemAlreadyExists(Exception):
+    def __init__(self, message):
+        super().__init__(message)
