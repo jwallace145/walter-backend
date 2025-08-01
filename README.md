@@ -25,6 +25,33 @@
 
 ![Walter-ArchDiagram](https://github.com/user-attachments/assets/5cbac20f-8366-4904-a5b5-0b2a43eb669c)
 
+### CLI Development Tool
+
+This repository includes a command-line interface (CLI) tool built with [Typer](https://typer.tiangolo.com/) that
+enables developers to test and interact with the Walter API in their local development environment. The CLI uses the
+local source code allowing you to test code changes and modifications without deploying to production. Ensure that you are leveraging credentials for a nonproduction environment as to not modify customer resources.
+
+To explore available methods and their required arguments, use the
+following commands:
+
+```bash
+# display cli help message and all included methods
+pipenv run python cli.py --help
+
+# display more information about cli method
+pipenv run python cli.py "${METHOD_NAME}" --help
+```
+
+To interact with an authenticated Walter API method, an API access token is required that identifies the user. Run the following command to use the CLI tool to get an access token for a user:
+
+```bash
+# get access token for user
+pipenv run python auth-user --email="${EMAIL}" --password="${PASSWORD}"
+
+# export token as env var to be used for authenticated methods
+export WALTER_TOKEN=ABC123
+```
+
 ### Templates
 
 `WalterAIBackend` uses email templates stored in S3 to create the emails to send to subscribers. Each email template is written in HTML and uses [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) to parameterize the inputs. `WalterAIBackend` pulls the email templates from S3 and renders the template given the `templatespec.yml` and the `template.jinja` file. The `templatespec.yml` is the specification file that tells Walter the name of the parameters as well as the Bedrock prompts to use to get the parameter value. An example of a `templatespec.yml` file is given below:

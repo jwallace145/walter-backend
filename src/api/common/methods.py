@@ -3,31 +3,21 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
-from src.api.common.exceptions import BadRequest, NotAuthenticated
+from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.models import HTTPStatus, Status, Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.client import WalterDB
+from src.database.users.models import User
 from src.utils.log import Logger
+from src.api.common.metrics import (
+    METRICS_SUCCESS_COUNT,
+    METRICS_FAILURE_COUNT,
+    METRICS_TOTAL_COUNT,
+    METRICS_RESPONSE_TIME_MILLISECONDS,
+)
 
 log = Logger(__name__).get_logger()
-
-###########
-# METRICS #
-###########
-
-# Metrics included in this file are emitted for all APIs
-
-METRICS_SUCCESS_COUNT = "SuccessCount"
-"""(str): The number of successful API invocations."""
-
-METRICS_FAILURE_COUNT = "FailureCount"
-"""(str): The number of failed API invocations."""
-
-METRICS_TOTAL_COUNT = "TotalCount"
-"""(str): The total number of API invocations."""
-
-METRICS_RESPONSE_TIME_MILLISECONDS = "ResponseTimeMilliseconds"
-"""(str): The response time for the API invocation in milliseconds."""
 
 #########################################
 # WALTER API ABSTRACT BASE METHOD CLASS #
@@ -284,6 +274,24 @@ class WalterAPIMethod(ABC):
 
     def _get_response_time_millis_metric_name(self) -> str:
         return f"{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}"
+
+    def _verify_user_exists(self, walter_db: WalterDB, email: str) -> User:
+        """
+        Verify the user exists in the database.
+
+        Args:
+            walter_db: The WalterDB instance.
+            email: The email of the user.
+
+        Returns:
+            (User): The user object if the user exists. Else raises UserDoesNotExist exception.
+        """
+        log.info(f"Verifying user exists with email '{email}'")
+        user = walter_db.get_user_by_email(email)
+        if user is None:
+            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
+        log.info("Verified user exists!")
+        return user
 
     @abstractmethod
     def execute(self, event: dict, email: str) -> Response:
