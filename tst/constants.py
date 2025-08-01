@@ -37,6 +37,15 @@ USERS_STOCKS_TABLE_NAME = f"UsersStocks-{Domain.TESTING.value}"
 USERS_STOCKS_TEST_FILE = "tst/database/data/usersstocks.jsonl"
 """(str): The name of the test user stocks input file."""
 
+CASH_ACCOUNTS_TABLE_NAME = f"CashAccounts-{Domain.TESTING.value}"
+"""(str): The name of the CashAccounts table that stores all cash accounts owned by users."""
+
+CASH_ACCOUNTS_TEST_FILE = "tst/database/data/cash_accounts.jsonl"
+"""(str): The name of the test cash accounts input file."""
+
+TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
+"""(str): The name of the Transactions table that stores all transactions made by users."""
+
 ###################
 # TEST SQS QUEUES #
 ###################

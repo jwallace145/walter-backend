@@ -109,9 +109,7 @@ class AddTransaction(WalterAPIMethod):
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:
-            raise CashAccountDoesNotExist(
-                f"Account with account_id '{account_id}' does not exist for user!"
-            )
+            raise CashAccountDoesNotExist("Account does not exist for user!")
 
         log.info(f"Verified account '{account_id}' exists for user '{user_id}'!")
 
