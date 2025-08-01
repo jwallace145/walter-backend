@@ -35,7 +35,8 @@ from tst.api.utils import (
     get_create_link_token_event,
     get_exchange_public_token_event,
     get_sync_transactions_event,
-    get_refresh_transactions_event, get_delete_stock_event,
+    get_refresh_transactions_event,
+    get_delete_stock_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -88,7 +89,8 @@ from walter import (
     create_link_token_entrypoint,
     exchange_public_token_entrypoint,
     sync_transactions_entrypoint,
-    refresh_transactions_entrypoint, delete_stock_entrypoint,
+    refresh_transactions_entrypoint,
+    delete_stock_entrypoint,
 )
 
 log = Logger(__name__).get_logger()

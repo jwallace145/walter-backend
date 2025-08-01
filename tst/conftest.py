@@ -11,6 +11,7 @@ from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
 from pytest_mock import MockerFixture
 
+from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
@@ -36,6 +37,7 @@ from tst.constants import (
 )
 from tst.database.mock import MockDDB
 from tst.stocks.mock import MockPolygon, MockAlphaVantageClient
+from tst.transactions.mock import MockTransactionsCategorizer
 
 
 ###################
@@ -199,6 +201,11 @@ def news_summaries_bucket(walter_s3: WalterS3Client) -> NewsSummariesBucket:
 @pytest.fixture
 def walter_event_parser() -> WalterEventParser:
     return WalterEventParser()
+
+
+@pytest.fixture
+def transactions_categorizer() -> ExpenseCategorizerMLP:
+    return MockTransactionsCategorizer()
 
 
 ####################
