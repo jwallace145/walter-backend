@@ -16,7 +16,6 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.cash_accounts.models import CashAccount
 from src.database.client import WalterDB
 from src.database.transactions.models import Transaction
-from src.database.users.models import User
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -69,9 +68,9 @@ class AddTransaction(WalterAPIMethod):
         self.transaction_categorizer = expense_categorizer
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(authenticated_email)
+        user = self._verify_user_exists(self.walter_db, authenticated_email)
         account = self._verify_account_exists(user.user_id, event)
-        transaction = self._get_transaction(
+        transaction = self._create_transaction(
             user_id=user.user_id, account_id=account.get_account_id(), event=event
         )
         self.walter_db.put_transaction(transaction)
@@ -85,43 +84,53 @@ class AddTransaction(WalterAPIMethod):
             },
         )
 
-    def validate_fields(self, event: dict) -> None:
-        pass
-
-    def is_authenticated_api(self) -> bool:
-        return True
-
-    def _verify_user_exists(self, email: str) -> User:
-        log.info(f"Verifying user exists with email '{email}'")
-        user = self.walter_db.get_user_by_email(email)
-        if user is None:
-            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
-        log.info("Verified user exists!")
-        return user
-
     def _verify_account_exists(self, user_id: str, event: dict) -> CashAccount:
+        """
+        Verify that the account exists for the user.
+
+        Args:
+            user_id: The user ID of the account.
+            event: The event containing the account data.
+
+        Returns:
+            (CashAccount): The verified account object.
+        """
+        # get user account details from the event
         body = json.loads(event["body"])
         account_id = body["account_id"]
-        log.info(f"Verifying account exists for user with account_id '{account_id}'")
+        log.info(
+            f"Verifying account exists for user '{user_id}' with account_id '{account_id}'"
+        )
 
-        # check db to see if account exists for user
+        # check db to see if an account exists for the user
         account = self.walter_db.get_cash_account(
             user_id=user_id, account_id=account_id
         )
 
-        # if account does not exist for user, raise account does not exist exception
+        # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:
             raise CashAccountDoesNotExist(
                 f"Account with account_id '{account_id}' does not exist for user!"
             )
 
-        log.info(f"Verified account '{account_id}' exists for user!")
+        log.info(f"Verified account '{account_id}' exists for user '{user_id}'!")
 
         return account
 
-    def _get_transaction(
+    def _create_transaction(
         self, user_id: str, account_id: str, event: dict
     ) -> Transaction:
+        """
+        Create a transaction object from the provided event.
+
+        Args:
+            user_id: The user ID of the transaction.
+            account_id: The account ID of the transaction.
+            event: The event containing the transaction data.
+
+        Returns:
+            (Transaction): The created transaction object.
+        """
         body = json.loads(event["body"])
         date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
         vendor = body["vendor"]
@@ -136,3 +145,9 @@ class AddTransaction(WalterAPIMethod):
             category=category,
             reviewed=False,
         )
+
+    def validate_fields(self, event: dict) -> None:
+        pass
+
+    def is_authenticated_api(self) -> bool:
+        return True

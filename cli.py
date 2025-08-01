@@ -35,7 +35,7 @@ from tst.api.utils import (
     get_create_link_token_event,
     get_exchange_public_token_event,
     get_sync_transactions_event,
-    get_refresh_transactions_event,
+    get_refresh_transactions_event, get_delete_stock_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -88,7 +88,7 @@ from walter import (
     create_link_token_entrypoint,
     exchange_public_token_entrypoint,
     sync_transactions_entrypoint,
-    refresh_transactions_entrypoint,
+    refresh_transactions_entrypoint, delete_stock_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -155,6 +155,14 @@ def get_stock(symbol: str = None) -> None:
     event = get_get_stock_event(symbol)
     response = get_stock_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetStock Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_stock(token: str = None, stock: str = None) -> None:
+    log.info("WalterCLI: DeleteStock")
+    event = get_delete_stock_event(stock, token)
+    response = delete_stock_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: DeleteStock Response:\n{parse_response(response)}")
 
 
 @app.command()
