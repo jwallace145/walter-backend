@@ -55,7 +55,7 @@ class CreateCashAccount(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(authenticated_email)
-        cash_account = self._create_cash_account(user, event)
+        cash_account = self._create_new_cash_account(user, event)
         return Response(
             api_name=CreateCashAccount.API_NAME,
             http_status=HTTPStatus.CREATED,
@@ -90,11 +90,11 @@ class CreateCashAccount(WalterAPIMethod):
         log.info("User verified successfully!")
         return user
 
-    def _create_cash_account(self, user: User, event: dict) -> CashAccount:
-        log.info("Creating cash account for user")
+    def _create_new_cash_account(self, user: User, event: dict) -> CashAccount:
+        log.info("Creating new cash account for user")
 
         body = json.loads(event["body"])
-        cash_account = CashAccount.create_account(
+        cash_account = CashAccount.create_new_account(
             user,
             bank_name=body["bank_name"],
             account_name=body["account_name"],

@@ -1709,7 +1709,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: 36
+      FunctionVersion: 73
       Name: "release"
 
   WalterAPIAddStock:
@@ -1737,7 +1737,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: 33
+      FunctionVersion: 70
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -2324,7 +2324,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
-      FunctionVersion: 2
+      FunctionVersion: 29
       Name: "release"
 
   WalterAPICreateCashAccount:
@@ -2382,7 +2382,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddTransaction
-      FunctionVersion: 15
+      FunctionVersion: 37
       Name: "release"
 
   WalterAPIAddTransaction:
@@ -2410,7 +2410,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditTransaction
-      FunctionVersion: 15
+      FunctionVersion: 37
       Name: "release"
 
   WalterAPIEditTransaction:
@@ -2438,7 +2438,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteTransaction
-      FunctionVersion: 15
+      FunctionVersion: 37
       Name: "release"
 
   WalterAPIDeleteTransaction:

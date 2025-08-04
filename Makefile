@@ -5,9 +5,9 @@ help:
 	@echo "  make format         	  Auto-format code"
 	@echo "  make lint                Lint code"
 	@echo "  make test    	     	  Run unit test suite"
-	@echo "  make update-image   	  Update WalterAPI image"
 	@echo "  make update-src     	  Update Walter API src code"
-	@echo "  make update-funcs        Update Walter API functions"
+	@echo "  make update-image   	  Update WalterAPI image"
+	@echo "  make update-infra        Update Walter API infra"
 
 
 format:
@@ -38,3 +38,6 @@ update-src:
 	&& aws s3 cp walter-backend.zip s3://walter-backend-src/walter-backend.zip \
 	&& rm -rf walter-backend \
 	&& rm -rf walter-backend.zip
+
+update-infra:
+	pipenv run python buildspec.py
