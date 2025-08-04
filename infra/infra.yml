@@ -2324,7 +2324,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
-      FunctionVersion: 29
+      FunctionVersion: 30
       Name: "release"
 
   WalterAPICreateCashAccount:

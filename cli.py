@@ -324,12 +324,18 @@ def create_cash_account(
     token: str = None,
     bank_name: str = None,
     account_name: str = None,
+    account_type: str = None,
     account_last_four_numbers: str = None,
     account_balance: float = None,
 ) -> None:
     log.info("WalterCLI: CreateCashAccount")
     event = get_create_cash_account_event(
-        token, bank_name, account_name, account_last_four_numbers, account_balance
+        token,
+        bank_name,
+        account_name,
+        account_type,
+        account_last_four_numbers,
+        account_balance,
     )
     response = create_cash_account_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: CreateCashAccount Response:\n{parse_response(response)}")
