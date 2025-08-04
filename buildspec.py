@@ -164,7 +164,7 @@ def change_set_contains_changes(status: str) -> bool:
 
 
 def execute_change_set(client: CloudFormationClient) -> None:
-    time.sleep(30)
+    time.sleep(60)
     client.execute_change_set(StackName=STACK_NAME, ChangeSetName=CHANGE_SET_NAME)
 
 

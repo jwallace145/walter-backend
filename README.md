@@ -110,6 +110,44 @@ curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
       }' | jq -r '.body | fromjson'
 ```
 
+### Deployments
+
+WalterAPI is served by Lambda functions so deploying changes is as simple as updating the corresponding Lambda. However, currently some Lambdas utilize ZIP packages for the source code whereas some Lambdas utilize a container image (container images are strongly preferred and older APIs should eventually be migrated).
+
+So, to account for both types of Lambdas and respective APIs, the deployment process needs to properly update both until the migration to containers for all APIs is complete. In short, the deployment process is as follows:
+
+1. Format, lint, and test source code with the following commands before deploying to ensure high code quality and proper test coverage:
+
+```bash
+make format
+make lint
+make test
+```
+
+2. Update the source code for ZIP package Lambdas as well as container Lambdas with the following commands:
+
+```bash
+# update the source code in S3 for ZIP package Lambdas
+make update-src
+
+# update the WalterAPI image in ECR for container Lambdas
+make update-image
+```
+
+3. Update all Lambda functions and release a new version of the Lambda function after updating with the following command:
+
+```bash
+make update-apis
+```
+
+4. Update the `release` alias for all Lambda function APIs to point to the latest version. You can find the latest version of a particular Lambda function in the console. However, this should be scripted at some point. Once you have the latest Lambda function version, update the corresponding alias in the CloudFormation template in `./infra/infra.yml`. Then run the following command to update the aliases as well as any other changed cloud infrastructure.
+
+```bash
+make update-infra
+```
+
+There you have it! Your changes will now be deployed to the designated environment! This process should absolutely be automated at some point on merges to the `main` branch or something similar. For now, this process is manual (sorry).
+
 ### Contributions
 
 #### Makefile

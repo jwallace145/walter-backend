@@ -202,6 +202,7 @@ def get_create_cash_account_event(
     token: str,
     bank_name: str,
     account_name: str,
+    account_type: str,
     account_last_four_numbers: str,
     account_balance: float,
 ) -> dict:
@@ -213,6 +214,7 @@ def get_create_cash_account_event(
         {
             "bank_name": bank_name,
             "account_name": account_name,
+            "account_type": account_type,
             "account_last_four_numbers": account_last_four_numbers,
             "balance": account_balance,
         }

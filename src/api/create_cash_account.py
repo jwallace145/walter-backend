@@ -26,6 +26,7 @@ class CreateCashAccount(WalterAPIMethod):
     REQUIRED_FIELDS = [
         "bank_name",
         "account_name",
+        "account_type",
         "balance",
         "account_last_four_numbers",
     ]
@@ -98,7 +99,7 @@ class CreateCashAccount(WalterAPIMethod):
             user,
             bank_name=body["bank_name"],
             account_name=body["account_name"],
-            account_type=CashAccountType.CHECKING,
+            account_type=CashAccountType.from_string(body["account_type"]),
             account_last_four_numbers=body["account_last_four_numbers"],
             balance=float(body["balance"]),
         )
