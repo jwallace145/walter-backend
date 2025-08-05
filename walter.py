@@ -1,4 +1,5 @@
 from src.api.credit_accounts.create_credit_account import CreateCreditAccount
+from src.api.credit_accounts.get_credit_accounts import GetCreditAccounts
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.plaid.exchange_public_token import ExchangePublicToken
 from src.api.plaid.refresh_transactions import RefreshTransactions
@@ -345,6 +346,14 @@ def delete_transaction_entrypoint(event, context) -> dict:
 def create_credit_account_entrypoint(event, context) -> dict:
     return (
         CreateCreditAccount(walter_authenticator, walter_cw, walter_db)
+        .invoke(event)
+        .to_json()
+    )
+
+
+def get_credit_accounts_entrypoint(event, context) -> dict:
+    return (
+        GetCreditAccounts(walter_authenticator, walter_cw, walter_db)
         .invoke(event)
         .to_json()
     )

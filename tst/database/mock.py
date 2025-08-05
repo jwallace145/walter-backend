@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
 from src.database.cash_accounts.models import CashAccount, CashAccountType
+from src.database.credit_accounts.models import CreditAccount
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
@@ -20,6 +21,7 @@ from tst.constants import (
     CASH_ACCOUNTS_TABLE_NAME,
     CASH_ACCOUNTS_TEST_FILE,
     CREDIT_ACCOUNTS_TABLE_NAME,
+    CREDIT_ACCOUNTS_TEST_FILE,
 )
 
 
@@ -40,7 +42,9 @@ class MockDDB:
         self._create_cash_accounts_table(
             CASH_ACCOUNTS_TABLE_NAME, CASH_ACCOUNTS_TEST_FILE
         )
-        self._create_credit_accounts_table(CREDIT_ACCOUNTS_TABLE_NAME, None)
+        self._create_credit_accounts_table(
+            CREDIT_ACCOUNTS_TABLE_NAME, CREDIT_ACCOUNTS_TEST_FILE
+        )
         self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
 
     def _create_stocks_table(self, table_name: str, input_file_name: str) -> None:
@@ -205,6 +209,33 @@ class MockDDB:
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
         )
+        with open(input_file_name) as credit_accounts_f:
+            for account in credit_accounts_f:
+                if not account.strip():
+                    continue
+                json_account = json.loads(account)
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=CreditAccount(
+                        user_id=CashAccount.get_user_id_key(json_account["user_id"]),
+                        account_id=CashAccount.get_account_id_key(
+                            json_account["account_id"]
+                        ),
+                        account_last_four_numbers=json_account[
+                            "account_last_four_numbers"
+                        ],
+                        account_name=json_account["account_name"],
+                        balance=json_account["balance"],
+                        bank_name=json_account["bank_name"],
+                        created_at=datetime.datetime.strptime(
+                            json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                        logo_url=json_account["logo_url"],
+                        updated_at=datetime.datetime.strptime(
+                            json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                    ).to_ddb_item(),
+                )
 
     def _create_transactions_table(self, table_name: str) -> None:
         self.mock_ddb.create_table(

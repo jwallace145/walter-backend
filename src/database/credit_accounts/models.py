@@ -95,3 +95,16 @@ class CreditAccount:
             created_at=now,
             updated_at=now,
         )
+
+    @classmethod
+    def get_account_from_ddb_item(cls, ddb_item: dict):
+        return CreditAccount(
+            user_id=ddb_item["user_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            bank_name=ddb_item["bank_name"]["S"],
+            account_name=ddb_item["account_name"]["S"],
+            account_last_four_numbers=ddb_item["account_last_four_numbers"]["S"],
+            balance=float(ddb_item["balance"]["N"]),
+            created_at=dt.datetime.fromisoformat(ddb_item["created_at"]["S"]),
+            updated_at=dt.datetime.fromisoformat(ddb_item["updated_at"]["S"]),
+        )

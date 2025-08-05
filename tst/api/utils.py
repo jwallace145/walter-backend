@@ -214,6 +214,15 @@ def get_create_credit_account_event(
     return EVENT
 
 
+def get_get_credit_accounts_event(
+    token: str,
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+    }
+    return EVENT
+
+
 def get_get_cash_accounts_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT

@@ -38,6 +38,7 @@ from tst.api.utils import (
     get_refresh_transactions_event,
     get_delete_stock_event,
     get_create_credit_account_event,
+    get_get_credit_accounts_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -93,6 +94,7 @@ from walter import (
     refresh_transactions_entrypoint,
     delete_stock_entrypoint,
     create_credit_account_entrypoint,
+    get_credit_accounts_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -339,6 +341,24 @@ def create_credit_account(
     )
     response = create_credit_account_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: CreateCreditAccount Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_credit_accounts(
+    token: str = typer.Option(None, help="Authentication token for the user")
+) -> None:
+    """
+    Retrieve all credit accounts for the authenticated user.
+
+    This command returns a list of all credit accounts including their balances
+    and account details. The accounts must belong to the authenticated user.
+
+    Authentication token is required to access credit account information.
+    """
+    log.info("WalterCLI: GetCreditAccounts")
+    event = get_get_credit_accounts_event(token)
+    response = get_credit_accounts_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: GetCreditAccounts Response:\n{parse_response(response)}")
 
 
 @app.command()
