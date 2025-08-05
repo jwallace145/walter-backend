@@ -13,6 +13,7 @@ class CashAccountType(Enum):
 
     CHECKING = "CHECKING"
     SAVINGS = "SAVINGS"
+    MONEY_MARKET = "MONEY_MARKET"
 
     @classmethod
     def from_string(cls, account_type_str: str):

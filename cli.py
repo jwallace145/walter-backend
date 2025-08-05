@@ -37,6 +37,7 @@ from tst.api.utils import (
     get_sync_transactions_event,
     get_refresh_transactions_event,
     get_delete_stock_event,
+    get_create_credit_account_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -91,6 +92,7 @@ from walter import (
     sync_transactions_entrypoint,
     refresh_transactions_entrypoint,
     delete_stock_entrypoint,
+    create_credit_account_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -309,6 +311,34 @@ def verify_purchase_newsletter_subscription(
     log.info(
         f"WalterCLI: VerifyPurchaseNewsletterSubscription Response:\n{parse_response(response)}"
     )
+
+
+@app.command()
+def create_credit_account(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    bank_name: str = typer.Option(None, help="Name of the bank/financial institution"),
+    account_name: str = typer.Option(None, help="Display name for the credit account"),
+    account_last_four_numbers: str = typer.Option(
+        None, help="Last 4 digits of the account number"
+    ),
+    account_balance: float = typer.Option(
+        None, help="Current balance on the credit account"
+    ),
+) -> None:
+    """
+    Create a new credit account like a credit card or loan.
+
+    This command allows you to add a credit account to track debts and credit card balances.
+    The account will be associated with the authenticated user's profile.
+
+    All fields are required to create a new credit account.
+    """
+    log.info("WalterCLI: CreateCreditAccount")
+    event = get_create_credit_account_event(
+        token, bank_name, account_name, account_last_four_numbers, account_balance
+    )
+    response = create_credit_account_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: CreateCreditAccount Response:\n{parse_response(response)}")
 
 
 @app.command()

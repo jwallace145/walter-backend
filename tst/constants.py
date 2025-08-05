@@ -43,6 +43,9 @@ CASH_ACCOUNTS_TABLE_NAME = f"CashAccounts-{Domain.TESTING.value}"
 CASH_ACCOUNTS_TEST_FILE = "tst/database/data/cash_accounts.jsonl"
 """(str): The name of the test cash accounts input file."""
 
+CREDIT_ACCOUNTS_TABLE_NAME = f"CreditAccounts-{Domain.TESTING.value}"
+"""(str): The name of the CreditAccounts table that stores all credit accounts owned by users."""
+
 TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
 """(str): The name of the Transactions table that stores all transactions made by users."""
 
