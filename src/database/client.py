@@ -6,6 +6,8 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.cash_accounts.models import CashAccount
 from src.database.cash_accounts.table import CashAccountsTable
+from src.database.credit_accounts.models import CreditAccount
+from src.database.credit_accounts.table import CreditAccountsTable
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
@@ -25,6 +27,9 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class WalterDB:
+    """
+    WalterDB
+    """
 
     ddb: WalterDDBClient
     authenticator: WalterAuthenticator
@@ -36,6 +41,7 @@ class WalterDB:
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
     cash_accounts_table: CashAccountsTable = None
+    credit_accounts_table: CreditAccountsTable = None
     plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
@@ -44,7 +50,12 @@ class WalterDB:
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
         self.cash_accounts_table = CashAccountsTable(self.ddb, self.domain)
+        self.credit_accounts_table = CreditAccountsTable(self.ddb, self.domain)
         self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
+
+    #########
+    # USERS #
+    #########
 
     def create_user(
         self, email: str, first_name: str, last_name: str, password: str
@@ -84,6 +95,10 @@ class WalterDB:
 
     def delete_user(self, email: str) -> None:
         self.users_table.delete_user(email)
+
+    ##########
+    # STOCKS #
+    ##########
 
     def get_stock(self, symbol: str) -> Stock | None:
         """
@@ -233,6 +248,13 @@ class WalterDB:
 
     def delete_cash_account(self, user_id: str, account_id: str) -> None:
         self.cash_accounts_table.delete_account(user_id, account_id)
+
+    ###################
+    # CREDIT ACCOUNTS #
+    ###################
+
+    def create_credit_account(self, account: CreditAccount) -> CreditAccount:
+        return self.credit_accounts_table.create_account(account)
 
     ###############
     # PLAID ITEMS #

@@ -193,6 +193,27 @@ def get_edit_transaction_event(
     return EVENT
 
 
+def get_create_credit_account_event(
+    token: str,
+    bank_name: str,
+    account_name: str,
+    account_last_four_numbers: str,
+    account_balance: float,
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "bank_name": bank_name,
+            "account_name": account_name,
+            "account_last_four_numbers": account_last_four_numbers,
+            "balance": account_balance,
+        }
+    )
+    return EVENT
+
+
 def get_get_cash_accounts_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT

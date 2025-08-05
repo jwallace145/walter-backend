@@ -19,6 +19,7 @@ from tst.constants import (
     TRANSACTIONS_TABLE_NAME,
     CASH_ACCOUNTS_TABLE_NAME,
     CASH_ACCOUNTS_TEST_FILE,
+    CREDIT_ACCOUNTS_TABLE_NAME,
 )
 
 
@@ -39,6 +40,7 @@ class MockDDB:
         self._create_cash_accounts_table(
             CASH_ACCOUNTS_TABLE_NAME, CASH_ACCOUNTS_TEST_FILE
         )
+        self._create_credit_accounts_table(CREDIT_ACCOUNTS_TABLE_NAME, None)
         self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
 
     def _create_stocks_table(self, table_name: str, input_file_name: str) -> None:
@@ -187,6 +189,22 @@ class MockDDB:
                         ),
                     ).to_ddb_item(),
                 )
+
+    def _create_credit_accounts_table(
+        self, table_name: str, input_file_name: str
+    ) -> None:
+        self.mock_ddb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "user_id", "KeyType": "HASH"},
+                {"AttributeName": "account_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "user_id", "AttributeType": "S"},
+                {"AttributeName": "account_id", "AttributeType": "S"},
+            ],
+            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+        )
 
     def _create_transactions_table(self, table_name: str) -> None:
         self.mock_ddb.create_table(

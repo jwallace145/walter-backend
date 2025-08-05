@@ -3010,6 +3010,22 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "CashAccounts-${AppEnvironment}"
 
+  CreditAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: account_id
+          KeyType: RANGE
+      TableName: !Sub "CreditAccounts-${AppEnvironment}"
+
   StocksTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -3561,6 +3577,27 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt CashAccountsTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
+
+  CreditAccountsTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "CreditAccountsTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt CreditAccountsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
