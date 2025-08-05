@@ -256,8 +256,16 @@ class WalterDB:
     def create_credit_account(self, account: CreditAccount) -> CreditAccount:
         return self.credit_accounts_table.create_account(account)
 
+    def get_credit_account(
+        self, user_id: str, account_id: str
+    ) -> Optional[CreditAccount]:
+        return self.credit_accounts_table.get_account(user_id, account_id)
+
     def get_credit_accounts(self, user_id: str) -> List[CreditAccount]:
         return self.credit_accounts_table.get_accounts(user_id)
+
+    def delete_credit_account(self, user_id: str, account_id: str) -> None:
+        return self.credit_accounts_table.delete_account(user_id, account_id)
 
     ###############
     # PLAID ITEMS #

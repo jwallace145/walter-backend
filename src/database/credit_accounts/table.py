@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.credit_accounts.models import CreditAccount
@@ -31,6 +31,16 @@ class CreditAccountsTable:
         self.ddb.put_item(self.table_name, account.to_ddb_item())
         return account
 
+    def get_account(self, user_id: str, account_id: str) -> Optional[CreditAccount]:
+        log.info(f"Getting credit account '{account_id}' for user '{user_id}'")
+        account_item = self.ddb.get_item(
+            table=self.table_name,
+            key=CreditAccountsTable._get_primary_key(user_id, account_id),
+        )
+        if not account_item:
+            return None
+        return CreditAccount.get_account_from_ddb_item(account_item)
+
     def get_accounts(self, user_id: str) -> List[CreditAccount]:
         log.info(f"Getting credit accounts for user from table '{self.table_name}'")
 
@@ -46,6 +56,20 @@ class CreditAccountsTable:
         log.info(f"Returned {len(credit_accounts)} credit accounts for user!")
 
         return credit_accounts
+
+    def delete_account(self, user_id: str, account_id: str) -> None:
+        log.info(f"Deleting credit account '{account_id}' for user '{user_id}'")
+        self.ddb.delete_item(
+            table=self.table_name,
+            key=CreditAccountsTable._get_primary_key(user_id, account_id),
+        )
+
+    @staticmethod
+    def _get_primary_key(user_id: str, account_id: str) -> dict:
+        return {
+            "user_id": {"S": CreditAccount.get_user_id_key(user_id)},
+            "account_id": {"S": CreditAccount.get_account_id_key(account_id)},
+        }
 
     @staticmethod
     def _get_accounts_by_user_key(user_id: str) -> dict:

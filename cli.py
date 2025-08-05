@@ -39,6 +39,7 @@ from tst.api.utils import (
     get_delete_stock_event,
     get_create_credit_account_event,
     get_get_credit_accounts_event,
+    get_delete_credit_account_event,
 )
 from tst.events.utils import (
     get_walter_backend_event,
@@ -95,6 +96,7 @@ from walter import (
     delete_stock_entrypoint,
     create_credit_account_entrypoint,
     get_credit_accounts_entrypoint,
+    delete_credit_account_entrypoint,
 )
 
 log = Logger(__name__).get_logger()
@@ -359,6 +361,25 @@ def get_credit_accounts(
     event = get_get_credit_accounts_event(token)
     response = get_credit_accounts_entrypoint(event, CONTEXT)
     log.info(f"WalterCLI: GetCreditAccounts Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_credit_account(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(None, help="ID of the credit account to delete"),
+) -> None:
+    """
+    Delete an existing credit account for the authenticated user.
+
+    This command permanently removes a credit account from the user's profile.
+    The account must belong to the authenticated user to be deleted.
+
+    Both authentication token and account ID are required to delete an account.
+    """
+    log.info("WalterCLI: DeleteCreditAccount")
+    event = get_delete_credit_account_event(token, account_id)
+    response = delete_credit_account_entrypoint(event, CONTEXT)
+    log.info(f"WalterCLI: DeleteCreditAccount Response:\n{parse_response(response)}")
 
 
 @app.command()

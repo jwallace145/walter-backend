@@ -223,6 +223,22 @@ def get_get_credit_accounts_event(
     return EVENT
 
 
+def get_delete_credit_account_event(
+    token: str,
+    account_id: str,
+) -> dict:
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+        }
+    )
+    return EVENT
+
+
 def get_get_cash_accounts_event(token: str) -> dict:
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
