@@ -6,7 +6,7 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.accounts.cash_accounts.models import CashAccount, CashAccountType
+from src.database.accounts.cash.models import CashAccount, CashAccountType
 from src.database.client import WalterDB
 from src.database.users.models import User
 from src.utils.log import Logger
@@ -29,6 +29,7 @@ class CreateCashAccount(WalterAPIMethod):
         "account_type",
         "balance",
         "account_last_four_numbers",
+        "account_type",
     ]
     EXCEPTIONS = [
         NotAuthenticated,

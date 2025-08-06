@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.database.accounts.cash.models import CashAccount
+from src.database.accounts.models import Account
 from src.database.transactions.models import Transaction
 
 
@@ -10,27 +10,14 @@ class AccountTransaction:
     WalterDB: AccountTransaction Model
 
     The model class that represents a Transaction merged
-    with its owning CashAccount.
+    with its owning Account.
     """
 
-    DATE_FORMAT = "%Y-%m-%d"
-
-    account: CashAccount
+    account: Account
     transaction: Transaction
 
     def to_dict(self) -> dict:
         return {
-            "account_id": self.account.get_account_id(),
-            "bank_name": self.account.bank_name,
-            "account_name": self.account.account_name,
-            "account_type": self.account.account_type.value,
-            "account_last_four_numbers": self.account.account_last_four_numbers,
-            "transaction_id": self.transaction.transaction_id,
-            "transaction_date": self.transaction.date.strftime(
-                AccountTransaction.DATE_FORMAT
-            ),
-            "transaction_vendor": self.transaction.vendor,
-            "transaction_amount": self.transaction.amount,
-            "transaction_category": self.transaction.category.value,
-            "transaction_reviewed": self.transaction.reviewed,
+            **self.account.to_dict(),
+            **self.transaction.to_dict(),
         }

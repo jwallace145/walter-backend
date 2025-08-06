@@ -103,9 +103,7 @@ class AddTransaction(WalterAPIMethod):
         )
 
         # check db to see if an account exists for the user
-        account = self.walter_db.get_cash_account(
-            user_id=user_id, account_id=account_id
-        )
+        account = self.walter_db.get_account(user_id=user_id, account_id=account_id)
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:
