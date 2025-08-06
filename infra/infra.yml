@@ -1050,6 +1050,112 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  WalterAPIUserAccountsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: accounts
+
+  WalterAPICreditAccountsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIUserAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: credit
+
+  WalterAPICreditAccountsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPICreditAccountsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
+  WalterAPICreateCreditAccountPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPICreateCreditAccount.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPICreateCreditAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPICreditAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPICreateCreditAccount.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIGetCreditAccountsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIGetCreditAccounts.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIGetCreditAccountsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPICreditAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIGetCreditAccounts.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIDeleteCreditAccountPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${WalterAPIDeleteCreditAccount.Arn}:release"
+      Principal: apigateway.amazonaws.com
+
+  WalterAPIDeleteCreditAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId: !Ref WalterAPICreditAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPIDeleteCreditAccount.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
   WalterAPICashAccountsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -2339,6 +2445,90 @@ Resources:
       ImageConfig:
         Command:
           - walter.create_cash_account_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
+
+  WalterAPICreateCreditAccountAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPICreateCreditAccount
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPICreateCreditAccount:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-CreateCreditAccount-${AppEnvironment}"
+      Description: !Sub "WalterAPI: CreateCreditAccount - Create credit account for user in WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.create_credit_account_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
+
+  WalterAPIGetCreditAccountsAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIGetCreditAccounts
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIGetCreditAccounts:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-GetCreditAccounts-${AppEnvironment}"
+      Description: !Sub "WalterAPI: GetCreditAccounts - Get all credit accounts for user from WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.get_credit_accounts_entrypoint
+      Timeout: !Ref WalterAPITimeoutSeconds
+      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
+      Architectures:
+        - !Ref WalterAPILambdaArchitecture
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
+
+  WalterAPIDeleteCreditAccountAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref WalterAPIDeleteCreditAccount
+      FunctionVersion: 1
+      Name: "release"
+
+  WalterAPIDeleteCreditAccount:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterAPI-DeleteCreditAccount-${AppEnvironment}"
+      Description: !Sub "WalterAPI: DeleteCreditAccount - Delete a user's credit account from WalterDB. (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.delete_credit_account_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:

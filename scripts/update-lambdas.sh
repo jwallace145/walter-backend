@@ -19,6 +19,12 @@ echo Updating WalterAPI AddStock source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-ChangePassword-dev --s3-bucket walter-backend-src --s3-key walter-backend.zip --no-cli-pager \
 && echo Updating WalterAPI CreateCashAccount source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateCashAccount-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI CreateCreditAccount source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-CreateCreditAccount-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI GetCreditAccounts source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-GetCreditAccounts-dev --image-uri $IMAGE_URI --no-cli-pager \
+&& echo Updating WalterAPI DeleteCreditAccount source code with artifact from S3 \
+&& aws lambda update-function-code --function-name WalterAPI-DeleteCreditAccount-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterAPI CreateLinkToken source code with artifact from S3 \
 && aws lambda update-function-code --function-name WalterAPI-CreateLinkToken-dev --image-uri $IMAGE_URI --no-cli-pager \
 && echo Updating WalterWorkflow CreateNewsletterAndSend source code with artifact from S3 \
