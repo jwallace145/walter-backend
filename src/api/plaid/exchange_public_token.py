@@ -12,7 +12,7 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.cash_accounts.models import CashAccount, CashAccountType
+from src.database.accounts.cash.models import CashAccount, CashAccountType
 from src.database.client import WalterDB
 from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User

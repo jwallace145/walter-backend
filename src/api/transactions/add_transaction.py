@@ -13,7 +13,7 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.cash_accounts.models import CashAccount
+from src.database.accounts.cash.models import CashAccount
 from src.database.client import WalterDB
 from src.database.transactions.models import Transaction
 from src.utils.log import Logger
@@ -103,9 +103,7 @@ class AddTransaction(WalterAPIMethod):
         )
 
         # check db to see if an account exists for the user
-        account = self.walter_db.get_cash_account(
-            user_id=user_id, account_id=account_id
-        )
+        account = self.walter_db.get_account(user_id=user_id, account_id=account_id)
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:

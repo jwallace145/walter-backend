@@ -8,7 +8,9 @@ help:
 	@echo "  make update-src     	  Update Walter API src code"
 	@echo "  make update-image   	  Update WalterAPI image"
 	@echo "  make update-apis         Update WalterAPI functions and increment versions"
+	@echo "  make update-release	  Update the WalterAPI functions latest version to release"
 	@echo "  make update-infra        Update Walter API infra"
+	@echo "  make release-api         Release API changes"
 
 
 format:

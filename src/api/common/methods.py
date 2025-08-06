@@ -175,7 +175,7 @@ class WalterAPIMethod(ABC):
         if event["body"] is not None:
             body = json.loads(event["body"])
         for field in self.required_fields:
-            if field not in body:
+            if field not in body or body[field] is None:
                 raise BadRequest(
                     f"Client bad request! Missing required field: '{field}'"
                 )

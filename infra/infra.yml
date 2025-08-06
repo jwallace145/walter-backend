@@ -2346,7 +2346,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCashAccounts
-      FunctionVersion: 7
+      FunctionVersion: 37
       Name: "release"
 
   WalterAPIGetCashAccounts:
@@ -2402,7 +2402,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCashAccount
-      FunctionVersion: 1
+      FunctionVersion: 33
       Name: "release"
 
   WalterAPIDeleteCashAccount:
@@ -2430,7 +2430,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
-      FunctionVersion: 30
+      FunctionVersion: 32
       Name: "release"
 
   WalterAPICreateCashAccount:
@@ -2458,7 +2458,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCreditAccount
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
 
   WalterAPICreateCreditAccount:
@@ -2486,7 +2486,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCreditAccounts
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
 
   WalterAPIGetCreditAccounts:
@@ -2514,7 +2514,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCreditAccount
-      FunctionVersion: 1
+      FunctionVersion: 2
       Name: "release"
 
   WalterAPIDeleteCreditAccount:
@@ -2542,7 +2542,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetTransactions
-      FunctionVersion: 16
+      FunctionVersion: 42
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2572,7 +2572,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddTransaction
-      FunctionVersion: 37
+      FunctionVersion: 42
       Name: "release"
 
   WalterAPIAddTransaction:
@@ -2600,7 +2600,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditTransaction
-      FunctionVersion: 37
+      FunctionVersion: 42
       Name: "release"
 
   WalterAPIEditTransaction:
@@ -2628,7 +2628,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteTransaction
-      FunctionVersion: 37
+      FunctionVersion: 42
       Name: "release"
 
   WalterAPIDeleteTransaction:

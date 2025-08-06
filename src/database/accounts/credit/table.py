@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.credit_accounts.models import CreditAccount
+from src.database.accounts.credit.models import CreditAccount
 from src.environment import Domain
 from src.utils.log import Logger
 

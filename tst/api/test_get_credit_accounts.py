@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.common.models import HTTPStatus, Status
-from src.api.credit_accounts.get_credit_accounts import GetCreditAccounts
+from src.api.accounts.credit.get_credit_accounts import GetCreditAccounts
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB

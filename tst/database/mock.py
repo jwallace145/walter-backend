@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
-from src.database.cash_accounts.models import CashAccount, CashAccountType
-from src.database.credit_accounts.models import CreditAccount
+from src.database.accounts.cash.models import CashAccount, CashAccountType
+from src.database.accounts.credit.models import CreditAccount
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
@@ -187,10 +187,10 @@ class MockDDB:
                         created_at=datetime.datetime.strptime(
                             json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
-                        logo_url=json_account["logo_url"],
                         updated_at=datetime.datetime.strptime(
                             json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
+                        logo_url=json_account["logo_url"],
                     ).to_ddb_item(),
                 )
 
@@ -230,10 +230,10 @@ class MockDDB:
                         created_at=datetime.datetime.strptime(
                             json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
-                        logo_url=json_account["logo_url"],
                         updated_at=datetime.datetime.strptime(
                             json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
+                        logo_url=json_account["logo_url"],
                     ).to_ddb_item(),
                 )
 

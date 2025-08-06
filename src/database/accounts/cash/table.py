@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.cash_accounts.models import CashAccount
+from src.database.accounts.cash.models import CashAccount
 from src.environment import Domain
 from src.utils.log import Logger
 
@@ -55,6 +55,7 @@ class CashAccountsTable:
 
         cash_accounts = []
         for item in cash_account_items:
+            print(item)
             cash_accounts.append(CashAccount.get_account_from_ddb_item(item))
 
         log.info(f"Returned {len(cash_accounts)} cash accounts for user!")

@@ -4,10 +4,11 @@ from typing import Dict, List, Optional
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.cash_accounts.models import CashAccount
-from src.database.cash_accounts.table import CashAccountsTable
-from src.database.credit_accounts.models import CreditAccount
-from src.database.credit_accounts.table import CreditAccountsTable
+from src.database.accounts.cash.models import CashAccount
+from src.database.accounts.cash.table import CashAccountsTable
+from src.database.accounts.credit.models import CreditAccount
+from src.database.accounts.credit.table import CreditAccountsTable
+from src.database.accounts.models import Account
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
@@ -181,7 +182,7 @@ class WalterDB:
         """
         # create account id to accounts dict
         accounts = {}
-        for account in self.get_cash_accounts(user_id):
+        for account in self.get_accounts(user_id):
             accounts[account.get_account_id()] = account
 
         # get transactions owned by user over given date range
@@ -229,6 +230,24 @@ class WalterDB:
             transaction_id: The unique ID of the transaction.
         """
         self.transactions_table.delete_transaction(user_id, date, transaction_id)
+
+    ############
+    # ACCOUNTS #
+    ############
+
+    def get_accounts(self, user_id: str) -> List[Account]:
+        cash_accounts = self.get_cash_accounts(user_id)
+        credit_accounts = self.get_credit_accounts(user_id)
+        return cash_accounts + credit_accounts
+
+    def get_account(self, user_id: str, account_id: str) -> Optional[Account]:
+        cash_account = self.get_cash_account(user_id, account_id)
+        if cash_account:
+            return cash_account
+        credit_account = self.get_credit_account(user_id, account_id)
+        if credit_account:
+            return credit_account
+        return None
 
     #################
     # CASH ACCOUNTS #
