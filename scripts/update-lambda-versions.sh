@@ -8,6 +8,12 @@ echo Publishing new WalterAPI AddStock Lambda version \
 && aws lambda publish-version --function-name WalterAPI-ChangePassword-dev --no-cli-pager \
 && echo Publishing new WalterAPI CreateCashAccount Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateCashAccount-dev --no-cli-pager \
+&& echo Publishing new WalterAPI CreateCreditAccount Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-CreateCreditAccount-dev --no-cli-pager \
+&& echo Publishing new WalterAPI GetCreditAccounts Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-GetCreditAccounts-dev --no-cli-pager \
+&& echo Publishing new WalterAPI DeleteCreditAccount Lambda version \
+&& aws lambda publish-version --function-name WalterAPI-DeleteCreditAccount-dev --no-cli-pager \
 && echo Publishing new WalterAPI CreateLinkToken Lambda version \
 && aws lambda publish-version --function-name WalterAPI-CreateLinkToken-dev --no-cli-pager \
 && echo Publishing new WalterAPI CreateUser Lambda version \

@@ -52,7 +52,7 @@ class Transaction:
     DATE_FORMAT = "%Y-%m-%d"
 
     user_id: str  # hash key
-    date: dt.datetime
+    date: dt.datetime  # range key
     account_id: str  # foreign key to accounts table
     vendor: str
     amount: float
