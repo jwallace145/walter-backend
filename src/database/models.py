@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.database.cash_accounts.models import CashAccount
+from src.database.accounts.cash.models import CashAccount
 from src.database.transactions.models import Transaction
 
 
