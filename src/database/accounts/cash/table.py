@@ -55,7 +55,6 @@ class CashAccountsTable:
 
         cash_accounts = []
         for item in cash_account_items:
-            print(item)
             cash_accounts.append(CashAccount.get_account_from_ddb_item(item))
 
         log.info(f"Returned {len(cash_accounts)} cash accounts for user!")

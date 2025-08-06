@@ -2402,7 +2402,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCashAccount
-      FunctionVersion: 33
+      FunctionVersion: 35
       Name: "release"
 
   WalterAPIDeleteCashAccount:
@@ -2514,7 +2514,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCreditAccount
-      FunctionVersion: 2
+      FunctionVersion: 4
       Name: "release"
 
   WalterAPIDeleteCreditAccount:

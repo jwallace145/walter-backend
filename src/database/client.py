@@ -231,6 +231,28 @@ class WalterDB:
         """
         self.transactions_table.delete_transaction(user_id, date, transaction_id)
 
+    def delete_transactions(self, user_id: str, account_id: str) -> None:
+        """
+        Delete all transactions for a user and account_id.
+
+        Args:
+            user_id: The user that owns the account.
+            account_id: The owning account of the transactions to delete.
+
+        Returns:
+            None.
+        """
+        # get all transactions for user and filter by account_id
+        for transaction in self.get_transactions(
+            user_id, dt.datetime.min, dt.datetime.max
+        ):
+            if transaction.account.get_account_id() == account_id:
+                self.delete_transaction(
+                    user_id,
+                    transaction.transaction.date,
+                    transaction.transaction.transaction_id,
+                )
+
     ############
     # ACCOUNTS #
     ############

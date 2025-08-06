@@ -105,9 +105,12 @@ class DeleteCreditAccount(WalterAPIMethod):
         """
         log.info("Deleting credit account for user")
 
+        # get account id from request body
         body = json.loads(event["body"])
         account_id = body["account_id"]
 
+        # delete credit account and transactions from db
+        self.walter_db.delete_transactions(user_id=user.user_id, account_id=account_id)
         self.walter_db.delete_credit_account(
             user_id=user.user_id, account_id=account_id
         )
