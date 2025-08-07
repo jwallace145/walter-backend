@@ -1641,7 +1641,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAuthUser
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ auth_user_api_version }}
+========
+      FunctionVersion: 52
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
@@ -1671,7 +1675,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateUser
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ create_user_api_version }}
+========
+      FunctionVersion: 83
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPICreateUser:
@@ -1699,7 +1707,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_user_api_version }}
+========
+      FunctionVersion: 88
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetUser:
@@ -1727,7 +1739,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateUser
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ update_user_api_version }}
+========
+      FunctionVersion: 55
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIUpdateUser:
@@ -1755,7 +1771,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStock
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_stock_api_version }}
+========
+      FunctionVersion: 83
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1785,7 +1805,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStatistics
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_statistics_api_version }}
+========
+      FunctionVersion: 77
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetStatistics:
@@ -1815,7 +1839,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ add_stock_api_version }}
+========
+      FunctionVersion: 83
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIAddStock:
@@ -1843,7 +1871,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ delete_stock_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -1871,7 +1903,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_prices_api_version }}
+========
+      FunctionVersion: 87
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1901,7 +1937,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsSummary
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_news_summary_api_version }}
+========
+      FunctionVersion: 79
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetNewsSummary:
@@ -1929,7 +1969,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_portfolio_api_version }}
+========
+      FunctionVersion: 86
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1959,7 +2003,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendNewsletter
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ send_newsletter_api_version }}
+========
+      FunctionVersion: 83
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISendNewsletter:
@@ -1989,7 +2037,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletter
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_newsletter_api_version }}
+========
+      FunctionVersion: 77
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetNewsletter:
@@ -2020,7 +2072,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_newsletters_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2050,7 +2106,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendVerifyEmail
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ send_verify_email_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISendVerifyEmail:
@@ -2080,7 +2140,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIVerifyEmail
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ verify_email_api_version }}
+========
+      FunctionVersion: 79
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIVerifyEmail:
@@ -2110,7 +2174,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendChangePasswordEmail
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ send_change_password_email_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISendChangePasswordEmail:
@@ -2140,7 +2208,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIChangePassword
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ change_password_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIChangePassword:
@@ -2170,7 +2242,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdatePassword
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ update_password_api_version }}
+========
+      FunctionVersion: 43
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIUpdatePassword:
@@ -2198,7 +2274,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISubscribe
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ subscribe_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISubscribe:
@@ -2228,7 +2308,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUnsubscribe
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ unsubscribe_api_version }}
+========
+      FunctionVersion: 80
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIUnsubscribe:
@@ -2258,7 +2342,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISearchStocks
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ search_stocks_api_version }}
+========
+      FunctionVersion: 78
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISearchStocks:
@@ -2286,7 +2374,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIPurchaseNewsletterSubscription
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ purchase_newsletter_subscription_api_version }}
+========
+      FunctionVersion: 4
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIPurchaseNewsletterSubscription:
@@ -2316,7 +2408,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIVerifyPurchaseNewsletterSubscription
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ verify_purchase_newsletter_subscription_api_version }}
+========
+      FunctionVersion: 3
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIVerifyPurchaseNewsletterSubscription:
@@ -2346,7 +2442,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCashAccounts
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_cash_accounts_api_version }}
+========
+      FunctionVersion: 43
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetCashAccounts:
@@ -2374,7 +2474,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateCashAccount
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ update_cash_account_api_version }}
+========
+      FunctionVersion: 40
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIUpdateCashAccount:
@@ -2402,7 +2506,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCashAccount
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ delete_cash_account_api_version }}
+========
+      FunctionVersion: 39
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIDeleteCashAccount:
@@ -2430,7 +2538,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ create_cash_account_api_version }}
+========
+      FunctionVersion: 38
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPICreateCashAccount:
@@ -2458,7 +2570,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCreditAccount
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ create_credit_account_api_version }}
+========
+      FunctionVersion: 8
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPICreateCreditAccount:
@@ -2486,7 +2602,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCreditAccounts
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_credit_accounts_api_version }}
+========
+      FunctionVersion: 8
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIGetCreditAccounts:
@@ -2514,7 +2634,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCreditAccount
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ delete_credit_account_api_version }}
+========
+      FunctionVersion: 8
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIDeleteCreditAccount:
@@ -2542,7 +2666,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetTransactions
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ get_transactions_api_version }}
+========
+      FunctionVersion: 47
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2572,7 +2700,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddTransaction
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ add_transaction_api_version }}
+========
+      FunctionVersion: 47
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIAddTransaction:
@@ -2600,7 +2732,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditTransaction
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ edit_transaction_api_version }}
+========
+      FunctionVersion: 47
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIEditTransaction:
@@ -2628,7 +2764,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteTransaction
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ delete_transaction_api_version }}
+========
+      FunctionVersion: 47
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIDeleteTransaction:
@@ -2656,7 +2796,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateLinkToken
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ create_link_token_api_version }}
+========
+      FunctionVersion: 31
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPICreateLinkToken:
@@ -2684,7 +2828,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIExchangePublicToken
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ exchange_public_token_api_version }}
+========
+      FunctionVersion: 30
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPIExchangePublicToken:
@@ -2712,7 +2860,11 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISyncTransactions
+<<<<<<<< HEAD:infra/infra.yml.j2
       FunctionVersion: {{ sync_transactions_api_version }}
+========
+      FunctionVersion: 17
+>>>>>>>> d03db06 (feat: add automated deployment script):infra/infra.yml
       Name: "release"
 
   WalterAPISyncTransactions:
