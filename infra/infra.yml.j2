@@ -1641,7 +1641,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAuthUser
-      FunctionVersion: 52
+      FunctionVersion: {{ auth_user_api_version }}
       Name: "release"
 
   # NOTE: Do not add provisioned concurrency to AuthUser API to reduce latency, authentication is intentionally slow
@@ -1671,7 +1671,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateUser
-      FunctionVersion: 83
+      FunctionVersion: {{ create_user_api_version }}
       Name: "release"
 
   WalterAPICreateUser:
@@ -1699,7 +1699,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetUser
-      FunctionVersion: 88
+      FunctionVersion: {{ get_user_api_version }}
       Name: "release"
 
   WalterAPIGetUser:
@@ -1727,7 +1727,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateUser
-      FunctionVersion: 55
+      FunctionVersion: {{ update_user_api_version }}
       Name: "release"
 
   WalterAPIUpdateUser:
@@ -1755,7 +1755,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStock
-      FunctionVersion: 83
+      FunctionVersion: {{ get_stock_api_version }}
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1785,7 +1785,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetStatistics
-      FunctionVersion: 77
+      FunctionVersion: {{ get_statistics_api_version }}
       Name: "release"
 
   WalterAPIGetStatistics:
@@ -1815,7 +1815,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddStock
-      FunctionVersion: 83
+      FunctionVersion: {{ add_stock_api_version }}
       Name: "release"
 
   WalterAPIAddStock:
@@ -1843,7 +1843,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteStock
-      FunctionVersion: 80
+      FunctionVersion: {{ delete_stock_api_version }}
       Name: "release"
 
   WalterAPIDeleteStock:
@@ -1871,7 +1871,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPrices
-      FunctionVersion: 87
+      FunctionVersion: {{ get_prices_api_version }}
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1901,7 +1901,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsSummary
-      FunctionVersion: 79
+      FunctionVersion: {{ get_news_summary_api_version }}
       Name: "release"
 
   WalterAPIGetNewsSummary:
@@ -1929,7 +1929,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetPortfolio
-      FunctionVersion: 86
+      FunctionVersion: {{ get_portfolio_api_version }}
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -1959,7 +1959,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendNewsletter
-      FunctionVersion: 83
+      FunctionVersion: {{ send_newsletter_api_version }}
       Name: "release"
 
   WalterAPISendNewsletter:
@@ -1989,7 +1989,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletter
-      FunctionVersion: 77
+      FunctionVersion: {{ get_newsletter_api_version }}
       Name: "release"
 
   WalterAPIGetNewsletter:
@@ -2020,7 +2020,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetNewsletters
-      FunctionVersion: 80
+      FunctionVersion: {{ get_newsletters_api_version }}
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2050,7 +2050,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendVerifyEmail
-      FunctionVersion: 80
+      FunctionVersion: {{ send_verify_email_api_version }}
       Name: "release"
 
   WalterAPISendVerifyEmail:
@@ -2080,7 +2080,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIVerifyEmail
-      FunctionVersion: 79
+      FunctionVersion: {{ verify_email_api_version }}
       Name: "release"
 
   WalterAPIVerifyEmail:
@@ -2110,7 +2110,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISendChangePasswordEmail
-      FunctionVersion: 80
+      FunctionVersion: {{ send_change_password_email_api_version }}
       Name: "release"
 
   WalterAPISendChangePasswordEmail:
@@ -2140,7 +2140,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIChangePassword
-      FunctionVersion: 80
+      FunctionVersion: {{ change_password_api_version }}
       Name: "release"
 
   WalterAPIChangePassword:
@@ -2170,7 +2170,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdatePassword
-      FunctionVersion: 43
+      FunctionVersion: {{ update_password_api_version }}
       Name: "release"
 
   WalterAPIUpdatePassword:
@@ -2198,7 +2198,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISubscribe
-      FunctionVersion: 80
+      FunctionVersion: {{ subscribe_api_version }}
       Name: "release"
 
   WalterAPISubscribe:
@@ -2228,7 +2228,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUnsubscribe
-      FunctionVersion: 80
+      FunctionVersion: {{ unsubscribe_api_version }}
       Name: "release"
 
   WalterAPIUnsubscribe:
@@ -2258,7 +2258,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISearchStocks
-      FunctionVersion: 78
+      FunctionVersion: {{ search_stocks_api_version }}
       Name: "release"
 
   WalterAPISearchStocks:
@@ -2286,7 +2286,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIPurchaseNewsletterSubscription
-      FunctionVersion: 4
+      FunctionVersion: {{ purchase_newsletter_subscription_api_version }}
       Name: "release"
 
   WalterAPIPurchaseNewsletterSubscription:
@@ -2316,7 +2316,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIVerifyPurchaseNewsletterSubscription
-      FunctionVersion: 3
+      FunctionVersion: {{ verify_purchase_newsletter_subscription_api_version }}
       Name: "release"
 
   WalterAPIVerifyPurchaseNewsletterSubscription:
@@ -2346,7 +2346,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCashAccounts
-      FunctionVersion: 43
+      FunctionVersion: {{ get_cash_accounts_api_version }}
       Name: "release"
 
   WalterAPIGetCashAccounts:
@@ -2374,7 +2374,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIUpdateCashAccount
-      FunctionVersion: 40
+      FunctionVersion: {{ update_cash_account_api_version }}
       Name: "release"
 
   WalterAPIUpdateCashAccount:
@@ -2402,7 +2402,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCashAccount
-      FunctionVersion: 39
+      FunctionVersion: {{ delete_cash_account_api_version }}
       Name: "release"
 
   WalterAPIDeleteCashAccount:
@@ -2430,7 +2430,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCashAccount
-      FunctionVersion: 38
+      FunctionVersion: {{ create_cash_account_api_version }}
       Name: "release"
 
   WalterAPICreateCashAccount:
@@ -2458,7 +2458,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateCreditAccount
-      FunctionVersion: 8
+      FunctionVersion: {{ create_credit_account_api_version }}
       Name: "release"
 
   WalterAPICreateCreditAccount:
@@ -2486,7 +2486,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetCreditAccounts
-      FunctionVersion: 8
+      FunctionVersion: {{ get_credit_accounts_api_version }}
       Name: "release"
 
   WalterAPIGetCreditAccounts:
@@ -2514,7 +2514,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteCreditAccount
-      FunctionVersion: 8
+      FunctionVersion: {{ delete_credit_account_api_version }}
       Name: "release"
 
   WalterAPIDeleteCreditAccount:
@@ -2542,7 +2542,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIGetTransactions
-      FunctionVersion: 47
+      FunctionVersion: {{ get_transactions_api_version }}
       Name: "release"
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
@@ -2572,7 +2572,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIAddTransaction
-      FunctionVersion: 47
+      FunctionVersion: {{ add_transaction_api_version }}
       Name: "release"
 
   WalterAPIAddTransaction:
@@ -2600,7 +2600,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIEditTransaction
-      FunctionVersion: 47
+      FunctionVersion: {{ edit_transaction_api_version }}
       Name: "release"
 
   WalterAPIEditTransaction:
@@ -2628,7 +2628,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIDeleteTransaction
-      FunctionVersion: 47
+      FunctionVersion: {{ delete_transaction_api_version }}
       Name: "release"
 
   WalterAPIDeleteTransaction:
@@ -2656,7 +2656,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPICreateLinkToken
-      FunctionVersion: 31
+      FunctionVersion: {{ create_link_token_api_version }}
       Name: "release"
 
   WalterAPICreateLinkToken:
@@ -2684,7 +2684,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPIExchangePublicToken
-      FunctionVersion: 30
+      FunctionVersion: {{ exchange_public_token_api_version }}
       Name: "release"
 
   WalterAPIExchangePublicToken:
@@ -2712,7 +2712,7 @@ Resources:
     Type: AWS::Lambda::Alias
     Properties:
       FunctionName: !Ref WalterAPISyncTransactions
-      FunctionVersion: 17
+      FunctionVersion: {{ sync_transactions_api_version }}
       Name: "release"
 
   WalterAPISyncTransactions:

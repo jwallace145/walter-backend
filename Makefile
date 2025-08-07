@@ -8,9 +8,9 @@ help:
 	@echo "  make update-src     	  Update Walter API src code"
 	@echo "  make update-image   	  Update WalterAPI image"
 	@echo "  make update-apis         Update WalterAPI functions and increment versions"
-	@echo "  make update-release	  Update the WalterAPI functions latest version to release"
+	@echo "  make update-release	  TODO: Update the WalterAPI functions latest version to release"
 	@echo "  make update-infra        Update Walter API infra"
-	@echo "  make release-api         Release API changes"
+	@echo "  make release-api         TODO: Release API changes"
 
 
 format:
@@ -23,7 +23,8 @@ test:
 	pipenv run pytest --cov src --cov-report=xml -vv
 
 update-image:
-	aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 010526272437.dkr.ecr.us-east-1.amazonaws.com \
+	echo "Updating WalterAPI image" \
+	&& aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 010526272437.dkr.ecr.us-east-1.amazonaws.com \
 	&& docker build -t walter/api . \
 	&& docker tag walter/api:latest 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest \
 	&& docker push 010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest
