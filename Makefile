@@ -18,4 +18,4 @@ test:
 	pipenv run pytest --cov src --cov-report=xml -vv
 
 deploy:
-	pipenv run python deploy.pyf
+	pipenv run python deploy.py

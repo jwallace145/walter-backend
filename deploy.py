@@ -141,13 +141,13 @@ def update_api_source_code(lambda_client) -> None:
         FunctionName=f"WalterAPI-{APP_ENVIRONMENT}",
         ImageUri=WALTER_API_IMAGE_URI,
     )
-    sleep(10)
+    sleep(30)
 
 
 def increment_api_version(lambda_client) -> None:
     print(f"Incrementing version of WalterAPI-{APP_ENVIRONMENT}...")
     lambda_client.publish_version(FunctionName=f"WalterAPI-{APP_ENVIRONMENT}")
-    sleep(10)
+    sleep(30)
 
 
 def get_latest_api_versions(lambda_client) -> Dict[str, str]:
