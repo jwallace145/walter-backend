@@ -5,6 +5,30 @@ from plaid import Environment
 
 from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
+from src.api.accounts.cash.create_cash_account import CreateCashAccount
+from src.api.accounts.cash.delete_cash_account import DeleteCashAccount
+from src.api.accounts.cash.get_cash_accounts import GetCashAccounts
+from src.api.accounts.cash.update_cash_account import UpdateCashAccount
+from src.api.accounts.credit.create_credit_account import CreateCreditAccount
+from src.api.accounts.credit.delete_credit_account import DeleteCreditAccount
+from src.api.accounts.credit.get_credit_accounts import GetCreditAccounts
+from src.api.add_stock import AddStock
+from src.api.auth_user import AuthUser
+from src.api.create_user import CreateUser
+from src.api.delete_stock import DeleteStock
+from src.api.get_portfolio import GetPortfolio
+from src.api.get_prices import GetPrices
+from src.api.get_stock import GetStock
+from src.api.get_user import GetUser
+from src.api.plaid.create_link_token import CreateLinkToken
+from src.api.plaid.exchange_public_token import ExchangePublicToken
+from src.api.plaid.refresh_transactions import RefreshTransactions
+from src.api.plaid.sync_transactions import SyncTransactions
+from src.api.transactions.add_transaction import AddTransaction
+from src.api.transactions.delete_transaction import DeleteTransaction
+from src.api.transactions.edit_transaction import EditTransaction
+from src.api.transactions.get_transactions import GetTransactions
+from src.api.update_user import UpdateUser
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -184,3 +208,85 @@ plaid = PlaidClient(
 )
 
 sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
+
+###############
+# API METHODS #
+###############
+
+# AUTHENTICATION
+auth_user_api = AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm)
+
+# CASH ACCOUNTS
+get_cash_accounts_api = GetCashAccounts(walter_authenticator, walter_cw, walter_db)
+create_cash_account_api = CreateCashAccount(walter_authenticator, walter_cw, walter_db)
+update_cash_account_api = UpdateCashAccount(walter_authenticator, walter_cw, walter_db)
+delete_cash_account_api = DeleteCashAccount(walter_authenticator, walter_cw, walter_db)
+
+# CREDIT ACCOUNTS
+get_credit_accounts_api = GetCreditAccounts(walter_authenticator, walter_cw, walter_db)
+create_credit_account_api = CreateCreditAccount(
+    walter_authenticator, walter_cw, walter_db
+)
+delete_credit_account_api = DeleteCreditAccount(
+    walter_authenticator, walter_cw, walter_db
+)
+
+# PORTFOLIOS
+get_portfolio_api = GetPortfolio(
+    walter_authenticator, walter_cw, walter_db, walter_sm, walter_stocks_api
+)
+
+# PRICES
+get_prices_api = GetPrices(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api
+)
+
+# STOCKS
+get_stocks_api = GetStock(walter_authenticator, walter_cw, walter_db, walter_stocks_api)
+add_stock_api = AddStock(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+)
+delete_stock_api = DeleteStock(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+)
+
+# TRANSACTIONS
+get_transactions_api = GetTransactions(walter_authenticator, walter_cw, walter_db)
+add_transaction_api = AddTransaction(
+    walter_authenticator, walter_cw, walter_db, expense_categorizer
+)
+edit_transaction_api = EditTransaction(walter_authenticator, walter_cw, walter_db)
+delete_transaction_api = DeleteTransaction(walter_authenticator, walter_cw, walter_db)
+
+# USERS
+get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
+create_user_api = CreateUser(
+    walter_authenticator,
+    walter_cw,
+    walter_db,
+    walter_ses,
+    template_engine,
+    templates_bucket,
+)
+update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
+
+# PLAID
+plaid_create_link_token_api = CreateLinkToken(
+    walter_authenticator, walter_cw, walter_db, plaid
+)
+plaid_exchange_public_token_api = ExchangePublicToken(
+    walter_authenticator,
+    walter_cw,
+    walter_db,
+    plaid,
+    sync_user_transactions_queue,
+)
+plaid_sync_transactions_api = SyncTransactions(
+    walter_authenticator,
+    walter_cw,
+    walter_db,
+    sync_user_transactions_queue,
+)
+plaid_refresh_transactions_api = RefreshTransactions(
+    walter_authenticator, walter_cw, walter_db, plaid
+)
