@@ -6,6 +6,7 @@ help:
 	@echo "  make lint                Lint code"
 	@echo "  make test    	     	  Run unit test suite"
 	@echo "  make deploy              Deploy changes"
+	@echo "  make docs                Start API documentation Swagger UI local server"
 
 
 format:
@@ -19,3 +20,6 @@ test:
 
 deploy:
 	pipenv run python deploy.py
+
+docs:
+	docker run -p 80:8080 -e SWAGGER_JSON=/foo/openapi.yml -v "$(CURDIR)/openapi.yml":/foo/openapi.yml swaggerapi/swagger-ui

@@ -10,70 +10,34 @@
 
 * [Walter](#walter)
 * [Table of Contents](#table-of-contents)
+* [Features](#features)
 * [Architecture](#architecture)
-* [Templates](#templates)
+* [Documentation](#documentation)
 * [Contributions](#contributions)
 * [Links](#links)
 
 ### Features
 
-* Track expenses with intelligent-categorization
-* Track portfolio performance with AI insights
-* Deliver weekly financial wellness newsletters
+* Track expenses with machine learning categorization for smarter budgeting
+* Track net worth by connecting your cash, credit, and investment accounts to paint a clear picture of your financial health
 
 ### Architecture
 
 ![Walter-ArchDiagram](https://github.com/user-attachments/assets/5cbac20f-8366-4904-a5b5-0b2a43eb669c)
 
-### Templates
+### Documentation
 
-`WalterAIBackend` uses email templates stored in S3 to create the emails to send to subscribers. Each email template is written in HTML and uses [Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) to parameterize the inputs. `WalterAIBackend` pulls the email templates from S3 and renders the template given the `templatespec.yml` and the `template.jinja` file. The `templatespec.yml` is the specification file that tells Walter the name of the parameters as well as the Bedrock prompts to use to get the parameter value. An example of a `templatespec.yml` file is given below:
+The API methods provided by WalterAPI are documented with [OpenAPI v3.0.0 specifications](https://spec.openapis.org/oas/v3.0.0.html). To interact with the APIs, run the following command to start a [Swagger UI](https://swagger.io/tools/swagger-ui/) local server:
 
-```yaml
-version: 0.0
+```bash
+# use the Makefile command shortcut to start the Swagger UI local server
+make docs
 
-#########################
-# DEFAULT TEMPLATE SPEC #
-#########################
-
-TemplateSpec:
-
-  ###########
-  # CONTEXT #
-  ###########
-
-  Context:
-    User: {{ user }}
-    PortfolioValue: {{ portfolio_value }}
-    Stocks:
-      {% for stock in stocks %}
-      - Symbol: {{ stock.symbol }}
-        Price: {{ stock.price }}
-      {% endfor %}
-
-  ########
-  # KEYS #
-  ########
-
-  Keys:
-    - Key: User
-      Value: {{ user }}
-    - Key: PortfolioValue
-      Value: {{ portfolio_value }}
-      
-  ###########
-  # PROMPTS #
-  ###########
-
-  Prompts:
-    - Key: Newsletter
-      Prompt: |
-        Write a newsletter with business casual humor!
-      MaxGenLength: 600
+# or start the Swagger UI local server manually
+docker run -p 80:8080 -e SWAGGER_JSON=/foo/openapi.yml -v "$(CURDIR)/openapi.yml":/foo/openapi.yml swaggerapi/swagger-ui
 ```
 
-After getting the answers to the prompts given in the `templatespec.yml` file, Walter renders the template with 
-[Jinja](https://jinja.palletsprojects.com/en/3.1.x/api/) and then sends the custom newsletter to the subscriber!
+The above Swagger UI for the WalterAPI will be available at [http://localhost:80](http://localhost:80). Each API method is documented with a description, request parameters, and response parameters. Use the interactive documentation to explore the API methods and their parameters.
 
 ### Local Testing
 

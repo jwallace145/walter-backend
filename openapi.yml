@@ -1,0 +1,1854 @@
+openapi: 3.0.0
+info:
+  title: Walter API
+  version: 1.0.0
+  description: The API that serves the Walter AI financial assistant.
+servers:
+  - url: https://084slq55lk.execute-api.us-east-1.amazonaws.com/{environment}
+    description: The API Gateway endpoint for the Walter API.
+    variables:
+      environment:
+        default: dev
+        enum:
+          - dev
+paths:
+  /auth:
+    post:
+      summary: Authenticate a user
+      description: >
+        Authenticates a user using their email and password.  
+        Returns a JWT token upon successful authentication.
+      operationId: authenticateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+            example:
+              email: test@gmail.com
+              password: test_password
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                Service: WalterAPI
+                API: AuthUser
+                Status: Success
+                Message: User authenticated!
+                ResponseTimeMillis: 1925.8990000000001
+                Data:
+                  token: TEST_TOKEN
+  /cash-accounts:
+    get:
+      summary: Retrieve all cash accounts
+      description: >
+        Returns a list of cash accounts for the authenticated user.  
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getCashAccounts
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully retrieved cash accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashAccountsResponse'
+              example:
+                Service: WalterAPI
+                API: GetCashAccounts
+                Status: Success
+                Message: Retrieved cash accounts successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  total_num_cash_accounts: 2
+                  total_cash: 10000.00
+                  cash_accounts:
+                    - account_id: abcddb39-a13a-496f-aa22-05adb7ab1234
+                      bank_name: Test Bank
+                      account_name: Test Money Market
+                      account_last_four_numbers: "0000"
+                      balance: 7500.00
+                      created_at: "2025-08-06T01:56:51.918070+00:00"
+                      updated_at: "2025-08-06T01:56:51.918070+00:00"
+                      logo_url: "https://logo.com/logo.svg"
+                      account_type: MONEY_MARKET
+                    - account_id: abcdf413-9ef4-413d-bb11-135c7f755678
+                      bank_name: Test Bank
+                      account_name: Test Savings
+                      account_last_four_numbers: "1111"
+                      balance: 2500.00
+                      created_at: "2025-08-06T01:53:43.285368+00:00"
+                      updated_at: "2025-08-06T01:53:43.285368+00:00"
+                      logo_url: "https://logo.com/logo.svg"
+                      account_type: SAVINGS
+    post:
+      summary: Create a new cash account
+      description: >
+        Creates a new cash account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createCashAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCashAccountRequest'
+            example:
+              bank_name: Test Bank
+              account_name: Test Checking
+              account_type: CHECKING
+              balance: 5000.00
+              account_last_four_numbers: "1234"
+      responses:
+        '201':
+          description: Cash account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCashAccountResponse'
+              example:
+                Service: WalterAPI
+                API: CreateCashAccount
+                Status: Success
+                Message: Cash account created successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  cash_account:
+                    account_id: abcdef12-3456-7890-abcd-1234567890ab
+                    bank_name: Test Bank
+                    account_name: Test Checking
+                    account_last_four_numbers: "1234"
+                    balance: 5000.00
+                    created_at: "2025-08-08T22:07:00.000000+00:00"
+                    updated_at: "2025-08-08T22:07:00.000000+00:00"
+                    logo_url: "https://logo.com/logo.svg"
+                    account_type: CHECKING
+    put:
+      summary: Update a cash account
+      description: >
+        Updates an existing cash account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: updateCashAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCashAccountRequest'
+            example:
+              account_id: abcdef12-3456-7890-abcd-1234567890ab
+              bank_name: Updated Bank Name
+              account_name: Updated Account Name
+              account_last_four_numbers: "5678"
+              balance: 7500.00
+      responses:
+        '200':
+          description: Cash account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCashAccountResponse'
+              example:
+                Service: WalterAPI
+                API: UpdateCashAccount
+                Status: Success
+                Message: Cash account updated successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  account:
+                    account_id: abcdef12-3456-7890-abcd-1234567890ab
+                    bank_name: Updated Bank Name
+                    account_name: Updated Account Name
+                    account_last_four_numbers: "5678"
+                    balance: 7500.00
+                    created_at: "2025-08-08T22:07:00.000000+00:00"
+                    updated_at: "2025-08-08T22:10:00.000000+00:00"
+                    logo_url: "https://logo.com/logo.svg"
+                    account_type: CHECKING
+    delete:
+      summary: Delete a cash account
+      description: >
+        Deletes an existing cash account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteCashAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCashAccountRequest'
+            example:
+              account_id: abcdef12-3456-7890-abcd-1234567890ab
+      responses:
+        '200':
+          description: Cash account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteCashAccountResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteCashAccount
+                Status: Success
+                Message: Cash account deleted successfully!
+                ResponseTimeMillis: 500.000000
+                
+  /accounts/credit:
+    get:
+      summary: Retrieve all credit accounts
+      description: >
+        Returns a list of credit accounts for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getCreditAccounts
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully retrieved credit accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditAccountsResponse'
+              example:
+                Service: WalterAPI
+                API: GetCreditAccounts
+                Status: Success
+                Message: Successfully retrieved credit accounts!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  total_num_credit_accounts: 2
+                  total_credit_balance: 5000.00
+                  credit_accounts:
+                    - account_id: abcdef12-3456-7890-abcd-1234567890ab
+                      bank_name: Test Bank
+                      account_name: Test Credit Card
+                      account_last_four_numbers: "1234"
+                      balance: 3000.00
+                      created_at: "2025-08-08T22:07:00.000000+00:00"
+                      updated_at: "2025-08-08T22:07:00.000000+00:00"
+                    - account_id: fedcba98-7654-3210-fedc-ba9876543210
+                      bank_name: Another Bank
+                      account_name: Another Credit Card
+                      account_last_four_numbers: "5678"
+                      balance: 2000.00
+                      created_at: "2025-08-08T22:07:00.000000+00:00"
+                      updated_at: "2025-08-08T22:07:00.000000+00:00"
+    post:
+      summary: Create a new credit account
+      description: >
+        Creates a new credit account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createCreditAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditAccountRequest'
+            example:
+              bank_name: Test Bank
+              account_name: Test Credit Card
+              balance: 3000.00
+              account_last_four_numbers: "1234"
+      responses:
+        '201':
+          description: Credit account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCreditAccountResponse'
+              example:
+                Service: WalterAPI
+                API: CreateCreditAccount
+                Status: Success
+                Message: Credit account created successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  credit_account:
+                    account_id: abcdef12-3456-7890-abcd-1234567890ab
+                    bank_name: Test Bank
+                    account_name: Test Credit Card
+                    account_last_four_numbers: "1234"
+                    balance: 3000.00
+                    created_at: "2025-08-08T22:07:00.000000+00:00"
+                    updated_at: "2025-08-08T22:07:00.000000+00:00"
+    delete:
+      summary: Delete a credit account
+      description: >
+        Deletes an existing credit account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteCreditAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCreditAccountRequest'
+            example:
+              account_id: abcdef12-3456-7890-abcd-1234567890ab
+      responses:
+        '200':
+          description: Credit account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteCreditAccountResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteCreditAccount
+                Status: Success
+                Message: Successfully deleted credit account!
+                ResponseTimeMillis: 500.000000
+                
+  /plaid/create-link-token:
+    post:
+      summary: Create a Plaid link token
+      description: >
+        Creates a link token for Plaid Link that can be used to initialize Plaid Link.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createLinkToken
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Link token created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLinkTokenResponse'
+              example:
+                Service: WalterAPI
+                API: CreateLinkToken
+                Status: Success
+                Message: Created link token successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  link_token: link-sandbox-12345-abcde
+                  expiration: "2025-08-09T22:07:00.000000+00:00"
+                  request_id: request-id-12345
+                  
+  /plaid/exchange-public-token:
+    post:
+      summary: Exchange a Plaid public token for an access token
+      description: >
+        Exchanges a temporary public token from Plaid Link for a permanent access token.
+        Creates accounts in the database and triggers transaction sync.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: exchangePublicToken
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangePublicTokenRequest'
+            example:
+              public_token: public-sandbox-12345-abcde
+              institution_id: ins_123456
+              institution_name: Test Bank
+              accounts:
+                - account_id: acc_12345
+                  account_name: Checking
+                  account_type: depository
+                  account_subtype: checking
+                  account_last_four_numbers: "1234"
+      responses:
+        '200':
+          description: Public token exchanged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangePublicTokenResponse'
+              example:
+                Service: WalterAPI
+                API: ExchangePublicToken
+                Status: Success
+                Message: Tokens exchanged successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  institution_name: Test Bank
+                  num_accounts: 1
+                  
+  /plaid/sync-transactions:
+    post:
+      summary: Sync transactions from Plaid
+      description: >
+        Syncs transactions from Plaid for a specific item.
+        This endpoint is called by Plaid webhooks when new transactions are available.
+      operationId: syncTransactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncTransactionsRequest'
+            example:
+              item_id: item-sandbox-12345-abcde
+              webhook_code: TRANSACTIONS_UPDATE
+      responses:
+        '200':
+          description: Transaction sync initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncTransactionsResponse'
+              example:
+                Service: WalterAPI
+                API: SyncTransactions
+                Status: Success
+                Message: Syncing user transactions!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  user_id: user-12345
+                  institution_id: ins_123456
+                  institution_name: Test Bank
+                  
+  /portfolios:
+    get:
+      summary: Retrieve user portfolio
+      description: >
+        Returns the user's portfolio information including total equity and stock equities.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getPortfolio
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully retrieved portfolio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponse'
+              example:
+                Service: WalterAPI
+                API: GetPortfolio
+                Status: Success
+                Message: Retrieved portfolio!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  total_equity: 10000.00
+                  stocks:
+                    - symbol: AAPL
+                      name: Apple Inc.
+                      quantity: 10
+                      price: 150.00
+                      value: 1500.00
+                    - symbol: MSFT
+                      name: Microsoft Corporation
+                      quantity: 5
+                      price: 300.00
+                      value: 1500.00
+                      
+  /prices:
+    get:
+      summary: Retrieve stock prices
+      description: >
+        Returns stock price information for a specific stock and date range.
+      operationId: getPrices
+      parameters:
+        - name: stock
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The stock symbol
+          example: AAPL
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: The start date for the price range (YYYY-MM-DD)
+          example: "2025-08-01"
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: The end date for the price range (YYYY-MM-DD)
+          example: "2025-08-08"
+      responses:
+        '200':
+          description: Successfully retrieved prices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PricesResponse'
+              example:
+                Service: WalterAPI
+                API: GetPrices
+                Status: Success
+                Message: Retrieved prices!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  stock: AAPL
+                  start_date: "2025-08-01"
+                  end_date: "2025-08-08"
+                  num_prices: 5
+                  prices:
+                    - date: "2025-08-01"
+                      open: 145.00
+                      high: 148.00
+                      low: 144.00
+                      close: 147.00
+                      volume: 1000000
+                    - date: "2025-08-02"
+                      open: 147.00
+                      high: 150.00
+                      low: 146.00
+                      close: 149.00
+                      volume: 1200000
+                      
+  /stocks:
+    get:
+      summary: Retrieve stock information
+      description: >
+        Returns information about a specific stock.
+      operationId: getStock
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The stock symbol
+          example: AAPL
+      responses:
+        '200':
+          description: Successfully retrieved stock information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponse'
+              example:
+                Service: WalterAPI
+                API: GetStock
+                Status: Success
+                Message: Retrieved stock details!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  stock:
+                    symbol: AAPL
+                    name: Apple Inc.
+                    exchange: NASDAQ
+                    industry: Technology
+                    sector: Electronic Technology
+                    market_cap: 2500000000000
+                    
+    post:
+      summary: Add a stock to user portfolio
+      description: >
+        Adds a stock to the user's portfolio.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: addStock
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStockRequest'
+            example:
+              stock: AAPL
+              quantity: 10
+      responses:
+        '201':
+          description: Stock added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddStockResponse'
+              example:
+                Service: WalterAPI
+                API: AddStock
+                Status: Success
+                Message: Stock added!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  user: user@example.com
+                  stock: AAPL
+                  quantity: 10
+                  
+    delete:
+      summary: Delete a stock from user portfolio
+      description: >
+        Deletes a stock from the user's portfolio.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteStock
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteStockRequest'
+            example:
+              stock: AAPL
+      responses:
+        '200':
+          description: Stock deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStockResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteStock
+                Status: Success
+                Message: Stock deleted!
+                ResponseTimeMillis: 500.000000
+                
+  /transactions:
+    get:
+      summary: Retrieve user transactions
+      description: >
+        Returns the user's transactions for a specific date range.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getTransactions
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: The start date for the transaction range (YYYY-MM-DD)
+          example: "2025-08-01"
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: The end date for the transaction range (YYYY-MM-DD)
+          example: "2025-08-08"
+      responses:
+        '200':
+          description: Successfully retrieved transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+              example:
+                Service: WalterAPI
+                API: GetTransactions
+                Status: Success
+                Message: Retrieved transactions!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  num_transactions: 3
+                  num_unreviewed_transactions: 1
+                  total_income: 5000.00
+                  total_expense: 2000.00
+                  cash_flow: 3000.00
+                  transactions:
+                    - transaction_id: abc123
+                      user_id: user-12345
+                      account_id: account-12345
+                      date: "2025-08-05"
+                      vendor: Salary
+                      amount: 5000.00
+                      category: INCOME
+                      reviewed: true
+                    - transaction_id: def456
+                      user_id: user-12345
+                      account_id: account-12345
+                      date: "2025-08-06"
+                      vendor: Grocery Store
+                      amount: -100.00
+                      category: GROCERIES
+                      reviewed: true
+                    - transaction_id: ghi789
+                      user_id: user-12345
+                      account_id: account-12345
+                      date: "2025-08-07"
+                      vendor: Restaurant
+                      amount: -50.00
+                      category: DINING
+                      reviewed: false
+                      
+    post:
+      summary: Add a new transaction
+      description: >
+        Adds a new transaction for the user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: addTransaction
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTransactionRequest'
+            example:
+              account_id: account-12345
+              date: "2025-08-08"
+              vendor: Coffee Shop
+              amount: -5.00
+      responses:
+        '201':
+          description: Transaction added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddTransactionResponse'
+              example:
+                Service: WalterAPI
+                API: AddTransaction
+                Status: Success
+                Message: Transaction added!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  transaction:
+                    transaction_id: jkl012
+                    user_id: user-12345
+                    account_id: account-12345
+                    date: "2025-08-08"
+                    vendor: Coffee Shop
+                    amount: -5.00
+                    category: DINING
+                    reviewed: false
+                    
+    put:
+      summary: Edit an existing transaction
+      description: >
+        Edits an existing transaction for the user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: editTransaction
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditTransactionRequest'
+            example:
+              transaction_date: "2025-08-07"
+              transaction_id: ghi789
+              updated_date: "2025-08-07"
+              updated_vendor: Nice Restaurant
+              updated_amount: -75.00
+              updated_category: DINING
+      responses:
+        '200':
+          description: Transaction edited successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditTransactionResponse'
+              example:
+                Service: WalterAPI
+                API: EditTransaction
+                Status: Success
+                Message: Transaction edited!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  transaction:
+                    transaction_id: ghi789
+                    user_id: user-12345
+                    account_id: account-12345
+                    date: "2025-08-07"
+                    vendor: Nice Restaurant
+                    amount: -75.00
+                    category: DINING
+                    reviewed: true
+                    
+    delete:
+      summary: Delete a transaction
+      description: >
+        Deletes an existing transaction for the user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteTransaction
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteTransactionRequest'
+            example:
+              transaction_date: "2025-08-08"
+              transaction_id: jkl012
+      responses:
+        '200':
+          description: Transaction deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTransactionResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteTransaction
+                Status: Success
+                Message: Transaction deleted!
+                ResponseTimeMillis: 500.000000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@gmail.com
+        password:
+          type: string
+          format: password
+          example: test_password
+    AuthResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: AuthUser
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: User authenticated!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT token to be used for authenticated requests
+              example: TEST_TOKEN
+    CashAccountsResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetCashAccounts
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Retrieved cash accounts successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            total_num_cash_accounts:
+              type: integer
+              example: 1
+            total_cash:
+              type: number
+              format: double
+              example: 10000.00
+            cash_accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/CashAccount'
+    CashAccount:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        bank_name:
+          type: string
+        account_name:
+          type: string
+        account_last_four_numbers:
+          type: string
+        balance:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        logo_url:
+          type: string
+          format: uri
+        account_type:
+          type: string
+          enum: [ SAVINGS, CHECKING, MONEY_MARKET ]
+    CreateCashAccountRequest:
+      type: object
+      required:
+        - bank_name
+        - account_name
+        - account_type
+        - balance
+        - account_last_four_numbers
+      properties:
+        bank_name:
+          type: string
+          example: Test Bank
+        account_name:
+          type: string
+          example: Test Checking
+        account_type:
+          type: string
+          enum: [ SAVINGS, CHECKING, MONEY_MARKET ]
+          example: CHECKING
+        balance:
+          type: number
+          format: double
+          example: 5000.00
+        account_last_four_numbers:
+          type: string
+          example: "1234"
+    CreateCashAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateCashAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Cash account created successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            cash_account:
+              $ref: '#/components/schemas/CashAccount'
+    UpdateCashAccountRequest:
+      type: object
+      required:
+        - account_id
+        - bank_name
+        - account_name
+        - account_last_four_numbers
+        - balance
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          example: abcdef12-3456-7890-abcd-1234567890ab
+        bank_name:
+          type: string
+          example: Updated Bank Name
+        account_name:
+          type: string
+          example: Updated Account Name
+        account_last_four_numbers:
+          type: string
+          example: "5678"
+        balance:
+          type: number
+          format: double
+          example: 7500.00
+    UpdateCashAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: UpdateCashAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Cash account updated successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            account:
+              $ref: '#/components/schemas/CashAccount'
+    DeleteCashAccountRequest:
+      type: object
+      required:
+        - account_id
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          example: abcdef12-3456-7890-abcd-1234567890ab
+    DeleteCashAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: DeleteCashAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Cash account deleted successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+          
+    # Credit Account Schemas
+    CreditAccount:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        bank_name:
+          type: string
+        account_name:
+          type: string
+        account_last_four_numbers:
+          type: string
+        balance:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          
+    CreditAccountsResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetCreditAccounts
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Successfully retrieved credit accounts!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            total_num_credit_accounts:
+              type: integer
+              example: 2
+            total_credit_balance:
+              type: number
+              format: double
+              example: 5000.00
+            credit_accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreditAccount'
+                
+    CreateCreditAccountRequest:
+      type: object
+      required:
+        - bank_name
+        - account_name
+        - balance
+        - account_last_four_numbers
+      properties:
+        bank_name:
+          type: string
+          example: Test Bank
+        account_name:
+          type: string
+          example: Test Credit Card
+        balance:
+          type: number
+          format: double
+          example: 3000.00
+        account_last_four_numbers:
+          type: string
+          example: "1234"
+          
+    CreateCreditAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateCreditAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Credit account created successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            credit_account:
+              $ref: '#/components/schemas/CreditAccount'
+              
+    DeleteCreditAccountRequest:
+      type: object
+      required:
+        - account_id
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          example: abcdef12-3456-7890-abcd-1234567890ab
+          
+    DeleteCreditAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: DeleteCreditAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Successfully deleted credit account!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+          
+    # Plaid Schemas
+    CreateLinkTokenResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateLinkToken
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Created link token successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            link_token:
+              type: string
+              description: The link token to be used to initialize Plaid Link
+              example: link-sandbox-12345-abcde
+            expiration:
+              type: string
+              format: date-time
+              description: The expiration date of the link token
+              example: "2025-08-09T22:07:00.000000+00:00"
+            request_id:
+              type: string
+              description: The request ID from Plaid
+              example: request-id-12345
+              
+    ExchangePublicTokenRequest:
+      type: object
+      required:
+        - public_token
+        - institution_id
+        - institution_name
+        - accounts
+      properties:
+        public_token:
+          type: string
+          description: The public token received from Plaid Link
+          example: public-sandbox-12345-abcde
+        institution_id:
+          type: string
+          description: The ID of the financial institution
+          example: ins_123456
+        institution_name:
+          type: string
+          description: The name of the financial institution
+          example: Test Bank
+        accounts:
+          type: array
+          description: The accounts to link from the institution
+          items:
+            type: object
+            properties:
+              account_id:
+                type: string
+                description: The account ID from Plaid
+                example: acc_12345
+              account_name:
+                type: string
+                description: The name of the account
+                example: Checking
+              account_type:
+                type: string
+                description: The type of the account
+                example: depository
+              account_subtype:
+                type: string
+                description: The subtype of the account
+                example: checking
+              account_last_four_numbers:
+                type: string
+                description: The last four numbers of the account
+                example: "1234"
+                
+    ExchangePublicTokenResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: ExchangePublicToken
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Tokens exchanged successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            institution_name:
+              type: string
+              description: The name of the financial institution
+              example: Test Bank
+            num_accounts:
+              type: integer
+              description: The number of accounts linked
+              example: 1
+              
+    SyncTransactionsRequest:
+      type: object
+      required:
+        - item_id
+        - webhook_code
+      properties:
+        item_id:
+          type: string
+          description: The Plaid item ID
+          example: item-sandbox-12345-abcde
+        webhook_code:
+          type: string
+          description: The webhook code from Plaid
+          example: TRANSACTIONS_UPDATE
+          
+    SyncTransactionsResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: SyncTransactions
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Syncing user transactions!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            user_id:
+              type: string
+              description: The user ID
+              example: user-12345
+            institution_id:
+              type: string
+              description: The ID of the financial institution
+              example: ins_123456
+            institution_name:
+              type: string
+              description: The name of the financial institution
+              example: Test Bank
+              
+    # Portfolio Schemas
+    PortfolioResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetPortfolio
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Retrieved portfolio!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            total_equity:
+              type: number
+              format: double
+              description: The total value of all stocks in the portfolio
+              example: 10000.00
+            stocks:
+              type: array
+              description: List of stocks in the portfolio
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                    description: The stock symbol
+                    example: AAPL
+                  name:
+                    type: string
+                    description: The company name
+                    example: Apple Inc.
+                  quantity:
+                    type: number
+                    description: The number of shares owned
+                    example: 10
+                  price:
+                    type: number
+                    format: double
+                    description: The current price per share
+                    example: 150.00
+                  value:
+                    type: number
+                    format: double
+                    description: The total value of the shares (quantity * price)
+                    example: 1500.00
+                    
+    # Prices Schemas
+    PricesResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetPrices
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Retrieved prices!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            stock:
+              type: string
+              description: The stock symbol
+              example: AAPL
+            start_date:
+              type: string
+              format: date
+              description: The start date of the price range
+              example: "2025-08-01"
+            end_date:
+              type: string
+              format: date
+              description: The end date of the price range
+              example: "2025-08-08"
+            num_prices:
+              type: integer
+              description: The number of price data points
+              example: 5
+            prices:
+              type: array
+              description: List of price data points
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    description: The date of the price data
+                    example: "2025-08-01"
+                  open:
+                    type: number
+                    format: double
+                    description: The opening price
+                    example: 145.00
+                  high:
+                    type: number
+                    format: double
+                    description: The highest price
+                    example: 148.00
+                  low:
+                    type: number
+                    format: double
+                    description: The lowest price
+                    example: 144.00
+                  close:
+                    type: number
+                    format: double
+                    description: The closing price
+                    example: 147.00
+                  volume:
+                    type: integer
+                    description: The trading volume
+                    example: 1000000
+                    
+    # Stock Schemas
+    StockResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetStock
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Retrieved stock details!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            stock:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                  description: The stock symbol
+                  example: AAPL
+                name:
+                  type: string
+                  description: The company name
+                  example: Apple Inc.
+                exchange:
+                  type: string
+                  description: The stock exchange
+                  example: NASDAQ
+                industry:
+                  type: string
+                  description: The industry
+                  example: Technology
+                sector:
+                  type: string
+                  description: The sector
+                  example: Electronic Technology
+                market_cap:
+                  type: number
+                  format: double
+                  description: The market capitalization
+                  example: 2500000000000
+                  
+    AddStockRequest:
+      type: object
+      required:
+        - stock
+        - quantity
+      properties:
+        stock:
+          type: string
+          description: The stock symbol
+          example: AAPL
+        quantity:
+          type: number
+          description: The number of shares to add
+          example: 10
+          
+    AddStockResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: AddStock
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Stock added!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            user:
+              type: string
+              description: The user's email
+              example: user@example.com
+            stock:
+              type: string
+              description: The stock symbol
+              example: AAPL
+            quantity:
+              type: number
+              description: The number of shares added
+              example: 10
+              
+    DeleteStockRequest:
+      type: object
+      required:
+        - stock
+      properties:
+        stock:
+          type: string
+          description: The stock symbol to delete
+          example: AAPL
+          
+    DeleteStockResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: DeleteStock
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Stock deleted!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+          
+    # Transaction Schemas
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          description: The unique identifier for the transaction
+          example: abc123
+        user_id:
+          type: string
+          description: The user ID
+          example: user-12345
+        account_id:
+          type: string
+          description: The account ID
+          example: account-12345
+        date:
+          type: string
+          format: date
+          description: The date of the transaction
+          example: "2025-08-05"
+        vendor:
+          type: string
+          description: The vendor or merchant name
+          example: Grocery Store
+        amount:
+          type: number
+          format: double
+          description: The transaction amount (negative for expenses, positive for income)
+          example: -100.00
+        category:
+          type: string
+          description: The transaction category
+          example: GROCERIES
+          enum: [INCOME, GROCERIES, DINING, ENTERTAINMENT, SHOPPING, TRAVEL, UTILITIES, HOUSING, TRANSPORTATION, HEALTH, EDUCATION, PERSONAL_CARE, GIFTS, CHARITY, BUSINESS, TAXES, SAVINGS, INVESTMENTS, DEBT, OTHER]
+        reviewed:
+          type: boolean
+          description: Whether the transaction has been reviewed
+          example: false
+          
+    TransactionsResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetTransactions
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Retrieved transactions!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            num_transactions:
+              type: integer
+              description: The total number of transactions
+              example: 3
+            num_unreviewed_transactions:
+              type: integer
+              description: The number of unreviewed transactions
+              example: 1
+            total_income:
+              type: number
+              format: double
+              description: The total income amount
+              example: 5000.00
+            total_expense:
+              type: number
+              format: double
+              description: The total expense amount
+              example: 2000.00
+            cash_flow:
+              type: number
+              format: double
+              description: The cash flow (income - expenses)
+              example: 3000.00
+            transactions:
+              type: array
+              description: The list of transactions
+              items:
+                $ref: '#/components/schemas/Transaction'
+                
+    AddTransactionRequest:
+      type: object
+      required:
+        - account_id
+        - date
+        - vendor
+        - amount
+      properties:
+        account_id:
+          type: string
+          description: The account ID
+          example: account-12345
+        date:
+          type: string
+          format: date
+          description: The date of the transaction (YYYY-MM-DD)
+          example: "2025-08-08"
+        vendor:
+          type: string
+          description: The vendor or merchant name
+          example: Coffee Shop
+        amount:
+          type: number
+          format: double
+          description: The transaction amount (negative for expenses, positive for income)
+          example: -5.00
+          
+    AddTransactionResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: AddTransaction
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Transaction added!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            transaction:
+              $ref: '#/components/schemas/Transaction'
+              
+    EditTransactionRequest:
+      type: object
+      required:
+        - transaction_date
+        - transaction_id
+        - updated_date
+        - updated_vendor
+        - updated_amount
+        - updated_category
+      properties:
+        transaction_date:
+          type: string
+          format: date
+          description: The original date of the transaction (YYYY-MM-DD)
+          example: "2025-08-07"
+        transaction_id:
+          type: string
+          description: The transaction ID
+          example: ghi789
+        updated_date:
+          type: string
+          format: date
+          description: The updated date of the transaction (YYYY-MM-DD)
+          example: "2025-08-07"
+        updated_vendor:
+          type: string
+          description: The updated vendor or merchant name
+          example: Nice Restaurant
+        updated_amount:
+          type: number
+          format: double
+          description: The updated transaction amount
+          example: -75.00
+        updated_category:
+          type: string
+          description: The updated transaction category
+          example: DINING
+          enum: [INCOME, GROCERIES, DINING, ENTERTAINMENT, SHOPPING, TRAVEL, UTILITIES, HOUSING, TRANSPORTATION, HEALTH, EDUCATION, PERSONAL_CARE, GIFTS, CHARITY, BUSINESS, TAXES, SAVINGS, INVESTMENTS, DEBT, OTHER]
+          
+    EditTransactionResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: EditTransaction
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Transaction edited!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            transaction:
+              $ref: '#/components/schemas/Transaction'
+              
+    DeleteTransactionRequest:
+      type: object
+      required:
+        - transaction_date
+        - transaction_id
+      properties:
+        transaction_date:
+          type: string
+          format: date
+          description: The date of the transaction (YYYY-MM-DD)
+          example: "2025-08-08"
+        transaction_id:
+          type: string
+          description: The transaction ID
+          example: jkl012
+          
+    DeleteTransactionResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: DeleteTransaction
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Transaction deleted!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+

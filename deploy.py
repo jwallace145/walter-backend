@@ -10,6 +10,8 @@ import boto3
 from jinja2 import Template
 from mypy_boto3_cloudformation import CloudFormationClient
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_lambda import LambdaClient
+from mypy_boto3_ecr import ECRClient
 
 
 ##########
@@ -84,7 +86,7 @@ def run_cmd(cmd: str | List[str], input_data=None) -> None:
         sys.exit(1)
 
 
-def build_and_upload_image(ecr_client) -> None:
+def build_and_upload_image(ecr_client: ECRClient) -> None:
     """
     Builds and uploads the WalterAPI Docker image to an Amazon ECR repository.
 
@@ -140,7 +142,7 @@ def build_and_upload_image(ecr_client) -> None:
     print("WalterAPI image built and uploaded successfully!")
 
 
-def update_source_code(lambda_client, functions) -> None:
+def update_source_code(lambda_client: LambdaClient, functions) -> None:
     print("Updating WalterAPI function code...")
     for func in functions:
         lambda_client.update_function_code(
@@ -150,7 +152,7 @@ def update_source_code(lambda_client, functions) -> None:
     sleep(30)
 
 
-def increment_versions(lambda_client, functions) -> None:
+def increment_versions(lambda_client: LambdaClient, functions) -> None:
     print("Increment Lambda function versions...")
     for func in functions:
         print(f"Incrementing version of {func}...")
@@ -158,7 +160,7 @@ def increment_versions(lambda_client, functions) -> None:
     sleep(30)
 
 
-def get_latest_versions(lambda_client, functions) -> Dict[str, str]:
+def get_latest_versions(lambda_client: LambdaClient, functions) -> Dict[str, str]:
     print("Getting latest version of Lambda functions...")
     paginator = lambda_client.get_paginator("list_versions_by_function")
 
