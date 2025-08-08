@@ -47,7 +47,12 @@ WALTER_API_CFN_TEMPLATE_URL = (
 )
 """(str): The template url of the CloudFormation YAML file to use for infrastructure updates."""
 
-# TODO: Handle canaries deployment
+LAMBDA_FUNCTIONS = [
+    f"WalterAPI-{APP_ENVIRONMENT}",
+    f"WalterCanary-{APP_ENVIRONMENT}",
+]
+"""(List[str]): The names of the Lambda functions to deploy."""
+
 
 ###########
 # METHODS #
@@ -79,7 +84,7 @@ def run_cmd(cmd: str | List[str], input_data=None) -> None:
         sys.exit(1)
 
 
-def build_and_upload_api_image(ecr_client) -> None:
+def build_and_upload_image(ecr_client) -> None:
     """
     Builds and uploads the WalterAPI Docker image to an Amazon ECR repository.
 
@@ -135,36 +140,45 @@ def build_and_upload_api_image(ecr_client) -> None:
     print("WalterAPI image built and uploaded successfully!")
 
 
-def update_api_source_code(lambda_client) -> None:
+def update_source_code(lambda_client, functions) -> None:
     print("Updating WalterAPI function code...")
-    lambda_client.update_function_code(
-        FunctionName=f"WalterAPI-{APP_ENVIRONMENT}",
-        ImageUri=WALTER_API_IMAGE_URI,
-    )
+    for func in functions:
+        lambda_client.update_function_code(
+            FunctionName=func,
+            ImageUri=WALTER_API_IMAGE_URI,
+        )
     sleep(30)
 
 
-def increment_api_version(lambda_client) -> None:
-    print(f"Incrementing version of WalterAPI-{APP_ENVIRONMENT}...")
-    lambda_client.publish_version(FunctionName=f"WalterAPI-{APP_ENVIRONMENT}")
+def increment_versions(lambda_client, functions) -> None:
+    print("Increment Lambda function versions...")
+    for func in functions:
+        print(f"Incrementing version of {func}...")
+        lambda_client.publish_version(FunctionName=func)
     sleep(30)
 
 
-def get_latest_api_versions(lambda_client) -> Dict[str, str]:
-    print(f"Getting latest version of WalterAPI-{APP_ENVIRONMENT}...")
+def get_latest_versions(lambda_client, functions) -> Dict[str, str]:
+    print("Getting latest version of Lambda functions...")
     paginator = lambda_client.get_paginator("list_versions_by_function")
 
-    versions = []
-    for page in paginator.paginate(FunctionName=f"WalterAPI-{APP_ENVIRONMENT}"):
-        versions.extend(page["Versions"])
+    latest_versions = {}
+    for func in functions:
+        versions = []
+        for page in paginator.paginate(FunctionName=func):
+            versions.extend(page["Versions"])
 
-    latest_version = sorted(
-        versions,
-        key=lambda v: int(v["Version"]) if v["Version"] != "$LATEST" else -1,
-    )[-1]["Version"]
+        latest_version = sorted(
+            versions,
+            key=lambda v: int(v["Version"]) if v["Version"] != "$LATEST" else -1,
+        )[-1]["Version"]
 
-    return {"walter_api_version": latest_version}
+        if func == f"WalterAPI-{APP_ENVIRONMENT}":
+            latest_versions["walter_api_version"] = latest_version
+        if func == f"WalterCanary-{APP_ENVIRONMENT}":
+            latest_versions["walter_canary_version"] = latest_version
 
+      return latest_versions
 
 def create_cfn_template_with_latest_api_versions(
     latest_api_versions: Dict[str, str],
@@ -265,12 +279,12 @@ s3_client = boto3.client("s3", region_name=AWS_REGION)
 # SCRIPT #
 ##########
 
-build_and_upload_api_image(ecr_client)
-update_api_source_code(lambda_client)
-increment_api_version(lambda_client)
-latest_api_versions = get_latest_api_versions(lambda_client)
-print(f"The latest API versions:\n{json.dumps(latest_api_versions, indent=4)}")
-create_cfn_template_with_latest_api_versions(latest_api_versions)
+build_and_upload_image(ecr_client)
+update_source_code(lambda_client, LAMBDA_FUNCTIONS)
+increment_versions(lambda_client, LAMBDA_FUNCTIONS)
+latest_versions = get_latest_versions(lambda_client, LAMBDA_FUNCTIONS)
+print(f"The latest API versions:\n{json.dumps(latest_versions, indent=4)}")
+create_cfn_template_with_latest_api_versions(latest_versions)
 upload_cfn_template(s3_client)
 
 if stack_exists(cloudformation_client):
