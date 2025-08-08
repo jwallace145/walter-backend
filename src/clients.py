@@ -12,8 +12,13 @@ from src.api.accounts.cash.update_cash_account import UpdateCashAccount
 from src.api.accounts.credit.create_credit_account import CreateCreditAccount
 from src.api.accounts.credit.delete_credit_account import DeleteCreditAccount
 from src.api.accounts.credit.get_credit_accounts import GetCreditAccounts
+from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
+from src.api.delete_stock import DeleteStock
+from src.api.get_portfolio import GetPortfolio
+from src.api.get_prices import GetPrices
+from src.api.get_stock import GetStock
 from src.api.get_user import GetUser
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.plaid.exchange_public_token import ExchangePublicToken
@@ -224,6 +229,25 @@ create_credit_account_api = CreateCreditAccount(
 )
 delete_credit_account_api = DeleteCreditAccount(
     walter_authenticator, walter_cw, walter_db
+)
+
+# PORTFOLIOS
+get_portfolio_api = GetPortfolio(
+    walter_authenticator, walter_cw, walter_db, walter_sm, walter_stocks_api
+)
+
+# PRICES
+get_prices_api = GetPrices(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api
+)
+
+# STOCKS
+get_stocks_api = GetStock(walter_authenticator, walter_cw, walter_db, walter_stocks_api)
+add_stock_api = AddStock(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
+)
+delete_stock_api = DeleteStock(
+    walter_authenticator, walter_cw, walter_db, walter_stocks_api, walter_sm
 )
 
 # TRANSACTIONS
