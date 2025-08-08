@@ -775,249 +775,18 @@ Resources:
           DOMAIN: DEVELOPMENT
           LOG_LEVEL: !Ref WalterAPILogLevel
 
-  WalterCanaryAuthUserCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryAuthUserCanary
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterCanary-AuthUserCanary-${AppEnvironment}"
-
-  WalterCanaryAuthUserCanary:
+  WalterCanary:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "WalterCanary-AuthUserCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: AuthUser - Call the AuthUser API with the canary account credentials to verify authentication (${AppEnvironment})"
+      FunctionName: !Sub "WalterCanary-${AppEnvironment}"
+      Description: !Sub "The single entrypoint for all WalterAPI canaries (${AppEnvironment})"
       PackageType: Image
       Role: !GetAtt WalterAPIRole.Arn
       Code:
         ImageUri: !Sub "${WalterAPIImageURI}"
       ImageConfig:
         Command:
-          - walter.auth_user_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetTransactionsAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetTransactions
-      FunctionVersion: $LATEST
-      Name: "release"
-
-  WalterCanaryGetTransactions:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetTransactions-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetTransactions - Call the GetTransactions API to ensure users are able to retrieve transactions from WalterDB (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_transactions_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetUserCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetUserCanary
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterCanary-GetUserCanary-${AppEnvironment}"
-
-  WalterCanaryGetUserCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetUserCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetUser - Call the GetUser API with the canary account identity token and verify user identification (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_user_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetStockCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetStockCanary
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterCanary-GetStockCanary-${AppEnvironment}"
-
-  WalterCanaryGetStockCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetStockCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetStock - Call the GetStock API to get the stock information stored in WalterDB (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_stock_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetPortfolioCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetPortfolioCanary
-      FunctionVersion: $LATEST
-      Name: !Sub "WalterCanary-GetPortfolioCanary-${AppEnvironment}"
-
-  WalterCanaryGetPortfolioCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetPortfolioCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetPortfolio - Call the GetPortfolio API for the canary account to verify users can get their portfolio information (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_portfolio_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetPricesCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetPricesCanary
-      FunctionVersion: $LATEST
-      Name: "release"
-
-  WalterCanaryGetPricesCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetPricesCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetPricesCanary - Call the GetPrices API to verify the ability to get the latest stock market pricing data (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_prices_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetNewsSummaryCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetNewsSummaryCanary
-      FunctionVersion: $LATEST
-      Name: "release"
-
-  WalterCanaryGetNewsSummaryCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetNewsSummaryCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetNewsSummaryCanary - Call the GetNewsSummary API and get the latest stock market news summaries (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_news_summary_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanaryGetNewslettersCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanaryGetNewslettersCanary
-      FunctionVersion: $LATEST
-      Name: "release"
-
-  WalterCanaryGetNewslettersCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-GetNewsletters-${AppEnvironment}"
-      Description: !Sub "WalterCanary: GetNewsletters - Call the GetNewsletters API and get the latest newsletters for the user (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.get_newsletters_canary_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
-      MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
-      Architectures:
-        - "arm64"
-      Environment:
-        Variables:
-          DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
-
-  WalterCanarySearchStocksCanaryAlias:
-    Type: AWS::Lambda::Alias
-    Properties:
-      FunctionName: !Ref WalterCanarySearchStocksCanary
-      FunctionVersion: $LATEST
-      Name: "release"
-
-  WalterCanarySearchStocksCanary:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "WalterCanary-SearchStocksCanary-${AppEnvironment}"
-      Description: !Sub "WalterCanary: SearchStocksCanary - Call the SearchStocks API to get stocks that are similar to the given identifier to verify user search functionality (${AppEnvironment})"
-      PackageType: Image
-      Role: !GetAtt WalterAPIRole.Arn
-      Code:
-        ImageUri: !Sub "${WalterAPIImageURI}"
-      ImageConfig:
-        Command:
-          - walter.search_stocks_canary_entrypoint
+          - walter.walter_canaries_entrypoint
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
@@ -1169,75 +938,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub "WalterAPIRole-${AppEnvironment}"
-      Description: "WalterAPI execution role to read and modify WalterDB and send newsletters (${AppEnvironment})"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  WalterNewslettersRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "WalterNewslettersRole-${AppEnvironment}"
-      Description: "WalterNewsletters role to send newsletter requests to the queue (${AppEnvironment})"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  WalterWorkflowAddNewsSummaryRequestsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "WalterWorkflow-AddNewsSummaryRequestsRole-${AppEnvironment}"
-      Description: !Sub "WalterWorkflow-AddNewsSummaryRequests-${AppEnvironment} role to add news summary requests to queue for asynchronous processing."
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  WalterWorkflowCreateNewsSummaryAndArchiveRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "WalterWorkflow-CreateNewsSummaryAndArchiveRole-${AppEnvironment}"
-      Description: !Sub "WalterWorkflow-CreateNewsSummaryAndArchive role to create news summaries and archive in S3 (${AppEnvironment})"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  WalterBackendRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "WalterBackendRole-${AppEnvironment}"
-      Description: "WalterBackend execution role write and send newsletters (${AppEnvironment})"
+      Description: "WalterAPI execution role (${AppEnvironment})"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1278,8 +979,6 @@ Resources:
               - "arn:aws:bedrock:us-west-2::foundation-model/meta.llama3-3-70b-instruct-v1:0"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   CloudWatchAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1294,10 +993,6 @@ Resources:
             Resource: "*"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
-        - !Ref WalterNewslettersRole
-        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   NewslettersBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1316,27 +1011,7 @@ Resources:
               - "s3:List*"
             Resource: !GetAtt NewslettersBucket.Arn
       Roles:
-        - !Ref WalterBackendRole
         - !Ref WalterAPIRole
-
-  NewslettersQueueAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "NewslettersQueueAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:SendMessage"
-            Resource: !GetAtt NewslettersQueue.Arn
-      Roles:
-        - !Ref WalterAPIRole
-        - !Ref WalterNewslettersRole
-        - !Ref WalterBackendRole
 
   SyncUserTransactionsQueueAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1354,8 +1029,6 @@ Resources:
             Resource: !GetAtt SyncUserTransactionsQueue.Arn
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterNewslettersRole
-        - !Ref WalterBackendRole
 
   SyncUserTransactionsDeadLetterQueueAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1372,62 +1045,7 @@ Resources:
               - "sqs:SendMessage"
             Resource: !GetAtt SyncUserTransactionsDeadLetterQueue.Arn
       Roles:
-        - !Ref WalterBackendRole
         - !Ref WalterAPIRole
-
-  NewslettersDeadLetterQueueAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "NewslettersDeadLetterQueueAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:SendMessage"
-            Resource: !GetAtt NewslettersDeadLetterQueue.Arn
-      Roles:
-        - !Ref WalterBackendRole
-
-  NewsSummariesQueueAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "NewsSummariesQueueAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:SendMessage"
-            Resource: !GetAtt NewsSummariesQueue.Arn
-      Roles:
-        - !Ref WalterAPIRole
-        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
-        - !Ref WalterBackendRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
-
-  NewsSummariesDeadLetterQueueAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "NewsSummariesDeadLetterQueueAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:SendMessage"
-            Resource: !GetAtt NewsSummariesDeadLetterQueue.Arn
-      Roles:
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   SecretsManagerAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1528,10 +1146,6 @@ Resources:
                 - ":secret:PlaidSandboxCredentials-GtcPUQ"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterNewslettersRole
-        - !Ref WalterBackendRole
-        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   SimpleEmailSerivceAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1546,7 +1160,6 @@ Resources:
             Resource: "*"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
 
   StocksTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1568,9 +1181,6 @@ Resources:
             Resource: !GetAtt StocksTable.Arn
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
-        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   TemplatesBucketAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1589,7 +1199,6 @@ Resources:
             Resource: !GetAtt TemplatesBucket.Arn
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
 
   TransactionsTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1674,7 +1283,6 @@ Resources:
             Resource: !GetAtt UsersStocksTable.Arn
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
 
   UsersTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1710,8 +1318,6 @@ Resources:
                   - !Sub "Users-EmailIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterNewslettersRole
-        - !Ref WalterBackendRole
 
   PlaidItemsTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1761,9 +1367,6 @@ Resources:
                   - !Sub "PlaidItems-ItemIdIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
-        - !Ref WalterBackendRole
-        - !Ref WalterWorkflowAddNewsSummaryRequestsRole
-        - !Ref WalterWorkflowCreateNewsSummaryAndArchiveRole
 
   ##########
   ### S3 ###
@@ -1821,20 +1424,6 @@ Resources:
             Status: "Enabled"
             ExpirationInDays: 30
 
-  NewslettersBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref NewslettersBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "s3:PutObject"
-            Effect: Allow
-            Resource: !Sub "${NewslettersBucket.Arn}/*"
-            Principal:
-              AWS: !GetAtt WalterBackendRole.Arn
-
   NewsSummariesBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -1867,8 +1456,6 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt WalterAPIRole.Arn
-                - !GetAtt WalterBackendRole.Arn
-                - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
           - Action:
               - "s3:ListBucket"
             Effect: Allow
@@ -1876,8 +1463,6 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt WalterAPIRole.Arn
-                - !GetAtt WalterBackendRole.Arn
-                - !GetAtt WalterWorkflowCreateNewsSummaryAndArchiveRole.Arn
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
@@ -1890,26 +1475,6 @@ Resources:
               SSEAlgorithm: "AES256"
       VersioningConfiguration:
         Status: Enabled
-
-  TemplatesBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref TemplatesBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "s3:GetObject"
-            Effect: Allow
-            Resource: !Sub "${TemplatesBucket.Arn}/*"
-            Principal:
-              AWS: !GetAtt WalterBackendRole.Arn
-          - Action:
-              - "s3:List*"
-            Effect: Allow
-            Resource: !GetAtt TemplatesBucket.Arn
-            Principal:
-              AWS: !GetAtt WalterBackendRole.Arn
 
   ###########
   ### SQS ###
@@ -1929,42 +1494,6 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "SyncUserTransactionsDeadletterQueue-${AppEnvironment}"
-      SqsManagedSseEnabled: true
-      VisibilityTimeout: 90
-      MessageRetentionPeriod: 1209600 # two weeks
-
-  NewslettersQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "NewslettersQueue-${AppEnvironment}"
-      SqsManagedSseEnabled: true
-      VisibilityTimeout: 360
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt NewslettersDeadLetterQueue.Arn
-        maxReceiveCount: 1
-
-  NewslettersDeadLetterQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "NewslettersDeadLetterQueue-${AppEnvironment}"
-      SqsManagedSseEnabled: true
-      VisibilityTimeout: 90
-      MessageRetentionPeriod: 1209600 # two weeks
-
-  NewsSummariesQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "NewsSummariesQueue-${AppEnvironment}"
-      SqsManagedSseEnabled: true
-      VisibilityTimeout: 360
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt NewsSummariesDeadLetterQueue.Arn
-        maxReceiveCount: 1
-
-  NewsSummariesDeadLetterQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "NewsSummariesDeadLetterQueue-${AppEnvironment}"
       SqsManagedSseEnabled: true
       VisibilityTimeout: 90
       MessageRetentionPeriod: 1209600 # two weeks
