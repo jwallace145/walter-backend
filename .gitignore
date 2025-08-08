@@ -8,3 +8,4 @@ tmp
 .env
 *.pyc
 coverage.xml
+infra/infra.yml
