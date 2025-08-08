@@ -53,6 +53,7 @@ LAMBDA_FUNCTIONS = [
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
 
+
 ###########
 # METHODS #
 ###########
@@ -177,8 +178,7 @@ def get_latest_versions(lambda_client, functions) -> Dict[str, str]:
         if func == f"WalterCanary-{APP_ENVIRONMENT}":
             latest_versions["walter_canary_version"] = latest_version
 
-    return latest_versions
-
+      return latest_versions
 
 def create_cfn_template_with_latest_api_versions(
     latest_api_versions: Dict[str, str],
