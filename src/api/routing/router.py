@@ -1,0 +1,127 @@
+from dataclasses import dataclass
+
+from src.api.common.methods import WalterAPIMethod
+from src.api.routing.methods import HTTPMethod
+from src.clients import (
+    auth_user_api,
+    create_cash_account_api,
+    get_cash_accounts_api,
+    update_cash_account_api,
+    delete_cash_account_api,
+    get_credit_accounts_api,
+    create_credit_account_api,
+    delete_credit_account_api,
+    get_user_api,
+    create_user_api,
+    update_user_api,
+    get_transactions_api,
+    add_transaction_api,
+    edit_transaction_api,
+    delete_transaction_api,
+    plaid_create_link_token_api,
+    plaid_exchange_public_token_api,
+    plaid_sync_transactions_api,
+)
+from src.utils.log import Logger
+
+log = Logger(__name__).get_logger()
+
+
+@dataclass
+class APIRouter:
+
+    AUTH_RESOURCE = "/auth"
+    CASH_ACCOUNTS_RESOURCE = "/cash-accounts"
+    CREDIT_ACCOUNTS_RESOURCE = "/accounts/credit"
+    PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
+    PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
+    PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
+    TRANSACTIONS_RESOURCE = "/transactions"
+    USER_RESOURCE = "/users"
+
+    @staticmethod
+    def get_method(event: dict) -> WalterAPIMethod:
+        log.info(f"Received event: {event}")
+        api_path = APIRouter._get_api_path(event)
+        http_method = APIRouter._get_http_method(event)
+        log.info(f"API path: {api_path}, HTTP method: {http_method}")
+
+        match (api_path, http_method):
+
+            ##################
+            # AUTHENTICATION #
+            ##################
+
+            case (APIRouter.AUTH_RESOURCE, HTTPMethod.POST):
+                return auth_user_api
+
+            #################
+            # CASH ACCOUNTS #
+            #################
+
+            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.GET):
+                return get_cash_accounts_api
+            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.POST):
+                return create_cash_account_api
+            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.PUT):
+                return update_cash_account_api
+            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
+                return delete_cash_account_api
+
+            ###################
+            # CREDIT ACCOUNTS #
+            ###################
+
+            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.GET):
+                return get_credit_accounts_api
+            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.POST):
+                return create_credit_account_api
+            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
+                return delete_credit_account_api
+
+            #########
+            # PLAID #
+            #########
+
+            case (APIRouter.PLAID_CREATE_LINK_TOKEN_RESOURCE, HTTPMethod.POST):
+                return plaid_create_link_token_api
+            case (APIRouter.PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE, HTTPMethod.POST):
+                return plaid_exchange_public_token_api
+            case (APIRouter.PLAID_SYNC_TRANSACTIONS_RESOURCE, HTTPMethod.POST):
+                return plaid_sync_transactions_api
+
+            ################
+            # TRANSACTIONS #
+            ################
+
+            case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.GET):
+                return get_transactions_api
+            case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.POST):
+                return add_transaction_api
+            case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.PUT):
+                return edit_transaction_api
+            case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.DELETE):
+                return delete_transaction_api
+
+            #########
+            # USERS #
+            #########
+
+            case (APIRouter.USER_RESOURCE, HTTPMethod.GET):
+                return get_user_api
+            case (APIRouter.USER_RESOURCE, HTTPMethod.POST):
+                return create_user_api
+            case (APIRouter.USER_RESOURCE, HTTPMethod.PUT):
+                return update_user_api
+
+            # if none of the above cases match, raise an exception as the API method is not found
+            case _:
+                raise Exception("API method not found!")
+
+    @staticmethod
+    def _get_api_path(event: dict) -> str:
+        return event["path"]
+
+    @staticmethod
+    def _get_http_method(event: dict) -> HTTPMethod:
+        return HTTPMethod.from_string(event["httpMethod"])
