@@ -21,6 +21,11 @@ from src.clients import (
     plaid_create_link_token_api,
     plaid_exchange_public_token_api,
     plaid_sync_transactions_api,
+    get_stocks_api,
+    add_stock_api,
+    delete_stock_api,
+    get_portfolio_api,
+    get_prices_api,
 )
 from src.utils.log import Logger
 
@@ -36,6 +41,9 @@ class APIRouter:
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
+    PORTFOLIOS_RESOURCE = "/portfolios"
+    PRICES_RESOURCE = "/prices"
+    STOCKS_RESOURCE = "/stocks"
     TRANSACTIONS_RESOURCE = "/transactions"
     USER_RESOURCE = "/users"
 
@@ -89,6 +97,30 @@ class APIRouter:
                 return plaid_exchange_public_token_api
             case (APIRouter.PLAID_SYNC_TRANSACTIONS_RESOURCE, HTTPMethod.POST):
                 return plaid_sync_transactions_api
+
+            ##############
+            # PORTFOLIOS #
+            ##############
+
+            case (APIRouter.PORTFOLIOS_RESOURCE, HTTPMethod.GET):
+                return get_portfolio_api
+
+            ##########
+            # PRICES #
+            ##########
+            case (APIRouter.PRICES_RESOURCE, HTTPMethod.GET):
+                return get_prices_api
+
+            ##########
+            # STOCKS #
+            ##########
+
+            case (APIRouter.STOCKS_RESOURCE, HTTPMethod.GET):
+                return get_stocks_api
+            case (APIRouter.STOCKS_RESOURCE, HTTPMethod.POST):
+                return add_stock_api
+            case (APIRouter.STOCKS_RESOURCE, HTTPMethod.DELETE):
+                return delete_stock_api
 
             ################
             # TRANSACTIONS #
