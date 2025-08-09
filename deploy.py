@@ -86,6 +86,27 @@ def run_cmd(cmd: str | List[str], input_data=None) -> None:
         sys.exit(1)
 
 
+def update_docs(s3_client: S3Client) -> None:
+    """
+    This function uploads the OpenAPI specification file to the WalterAPI documentation S3 bucket.
+
+    This ensures that the API documentation is always up-to-date with the latest API specifications.
+
+    Args:
+        s3_client: The boto3 S3 client.
+
+    Returns:
+        None
+    """
+    print("Updating WalterAPI documentation...")
+    s3_client.upload_file(
+        Bucket="walterapi-docs",
+        Key="openapi.yml",
+        Filename="./openapi.yml",
+        ExtraArgs={"ContentType": "application/yaml"},
+    )
+
+
 def build_and_upload_image(ecr_client: ECRClient) -> None:
     """
     Builds and uploads the WalterAPI Docker image to an Amazon ECR repository.
@@ -293,6 +314,7 @@ s3_client = boto3.client("s3", region_name=AWS_REGION)
 # SCRIPT #
 ##########
 
+update_docs(s3_client)
 build_and_upload_image(ecr_client)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
 increment_versions(lambda_client, LAMBDA_FUNCTIONS)

@@ -6,7 +6,7 @@ help:
 	@echo "  make lint                Lint code"
 	@echo "  make test    	     	  Run unit test suite"
 	@echo "  make deploy              Deploy changes"
-	@echo "  make docs                Start API documentation Swagger UI local server"
+	@echo "  make docs                Push updates to API documentation website"
 
 
 format:
@@ -22,4 +22,4 @@ deploy:
 	pipenv run python deploy.py
 
 docs:
-	docker run -p 80:8080 -e SWAGGER_JSON=/foo/openapi.yml -v "$(CURDIR)/openapi.yml":/foo/openapi.yml swaggerapi/swagger-ui
+	aws s3 cp ./openapi.yml s3://walterapi-docs/openapi.yml --content-type application/yaml
