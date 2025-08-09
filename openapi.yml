@@ -43,7 +43,7 @@ paths:
                 ResponseTimeMillis: 1925.8990000000001
                 Data:
                   token: TEST_TOKEN
-  /cash-accounts:
+  /accounts/cash:
     get:
       summary: Retrieve all cash accounts
       description: >

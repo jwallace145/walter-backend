@@ -24,7 +24,9 @@ class CreditAccountsTable:
 
     def __post_init__(self) -> None:
         self.table_name = CreditAccountsTable._get_table_name(self.domain)
-        print(f"Initializing CreditAccountsTable with table name '{self.table_name}'")
+        log.debug(
+            f"Initializing CreditAccountsTable with table name '{self.table_name}'"
+        )
 
     def create_account(self, account: CreditAccount) -> CreditAccount:
         log.info(f"Creating a new credit account:\n{account.to_dict()}")
