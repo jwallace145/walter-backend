@@ -36,7 +36,6 @@ plaid-python = "*"
 black = "*"
 flake8 = "*"
 pre-commit = "*"
-pytest = "*"
 codespell = "*"
 isort = "*"
 moto = {extras = ["dynamodb2"], version = "*"}
@@ -44,6 +43,7 @@ coverage = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 typer = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.12"
