@@ -120,7 +120,18 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ],
         input_data=password,
     )
-    run_cmd(["docker", "buildx", "build", "-t", "--platform=linux/arm64", "walter/api", "."])
+    run_cmd(
+        [
+            "docker",
+            "buildx",
+            "build",
+            "--platform=linux/arm64",
+            "-t",
+            "walter/api",
+            "--load",
+            ".",
+        ]
+    )
     run_cmd(
         [
             "docker",
