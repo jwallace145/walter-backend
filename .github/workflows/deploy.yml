@@ -1,9 +1,6 @@
-name: Deploy WalterBackend to AWS
+name: Deploy WalterBackend to Production
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main

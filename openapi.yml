@@ -665,25 +665,22 @@ paths:
                   total_expense: 2000.00
                   cash_flow: 3000.00
                   transactions:
-                    - transaction_id: abc123
-                      user_id: user-12345
-                      account_id: account-12345
+                    - account_id: account-000
+                      transaction_id: abc1
                       date: "2025-08-05"
                       vendor: Salary
                       amount: 5000.00
                       category: INCOME
                       reviewed: true
-                    - transaction_id: def456
-                      user_id: user-12345
-                      account_id: account-12345
+                    - account_id: account-000
+                      transaction_id: abc2
                       date: "2025-08-06"
                       vendor: Grocery Store
                       amount: -100.00
                       category: GROCERIES
                       reviewed: true
-                    - transaction_id: ghi789
-                      user_id: user-12345
-                      account_id: account-12345
+                    - account_id: account-001
+                      transaction_id: abc3
                       date: "2025-08-07"
                       vendor: Restaurant
                       amount: -50.00
@@ -1613,18 +1610,14 @@ components:
     Transaction:
       type: object
       properties:
-        transaction_id:
-          type: string
-          description: The unique identifier for the transaction
-          example: abc123
-        user_id:
-          type: string
-          description: The user ID
-          example: user-12345
         account_id:
           type: string
           description: The account ID
           example: account-12345
+        transaction_id:
+          type: string
+          description: The unique identifier for the transaction
+          example: abc123
         date:
           type: string
           format: date

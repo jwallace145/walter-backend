@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 from src.api.common.methods import WalterAPIMethod
@@ -49,7 +50,7 @@ class APIRouter:
 
     @staticmethod
     def get_method(event: dict) -> WalterAPIMethod:
-        log.info(f"Received event: {event}")
+        log.debug(f"Received event: {json.dumps(event, indent=4)}")
         api_path = APIRouter._get_api_path(event)
         http_method = APIRouter._get_http_method(event)
         log.info(f"API path: {api_path}, HTTP method: {http_method}")
