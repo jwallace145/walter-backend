@@ -434,9 +434,9 @@ Resources:
   WalterAPICashAccountsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt WalterAPIGateway.RootResourceId
+      ParentId: !Ref WalterAPIUserAccountsResource
       RestApiId: !Ref WalterAPIGateway
-      PathPart: cash-accounts
+      PathPart: cash
 
   WalterAPIGetCashAccountsMethod:
     Type: AWS::ApiGateway::Method

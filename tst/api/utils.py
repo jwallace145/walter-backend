@@ -240,6 +240,8 @@ def get_delete_credit_account_event(
 
 
 def get_get_cash_accounts_event(token: str) -> dict:
+    EVENT["httpMethod"] = "GET"
+    EVENT["path"] = "/accounts/cash"
     EVENT["headers"] = {"Authorization": f"Bearer {token}"}
     return EVENT
 

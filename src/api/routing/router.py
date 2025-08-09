@@ -37,7 +37,7 @@ log = Logger(__name__).get_logger()
 class APIRouter:
 
     AUTH_RESOURCE = "/auth"
-    CASH_ACCOUNTS_RESOURCE = "/cash-accounts"
+    CASH_ACCOUNTS_RESOURCE = "/accounts/cash"
     CREDIT_ACCOUNTS_RESOURCE = "/accounts/credit"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
