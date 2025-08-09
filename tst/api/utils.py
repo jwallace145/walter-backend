@@ -306,7 +306,12 @@ def get_delete_cash_account_event(token: str, account_id: str) -> dict:
 
 
 def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
-    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["httpMethod"] = "GET"
+    EVENT["path"] = "/transactions"
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
     EVENT["queryStringParameters"] = {"start_date": start_date, "end_date": end_date}
     return EVENT
 

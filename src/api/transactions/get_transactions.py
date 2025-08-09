@@ -89,7 +89,7 @@ class GetTransactions(WalterAPIMethod):
                 "num_unreviewed_transactions": len(unreviewed_transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,
-                "cash_flow": total_income - total_expenses,
+                "cash_flow": total_income + total_expenses,  # expenses are negative
                 "transactions": [transaction.to_dict() for transaction in transactions],
             },
         )
