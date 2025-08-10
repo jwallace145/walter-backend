@@ -106,3 +106,8 @@ class PlaidItemDoesNotExist(Exception):
 class PlaidItemAlreadyExists(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class InvestmentAccountDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)

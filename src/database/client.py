@@ -324,6 +324,14 @@ class WalterDB:
     def get_investment_accounts(self, user_id: str) -> List[InvestmentAccount]:
         return self.investment_accounts_table.get_accounts(user_id)
 
+    def get_investment_account(
+        self, user_id: str, account_id: str
+    ) -> Optional[InvestmentAccount]:
+        return self.investment_accounts_table.get_account(user_id, account_id)
+
+    def delete_investment_account(self, user_id: str, account_id: str) -> None:
+        return self.investment_accounts_table.delete_account(user_id, account_id)
+
     ###############
     # PLAID ITEMS #
     ###############

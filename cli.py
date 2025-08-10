@@ -30,6 +30,7 @@ from tst.api.utils import (
     get_delete_credit_account_event,
     get_create_investment_account_event,
     get_get_investment_accounts_event,
+    get_delete_investment_account_event,
 )
 
 log = Logger(__name__).get_logger()
@@ -313,6 +314,27 @@ def get_investment_accounts(
     event = get_get_investment_accounts_event(token)
     response = APIRouter.get_method(event).invoke(event).to_json()
     log.info(f"WalterCLI: GetInvestmentAccounts Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_investment_account(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(None, help="ID of the investment account to delete"),
+) -> None:
+    """
+    Delete an existing investment account for the authenticated user.
+
+    This command permanently removes an investment account from the user's profile.
+    The account must belong to the authenticated user to be deleted.
+
+    Both authentication token and account ID are required to delete an account.
+    """
+    log.info("WalterCLI: DeleteInvestmentAccount")
+    event = get_delete_investment_account_event(token, account_id)
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(
+        f"WalterCLI: DeleteInvestmentAccount Response:\n{parse_response(response)}"
+    )
 
 
 # TRANSACTIONS

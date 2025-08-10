@@ -29,6 +29,7 @@ from src.clients import (
     get_prices_api,
     create_investment_account_api,
     get_investment_accounts_api,
+    delete_investment_account_api,
 )
 from src.utils.log import Logger
 
@@ -99,6 +100,8 @@ class APIRouter:
                 return get_investment_accounts_api
             case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.POST):
                 return create_investment_account_api
+            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
+                return delete_investment_account_api
 
             #########
             # PLAID #

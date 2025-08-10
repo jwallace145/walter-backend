@@ -333,6 +333,24 @@ def get_get_investment_accounts_event(token: str) -> dict:
     return EVENT
 
 
+def get_delete_investment_account_event(
+    token: str,
+    account_id: str,
+) -> dict:
+    EVENT["httpMethod"] = "DELETE"
+    EVENT["path"] = "/accounts/investment"
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+        }
+    )
+    return EVENT
+
+
 def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["httpMethod"] = "GET"
     EVENT["path"] = "/transactions"
