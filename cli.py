@@ -28,6 +28,9 @@ from tst.api.utils import (
     get_create_credit_account_event,
     get_get_credit_accounts_event,
     get_delete_credit_account_event,
+    get_create_investment_account_event,
+    get_get_investment_accounts_event,
+    get_delete_investment_account_event,
 )
 
 log = Logger(__name__).get_logger()
@@ -259,6 +262,79 @@ def delete_cash_account(
     )
     response = APIRouter.get_method(event).invoke(event).to_json()
     log.info(f"WalterCLI: UpdateCashAccount Response:\n{parse_response(response)}")
+
+
+#######################
+# INVESTMENT ACCOUNTS #
+#######################
+
+
+@app.command()
+def create_investment_account(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    bank_name: str = typer.Option(None, help="Name of the bank/financial institution"),
+    account_name: str = typer.Option(
+        None, help="Display name for the investment account"
+    ),
+    account_last_four_numbers: str = typer.Option(
+        None, help="Last 4 digits of the account number"
+    ),
+) -> None:
+    """
+    Create a new investment account for tracking investments and portfolios.
+
+    This command adds an investment account that will be associated with the authenticated user's profile.
+    The account can be used to track investments and their performance over time.
+
+    All fields are required to create a new investment account.
+    """
+    log.info("WalterCLI: CreateInvestmentAccount")
+    event = get_create_investment_account_event(
+        token, bank_name, account_name, account_last_four_numbers
+    )
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(
+        f"WalterCLI: CreateInvestmentAccount Response:\n{parse_response(response)}"
+    )
+
+
+@app.command()
+def get_investment_accounts(
+    token: str = typer.Option(None, help="Authentication token for the user")
+) -> None:
+    """
+    Retrieve all investment accounts for the authenticated user.
+
+    This command returns a list of all investment accounts including their details
+    and balances. The accounts must belong to the authenticated user.
+
+    Authentication token is required to access investment account information.
+    """
+    log.info("WalterCLI: GetInvestmentAccounts")
+    event = get_get_investment_accounts_event(token)
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(f"WalterCLI: GetInvestmentAccounts Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_investment_account(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(None, help="ID of the investment account to delete"),
+) -> None:
+    """
+    Delete an existing investment account for the authenticated user.
+
+    This command permanently removes an investment account from the user's profile.
+    The account must belong to the authenticated user to be deleted.
+
+    Both authentication token and account ID are required to delete an account.
+    """
+    log.info("WalterCLI: DeleteInvestmentAccount")
+    event = get_delete_investment_account_event(token, account_id)
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(
+        f"WalterCLI: DeleteInvestmentAccount Response:\n{parse_response(response)}"
+    )
 
 
 # TRANSACTIONS

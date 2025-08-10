@@ -27,6 +27,9 @@ from src.clients import (
     delete_stock_api,
     get_portfolio_api,
     get_prices_api,
+    create_investment_account_api,
+    get_investment_accounts_api,
+    delete_investment_account_api,
 )
 from src.utils.log import Logger
 
@@ -39,6 +42,7 @@ class APIRouter:
     AUTH_RESOURCE = "/auth"
     CASH_ACCOUNTS_RESOURCE = "/accounts/cash"
     CREDIT_ACCOUNTS_RESOURCE = "/accounts/credit"
+    INVESTMENT_ACCOUNTS_RESOURCE = "/accounts/investment"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
@@ -87,6 +91,17 @@ class APIRouter:
                 return create_credit_account_api
             case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
                 return delete_credit_account_api
+
+            #######################
+            # INVESTMENT ACCOUNTS #
+            #######################
+
+            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.GET):
+                return get_investment_accounts_api
+            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.POST):
+                return create_investment_account_api
+            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
+                return delete_investment_account_api
 
             #########
             # PLAID #

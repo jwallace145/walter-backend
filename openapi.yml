@@ -245,47 +245,6 @@ paths:
                       balance: 2000.00
                       created_at: "2025-08-08T22:07:00.000000+00:00"
                       updated_at: "2025-08-08T22:07:00.000000+00:00"
-    post:
-      summary: Create a new credit account
-      description: >
-        Creates a new credit account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: createCreditAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateCreditAccountRequest'
-            example:
-              bank_name: Test Bank
-              account_name: Test Credit Card
-              balance: 3000.00
-              account_last_four_numbers: "1234"
-      responses:
-        '201':
-          description: Credit account created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCreditAccountResponse'
-              example:
-                Service: WalterAPI
-                API: CreateCreditAccount
-                Status: Success
-                Message: Credit account created successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  credit_account:
-                    account_id: abcdef12-3456-7890-abcd-1234567890ab
-                    bank_name: Test Bank
-                    account_name: Test Credit Card
-                    account_last_four_numbers: "1234"
-                    balance: 3000.00
-                    created_at: "2025-08-08T22:07:00.000000+00:00"
-                    updated_at: "2025-08-08T22:07:00.000000+00:00"
     delete:
       summary: Delete a credit account
       description: >
@@ -314,6 +273,116 @@ paths:
                 API: DeleteCreditAccount
                 Status: Success
                 Message: Successfully deleted credit account!
+                ResponseTimeMillis: 500.000000
+                      
+  /accounts/investment:
+    get:
+      summary: Retrieve all investment accounts
+      description: >
+        Returns a list of investment accounts for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getInvestmentAccounts
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully retrieved investment accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentAccountsResponse'
+              example:
+                Service: WalterAPI
+                API: GetInvestmentAccounts
+                Status: Success
+                Message: Successfully retrieved investment accounts!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  total_num_investment_accounts: 2
+                  total_investment_balance: 15000.00
+                  investment_accounts:
+                    - account_id: abcdef12-3456-7890-abcd-1234567890ab
+                      bank_name: Test Investment Bank
+                      account_name: Test Investment Account
+                      account_last_four_numbers: "1234"
+                      balance: 10000.00
+                      created_at: "2025-08-08T22:07:00.000000+00:00"
+                      updated_at: "2025-08-08T22:07:00.000000+00:00"
+                    - account_id: fedcba98-7654-3210-fedc-ba9876543210
+                      bank_name: Another Investment Bank
+                      account_name: Another Investment Account
+                      account_last_four_numbers: "5678"
+                      balance: 5000.00
+                      created_at: "2025-08-08T22:07:00.000000+00:00"
+                      updated_at: "2025-08-08T22:07:00.000000+00:00"
+    post:
+      summary: Create a new investment account
+      description: >
+        Creates a new investment account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createInvestmentAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvestmentAccountRequest'
+            example:
+              bank_name: Test Investment Bank
+              account_name: Test Investment Account
+              account_last_four_numbers: "1234"
+      responses:
+        '201':
+          description: Investment account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateInvestmentAccountResponse'
+              example:
+                Service: WalterAPI
+                API: CreateInvestmentAccount
+                Status: Success
+                Message: Investment account created successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  investment_account:
+                    account_id: abcdef12-3456-7890-abcd-1234567890ab
+                    bank_name: Test Investment Bank
+                    account_name: Test Investment Account
+                    account_last_four_numbers: "1234"
+                    balance: 0.00
+                    created_at: "2025-08-08T22:07:00.000000+00:00"
+                    updated_at: "2025-08-08T22:07:00.000000+00:00"
+    delete:
+      summary: Delete an investment account
+      description: >
+        Deletes an existing investment account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteInvestmentAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteInvestmentAccountRequest'
+            example:
+              account_id: abcdef12-3456-7890-abcd-1234567890ab
+      responses:
+        '200':
+          description: Investment account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteInvestmentAccountResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteInvestmentAccount
+                Status: Success
+                Message: Successfully deleted investment account!
                 ResponseTimeMillis: 500.000000
                 
   /plaid/create-link-token:
@@ -1174,6 +1243,134 @@ components:
           type: number
           format: double
           example: 500.000000
+          
+    InvestmentAccount:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        bank_name:
+          type: string
+        account_name:
+          type: string
+        account_last_four_numbers:
+          type: string
+        balance:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          
+    InvestmentAccountsResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: GetInvestmentAccounts
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Successfully retrieved investment accounts!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            total_num_investment_accounts:
+              type: integer
+              example: 2
+            total_investment_balance:
+              type: number
+              format: double
+              example: 15000.00
+            investment_accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/InvestmentAccount'
+                
+    DeleteInvestmentAccountRequest:
+      type: object
+      required:
+        - account_id
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          example: abcdef12-3456-7890-abcd-1234567890ab
+          
+    DeleteInvestmentAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: DeleteInvestmentAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Successfully deleted investment account!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+          
+    CreateInvestmentAccountRequest:
+      type: object
+      required:
+        - bank_name
+        - account_name
+        - account_last_four_numbers
+      properties:
+        bank_name:
+          type: string
+          example: Test Investment Bank
+        account_name:
+          type: string
+          example: Test Investment Account
+        account_last_four_numbers:
+          type: string
+          example: "1234"
+          
+    CreateInvestmentAccountResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateInvestmentAccount
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Investment account created successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            investment_account:
+              $ref: '#/components/schemas/InvestmentAccount'
           
     # Plaid Schemas
     CreateLinkTokenResponse:

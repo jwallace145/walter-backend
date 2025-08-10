@@ -67,6 +67,10 @@ Resources:
       FunctionName: !Sub "${WalterAPI.Arn}:release"
       Principal: apigateway.amazonaws.com
 
+  ##################
+  # AUTHENTICATION #
+  ##################
+
   WalterAPIAuthResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -116,6 +120,10 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  #########
+  # USERS #
+  #########
 
   WalterAPIUsers:
     Type: AWS::ApiGateway::Resource
@@ -195,6 +203,10 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  ##########
+  # STOCKS #
+  ##########
+
   WalterAPIStocks:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -273,6 +285,10 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
+  ##########
+  # PRICES #
+  ##########
+
   WalterAPIPrices:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -293,6 +309,10 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  ##############
+  # PORTFOLIOS #
+  ##############
 
   WalterAPIGetPortfolioResource:
     Type: AWS::ApiGateway::Resource
@@ -352,6 +372,10 @@ Resources:
       ParentId: !GetAtt WalterAPIGateway.RootResourceId
       RestApiId: !Ref WalterAPIGateway
       PathPart: accounts
+
+  ###################
+  # CREDIT ACCOUNTS #
+  ###################
 
   WalterAPICreditAccountsResource:
     Type: AWS::ApiGateway::Resource
@@ -430,6 +454,10 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  #################
+  # CASH ACCOUNTS #
+  #################
 
   WalterAPICashAccountsResource:
     Type: AWS::ApiGateway::Resource
@@ -522,6 +550,92 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: false
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
+
+  #######################
+  # INVESTMENT ACCOUNTS #
+  #######################
+
+  WalterAPIInvestmentAccountsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref WalterAPIUserAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      PathPart: investment
+
+  WalterAPIInvestmentAccountsCORSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref WalterAPIGateway
+      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+
+  WalterAPIGetInvestmentAccountsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPICreateInvestmentAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  WalterAPIDeleteInvestmentAccountMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      RestApiId: !Ref WalterAPIGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
+      MethodResponses:
+        - StatusCode: 200
+
+  ################
+  # TRANSACTIONS #
+  ################
 
   WalterAPITransactionsResource:
     Type: AWS::ApiGateway::Resource
@@ -831,6 +945,27 @@ Resources:
   ### DYNAMODB ###
   ################
 
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Users-${AppEnvironment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: !Sub "Users-EmailIndex-${AppEnvironment}"
+          KeySchema:
+            - AttributeName: 'email'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
   TransactionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -879,6 +1014,38 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "CreditAccounts-${AppEnvironment}"
 
+  InvestmentAccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: account_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: account_id
+          KeyType: RANGE
+      TableName: !Sub "InvestmentAccounts-${AppEnvironment}"
+
+  PortfoliosTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: account_id
+          AttributeType: S
+        - AttributeName: portfolio_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: account_id
+          KeyType: HASH
+        - AttributeName: portfolio_id
+          KeyType: RANGE
+      TableName: !Sub "Portfolios-${AppEnvironment}"
+
   StocksTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -906,27 +1073,6 @@ Resources:
           - AttributeName: stock_symbol
             KeyType: RANGE
       TableName: !Sub "UsersStocks-${AppEnvironment}"
-
-  UsersTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "Users-${AppEnvironment}"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: email
-          AttributeType: S
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: !Sub "Users-EmailIndex-${AppEnvironment}"
-          KeySchema:
-            - AttributeName: 'email'
-              KeyType: 'HASH'
-          Projection:
-            ProjectionType: 'ALL'
 
   PlaidItemsTable:
     Type: AWS::DynamoDB::Table
@@ -1189,6 +1335,48 @@ Resources:
             Action:
               - "ses:Send*"
             Resource: "*"
+      Roles:
+        - !Ref WalterAPIRole
+
+  InvestmentAccountsTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "InvestmentAccountsTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt InvestmentAccountsTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
+
+  PortfoliosTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "PortfoliosTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt PortfoliosTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
