@@ -4,13 +4,8 @@ from typing import Dict, List, Optional
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.accounts.cash.models import CashAccount
-from src.database.accounts.cash.table import CashAccountsTable
-from src.database.accounts.credit.models import CreditAccount
-from src.database.accounts.credit.table import CreditAccountsTable
-from src.database.accounts.investment.models import InvestmentAccount
-from src.database.accounts.investment.table import InvestmentAccountsTable
 from src.database.accounts.models import Account
+from src.database.accounts.table import AccountsTable
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
@@ -43,9 +38,7 @@ class WalterDB:
     users_table: UsersTable = None
     stocks_table: StocksTable = None
     users_stocks_table: UsersStocksTable = None
-    cash_accounts_table: CashAccountsTable = None
-    credit_accounts_table: CreditAccountsTable = None
-    investment_accounts_table: InvestmentAccountsTable = None
+    accounts_table: AccountsTable = None
     plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
@@ -53,9 +46,7 @@ class WalterDB:
         self.users_table = UsersTable(self.ddb, self.domain)
         self.stocks_table = StocksTable(self.ddb, self.domain)
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
-        self.cash_accounts_table = CashAccountsTable(self.ddb, self.domain)
-        self.credit_accounts_table = CreditAccountsTable(self.ddb, self.domain)
-        self.investment_accounts_table = InvestmentAccountsTable(self.ddb, self.domain)
+        self.accounts_table = AccountsTable(self.ddb, self.domain)
         self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
     #########
@@ -187,7 +178,7 @@ class WalterDB:
         # create account id to accounts dict
         accounts = {}
         for account in self.get_accounts(user_id):
-            accounts[account.get_account_id()] = account
+            accounts[account.account_id] = account
 
         # get transactions owned by user over given date range
         transactions = self.transactions_table.get_transactions(
@@ -261,76 +252,37 @@ class WalterDB:
     # ACCOUNTS #
     ############
 
-    def get_accounts(self, user_id: str) -> List[Account]:
-        cash_accounts = self.get_cash_accounts(user_id)
-        credit_accounts = self.get_credit_accounts(user_id)
-        return cash_accounts + credit_accounts
+    def create_account(
+        self,
+        user_id: str,
+        account_type: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+    ) -> Account:
+        return self.accounts_table.create_account(
+            user_id,
+            account_type,
+            account_subtype,
+            institution_name,
+            account_name,
+            account_mask,
+            balance,
+        )
 
     def get_account(self, user_id: str, account_id: str) -> Optional[Account]:
-        cash_account = self.get_cash_account(user_id, account_id)
-        if cash_account:
-            return cash_account
-        credit_account = self.get_credit_account(user_id, account_id)
-        if credit_account:
-            return credit_account
-        return None
+        return self.accounts_table.get_account(user_id, account_id)
 
-    #################
-    # CASH ACCOUNTS #
-    #################
+    def get_accounts(self, user_id: str) -> List[Account]:
+        return self.accounts_table.get_accounts(user_id)
 
-    def get_cash_account(self, user_id: str, account_id: str) -> CashAccount:
-        return self.cash_accounts_table.get_account(user_id, account_id)
+    def update_account(self, account: Account) -> Account:
+        return self.accounts_table.update_account(account)
 
-    def get_cash_accounts(self, user_id: str) -> List[CashAccount]:
-        return self.cash_accounts_table.get_accounts(user_id)
-
-    def create_cash_account(self, account: CashAccount) -> CashAccount:
-        return self.cash_accounts_table.create_account(account)
-
-    def update_cash_account(self, account: CashAccount) -> None:
-        self.cash_accounts_table.update_account(account)
-
-    def delete_cash_account(self, user_id: str, account_id: str) -> None:
-        self.cash_accounts_table.delete_account(user_id, account_id)
-
-    ###################
-    # CREDIT ACCOUNTS #
-    ###################
-
-    def create_credit_account(self, account: CreditAccount) -> CreditAccount:
-        return self.credit_accounts_table.create_account(account)
-
-    def get_credit_account(
-        self, user_id: str, account_id: str
-    ) -> Optional[CreditAccount]:
-        return self.credit_accounts_table.get_account(user_id, account_id)
-
-    def get_credit_accounts(self, user_id: str) -> List[CreditAccount]:
-        return self.credit_accounts_table.get_accounts(user_id)
-
-    def delete_credit_account(self, user_id: str, account_id: str) -> None:
-        return self.credit_accounts_table.delete_account(user_id, account_id)
-
-    #######################
-    # INVESTMENT ACCOUNTS #
-    #######################
-
-    def create_investment_account(
-        self, account: InvestmentAccount
-    ) -> InvestmentAccount:
-        return self.investment_accounts_table.create_account(account)
-
-    def get_investment_accounts(self, user_id: str) -> List[InvestmentAccount]:
-        return self.investment_accounts_table.get_accounts(user_id)
-
-    def get_investment_account(
-        self, user_id: str, account_id: str
-    ) -> Optional[InvestmentAccount]:
-        return self.investment_accounts_table.get_account(user_id, account_id)
-
-    def delete_investment_account(self, user_id: str, account_id: str) -> None:
-        return self.investment_accounts_table.delete_account(user_id, account_id)
+    def delete_account(self, user_id: str, account_id: str) -> None:
+        return self.accounts_table.delete_account(user_id, account_id)
 
     ###############
     # PLAID ITEMS #

@@ -3,25 +3,25 @@ import json
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
-from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
-from src.api.common.models import HTTPStatus, Status, Response
-from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.client import WalterDB
-from src.database.users.models import User
-from src.utils.log import Logger
+from src.api.common.exceptions import (
+    BadRequest,
+    NotAuthenticated,
+    UserDoesNotExist,
+)
 from src.api.common.metrics import (
     METRICS_SUCCESS_COUNT,
     METRICS_FAILURE_COUNT,
     METRICS_TOTAL_COUNT,
     METRICS_RESPONSE_TIME_MILLISECONDS,
 )
+from src.api.common.models import HTTPStatus, Status, Response
+from src.auth.authenticator import WalterAuthenticator
+from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.client import WalterDB
+from src.database.users.models import User
+from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
-
-#########################################
-# WALTER API ABSTRACT BASE METHOD CLASS #
-#########################################
 
 
 class WalterAPIMethod(ABC):
@@ -252,28 +252,17 @@ class WalterAPIMethod(ABC):
         log.info(f"Emitting metrics for '{self.api_name}' API")
         success = response.http_status == HTTPStatus.OK
         self.metrics.emit_metric(
-            self._get_success_count_metric_name(), 1 if success else 0
+            f"{self.api_name}.{METRICS_SUCCESS_COUNT}", 1 if success else 0
         )
         self.metrics.emit_metric(
-            self._get_failure_count_metric_name(), 0 if success else 1
+            f"{self.api_name}.{METRICS_FAILURE_COUNT}", 0 if success else 1
         )
-        self.metrics.emit_metric(self._get_total_count_metric_name(), 1)
+        self.metrics.emit_metric(f"{self.api_name}.{METRICS_TOTAL_COUNT}", 1)
         response_time_millis = response.response_time_millis
         self.metrics.emit_metric(
-            self._get_response_time_millis_metric_name(), response_time_millis
+            f"{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}",
+            response_time_millis,
         )
-
-    def _get_success_count_metric_name(self) -> str:
-        return f"{self.api_name}.{METRICS_SUCCESS_COUNT}"
-
-    def _get_failure_count_metric_name(self) -> str:
-        return f"{self.api_name}.{METRICS_FAILURE_COUNT}"
-
-    def _get_total_count_metric_name(self) -> str:
-        return f"{self.api_name}.{METRICS_TOTAL_COUNT}"
-
-    def _get_response_time_millis_metric_name(self) -> str:
-        return f"{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}"
 
     def _verify_user_exists(self, walter_db: WalterDB, email: str) -> User:
         """

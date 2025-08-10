@@ -83,16 +83,6 @@ class InvalidExpenseCategory(Exception):
         super().__init__(message)
 
 
-class CreditAccountDoesNotExist(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class CashAccountDoesNotExist(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 class TransactionDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -108,6 +98,6 @@ class PlaidItemAlreadyExists(Exception):
         super().__init__(message)
 
 
-class InvestmentAccountDoesNotExist(Exception):
+class AccountDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)

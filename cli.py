@@ -31,6 +31,9 @@ from tst.api.utils import (
     get_create_investment_account_event,
     get_get_investment_accounts_event,
     get_delete_investment_account_event,
+    get_add_investment_asset_event,
+    get_get_investment_assets_event,
+    get_delete_investment_asset_event,
 )
 
 log = Logger(__name__).get_logger()
@@ -335,6 +338,77 @@ def delete_investment_account(
     log.info(
         f"WalterCLI: DeleteInvestmentAccount Response:\n{parse_response(response)}"
     )
+
+
+@app.command()
+def add_investment_asset(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(
+        None, help="ID of the investment account to add the asset to"
+    ),
+    asset_id: str = typer.Option(None, help="ID of the investment asset to add"),
+    asset_type: str = typer.Option(
+        None, help="Type of investment asset (e.g., stock, bond, crypto)"
+    ),
+    asset_quantity: float = typer.Option(None, help="Quantity of the asset to add"),
+) -> None:
+    """
+    Add a new investment asset to an existing investment account.
+
+    This command adds an investment asset to the specified investment account.
+    The account must belong to the authenticated user.
+
+    All fields are required to add a new investment asset.
+    """
+    log.info("WalterCLI: AddInvestmentAsset")
+    event = get_add_investment_asset_event(
+        token, account_id, asset_id, asset_type, asset_quantity
+    )
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(f"WalterCLI: AddInvestmentAsset Response:\n{parse_response(response)}")
+
+
+@app.command()
+def get_investment_assets(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(
+        None, help="ID of the investment account to get assets from"
+    ),
+) -> None:
+    """
+    Retrieve all investment assets for a specific investment account.
+
+    This command returns a list of all investment assets including their details
+    for the specified investment account. The account must belong to the authenticated user.
+
+    Both authentication token and account ID are required to retrieve investment assets.
+    """
+    log.info("WalterCLI: GetInvestmentAssets")
+    event = get_get_investment_assets_event(token, account_id)
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(f"WalterCLI: GetInvestmentAssets Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_investment_asset(
+    token: str = typer.Option(None, help="Authentication token for the user"),
+    account_id: str = typer.Option(
+        None, help="ID of the investment account containing the asset"
+    ),
+    asset_id: str = typer.Option(None, help="ID of the investment asset to delete"),
+) -> None:
+    """
+    Delete an investment asset from a specific investment account.
+
+    This command permanently removes an investment asset from the specified investment account.
+    The account must belong to the authenticated user.
+
+    All parameters (token, account_id, and asset_id) are required to delete an investment asset.
+    """
+    log.info("WalterCLI: DeleteInvestmentAsset")
+    event = get_delete_investment_asset_event(token, account_id, asset_id)
+    response = APIRouter.get_method(event).invoke(event).to_json()
+    log.info(f"WalterCLI: DeleteInvestmentAsset Response:\n{parse_response(response)}")
 
 
 # TRANSACTIONS

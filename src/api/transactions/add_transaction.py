@@ -7,13 +7,13 @@ from src.api.common.exceptions import (
     BadRequest,
     NotAuthenticated,
     UserDoesNotExist,
-    CashAccountDoesNotExist,
+    AccountDoesNotExist,
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.accounts.cash.models import CashAccount
+from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.transactions.models import Transaction
 from src.utils.log import Logger
@@ -42,7 +42,7 @@ class AddTransaction(WalterAPIMethod):
         BadRequest,
         NotAuthenticated,
         UserDoesNotExist,
-        CashAccountDoesNotExist,
+        AccountDoesNotExist,
     ]
 
     walter_db: WalterDB
@@ -71,7 +71,7 @@ class AddTransaction(WalterAPIMethod):
         user = self._verify_user_exists(self.walter_db, authenticated_email)
         account = self._verify_account_exists(user.user_id, event)
         transaction = self._create_transaction(
-            user_id=user.user_id, account_id=account.get_account_id(), event=event
+            user_id=user.user_id, account_id=account.account_id, event=event
         )
         self.walter_db.put_transaction(transaction)
         return Response(
@@ -84,7 +84,7 @@ class AddTransaction(WalterAPIMethod):
             },
         )
 
-    def _verify_account_exists(self, user_id: str, event: dict) -> CashAccount:
+    def _verify_account_exists(self, user_id: str, event: dict) -> Account:
         """
         Verify that the account exists for the user.
 
@@ -93,7 +93,7 @@ class AddTransaction(WalterAPIMethod):
             event: The event containing the account data.
 
         Returns:
-            (CashAccount): The verified account object.
+            (Account): The verified account object.
         """
         # get user account details from the event
         body = json.loads(event["body"])
@@ -107,7 +107,7 @@ class AddTransaction(WalterAPIMethod):
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:
-            raise CashAccountDoesNotExist("Account does not exist for user!")
+            raise AccountDoesNotExist("Account does not exist for user!")
 
         log.info(f"Verified account '{account_id}' exists for user '{user_id}'!")
 

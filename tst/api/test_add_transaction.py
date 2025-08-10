@@ -36,7 +36,7 @@ def test_add_transaction(
     # create add transaction event with required details
     event = get_add_transaction_event(
         token=jwt_walter,
-        account_id="5oqvleLkpZt1l1lpKGd9fB8xEymDxaF9bA45z",
+        account_id="acct-8801861911",
         date="2025-08-01",
         vendor="Starbucks",
         amount=5.00,

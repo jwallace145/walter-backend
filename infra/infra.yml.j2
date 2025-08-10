@@ -982,7 +982,7 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "Transactions-${AppEnvironment}"
 
-  CashAccountsTable:
+  AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
@@ -996,55 +996,7 @@ Resources:
           KeyType: HASH
         - AttributeName: account_id
           KeyType: RANGE
-      TableName: !Sub "CashAccounts-${AppEnvironment}"
-
-  CreditAccountsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: account_id
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-        - AttributeName: account_id
-          KeyType: RANGE
-      TableName: !Sub "CreditAccounts-${AppEnvironment}"
-
-  InvestmentAccountsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: account_id
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-        - AttributeName: account_id
-          KeyType: RANGE
-      TableName: !Sub "InvestmentAccounts-${AppEnvironment}"
-
-  PortfoliosTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: account_id
-          AttributeType: S
-        - AttributeName: portfolio_id
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: account_id
-          KeyType: HASH
-        - AttributeName: portfolio_id
-          KeyType: RANGE
-      TableName: !Sub "Portfolios-${AppEnvironment}"
+      TableName: !Sub "Accounts-${AppEnvironment}"
 
   StocksTable:
     Type: AWS::DynamoDB::Table
@@ -1057,6 +1009,22 @@ Resources:
           - AttributeName: symbol
             KeyType: HASH
       TableName: !Sub "Stocks-${AppEnvironment}"
+
+  HoldingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: account_id
+          AttributeType: S
+        - AttributeName: security_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: account_id
+          KeyType: HASH
+        - AttributeName: security_id
+          KeyType: RANGE
+      TableName: !Sub "Holdings-${AppEnvironment}"
 
   UsersStocksTable:
     Type: AWS::DynamoDB::Table
@@ -1338,10 +1306,10 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
 
-  InvestmentAccountsTableAccessPolicy:
+  AccountsTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "InvestmentAccountsTableAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "AccountsTableAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1355,28 +1323,7 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !GetAtt InvestmentAccountsTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  PortfoliosTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "PortfoliosTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt PortfoliosTable.Arn
+            Resource: !GetAtt AccountsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
@@ -1398,6 +1345,27 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt StocksTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
+
+  HoldingsTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "HoldingsTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt HoldingsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
@@ -1437,48 +1405,6 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt TransactionsTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  CashAccountsTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "CashAccountsTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt CashAccountsTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  CreditAccountsTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "CreditAccountsTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt CreditAccountsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 

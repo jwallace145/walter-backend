@@ -351,6 +351,30 @@ def get_delete_investment_account_event(
     return EVENT
 
 
+def get_add_investment_asset_event(
+    token: str,
+    account_id: str,
+    asset_id: str,
+    asset_type: str,
+    asset_quantity: float,
+) -> dict:
+    EVENT["httpMethod"] = "POST"
+    EVENT["path"] = "/assets/investment"
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+            "asset_id": asset_id,
+            "asset_type": asset_type,
+            "asset_quantity": asset_quantity,
+        }
+    )
+    return EVENT
+
+
 def get_get_transactions_event(token: str, start_date: str, end_date: str) -> dict:
     EVENT["httpMethod"] = "GET"
     EVENT["path"] = "/transactions"
@@ -412,6 +436,39 @@ def get_refresh_transactions_event(token: str) -> dict:
     EVENT["headers"] = {
         "Authorization": f"Bearer {token}",
     }
+    return EVENT
+
+
+def get_get_investment_assets_event(token: str, account_id: str) -> dict:
+    EVENT["httpMethod"] = "GET"
+    EVENT["path"] = "/assets/investment"
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+        }
+    )
+    return EVENT
+
+
+def get_delete_investment_asset_event(
+    token: str, account_id: str, asset_id: str
+) -> dict:
+    EVENT["httpMethod"] = "DELETE"
+    EVENT["path"] = "/assets/investment"
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "content-type": "application/json",
+    }
+    EVENT["body"] = json.dumps(
+        {
+            "account_id": account_id,
+            "asset_id": asset_id,
+        }
+    )
     return EVENT
 
 

@@ -12,10 +12,10 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class GetInvestmentAccounts(WalterAPIMethod):
-    """WalterAPI: GetInvestmentAccounts"""
+class GetAccounts(WalterAPIMethod):
+    """WalterAPI: GetAccounts"""
 
-    API_NAME = "GetInvestmentAccounts"
+    API_NAME = "GetAccounts"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
@@ -33,11 +33,11 @@ class GetInvestmentAccounts(WalterAPIMethod):
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
-            GetInvestmentAccounts.API_NAME,
-            GetInvestmentAccounts.REQUIRED_QUERY_FIELDS,
-            GetInvestmentAccounts.REQUIRED_HEADERS,
-            GetInvestmentAccounts.REQUIRED_FIELDS,
-            GetInvestmentAccounts.EXCEPTIONS,
+            GetAccounts.API_NAME,
+            GetAccounts.REQUIRED_QUERY_FIELDS,
+            GetAccounts.REQUIRED_HEADERS,
+            GetAccounts.REQUIRED_FIELDS,
+            GetAccounts.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
         )
@@ -45,21 +45,16 @@ class GetInvestmentAccounts(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
-        investment_accounts = self.walter_db.get_investment_accounts(user.user_id)
-        log.info(f"Retrieved {len(investment_accounts)} investment accounts for user")
+        accounts = self.walter_db.get_accounts(user.user_id)
         return Response(
-            api_name=GetInvestmentAccounts.API_NAME,
+            api_name=GetAccounts.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Successfully retrieved investment accounts!",
+            message="Successfully retrieved accounts!",
             data={
-                "total_num_investment_accounts": len(investment_accounts),
-                "total_investment_balance": sum(
-                    [account.balance for account in investment_accounts]
-                ),
-                "investment_accounts": [
-                    account.to_dict() for account in investment_accounts
-                ],
+                "total_num_accounts": len(accounts),
+                "total_balance": sum([account.balance for account in accounts]),
+                "accounts": [account.to_dict() for account in accounts],
             },
         )
 
