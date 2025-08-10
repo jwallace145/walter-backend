@@ -12,6 +12,10 @@ from src.api.accounts.cash.update_cash_account import UpdateCashAccount
 from src.api.accounts.credit.create_credit_account import CreateCreditAccount
 from src.api.accounts.credit.delete_credit_account import DeleteCreditAccount
 from src.api.accounts.credit.get_credit_accounts import GetCreditAccounts
+from src.api.accounts.investments.create_investment_account import (
+    CreateInvestmentAccount,
+)
+from src.api.accounts.investments.get_investment_accounts import GetInvestmentAccounts
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
@@ -228,6 +232,14 @@ create_credit_account_api = CreateCreditAccount(
     walter_authenticator, walter_cw, walter_db
 )
 delete_credit_account_api = DeleteCreditAccount(
+    walter_authenticator, walter_cw, walter_db
+)
+
+# INVESTMENT ACCOUNTS
+create_investment_account_api = CreateInvestmentAccount(
+    walter_authenticator, walter_cw, walter_db
+)
+get_investment_accounts_api = GetInvestmentAccounts(
     walter_authenticator, walter_cw, walter_db
 )
 

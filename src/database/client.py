@@ -8,6 +8,8 @@ from src.database.accounts.cash.models import CashAccount
 from src.database.accounts.cash.table import CashAccountsTable
 from src.database.accounts.credit.models import CreditAccount
 from src.database.accounts.credit.table import CreditAccountsTable
+from src.database.accounts.investment.models import InvestmentAccount
+from src.database.accounts.investment.table import InvestmentAccountsTable
 from src.database.accounts.models import Account
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
@@ -43,6 +45,7 @@ class WalterDB:
     users_stocks_table: UsersStocksTable = None
     cash_accounts_table: CashAccountsTable = None
     credit_accounts_table: CreditAccountsTable = None
+    investment_accounts_table: InvestmentAccountsTable = None
     plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
@@ -52,6 +55,7 @@ class WalterDB:
         self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
         self.cash_accounts_table = CashAccountsTable(self.ddb, self.domain)
         self.credit_accounts_table = CreditAccountsTable(self.ddb, self.domain)
+        self.investment_accounts_table = InvestmentAccountsTable(self.ddb, self.domain)
         self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
     #########
@@ -307,6 +311,18 @@ class WalterDB:
 
     def delete_credit_account(self, user_id: str, account_id: str) -> None:
         return self.credit_accounts_table.delete_account(user_id, account_id)
+
+    #######################
+    # INVESTMENT ACCOUNTS #
+    #######################
+
+    def create_investment_account(
+        self, account: InvestmentAccount
+    ) -> InvestmentAccount:
+        return self.investment_accounts_table.create_account(account)
+
+    def get_investment_accounts(self, user_id: str) -> List[InvestmentAccount]:
+        return self.investment_accounts_table.get_accounts(user_id)
 
     ###############
     # PLAID ITEMS #
