@@ -67,9 +67,3 @@ OBJECTS_TEST_FILE = "tst/aws/data/objects.json"
 
 TEMPLATES_BUCKET_NAME = f"walterai-templates-{Domain.TESTING.value}"
 """(str): The name of the templates bucket for unit tests."""
-
-NEWSLETTERS_BUCKET_NAME = f"walterai-newsletters-{Domain.TESTING.value}"
-"""(str): The name of the newsletters bucket for unit tests."""
-
-SUMMARIES_BUCKET_NAME = f"walterai-news-summaries-{Domain.TESTING.value}"
-"""(str): The name of the summaries bucket for unit tests."""

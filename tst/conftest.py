@@ -18,12 +18,9 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
-from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.events.parser import WalterEventParser
-from src.newsletters.client import NewslettersBucket
-from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
@@ -171,18 +168,6 @@ def templates_bucket(walter_s3: WalterS3Client) -> TemplatesBucket:
 @pytest.fixture
 def template_engine(templates_bucket: TemplatesBucket) -> None:
     return TemplatesEngine(templates_bucket)
-
-
-@pytest.fixture
-def newsletters_queue(sqs_client) -> NewslettersQueue:
-    return NewslettersQueue(
-        client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
-    )
-
-
-@pytest.fixture
-def newsletters_bucket(walter_s3: WalterS3Client) -> NewslettersBucket:
-    return NewslettersBucket(client=walter_s3, domain=Domain.TESTING)
 
 
 @pytest.fixture

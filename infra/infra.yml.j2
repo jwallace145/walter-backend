@@ -202,31 +202,6 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
-  ##########
-  # PRICES #
-  ##########
-
-  WalterAPIPrices:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt WalterAPIGateway.RootResourceId
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: prices
-
-  WalterAPIGetPricesMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: GET
-      ResourceId: !Ref WalterAPIPrices
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
   ############
   # ACCOUNTS #
   ############
@@ -814,25 +789,6 @@ Resources:
             Action:
               - "cloudwatch:PutMetricData"
             Resource: "*"
-      Roles:
-        - !Ref WalterAPIRole
-
-  NewslettersBucketAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "NewslettersBucketAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "s3:GetObject"
-              - "s3:PutObject"
-            Resource: !Sub "${NewslettersBucket.Arn}/*"
-          - Effect: Allow
-            Action:
-              - "s3:List*"
-            Resource: !GetAtt NewslettersBucket.Arn
       Roles:
         - !Ref WalterAPIRole
 
