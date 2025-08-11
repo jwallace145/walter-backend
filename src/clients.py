@@ -11,13 +11,13 @@ from src.api.accounts.get_accounts import GetAccounts
 from src.api.accounts.update_account import UpdateAccount
 from src.api.accounts.delete_account import DeleteAccount
 from src.api.add_stock import AddStock
-from src.api.auth_user import AuthUser
-from src.api.create_user import CreateUser
+from src.api.auth.auth_user import AuthUser
+from src.api.users.create_user import CreateUser
 from src.api.delete_stock import DeleteStock
 from src.api.get_portfolio import GetPortfolio
 from src.api.get_prices import GetPrices
 from src.api.get_stock import GetStock
-from src.api.get_user import GetUser
+from src.api.users.get_user import GetUser
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.plaid.exchange_public_token import ExchangePublicToken
 from src.api.plaid.refresh_transactions import RefreshTransactions
@@ -26,7 +26,7 @@ from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction
 from src.api.transactions.get_transactions import GetTransactions
-from src.api.update_user import UpdateUser
+from src.api.users.update_user import UpdateUser
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -249,14 +249,7 @@ delete_transaction_api = DeleteTransaction(walter_authenticator, walter_cw, walt
 
 # USERS
 get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
-create_user_api = CreateUser(
-    walter_authenticator,
-    walter_cw,
-    walter_db,
-    walter_ses,
-    template_engine,
-    templates_bucket,
-)
+create_user_api = CreateUser(walter_authenticator, walter_cw, walter_db)
 update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
 
 # PLAID

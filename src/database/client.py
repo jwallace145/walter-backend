@@ -55,7 +55,7 @@ class WalterDB:
 
     def create_user(
         self, email: str, first_name: str, last_name: str, password: str
-    ) -> None:
+    ) -> User:
         # generate salt and hash the given password to store in users table
         salt, password_hash = self.authenticator.hash_password(password)
         user = User(
@@ -66,7 +66,7 @@ class WalterDB:
             sign_up_date=dt.datetime.now(dt.UTC),
             last_active_date=dt.datetime.now(dt.UTC),
         )
-        self.users_table.create_user(user)
+        return self.users_table.create_user(user)
 
     def get_user(self, email: str) -> User:
         return self.users_table.get_user_by_email(email)

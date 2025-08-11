@@ -10,11 +10,11 @@ from src.clients import (
     create_account_api,
     update_account_api,
     delete_account_api,
+    create_user_api,
 )
 from src.utils.log import Logger
 from tst.api.utils import (
     get_auth_user_event,
-    get_create_user_event,
     get_get_user_event,
     get_add_stock_event,
     get_portfolio_event,
@@ -100,14 +100,27 @@ def get_user(token: str = None) -> None:
 
 @app.command()
 def create_user(
-    email: str = None,
-    first_name: str = None,
-    last_name: str = None,
-    password: str = None,
+    email: str = typer.Option(None, help="Email address for the new user"),
+    first_name: str = typer.Option(None, help="User's first name"),
+    last_name: str = typer.Option(None, help="User's last name"),
+    password: str = typer.Option(None, help="Password for the account"),
 ) -> None:
+    """Create a new user account.
+
+    Creates a new user with the provided details. The email must be valid and unique.
+    The password must meet the minimum security requirements.
+
+    Parameters:
+    - email: Valid email address for the new user (required)
+    - first_name: User's first name (required)
+    - last_name: User's last name (required)
+    - password: Password that meets security requirements (required)
+    """
     log.info("Walter CLI: Creating user...")
-    event = get_create_user_event(email, first_name, last_name, password)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    event = create_api_event(
+        email=email, first_name=first_name, last_name=last_name, password=password
+    )
+    response = create_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 

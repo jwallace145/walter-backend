@@ -43,6 +43,46 @@ paths:
                 ResponseTimeMillis: 1925.8990000000001
                 Data:
                   token: TEST_TOKEN
+  /users:
+    post:
+      summary: Create a new user
+      description: >
+        Creates a new user account. This endpoint does not require authentication.
+        Provide a valid email, first and last name, and a secure password.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              email: test@gmail.com
+              first_name: Walter
+              last_name: White
+              password: test_password
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+              example:
+                Service: WalterAPI
+                API: CreateUser
+                Status: Success
+                Message: User created!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  user:
+                    user_id: user-123456
+                    email: test@gmail.com
+                    first_name: Walter
+                    last_name: White
+                    sign_up_date: "2025-08-09T12:00:00+00:00"
+                    last_active_date: "2025-08-09T12:00:00+00:00"
+                    verified: false
   /plaid/create-link-token:
     post:
       summary: Create a Plaid link token
@@ -752,6 +792,86 @@ components:
               type: string
               description: JWT token to be used for authenticated requests
               example: TEST_TOKEN
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - first_name
+        - last_name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@gmail.com
+        first_name:
+          type: string
+          example: Walter
+        last_name:
+          type: string
+          example: White
+        password:
+          type: string
+          format: password
+          example: test_password
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: The unique ID for the user
+          example: user-123456
+        email:
+          type: string
+          format: email
+          description: The user's email address
+          example: test@gmail.com
+        first_name:
+          type: string
+          description: The user's first name
+          example: Walter
+        last_name:
+          type: string
+          description: The user's last name
+          example: White
+        sign_up_date:
+          type: string
+          format: date-time
+          description: The timestamp when the user signed up
+          example: "2025-08-09T12:00:00+00:00"
+        last_active_date:
+          type: string
+          format: date-time
+          description: The timestamp when the user was last active
+          example: "2025-08-09T12:00:00+00:00"
+        verified:
+          type: boolean
+          description: Whether the user's email is verified
+          example: false
+    CreateUserResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateUser
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: User created!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
     # Unified Accounts Schemas
     Account:
       type: object

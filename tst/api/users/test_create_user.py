@@ -1,7 +1,7 @@
 import pytest
 
-from src.api.create_user import CreateUser
 from src.api.common.methods import Status, HTTPStatus
+from src.api.users.create_user import CreateUser
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.ses.client import WalterSESClient
@@ -20,14 +20,7 @@ def create_user_api(
     template_engine: TemplatesEngine,
     templates_bucket: TemplatesBucket,
 ) -> CreateUser:
-    return CreateUser(
-        walter_authenticator,
-        walter_cw,
-        walter_db,
-        walter_ses,
-        template_engine,
-        templates_bucket,
-    )
+    return CreateUser(walter_authenticator, walter_cw, walter_db)
 
 
 # def test_create_user(create_user_api: CreateUser) -> None:
