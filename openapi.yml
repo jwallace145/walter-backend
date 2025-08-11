@@ -43,309 +43,46 @@ paths:
                 ResponseTimeMillis: 1925.8990000000001
                 Data:
                   token: TEST_TOKEN
-  /plaid/create-link-token:
+  /users:
     post:
-      summary: Create a Plaid link token
+      summary: Create a new user
       description: >
-        Creates a link token for Plaid Link that can be used to initialize Plaid Link.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: createLinkToken
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Link token created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateLinkTokenResponse'
-              example:
-                Service: WalterAPI
-                API: CreateLinkToken
-                Status: Success
-                Message: Created link token successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  link_token: link-sandbox-12345-abcde
-                  expiration: "2025-08-09T22:07:00.000000+00:00"
-                  request_id: request-id-12345
-                  
-  /plaid/exchange-public-token:
-    post:
-      summary: Exchange a Plaid public token for an access token
-      description: >
-        Exchanges a temporary public token from Plaid Link for a permanent access token.
-        Creates accounts in the database and triggers transaction sync.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: exchangePublicToken
-      security:
-        - bearerAuth: [ ]
+        Creates a new user account. This endpoint does not require authentication.
+        Provide a valid email, first and last name, and a secure password.
+      operationId: createUser
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExchangePublicTokenRequest'
+              $ref: '#/components/schemas/CreateUserRequest'
             example:
-              public_token: public-sandbox-12345-abcde
-              institution_id: ins_123456
-              institution_name: Test Bank
-              accounts:
-                - account_id: acc_12345
-                  account_name: Checking
-                  account_type: depository
-                  account_subtype: checking
-                  account_last_four_numbers: "1234"
-      responses:
-        '200':
-          description: Public token exchanged successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExchangePublicTokenResponse'
-              example:
-                Service: WalterAPI
-                API: ExchangePublicToken
-                Status: Success
-                Message: Tokens exchanged successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  institution_name: Test Bank
-                  num_accounts: 1
-                  
-  /plaid/sync-transactions:
-    post:
-      summary: Sync transactions from Plaid
-      description: >
-        Syncs transactions from Plaid for a specific item.
-        This endpoint is called by Plaid webhooks when new transactions are available.
-      operationId: syncTransactions
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SyncTransactionsRequest'
-            example:
-              item_id: item-sandbox-12345-abcde
-              webhook_code: TRANSACTIONS_UPDATE
-      responses:
-        '200':
-          description: Transaction sync initiated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SyncTransactionsResponse'
-              example:
-                Service: WalterAPI
-                API: SyncTransactions
-                Status: Success
-                Message: Syncing user transactions!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  user_id: user-12345
-                  institution_id: ins_123456
-                  institution_name: Test Bank
-                  
-  /portfolios:
-    get:
-      summary: Retrieve user portfolio
-      description: >
-        Returns the user's portfolio information including total equity and stock equities.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: getPortfolio
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Successfully retrieved portfolio
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PortfolioResponse'
-              example:
-                Service: WalterAPI
-                API: GetPortfolio
-                Status: Success
-                Message: Retrieved portfolio!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  total_equity: 10000.00
-                  stocks:
-                    - symbol: AAPL
-                      name: Apple Inc.
-                      quantity: 10
-                      price: 150.00
-                      value: 1500.00
-                    - symbol: MSFT
-                      name: Microsoft Corporation
-                      quantity: 5
-                      price: 300.00
-                      value: 1500.00
-                      
-  /prices:
-    get:
-      summary: Retrieve stock prices
-      description: >
-        Returns stock price information for a specific stock and date range.
-      operationId: getPrices
-      parameters:
-        - name: stock
-          in: query
-          required: true
-          schema:
-            type: string
-          description: The stock symbol
-          example: AAPL
-        - name: start_date
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-          description: The start date for the price range (YYYY-MM-DD)
-          example: "2025-08-01"
-        - name: end_date
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-          description: The end date for the price range (YYYY-MM-DD)
-          example: "2025-08-08"
-      responses:
-        '200':
-          description: Successfully retrieved prices
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PricesResponse'
-              example:
-                Service: WalterAPI
-                API: GetPrices
-                Status: Success
-                Message: Retrieved prices!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  stock: AAPL
-                  start_date: "2025-08-01"
-                  end_date: "2025-08-08"
-                  num_prices: 5
-                  prices:
-                    - date: "2025-08-01"
-                      open: 145.00
-                      high: 148.00
-                      low: 144.00
-                      close: 147.00
-                      volume: 1000000
-                    - date: "2025-08-02"
-                      open: 147.00
-                      high: 150.00
-                      low: 146.00
-                      close: 149.00
-                      volume: 1200000
-                      
-  /stocks:
-    get:
-      summary: Retrieve stock information
-      description: >
-        Returns information about a specific stock.
-      operationId: getStock
-      parameters:
-        - name: symbol
-          in: query
-          required: true
-          schema:
-            type: string
-          description: The stock symbol
-          example: AAPL
-      responses:
-        '200':
-          description: Successfully retrieved stock information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StockResponse'
-              example:
-                Service: WalterAPI
-                API: GetStock
-                Status: Success
-                Message: Retrieved stock details!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  stock:
-                    symbol: AAPL
-                    name: Apple Inc.
-                    exchange: NASDAQ
-                    industry: Technology
-                    sector: Electronic Technology
-                    market_cap: 2500000000000
-                    
-    post:
-      summary: Add a stock to user portfolio
-      description: >
-        Adds a stock to the user's portfolio.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: addStock
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddStockRequest'
-            example:
-              stock: AAPL
-              quantity: 10
+              email: test@gmail.com
+              first_name: Walter
+              last_name: White
+              password: test_password
       responses:
         '201':
-          description: Stock added successfully
+          description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddStockResponse'
+                $ref: '#/components/schemas/CreateUserResponse'
               example:
                 Service: WalterAPI
-                API: AddStock
+                API: CreateUser
                 Status: Success
-                Message: Stock added!
+                Message: User created!
                 ResponseTimeMillis: 500.000000
                 Data:
-                  user: user@example.com
-                  stock: AAPL
-                  quantity: 10
-                  
-    delete:
-      summary: Delete a stock from user portfolio
-      description: >
-        Deletes a stock from the user's portfolio.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: deleteStock
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteStockRequest'
-            example:
-              stock: AAPL
-      responses:
-        '200':
-          description: Stock deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteStockResponse'
-              example:
-                Service: WalterAPI
-                API: DeleteStock
-                Status: Success
-                Message: Stock deleted!
-                ResponseTimeMillis: 500.000000
-                
+                  user:
+                    user_id: user-123456
+                    email: test@gmail.com
+                    first_name: Walter
+                    last_name: White
+                    sign_up_date: "2025-08-09T12:00:00+00:00"
+                    last_active_date: "2025-08-09T12:00:00+00:00"
+                    verified: false
   /accounts:
     get:
       summary: Retrieve user accounts
@@ -586,7 +323,7 @@ paths:
                       amount: -50.00
                       category: DINING
                       reviewed: false
-                      
+
     post:
       summary: Add a new transaction
       description: >
@@ -629,7 +366,7 @@ paths:
                     amount: -5.00
                     category: DINING
                     reviewed: false
-                    
+
     put:
       summary: Edit an existing transaction
       description: >
@@ -674,7 +411,7 @@ paths:
                     amount: -75.00
                     category: DINING
                     reviewed: true
-                    
+
     delete:
       summary: Delete a transaction
       description: >
@@ -705,6 +442,110 @@ paths:
                 Status: Success
                 Message: Transaction deleted!
                 ResponseTimeMillis: 500.000000
+  /plaid/create-link-token:
+    post:
+      summary: Create a Plaid link token
+      description: >
+        Creates a link token for Plaid Link that can be used to initialize Plaid Link.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createLinkToken
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Link token created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLinkTokenResponse'
+              example:
+                Service: WalterAPI
+                API: CreateLinkToken
+                Status: Success
+                Message: Created link token successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  link_token: link-sandbox-12345-abcde
+                  expiration: "2025-08-09T22:07:00.000000+00:00"
+                  request_id: request-id-12345
+                  
+  /plaid/exchange-public-token:
+    post:
+      summary: Exchange a Plaid public token for an access token
+      description: >
+        Exchanges a temporary public token from Plaid Link for a permanent access token.
+        Creates accounts in the database and triggers transaction sync.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: exchangePublicToken
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangePublicTokenRequest'
+            example:
+              public_token: public-sandbox-12345-abcde
+              institution_id: ins_123456
+              institution_name: Test Bank
+              accounts:
+                - account_id: acc_12345
+                  account_name: Checking
+                  account_type: depository
+                  account_subtype: checking
+                  account_last_four_numbers: "1234"
+      responses:
+        '200':
+          description: Public token exchanged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangePublicTokenResponse'
+              example:
+                Service: WalterAPI
+                API: ExchangePublicToken
+                Status: Success
+                Message: Tokens exchanged successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  institution_name: Test Bank
+                  num_accounts: 1
+                  
+  /plaid/sync-transactions:
+    post:
+      summary: Sync transactions from Plaid
+      description: >
+        Syncs transactions from Plaid for a specific item.
+        This endpoint is called by Plaid webhooks when new transactions are available.
+      operationId: syncTransactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncTransactionsRequest'
+            example:
+              item_id: item-sandbox-12345-abcde
+              webhook_code: TRANSACTIONS_UPDATE
+      responses:
+        '200':
+          description: Transaction sync initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncTransactionsResponse'
+              example:
+                Service: WalterAPI
+                API: SyncTransactions
+                Status: Success
+                Message: Syncing user transactions!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  user_id: user-12345
+                  institution_id: ins_123456
+                  institution_name: Test Bank
+
 components:
   securitySchemes:
     bearerAuth:
@@ -752,6 +593,86 @@ components:
               type: string
               description: JWT token to be used for authenticated requests
               example: TEST_TOKEN
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - first_name
+        - last_name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@gmail.com
+        first_name:
+          type: string
+          example: Walter
+        last_name:
+          type: string
+          example: White
+        password:
+          type: string
+          format: password
+          example: test_password
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: The unique ID for the user
+          example: user-123456
+        email:
+          type: string
+          format: email
+          description: The user's email address
+          example: test@gmail.com
+        first_name:
+          type: string
+          description: The user's first name
+          example: Walter
+        last_name:
+          type: string
+          description: The user's last name
+          example: White
+        sign_up_date:
+          type: string
+          format: date-time
+          description: The timestamp when the user signed up
+          example: "2025-08-09T12:00:00+00:00"
+        last_active_date:
+          type: string
+          format: date-time
+          description: The timestamp when the user was last active
+          example: "2025-08-09T12:00:00+00:00"
+        verified:
+          type: boolean
+          description: Whether the user's email is verified
+          example: false
+    CreateUserResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: CreateUser
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: User created!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
     # Unified Accounts Schemas
     Account:
       type: object
@@ -1170,272 +1091,6 @@ components:
               type: string
               description: The name of the financial institution
               example: Test Bank
-              
-    # Portfolio Schemas
-    PortfolioResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: GetPortfolio
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Retrieved portfolio!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            total_equity:
-              type: number
-              format: double
-              description: The total value of all stocks in the portfolio
-              example: 10000.00
-            stocks:
-              type: array
-              description: List of stocks in the portfolio
-              items:
-                type: object
-                properties:
-                  symbol:
-                    type: string
-                    description: The stock symbol
-                    example: AAPL
-                  name:
-                    type: string
-                    description: The company name
-                    example: Apple Inc.
-                  quantity:
-                    type: number
-                    description: The number of shares owned
-                    example: 10
-                  price:
-                    type: number
-                    format: double
-                    description: The current price per share
-                    example: 150.00
-                  value:
-                    type: number
-                    format: double
-                    description: The total value of the shares (quantity * price)
-                    example: 1500.00
-                    
-    # Prices Schemas
-    PricesResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: GetPrices
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Retrieved prices!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            stock:
-              type: string
-              description: The stock symbol
-              example: AAPL
-            start_date:
-              type: string
-              format: date
-              description: The start date of the price range
-              example: "2025-08-01"
-            end_date:
-              type: string
-              format: date
-              description: The end date of the price range
-              example: "2025-08-08"
-            num_prices:
-              type: integer
-              description: The number of price data points
-              example: 5
-            prices:
-              type: array
-              description: List of price data points
-              items:
-                type: object
-                properties:
-                  date:
-                    type: string
-                    format: date
-                    description: The date of the price data
-                    example: "2025-08-01"
-                  open:
-                    type: number
-                    format: double
-                    description: The opening price
-                    example: 145.00
-                  high:
-                    type: number
-                    format: double
-                    description: The highest price
-                    example: 148.00
-                  low:
-                    type: number
-                    format: double
-                    description: The lowest price
-                    example: 144.00
-                  close:
-                    type: number
-                    format: double
-                    description: The closing price
-                    example: 147.00
-                  volume:
-                    type: integer
-                    description: The trading volume
-                    example: 1000000
-                    
-    # Stock Schemas
-    StockResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: GetStock
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Retrieved stock details!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            stock:
-              type: object
-              properties:
-                symbol:
-                  type: string
-                  description: The stock symbol
-                  example: AAPL
-                name:
-                  type: string
-                  description: The company name
-                  example: Apple Inc.
-                exchange:
-                  type: string
-                  description: The stock exchange
-                  example: NASDAQ
-                industry:
-                  type: string
-                  description: The industry
-                  example: Technology
-                sector:
-                  type: string
-                  description: The sector
-                  example: Electronic Technology
-                market_cap:
-                  type: number
-                  format: double
-                  description: The market capitalization
-                  example: 2500000000000
-                  
-    AddStockRequest:
-      type: object
-      required:
-        - stock
-        - quantity
-      properties:
-        stock:
-          type: string
-          description: The stock symbol
-          example: AAPL
-        quantity:
-          type: number
-          description: The number of shares to add
-          example: 10
-          
-    AddStockResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: AddStock
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Stock added!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            user:
-              type: string
-              description: The user's email
-              example: user@example.com
-            stock:
-              type: string
-              description: The stock symbol
-              example: AAPL
-            quantity:
-              type: number
-              description: The number of shares added
-              example: 10
-              
-    DeleteStockRequest:
-      type: object
-      required:
-        - stock
-      properties:
-        stock:
-          type: string
-          description: The stock symbol to delete
-          example: AAPL
-          
-    DeleteStockResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: DeleteStock
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Stock deleted!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
           
     # Transaction Schemas
     Transaction:

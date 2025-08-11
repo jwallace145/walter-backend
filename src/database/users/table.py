@@ -30,12 +30,13 @@ class UsersTable:
         self.email_index_name = UsersTable._get_email_index_name(self.domain)
         log.debug(f"Creating UsersTable DDB client with table name '{self.table}'")
 
-    def create_user(self, user: User) -> None:
+    def create_user(self, user: User) -> User:
         log.info(
             f"Creating the following user and adding to table '{self.table}':\n{user}"
         )
         item = user.to_ddb_item()
         self.ddb.put_item(self.table, item)
+        return user
 
     def get_user(self, email: str) -> User | None:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")

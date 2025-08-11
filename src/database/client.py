@@ -1,6 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
@@ -9,14 +9,10 @@ from src.database.accounts.table import AccountsTable
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
-from src.database.stocks.models import Stock
-from src.database.stocks.table import StocksTable
 from src.database.transactions.models import Transaction
 from src.database.transactions.table import TransactionsTable
 from src.database.users.models import User
 from src.database.users.table import UsersTable
-from src.database.userstocks.models import UserStock
-from src.database.userstocks.table import UsersStocksTable
 from src.environment import Domain
 from src.utils.log import Logger
 
@@ -36,16 +32,12 @@ class WalterDB:
     # all tables created in post init
     transactions_table: TransactionsTable = None
     users_table: UsersTable = None
-    stocks_table: StocksTable = None
-    users_stocks_table: UsersStocksTable = None
     accounts_table: AccountsTable = None
     plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
         self.transactions_table = TransactionsTable(self.ddb, self.domain)
         self.users_table = UsersTable(self.ddb, self.domain)
-        self.stocks_table = StocksTable(self.ddb, self.domain)
-        self.users_stocks_table = UsersStocksTable(self.ddb, self.domain)
         self.accounts_table = AccountsTable(self.ddb, self.domain)
         self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
@@ -55,7 +47,7 @@ class WalterDB:
 
     def create_user(
         self, email: str, first_name: str, last_name: str, password: str
-    ) -> None:
+    ) -> User:
         # generate salt and hash the given password to store in users table
         salt, password_hash = self.authenticator.hash_password(password)
         user = User(
@@ -66,7 +58,7 @@ class WalterDB:
             sign_up_date=dt.datetime.now(dt.UTC),
             last_active_date=dt.datetime.now(dt.UTC),
         )
-        self.users_table.create_user(user)
+        return self.users_table.create_user(user)
 
     def get_user(self, email: str) -> User:
         return self.users_table.get_user_by_email(email)
@@ -91,48 +83,6 @@ class WalterDB:
 
     def delete_user(self, email: str) -> None:
         self.users_table.delete_user(email)
-
-    ##########
-    # STOCKS #
-    ##########
-
-    def get_stock(self, symbol: str) -> Stock | None:
-        """
-        Get stock by symbol from WalterDB, return None if not found.
-
-        Args:
-            symbol: The stock ticker symbol.
-
-        Returns:
-            The stock details from WalterDB or None if not found.
-        """
-        return self.stocks_table.get_stock(symbol)
-
-    def add_stock(self, stock: Stock) -> None:
-        self.stocks_table.put_stock(stock)
-
-    def get_all_stocks(self) -> List[Stock]:
-        """
-        Get all stocks from WalterDB.
-
-        Returns:
-            The list of all stocks stored in WalterDB.
-        """
-        return self.stocks_table.get_stocks()
-
-    def get_stocks(self, symbols: List[str]) -> Dict[str, Stock]:
-        stocks = [self.get_stock(symbol) for symbol in symbols]
-        return {stock.symbol: stock for stock in stocks}
-
-    def get_stocks_for_user(self, user: User) -> Dict[str, UserStock]:
-        stocks = self.users_stocks_table.get_stocks_for_user(user)
-        return {stock.stock_symbol: stock for stock in stocks}
-
-    def add_stock_to_user_portfolio(self, stock: UserStock) -> None:
-        self.users_stocks_table.add_stocks_to_user_portfolio(stock)
-
-    def delete_stock_from_user_portfolio(self, stock: UserStock) -> None:
-        self.users_stocks_table.delete_stock_from_user_portfolio(stock)
 
     ################
     # TRANSACTIONS #
@@ -241,7 +191,7 @@ class WalterDB:
         for transaction in self.get_transactions(
             user_id, dt.datetime.min, dt.datetime.max
         ):
-            if transaction.account.get_account_id() == account_id:
+            if transaction.account.account_id == account_id:
                 self.delete_transaction(
                     user_id,
                     transaction.transaction.date,

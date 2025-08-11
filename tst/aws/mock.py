@@ -9,8 +9,6 @@ from tst.constants import (
     SECRETS_TEST_FILE,
     OBJECTS_TEST_FILE,
     TEMPLATES_BUCKET_NAME,
-    NEWSLETTERS_BUCKET_NAME,
-    SUMMARIES_BUCKET_NAME,
     NEWSLETTERS_QUEUE_NAME,
     NEWS_SUMMARIES_QUEUE_NAME,
 )
@@ -53,8 +51,6 @@ class MockS3:
     def initialize(self) -> None:
         objects = self._get_objects(OBJECTS_TEST_FILE)
         self._create_templates_bucket(objects)
-        self._create_newsletters_bucket(objects)
-        self._create_summaries_bucket(objects)
 
     def _get_objects(self, file: str) -> dict:
         return json.load(open(file))
@@ -69,30 +65,6 @@ class MockS3:
                         Bucket=TEMPLATES_BUCKET_NAME,
                         Key=template["key"],
                         Body=open(template["file"], "rb").read(),
-                    )
-
-    def _create_newsletters_bucket(self, objects: dict) -> None:
-        self.s3.create_bucket(Bucket=NEWSLETTERS_BUCKET_NAME)
-        for object in objects:
-            if object["bucket"] == NEWSLETTERS_BUCKET_NAME:
-                newsletters = object["objects"]
-                for newsletter in newsletters:
-                    self.s3.put_object(
-                        Bucket=NEWSLETTERS_BUCKET_NAME,
-                        Key=newsletter["key"],
-                        Body=open(newsletter["file"], "rb").read(),
-                    )
-
-    def _create_summaries_bucket(self, objects: dict) -> None:
-        self.s3.create_bucket(Bucket=SUMMARIES_BUCKET_NAME)
-        for object in objects:
-            if object["bucket"] == SUMMARIES_BUCKET_NAME:
-                summaries = object["objects"]
-                for summary in summaries:
-                    self.s3.put_object(
-                        Bucket=SUMMARIES_BUCKET_NAME,
-                        Key=summary["key"],
-                        Body=open(summary["file"], "rb").read(),
                     )
 
 

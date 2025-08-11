@@ -1,13 +1,20 @@
 import json
+from typing import Optional
 
 import typer
 
 from src.api.routing.router import APIRouter
 from src.canaries.routing.router import CanaryRouter
+from src.clients import (
+    get_accounts_api,
+    create_account_api,
+    update_account_api,
+    delete_account_api,
+    create_user_api,
+)
 from src.utils.log import Logger
 from tst.api.utils import (
     get_auth_user_event,
-    get_create_user_event,
     get_get_user_event,
     get_add_stock_event,
     get_portfolio_event,
@@ -31,6 +38,36 @@ CONTEXT = {}
 def parse_response(response: dict) -> str:
     response["body"] = json.loads(response["body"])
     return json.dumps(response, indent=4)
+
+
+def create_api_event(token: Optional[str] = None, **kwargs) -> dict:
+    """
+    Create an API event with the provided token and kwargs.
+
+    This method is used to create API events for testing with the CLI. This method
+    ensures the event is formatted correctly for the API. However, the created
+    event includes no information about path or method as the CLI does not use
+    the API router. The APIs are called directly with their respective methods.
+
+    Args:
+        token: The authentication token to include in the event for authenticated APIs.
+        **kwargs: The additional kwargs to include in the event as body.
+
+    Returns:
+        Properly formatted event for testing with the CLI.
+    """
+    event = {}
+
+    # if api token is provided, add it to the event
+    if token:
+        event["headers"] = {"Authorization": f"Bearer {token}"}
+
+    # if additional kwargs are provided, add them to the event as body
+    if kwargs:
+        event["headers"] = {"content-type": "application/json"}
+        event["body"] = json.dumps(kwargs)
+
+    return event
 
 
 ##############
@@ -63,14 +100,27 @@ def get_user(token: str = None) -> None:
 
 @app.command()
 def create_user(
-    email: str = None,
-    first_name: str = None,
-    last_name: str = None,
-    password: str = None,
+    email: str = typer.Option(None, help="Email address for the new user"),
+    first_name: str = typer.Option(None, help="User's first name"),
+    last_name: str = typer.Option(None, help="User's last name"),
+    password: str = typer.Option(None, help="Password for the account"),
 ) -> None:
+    """Create a new user account.
+
+    Creates a new user with the provided details. The email must be valid and unique.
+    The password must meet the minimum security requirements.
+
+    Parameters:
+    - email: Valid email address for the new user (required)
+    - first_name: User's first name (required)
+    - last_name: User's last name (required)
+    - password: Password that meets security requirements (required)
+    """
     log.info("Walter CLI: Creating user...")
-    event = get_create_user_event(email, first_name, last_name, password)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    event = create_api_event(
+        email=email, first_name=first_name, last_name=last_name, password=password
+    )
+    response = create_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -119,7 +169,99 @@ def get_prices(stock: str = None, start_date: str = None, end_date: str = None) 
 
 # ACCOUNTS
 
-# TODO: Add accounts CLI commands
+
+@app.command()
+def get_accounts(
+    token: str = typer.Option(None, help="JWT token for the authenticated user")
+) -> None:
+    """Get all accounts for the authenticated user.
+
+    Parameters:
+    - token: Bearer JWT for the user (required)
+    """
+    log.info("WalterCLI: GetAccounts")
+    event = create_api_event(token)
+    response = get_accounts_api.invoke(event).to_json()
+    log.info(f"WalterCLI: GetAccounts Response:\n{parse_response(response)}")
+
+
+@app.command()
+def create_account(
+    token: str = typer.Option(None, help="JWT token for the authenticated user"),
+    account_type: str = typer.Option(
+        None, help="Account type (e.g., credit, depository, investment)"
+    ),
+    account_subtype: str = typer.Option(
+        None, help="Account subtype (e.g., credit card, checking, brokerage)"
+    ),
+    institution_name: str = typer.Option(
+        None, help="Name of the financial institution"
+    ),
+    account_name: str = typer.Option(None, help="Account display name"),
+    account_mask: str = typer.Option(
+        None, help="Last 2-4 digits used to identify the account"
+    ),
+    balance: float = typer.Option(None, help="Current account balance"),
+) -> None:
+    """Create a new account for the authenticated user."""
+    log.info("WalterCLI: CreateAccount")
+    event = create_api_event(
+        token,
+        account_type=account_type,
+        account_subtype=account_subtype,
+        institution_name=institution_name,
+        account_name=account_name,
+        account_mask=account_mask,
+        balance=balance,
+    )
+    response = create_account_api.invoke(event).to_json()
+    log.info(f"WalterCLI: CreateAccount Response:\n{parse_response(response)}")
+
+
+@app.command()
+def update_account(
+    token: str = typer.Option(None, help="JWT token for the authenticated user"),
+    account_id: str = typer.Option(None, help="The account ID to update"),
+    account_type: str = typer.Option(
+        None, help="Updated account type (credit, depository, investment)"
+    ),
+    account_subtype: str = typer.Option(
+        None, help="Updated account subtype (e.g., credit card, checking, brokerage)"
+    ),
+    institution_name: str = typer.Option(None, help="Updated institution name"),
+    account_name: str = typer.Option(None, help="Updated account name"),
+    account_mask: str = typer.Option(None, help="Updated account mask (last digits)"),
+    balance: float = typer.Option(None, help="Updated account balance"),
+    logo_url: str = typer.Option(None, help="Institution/account logo URL"),
+) -> None:
+    """Update an existing account for the authenticated user."""
+    log.info("WalterCLI: UpdateAccount")
+    event = create_api_event(
+        token,
+        account_id=account_id,
+        account_type=account_type,
+        account_subtype=account_subtype,
+        institution_name=institution_name,
+        account_name=account_name,
+        account_mask=account_mask,
+        balance=balance,
+        logo_url=logo_url,
+    )
+    response = update_account_api.invoke(event).to_json()
+    log.info(f"WalterCLI: UpdateAccount Response:\n{parse_response(response)}")
+
+
+@app.command()
+def delete_account(
+    token: str = typer.Option(None, help="JWT token for the authenticated user"),
+    account_id: str = typer.Option(None, help="The account ID to delete"),
+) -> None:
+    """Delete an account (and its transactions) for the authenticated user."""
+    log.info("WalterCLI: DeleteAccount")
+    event = create_api_event(token, account_id=account_id)
+    response = delete_account_api.invoke(event).to_json()
+    log.info(f"WalterCLI: DeleteAccount Response:\n{parse_response(response)}")
+
 
 # TRANSACTIONS
 

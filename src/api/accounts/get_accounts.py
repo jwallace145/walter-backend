@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
+from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist, BadRequest
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -20,6 +20,7 @@ class GetAccounts(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
+        BadRequest,
         NotAuthenticated,
         UserDoesNotExist,
     ]

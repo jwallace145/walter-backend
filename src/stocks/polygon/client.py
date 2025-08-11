@@ -6,7 +6,6 @@ import polygon.exceptions
 from polygon import RESTClient
 from polygon.rest.models.aggs import Agg
 
-from src.database.userstocks.models import UserStock
 from src.environment import Domain
 from src.stocks.polygon.models import StockPrice, StockPrices, StockNews, PolygonStock
 from src.utils.log import Logger
@@ -60,7 +59,7 @@ class PolygonClient:
             return None
 
     def batch_get_prices(
-        self, stocks: Dict[str, UserStock], start_date: datetime, end_date: datetime
+        self, stocks: Dict[str, str], start_date: datetime, end_date: datetime
     ) -> Dict[str, StockPrices]:
         """
         This method gets prices from Polygon for a batch of stocks over the given timeframe.
@@ -84,7 +83,7 @@ class PolygonClient:
         return prices
 
     def get_prices(
-        self, stock: UserStock, start_date: datetime, end_date: datetime
+        self, stock: str, start_date: datetime, end_date: datetime
     ) -> StockPrices:
         """
         This method gets prices from Polygon for a single stock over the given timeframe.
@@ -167,7 +166,7 @@ class PolygonClient:
         return StockPrices(prices)
 
     def batch_get_news(
-        self, stocks: Dict[str, UserStock], latest_published_date: datetime
+        self, stocks: Dict[str, str], latest_published_date: datetime
     ) -> Dict[str, List[StockNews]]:
         news = {}
         for stock in stocks.values():
