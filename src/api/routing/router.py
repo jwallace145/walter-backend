@@ -5,13 +5,6 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.routing.methods import HTTPMethod
 from src.clients import (
     auth_user_api,
-    create_cash_account_api,
-    get_cash_accounts_api,
-    update_cash_account_api,
-    delete_cash_account_api,
-    get_credit_accounts_api,
-    create_credit_account_api,
-    delete_credit_account_api,
     get_user_api,
     create_user_api,
     update_user_api,
@@ -27,9 +20,10 @@ from src.clients import (
     delete_stock_api,
     get_portfolio_api,
     get_prices_api,
-    create_investment_account_api,
-    get_investment_accounts_api,
-    delete_investment_account_api,
+    create_account_api,
+    get_accounts_api,
+    update_account_api,
+    delete_account_api,
 )
 from src.utils.log import Logger
 
@@ -38,11 +32,10 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class APIRouter:
+    """Router for Walter API methods"""
 
     AUTH_RESOURCE = "/auth"
-    CASH_ACCOUNTS_RESOURCE = "/accounts/cash"
-    CREDIT_ACCOUNTS_RESOURCE = "/accounts/credit"
-    INVESTMENT_ACCOUNTS_RESOURCE = "/accounts/investment"
+    ACCOUNTS_RESOURCE = "/accounts"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
@@ -54,7 +47,7 @@ class APIRouter:
 
     @staticmethod
     def get_method(event: dict) -> WalterAPIMethod:
-        log.debug(f"Received event: {json.dumps(event, indent=4)}")
+        log.debug(f"Received event:\n{json.dumps(event, indent=4)}")
         api_path = APIRouter._get_api_path(event)
         http_method = APIRouter._get_http_method(event)
         log.info(f"API path: {api_path}, HTTP method: {http_method}")
@@ -68,40 +61,18 @@ class APIRouter:
             case (APIRouter.AUTH_RESOURCE, HTTPMethod.POST):
                 return auth_user_api
 
-            #################
-            # CASH ACCOUNTS #
-            #################
+            ############
+            # ACCOUNTS #
+            ############
 
-            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.GET):
-                return get_cash_accounts_api
-            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.POST):
-                return create_cash_account_api
-            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.PUT):
-                return update_cash_account_api
-            case (APIRouter.CASH_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
-                return delete_cash_account_api
-
-            ###################
-            # CREDIT ACCOUNTS #
-            ###################
-
-            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.GET):
-                return get_credit_accounts_api
-            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.POST):
-                return create_credit_account_api
-            case (APIRouter.CREDIT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
-                return delete_credit_account_api
-
-            #######################
-            # INVESTMENT ACCOUNTS #
-            #######################
-
-            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.GET):
-                return get_investment_accounts_api
-            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.POST):
-                return create_investment_account_api
-            case (APIRouter.INVESTMENT_ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
-                return delete_investment_account_api
+            case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.GET):
+                return get_accounts_api
+            case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.POST):
+                return create_account_api
+            case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.PUT):
+                return update_account_api
+            case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
+                return delete_account_api
 
             #########
             # PLAID #

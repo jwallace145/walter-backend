@@ -4,9 +4,7 @@ from dataclasses import dataclass
 
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
-from src.database.accounts.cash.models import CashAccount, CashAccountType
-from src.database.accounts.credit.models import CreditAccount
-from src.database.accounts.investment.models import InvestmentAccount
+from src.database.accounts.models import Account, AccountType
 from src.database.stocks.models import Stock
 from src.database.users.models import User
 from src.database.userstocks.models import UserStock
@@ -19,12 +17,8 @@ from tst.constants import (
     STOCKS_TEST_FILE,
     USERS_STOCKS_TEST_FILE,
     TRANSACTIONS_TABLE_NAME,
-    CASH_ACCOUNTS_TABLE_NAME,
-    CASH_ACCOUNTS_TEST_FILE,
-    CREDIT_ACCOUNTS_TABLE_NAME,
-    CREDIT_ACCOUNTS_TEST_FILE,
-    INVESTMENT_ACCOUNTS_TABLE_NAME,
-    INVESTMENT_ACCOUNTS_TEST_FILE,
+    ACCOUNTS_TABLE_NAME,
+    ACCOUNTS_TEST_FILE,
 )
 
 
@@ -42,15 +36,7 @@ class MockDDB:
         self._create_stocks_table(STOCKS_TABLE_NAME, STOCKS_TEST_FILE)
         self._create_users_table(USERS_TABLE_NAME, USERS_TEST_FILE)
         self._create_user_stocks_table(USERS_STOCKS_TABLE_NAME, USERS_STOCKS_TEST_FILE)
-        self._create_cash_accounts_table(
-            CASH_ACCOUNTS_TABLE_NAME, CASH_ACCOUNTS_TEST_FILE
-        )
-        self._create_investment_accounts_table(
-            INVESTMENT_ACCOUNTS_TABLE_NAME, INVESTMENT_ACCOUNTS_TEST_FILE
-        )
-        self._create_credit_accounts_table(
-            CREDIT_ACCOUNTS_TABLE_NAME, CREDIT_ACCOUNTS_TEST_FILE
-        )
+        self._create_accounts_table(ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE)
         self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
 
     def _create_stocks_table(self, table_name: str, input_file_name: str) -> None:
@@ -154,9 +140,7 @@ class MockDDB:
                     ).to_ddb_item(),
                 )
 
-    def _create_cash_accounts_table(
-        self, table_name: str, input_file_name: str
-    ) -> None:
+    def _create_accounts_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
@@ -169,70 +153,24 @@ class MockDDB:
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
         )
-        with open(input_file_name) as cash_accounts_f:
-            for account in cash_accounts_f:
+        with open(input_file_name) as accounts_f:
+            for account in accounts_f:
                 if not account.strip():
                     continue
                 json_account = json.loads(account)
                 self.mock_ddb.put_item(
                     TableName=table_name,
-                    Item=CashAccount(
-                        user_id=CashAccount.get_user_id_key(json_account["user_id"]),
-                        account_id=CashAccount.get_account_id_key(
-                            json_account["account_id"]
-                        ),
-                        account_last_four_numbers=json_account[
-                            "account_last_four_numbers"
-                        ],
-                        account_name=json_account["account_name"],
-                        account_type=CashAccountType.from_string(
+                    Item=Account(
+                        user_id=json_account["user_id"],
+                        account_id=json_account["account_id"],
+                        account_type=AccountType.from_string(
                             json_account["account_type"]
                         ),
-                        balance=json_account["balance"],
-                        bank_name=json_account["bank_name"],
-                        created_at=datetime.datetime.strptime(
-                            json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        updated_at=datetime.datetime.strptime(
-                            json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        logo_url=json_account["logo_url"],
-                    ).to_ddb_item(),
-                )
-
-    def _create_credit_accounts_table(
-        self, table_name: str, input_file_name: str
-    ) -> None:
-        self.mock_ddb.create_table(
-            TableName=table_name,
-            KeySchema=[
-                {"AttributeName": "user_id", "KeyType": "HASH"},
-                {"AttributeName": "account_id", "KeyType": "RANGE"},
-            ],
-            AttributeDefinitions=[
-                {"AttributeName": "user_id", "AttributeType": "S"},
-                {"AttributeName": "account_id", "AttributeType": "S"},
-            ],
-            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
-        )
-        with open(input_file_name) as credit_accounts_f:
-            for account in credit_accounts_f:
-                if not account.strip():
-                    continue
-                json_account = json.loads(account)
-                self.mock_ddb.put_item(
-                    TableName=table_name,
-                    Item=CreditAccount(
-                        user_id=CashAccount.get_user_id_key(json_account["user_id"]),
-                        account_id=CashAccount.get_account_id_key(
-                            json_account["account_id"]
-                        ),
-                        account_last_four_numbers=json_account[
-                            "account_last_four_numbers"
-                        ],
+                        account_subtype=json_account["account_subtype"],
+                        institution_name=json_account["institution_name"],
                         account_name=json_account["account_name"],
-                        balance=json_account["balance"],
-                        bank_name=json_account["bank_name"],
+                        account_mask=json_account["account_mask"],
+                        balance=float(json_account["balance"]),
                         created_at=datetime.datetime.strptime(
                             json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
@@ -240,50 +178,6 @@ class MockDDB:
                             json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
                         logo_url=json_account["logo_url"],
-                    ).to_ddb_item(),
-                )
-
-    def _create_investment_accounts_table(
-        self, table_name: str, input_file_name: str
-    ) -> None:
-        self.mock_ddb.create_table(
-            TableName=table_name,
-            KeySchema=[
-                {"AttributeName": "user_id", "KeyType": "HASH"},
-                {"AttributeName": "account_id", "KeyType": "RANGE"},
-            ],
-            AttributeDefinitions=[
-                {"AttributeName": "user_id", "AttributeType": "S"},
-                {"AttributeName": "account_id", "AttributeType": "S"},
-            ],
-            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
-        )
-        with open(input_file_name) as investment_accounts_f:
-            for account in investment_accounts_f:
-                if not account.strip():
-                    continue
-                json_account = json.loads(account)
-                self.mock_ddb.put_item(
-                    TableName=table_name,
-                    Item=InvestmentAccount(
-                        user_id=CashAccount.get_user_id_key(json_account["user_id"]),
-                        account_id=CashAccount.get_account_id_key(
-                            json_account["account_id"]
-                        ),
-                        account_last_four_numbers=json_account[
-                            "account_last_four_numbers"
-                        ],
-                        account_name=json_account["account_name"],
-                        balance=json_account["balance"],
-                        bank_name=json_account["bank_name"],
-                        created_at=datetime.datetime.strptime(
-                            json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        updated_at=datetime.datetime.strptime(
-                            json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        logo_url=json_account["logo_url"],
-                        portfolios=[],  # Initialize with empty portfolios list
                     ).to_ddb_item(),
                 )
 

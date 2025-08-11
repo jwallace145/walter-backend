@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from botocore.exceptions import ClientError
 from mypy_boto3_dynamodb import DynamoDBClient
@@ -89,7 +89,7 @@ class WalterDDBClient:
             # i.e. the item does not exist
             return None
 
-    def get_item(self, table: str, key: dict) -> dict:
+    def get_item(self, table: str, key: dict) -> Optional[dict]:
         """
         Get an item from a DDB table given its primary key.
 
@@ -98,7 +98,7 @@ class WalterDDBClient:
             key: The primary key of the item to retrieve.
 
         Returns:
-            The DDB item of the item with the given primary key.
+            The DDB item of the item with the given primary key, else None.
         """
         log.debug(
             f"Getting item from table '{table}' with key:\n{json.dumps(key, indent=4)}"

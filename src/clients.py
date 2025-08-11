@@ -5,20 +5,11 @@ from plaid import Environment
 
 from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
-from src.api.accounts.cash.create_cash_account import CreateCashAccount
-from src.api.accounts.cash.delete_cash_account import DeleteCashAccount
-from src.api.accounts.cash.get_cash_accounts import GetCashAccounts
-from src.api.accounts.cash.update_cash_account import UpdateCashAccount
-from src.api.accounts.credit.create_credit_account import CreateCreditAccount
-from src.api.accounts.credit.delete_credit_account import DeleteCreditAccount
-from src.api.accounts.credit.get_credit_accounts import GetCreditAccounts
-from src.api.accounts.investments.create_investment_account import (
-    CreateInvestmentAccount,
-)
-from src.api.accounts.investments.delete_investment_account import (
-    DeleteInvestmentAccount,
-)
-from src.api.accounts.investments.get_investment_accounts import GetInvestmentAccounts
+
+from src.api.accounts.create_account import CreateAccount
+from src.api.accounts.get_accounts import GetAccounts
+from src.api.accounts.update_account import UpdateAccount
+from src.api.accounts.delete_account import DeleteAccount
 from src.api.add_stock import AddStock
 from src.api.auth_user import AuthUser
 from src.api.create_user import CreateUser
@@ -223,31 +214,11 @@ sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
 # AUTHENTICATION
 auth_user_api = AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm)
 
-# CASH ACCOUNTS
-get_cash_accounts_api = GetCashAccounts(walter_authenticator, walter_cw, walter_db)
-create_cash_account_api = CreateCashAccount(walter_authenticator, walter_cw, walter_db)
-update_cash_account_api = UpdateCashAccount(walter_authenticator, walter_cw, walter_db)
-delete_cash_account_api = DeleteCashAccount(walter_authenticator, walter_cw, walter_db)
-
-# CREDIT ACCOUNTS
-get_credit_accounts_api = GetCreditAccounts(walter_authenticator, walter_cw, walter_db)
-create_credit_account_api = CreateCreditAccount(
-    walter_authenticator, walter_cw, walter_db
-)
-delete_credit_account_api = DeleteCreditAccount(
-    walter_authenticator, walter_cw, walter_db
-)
-
-# INVESTMENT ACCOUNTS
-create_investment_account_api = CreateInvestmentAccount(
-    walter_authenticator, walter_cw, walter_db
-)
-get_investment_accounts_api = GetInvestmentAccounts(
-    walter_authenticator, walter_cw, walter_db
-)
-delete_investment_account_api = DeleteInvestmentAccount(
-    walter_authenticator, walter_cw, walter_db
-)
+# ACCOUNTS =
+get_accounts_api = GetAccounts(walter_authenticator, walter_cw, walter_db)
+create_account_api = CreateAccount(walter_authenticator, walter_cw, walter_db)
+update_account_api = UpdateAccount(walter_authenticator, walter_cw, walter_db)
+delete_account_api = DeleteAccount(walter_authenticator, walter_cw, walter_db)
 
 # PORTFOLIOS
 get_portfolio_api = GetPortfolio(

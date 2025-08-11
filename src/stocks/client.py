@@ -76,6 +76,10 @@ class WalterStocksAPI:
     ) -> StockPrices:
         return self.polygon.get_stock_prices(stock, start_date, end_date)
 
+    def get_latest_price(self, stock: str) -> float:
+        now = dt.datetime.now()
+        return self.get_prices(stock, now - dt.timedelta(days=7), now).prices[-1].price
+
     def get_news(
         self,
         stock: Stock,

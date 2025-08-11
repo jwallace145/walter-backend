@@ -1,9 +1,11 @@
 import json
 from dataclasses import dataclass
+
 from src.api.common.exceptions import (
     NotAuthenticated,
     UserDoesNotExist,
-    CreditAccountDoesNotExist,
+    AccountDoesNotExist,
+    BadRequest,
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
@@ -17,17 +19,18 @@ log = Logger(__name__).get_logger()
 
 
 @dataclass
-class DeleteCreditAccount(WalterAPIMethod):
-    """WalterAPI: DeleteCreditAccount"""
+class DeleteAccount(WalterAPIMethod):
+    """WalterAPI: DeleteAccount"""
 
-    API_NAME = "DeleteCreditAccount"
+    API_NAME = "DeleteAccount"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["account_id"]
     EXCEPTIONS = [
+        BadRequest,
         NotAuthenticated,
         UserDoesNotExist,
-        CreditAccountDoesNotExist,
+        AccountDoesNotExist,
     ]
 
     walter_db: WalterDB
@@ -39,11 +42,11 @@ class DeleteCreditAccount(WalterAPIMethod):
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
-            DeleteCreditAccount.API_NAME,
-            DeleteCreditAccount.REQUIRED_QUERY_FIELDS,
-            DeleteCreditAccount.REQUIRED_HEADERS,
-            DeleteCreditAccount.REQUIRED_FIELDS,
-            DeleteCreditAccount.EXCEPTIONS,
+            DeleteAccount.API_NAME,
+            DeleteAccount.REQUIRED_QUERY_FIELDS,
+            DeleteAccount.REQUIRED_HEADERS,
+            DeleteAccount.REQUIRED_FIELDS,
+            DeleteAccount.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
         )
@@ -51,68 +54,66 @@ class DeleteCreditAccount(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
-        self._verify_credit_account_exists(user, event)
-        self._delete_credit_account(user, event)
+        self._verify_account_exists(user, event)
+        self._delete_account(user, event)
         return Response(
-            api_name=DeleteCreditAccount.API_NAME,
+            api_name=DeleteAccount.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Successfully deleted credit account!",
+            message="Successfully deleted account!",
         )
 
     def validate_fields(self, event: dict) -> None:
+        # Base class validates REQUIRED_FIELDS; nothing additional here.
         pass
 
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _verify_credit_account_exists(self, user: User, event: dict) -> None:
+    def _verify_account_exists(self, user: User, event: dict) -> None:
         """
-        Verifies whether a credit account exists for the user.
+        Verifies whether an account exists for the user.
 
         Args:
             user: The authenticated `User` object.
-            event: The request event containing credit account data.
+            event: The request event containing account data.
 
         Raises:
-            CreditAccountDoesNotExist: If the account doesn't exist.
+            AccountDoesNotExist: If the account doesn't exist.
         """
-        log.info("Verifying credit account exists for user")
+        log.info("Verifying account exists for user")
 
         body = json.loads(event["body"])
         account_id = body["account_id"]
 
-        credit_account = self.walter_db.get_credit_account(
+        account = self.walter_db.get_account(
             user_id=user.user_id,
             account_id=account_id,
         )
 
-        if not credit_account:
-            raise CreditAccountDoesNotExist("Credit account does not exist!")
+        if not account:
+            raise AccountDoesNotExist("Account does not exist!")
 
-        log.info("Credit account verified successfully!")
+        log.info("Account verified successfully!")
 
-    def _delete_credit_account(self, user: User, event: dict) -> None:
+    def _delete_account(self, user: User, event: dict) -> None:
         """
-        Deletes a credit account for the user.
+        Deletes an account for the user, including its transactions.
 
         Args:
             user: The authenticated `User` object.
-            event: The request event containing credit account data.
+            event: The request event containing account data.
 
         Returns:
             None
         """
-        log.info("Deleting credit account for user")
+        log.info("Deleting account for user")
 
         # get account id from request body
         body = json.loads(event["body"])
         account_id = body["account_id"]
 
-        # delete credit account and transactions from db
-        self.walter_db.delete_transactions(user_id=user.user_id, account_id=account_id)
-        self.walter_db.delete_credit_account(
-            user_id=user.user_id, account_id=account_id
-        )
+        # TODO: delete transactions for account
+        self.walter_db.delete_account(user_id=user.user_id, account_id=account_id)
 
-        log.info("Credit account deleted successfully!")
+        log.info("Account deleted successfully!")

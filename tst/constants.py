@@ -37,26 +37,20 @@ USERS_STOCKS_TABLE_NAME = f"UsersStocks-{Domain.TESTING.value}"
 USERS_STOCKS_TEST_FILE = "tst/database/data/usersstocks.jsonl"
 """(str): The name of the test user stocks input file."""
 
-CASH_ACCOUNTS_TABLE_NAME = f"CashAccounts-{Domain.TESTING.value}"
-"""(str): The name of the CashAccounts table that stores all cash accounts owned by users."""
+ACCOUNTS_TABLE_NAME = f"Accounts-{Domain.TESTING.value}"
+"""(str): The name of the Accounts table that stores all accounts owned by users."""
 
-CASH_ACCOUNTS_TEST_FILE = "tst/database/data/cash_accounts.jsonl"
-"""(str): The name of the test cash accounts input file."""
+ACCOUNTS_TEST_FILE = "tst/database/data/accounts.jsonl"
+"""(str): The name of the test accounts input file."""
 
-CREDIT_ACCOUNTS_TABLE_NAME = f"CreditAccounts-{Domain.TESTING.value}"
-"""(str): The name of the CreditAccounts table that stores all credit accounts owned by users."""
-
-CREDIT_ACCOUNTS_TEST_FILE = "tst/database/data/credit_accounts.jsonl"
-"""(str): The name of the test credit accounts input file."""
-
-INVESTMENT_ACCOUNTS_TABLE_NAME = f"InvestmentAccounts-{Domain.TESTING.value}"
-"""(str): The name of the InvestmentAccounts table that stores all investment accounts owned by users."""
-
-INVESTMENT_ACCOUNTS_TEST_FILE = "tst/database/data/investment_accounts.jsonl"
-"""(str): The name of the test investment accounts input file."""
-
+# Backward-compat constants (used by some mocks; not all are utilized in tests)
 TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
-"""(str): The name of the Transactions table that stores all transactions made by users."""
+CASH_ACCOUNTS_TABLE_NAME = f"CashAccounts-{Domain.TESTING.value}"
+CASH_ACCOUNTS_TEST_FILE = "tst/database/data/cash_accounts.jsonl"
+CREDIT_ACCOUNTS_TABLE_NAME = f"CreditAccounts-{Domain.TESTING.value}"
+CREDIT_ACCOUNTS_TEST_FILE = "tst/database/data/credit_accounts.jsonl"
+INVESTMENT_ACCOUNTS_TABLE_NAME = f"InvestmentAccounts-{Domain.TESTING.value}"
+INVESTMENT_ACCOUNTS_TEST_FILE = "tst/database/data/investment_accounts.jsonl"
 
 ###################
 # TEST SQS QUEUES #
