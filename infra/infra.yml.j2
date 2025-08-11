@@ -13,7 +13,6 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - preprod
       - prod
 
   WalterAPIImageURI:
@@ -57,8 +56,8 @@ Resources:
   WalterAPIGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: !Sub "WalterAPI-${AppEnvironment}"
-      Description: !Sub "API Gateway for WalterAPI-${AppEnvironment}"
+      Name: "WalterAPI"
+      Description: !Sub "API Gateway for WalterBackend APIs"
 
   WalterAPIInvokePermission:
     Type: AWS::Lambda::Permission
@@ -132,7 +131,7 @@ Resources:
       RestApiId: !Ref WalterAPIGateway
       PathPart: users
 
-  WalterAPICreateUserCORSMethod:
+  WalterAPIUsersCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
@@ -204,88 +203,6 @@ Resources:
         - StatusCode: 200
 
   ##########
-  # STOCKS #
-  ##########
-
-  WalterAPIStocks:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt WalterAPIGateway.RootResourceId
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: stocks
-
-  WalterAPIAddStockCORSMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIStocks
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'DELETE,POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-            ResponseTemplates:
-              application/json: ''
-        PassthroughBehavior: WHEN_NO_MATCH
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
-
-  WalterAPIGetStockMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: GET
-      ResourceId: !Ref WalterAPIStocks
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPIAddStockMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: POST
-      ResourceId: !Ref WalterAPIStocks
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPIDeleteStockMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: DELETE
-      ResourceId: !Ref WalterAPIStocks
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  ##########
   # PRICES #
   ##########
 
@@ -307,62 +224,6 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  ##############
-  # PORTFOLIOS #
-  ##############
-
-  WalterAPIGetPortfolioResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt WalterAPIGateway.RootResourceId
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: portfolios
-
-  WalterAPIGetPortfolioCORSMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIGetPortfolioResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-              method.response.header.Access-Control-Max-Age: "'86400'"
-            ResponseTemplates:
-              application/json: ''
-        PassthroughBehavior: WHEN_NO_MATCH
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
-            method.response.header.Access-Control-Max-Age: false
-
-  WalterAPIGetPortfolioMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: GET
-      ResourceId: !Ref WalterAPIGetPortfolioResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations" # provisioned concurrency -> release alias
       MethodResponses:
         - StatusCode: 200
 
@@ -557,6 +418,10 @@ Resources:
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
       MethodResponses:
         - StatusCode: 200
+
+  #########
+  # PLAID #
+  #########
 
   WalterAPIPlaidResource:
     Type: AWS::ApiGateway::Resource
@@ -795,22 +660,6 @@ Resources:
           Projection:
             ProjectionType: 'ALL'
 
-  TransactionsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: date_uuid
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-        - AttributeName: date_uuid
-          KeyType: RANGE
-      TableName: !Sub "Transactions-${AppEnvironment}"
-
   AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -827,17 +676,33 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "Accounts-${AppEnvironment}"
 
-  StocksTable:
+  TransactionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: symbol
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: date_uuid
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
-          - AttributeName: symbol
-            KeyType: HASH
-      TableName: !Sub "Stocks-${AppEnvironment}"
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: date_uuid
+          KeyType: RANGE
+      TableName: !Sub "Transactions-${AppEnvironment}"
+
+{#  SecuritiesTable:#}
+{#    Type: AWS::DynamoDB::Table#}
+{#    Properties:#}
+{#      AttributeDefinitions:#}
+{#        - AttributeName: symbol#}
+{#          AttributeType: S#}
+{#      BillingMode: PAY_PER_REQUEST#}
+{#      KeySchema:#}
+{#          - AttributeName: symbol#}
+{#            KeyType: HASH#}
+{#      TableName: !Sub "Securities-${AppEnvironment}"#}
 
   HoldingsTable:
     Type: AWS::DynamoDB::Table
@@ -854,22 +719,6 @@ Resources:
         - AttributeName: security_id
           KeyType: RANGE
       TableName: !Sub "Holdings-${AppEnvironment}"
-
-  UsersStocksTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: stock_symbol
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-          - AttributeName: user_id
-            KeyType: HASH
-          - AttributeName: stock_symbol
-            KeyType: RANGE
-      TableName: !Sub "UsersStocks-${AppEnvironment}"
 
   PlaidItemsTable:
     Type: AWS::DynamoDB::Table
@@ -1156,26 +1005,26 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
 
-  StocksTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "StocksTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt StocksTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
+{#  SecuritiesTableAccessPolicy:#}
+{#    Type: AWS::IAM::Policy#}
+{#    Properties:#}
+{#      PolicyName: !Sub "SecuritiesTableAccessPolicy-${AppEnvironment}"#}
+{#      PolicyDocument:#}
+{#        Version: "2012-10-17"#}
+{#        Statement:#}
+{#          - Effect: Allow#}
+{#            Action:#}
+{#              - "dynamodb:BatchGet*"#}
+{#              - "dynamodb:Get*"#}
+{#              - "dynamodb:Query"#}
+{#              - "dynamodb:Scan"#}
+{#              - "dynamodb:BatchWrite*"#}
+{#              - "dynamodb:Delete*"#}
+{#              - "dynamodb:Update*"#}
+{#              - "dynamodb:PutItem"#}
+{#            Resource: !GetAtt SecuritiesTable.Arn#}
+{#      Roles:#}
+{#        - !Ref WalterAPIRole#}
 
   HoldingsTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -1234,27 +1083,6 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt TransactionsTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  UsersStocksTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "UsersStocksTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt UsersStocksTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
@@ -1381,63 +1209,6 @@ Resources:
               AWS:
                 - !GetAtt WalterAPIRole.Arn
 
-  NewslettersBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketName: !Sub "walterai-newsletters-${AppEnvironment}"
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: "AES256"
-      VersioningConfiguration:
-        Status: Enabled
-      LifecycleConfiguration:
-        Rules:
-          - Id: "DeleteOldNewsletters"
-            Status: "Enabled"
-            ExpirationInDays: 30
-
-  NewsSummariesBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    Properties:
-      BucketName: !Sub "walterai-news-summaries-${AppEnvironment}"
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: "AES256"
-      VersioningConfiguration:
-        Status: Enabled
-      LifecycleConfiguration:
-        Rules:
-          - Id: "DeleteOldNewsSummaries"
-            Status: "Enabled"
-            ExpirationInDays: 30
-
-  NewsSummariesBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref NewsSummariesBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action:
-              - "s3:GetObject"
-              - "s3:PutObject"
-            Effect: Allow
-            Resource: !Sub "${NewsSummariesBucket.Arn}/*"
-            Principal:
-              AWS:
-                - !GetAtt WalterAPIRole.Arn
-          - Action:
-              - "s3:ListBucket"
-            Effect: Allow
-            Resource: !Sub "${NewsSummariesBucket.Arn}"
-            Principal:
-              AWS:
-                - !GetAtt WalterAPIRole.Arn
-
   TemplatesBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -1481,19 +1252,5 @@ Outputs:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/auth"
   WalterAPICreateUserEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/users"
-  WalterAPIAddStockEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
-  WalterAPIDeleteStockEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/stocks"
-  WalterAPIGetPortfolioEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/portfolios"
   WalterAPIGetPricesEndpoint:
     Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/prices"
-  WalterAPIGetNewsSummaryEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/news"
-  WalterAPISendNewsletterEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/newsletters"
-  WalterAPISubscribeEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/subscribe"
-  WalterAPIUnsubscribeEndpoint:
-    Value: !Sub "https://${WalterAPIGateway}.execute-api.${AWS::Region}.amazonaws.com/${AppEnvironment}/unsubscribe"

@@ -7,11 +7,8 @@ from typing import List
 import requests
 
 from src.config import CONFIG
-from src.database.stocks.models import Stock
-from src.stocks.alphavantage.exceptions import CompanyNewsNotFound
 from src.stocks.alphavantage.models import (
     CompanyOverview,
-    CompanyNews,
     CompanySearch,
     NewsArticle,
     CompanyStatistics,
@@ -126,70 +123,6 @@ class AlphaVantageClient:
         log.debug(f"CompanyOverview:\n{json.dumps(overview.to_dict(), indent=4)}")
 
         return overview
-
-    def get_news(
-        self, stock: Stock, start_date: dt, end_date: dt, limit: int
-    ) -> CompanyNews:
-        """
-        Get relevant company news.
-
-        This method is used by various APIs and therefore needs to be quick to
-        ensure API requests do not time out/take too long. The limit method arg
-        allows callers to limit how many articles this method returns. Default
-        value of 3 ensures fast response times.
-
-        Args:
-            stock: The stock to get recent news..
-            start_date: The start date of the period to get news.
-            end_date: The end date of the period to get news.
-            limit: The number of news articles to return.
-
-        Returns:
-            The latest company news or `None` if not found.
-
-        Raises:
-            CompanyNewsNotFound: If no news articles were found for the given
-            company.
-        """
-        log.info(
-            f"Getting news for '{stock.symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}"
-        )
-        url = self._get_news_url(stock.symbol, start_date, end_date)
-        response = requests.get(url).json()
-
-        if response == {} or len(response["feed"]) == 0:
-            log.warning(
-                f"No news found for '{stock.symbol}' from '{start_date.strftime('%Y-%m-%d')}' to '{end_date.strftime('%Y-%m-%d')}!"
-            )
-            raise CompanyNewsNotFound(f"No news found for '{stock.symbol}'!")
-
-        log.info(
-            f"Returned {len(response['feed'])} articles for '{stock.symbol.upper()}'! Parsing {limit} articles..."
-        )
-
-        # iterate over returned articles and scrape contents until the number of
-        # articles parsed limit is reached or there are no more articles to parse
-        articles = []
-        index = 0
-        while len(articles) < limit and index < len(response["feed"]):
-            article = response["feed"][index]
-            url = article["url"]
-            contents = self.web_scraper.scrape(url)
-
-            # ensure web scraped news from article is not empty
-            if contents:
-                article = AlphaVantageClient._get_news_article(article, contents)
-                articles.append(article)
-
-            index += 1
-
-        return CompanyNews(
-            stock=stock.symbol,
-            company=stock.company,
-            start_date=start_date,
-            end_date=end_date,
-            articles=articles,
-        )
 
     def search_stock(self, symbol: str) -> List[CompanySearch]:
         log.info(f"Searching for stocks with tickers similar to '{symbol}'")

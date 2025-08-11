@@ -22,8 +22,6 @@ from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.events.parser import WalterEventParser
-from src.news.bucket import NewsSummariesBucket
-from src.news.queue import NewsSummariesQueue
 from src.newsletters.client import NewslettersBucket
 from src.newsletters.queue import NewslettersQueue
 from src.stocks.alphavantage.client import AlphaVantageClient
@@ -36,7 +34,6 @@ from tst.constants import (
     AWS_REGION,
 )
 from tst.database.mock import MockDDB
-from tst.stocks.mock import MockPolygon, MockAlphaVantageClient
 from tst.transactions.mock import MockTransactionsCategorizer
 
 
@@ -111,15 +108,17 @@ def walter_sm(
 def polygon_client(
     mocker: MockerFixture, walter_sm: WalterSecretsManagerClient
 ) -> PolygonClient:
-    return PolygonClient(
-        api_key=walter_sm.get_polygon_api_key(),
-        client=MockPolygon(mocker).create_client(),
-    )
+    # return PolygonClient(
+    #     api_key=walter_sm.get_polygon_api_key(),
+    #     client=MockPolygon(mocker).create_client(),
+    # )
+    pass
 
 
 @pytest.fixture
 def alpha_vantage_client() -> AlphaVantageClient:
-    return MockAlphaVantageClient()
+    # return MockAlphaVantageClient()
+    pass
 
 
 @pytest.fixture
@@ -184,18 +183,6 @@ def newsletters_queue(sqs_client) -> NewslettersQueue:
 @pytest.fixture
 def newsletters_bucket(walter_s3: WalterS3Client) -> NewslettersBucket:
     return NewslettersBucket(client=walter_s3, domain=Domain.TESTING)
-
-
-@pytest.fixture
-def news_summaries_queue(sqs_client) -> NewsSummariesQueue:
-    return NewsSummariesQueue(
-        client=WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
-    )
-
-
-@pytest.fixture
-def news_summaries_bucket(walter_s3: WalterS3Client) -> NewsSummariesBucket:
-    return NewsSummariesBucket(client=walter_s3, domain=Domain.TESTING)
 
 
 @pytest.fixture
