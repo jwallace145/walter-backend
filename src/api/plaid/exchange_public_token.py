@@ -12,7 +12,6 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, Status, HTTPStatus
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.accounts.cash.models import CashAccount, CashAccountType
 from src.database.client import WalterDB
 from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User
@@ -237,17 +236,8 @@ class ExchangePublicToken(WalterAPIMethod):
     ) -> None:
         log.info(f"Saving  {len(accounts)} Plaid accounts for user '{user.user_id}'")
         for account in accounts:
-            self.walter_db.create_cash_account(
-                CashAccount.create_account(
-                    user=user,
-                    account_id=account["account_id"],
-                    bank_name=institution_name,
-                    account_name=account["account_name"],
-                    account_type=CashAccountType.CHECKING,
-                    account_last_four_numbers=account["account_last_four_numbers"],
-                    balance=0.0,
-                )
-            )
+            # TODO: fix me!
+            pass
 
     def _sync_user_transactions(self, user_id: str, plaid_item_id: str) -> None:
         log.info("Adding sync user transactions request to queue...")

@@ -43,348 +43,6 @@ paths:
                 ResponseTimeMillis: 1925.8990000000001
                 Data:
                   token: TEST_TOKEN
-  /accounts/cash:
-    get:
-      summary: Retrieve all cash accounts
-      description: >
-        Returns a list of cash accounts for the authenticated user.  
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: getCashAccounts
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Successfully retrieved cash accounts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CashAccountsResponse'
-              example:
-                Service: WalterAPI
-                API: GetCashAccounts
-                Status: Success
-                Message: Retrieved cash accounts successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  total_num_cash_accounts: 2
-                  total_cash: 10000.00
-                  cash_accounts:
-                    - account_id: abcddb39-a13a-496f-aa22-05adb7ab1234
-                      bank_name: Test Bank
-                      account_name: Test Money Market
-                      account_last_four_numbers: "0000"
-                      balance: 7500.00
-                      created_at: "2025-08-06T01:56:51.918070+00:00"
-                      updated_at: "2025-08-06T01:56:51.918070+00:00"
-                      logo_url: "https://logo.com/logo.svg"
-                      account_type: MONEY_MARKET
-                    - account_id: abcdf413-9ef4-413d-bb11-135c7f755678
-                      bank_name: Test Bank
-                      account_name: Test Savings
-                      account_last_four_numbers: "1111"
-                      balance: 2500.00
-                      created_at: "2025-08-06T01:53:43.285368+00:00"
-                      updated_at: "2025-08-06T01:53:43.285368+00:00"
-                      logo_url: "https://logo.com/logo.svg"
-                      account_type: SAVINGS
-    post:
-      summary: Create a new cash account
-      description: >
-        Creates a new cash account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: createCashAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateCashAccountRequest'
-            example:
-              bank_name: Test Bank
-              account_name: Test Checking
-              account_type: CHECKING
-              balance: 5000.00
-              account_last_four_numbers: "1234"
-      responses:
-        '201':
-          description: Cash account created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateCashAccountResponse'
-              example:
-                Service: WalterAPI
-                API: CreateCashAccount
-                Status: Success
-                Message: Cash account created successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  cash_account:
-                    account_id: abcdef12-3456-7890-abcd-1234567890ab
-                    bank_name: Test Bank
-                    account_name: Test Checking
-                    account_last_four_numbers: "1234"
-                    balance: 5000.00
-                    created_at: "2025-08-08T22:07:00.000000+00:00"
-                    updated_at: "2025-08-08T22:07:00.000000+00:00"
-                    logo_url: "https://logo.com/logo.svg"
-                    account_type: CHECKING
-    put:
-      summary: Update a cash account
-      description: >
-        Updates an existing cash account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: updateCashAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateCashAccountRequest'
-            example:
-              account_id: abcdef12-3456-7890-abcd-1234567890ab
-              bank_name: Updated Bank Name
-              account_name: Updated Account Name
-              account_last_four_numbers: "5678"
-              balance: 7500.00
-      responses:
-        '200':
-          description: Cash account updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UpdateCashAccountResponse'
-              example:
-                Service: WalterAPI
-                API: UpdateCashAccount
-                Status: Success
-                Message: Cash account updated successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  account:
-                    account_id: abcdef12-3456-7890-abcd-1234567890ab
-                    bank_name: Updated Bank Name
-                    account_name: Updated Account Name
-                    account_last_four_numbers: "5678"
-                    balance: 7500.00
-                    created_at: "2025-08-08T22:07:00.000000+00:00"
-                    updated_at: "2025-08-08T22:10:00.000000+00:00"
-                    logo_url: "https://logo.com/logo.svg"
-                    account_type: CHECKING
-    delete:
-      summary: Delete a cash account
-      description: >
-        Deletes an existing cash account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: deleteCashAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteCashAccountRequest'
-            example:
-              account_id: abcdef12-3456-7890-abcd-1234567890ab
-      responses:
-        '200':
-          description: Cash account deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteCashAccountResponse'
-              example:
-                Service: WalterAPI
-                API: DeleteCashAccount
-                Status: Success
-                Message: Cash account deleted successfully!
-                ResponseTimeMillis: 500.000000
-                
-  /accounts/credit:
-    get:
-      summary: Retrieve all credit accounts
-      description: >
-        Returns a list of credit accounts for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: getCreditAccounts
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Successfully retrieved credit accounts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreditAccountsResponse'
-              example:
-                Service: WalterAPI
-                API: GetCreditAccounts
-                Status: Success
-                Message: Successfully retrieved credit accounts!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  total_num_credit_accounts: 2
-                  total_credit_balance: 5000.00
-                  credit_accounts:
-                    - account_id: abcdef12-3456-7890-abcd-1234567890ab
-                      bank_name: Test Bank
-                      account_name: Test Credit Card
-                      account_last_four_numbers: "1234"
-                      balance: 3000.00
-                      created_at: "2025-08-08T22:07:00.000000+00:00"
-                      updated_at: "2025-08-08T22:07:00.000000+00:00"
-                    - account_id: fedcba98-7654-3210-fedc-ba9876543210
-                      bank_name: Another Bank
-                      account_name: Another Credit Card
-                      account_last_four_numbers: "5678"
-                      balance: 2000.00
-                      created_at: "2025-08-08T22:07:00.000000+00:00"
-                      updated_at: "2025-08-08T22:07:00.000000+00:00"
-    delete:
-      summary: Delete a credit account
-      description: >
-        Deletes an existing credit account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: deleteCreditAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteCreditAccountRequest'
-            example:
-              account_id: abcdef12-3456-7890-abcd-1234567890ab
-      responses:
-        '200':
-          description: Credit account deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteCreditAccountResponse'
-              example:
-                Service: WalterAPI
-                API: DeleteCreditAccount
-                Status: Success
-                Message: Successfully deleted credit account!
-                ResponseTimeMillis: 500.000000
-                      
-  /accounts/investment:
-    get:
-      summary: Retrieve all investment accounts
-      description: >
-        Returns a list of investment accounts for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: getInvestmentAccounts
-      security:
-        - bearerAuth: [ ]
-      responses:
-        '200':
-          description: Successfully retrieved investment accounts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvestmentAccountsResponse'
-              example:
-                Service: WalterAPI
-                API: GetInvestmentAccounts
-                Status: Success
-                Message: Successfully retrieved investment accounts!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  total_num_investment_accounts: 2
-                  total_investment_balance: 15000.00
-                  investment_accounts:
-                    - account_id: abcdef12-3456-7890-abcd-1234567890ab
-                      bank_name: Test Investment Bank
-                      account_name: Test Investment Account
-                      account_last_four_numbers: "1234"
-                      balance: 10000.00
-                      created_at: "2025-08-08T22:07:00.000000+00:00"
-                      updated_at: "2025-08-08T22:07:00.000000+00:00"
-                    - account_id: fedcba98-7654-3210-fedc-ba9876543210
-                      bank_name: Another Investment Bank
-                      account_name: Another Investment Account
-                      account_last_four_numbers: "5678"
-                      balance: 5000.00
-                      created_at: "2025-08-08T22:07:00.000000+00:00"
-                      updated_at: "2025-08-08T22:07:00.000000+00:00"
-    post:
-      summary: Create a new investment account
-      description: >
-        Creates a new investment account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: createInvestmentAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateInvestmentAccountRequest'
-            example:
-              bank_name: Test Investment Bank
-              account_name: Test Investment Account
-              account_last_four_numbers: "1234"
-      responses:
-        '201':
-          description: Investment account created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateInvestmentAccountResponse'
-              example:
-                Service: WalterAPI
-                API: CreateInvestmentAccount
-                Status: Success
-                Message: Investment account created successfully!
-                ResponseTimeMillis: 500.000000
-                Data:
-                  investment_account:
-                    account_id: abcdef12-3456-7890-abcd-1234567890ab
-                    bank_name: Test Investment Bank
-                    account_name: Test Investment Account
-                    account_last_four_numbers: "1234"
-                    balance: 0.00
-                    created_at: "2025-08-08T22:07:00.000000+00:00"
-                    updated_at: "2025-08-08T22:07:00.000000+00:00"
-    delete:
-      summary: Delete an investment account
-      description: >
-        Deletes an existing investment account for the authenticated user.
-        Requires a valid Bearer token in the `Authorization` header.
-      operationId: deleteInvestmentAccount
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteInvestmentAccountRequest'
-            example:
-              account_id: abcdef12-3456-7890-abcd-1234567890ab
-      responses:
-        '200':
-          description: Investment account deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteInvestmentAccountResponse'
-              example:
-                Service: WalterAPI
-                API: DeleteInvestmentAccount
-                Status: Success
-                Message: Successfully deleted investment account!
-                ResponseTimeMillis: 500.000000
-                
   /plaid/create-link-token:
     post:
       summary: Create a Plaid link token
@@ -688,6 +346,179 @@ paths:
                 Message: Stock deleted!
                 ResponseTimeMillis: 500.000000
                 
+  /accounts:
+    get:
+      summary: Retrieve user accounts
+      description: >
+        Returns the user's accounts and aggregate balance.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: getAccounts
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Successfully retrieved accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAccountsResponse'
+              example:
+                Service: WalterAPI
+                API: GetAccounts
+                Status: Success
+                Message: Successfully retrieved accounts!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  total_num_accounts: 2
+                  total_balance: 12345.67
+                  accounts:
+                    - account_id: acct-123456
+                      user_id: user-abc
+                      account_type: depository
+                      account_subtype: checking
+                      institution_name: Test Bank
+                      account_name: Checking
+                      account_mask: "1234"
+                      balance: 1000.00
+                      created_at: "2025-08-08T12:00:00+00:00"
+                      updated_at: "2025-08-09T12:00:00+00:00"
+                      logo_url: https://example.com/logo.svg
+                    - account_id: acct-789012
+                      user_id: user-abc
+                      account_type: credit
+                      account_subtype: credit card
+                      institution_name: Test Bank
+                      account_name: Visa
+                      account_mask: "5678"
+                      balance: -200.00
+                      created_at: "2025-08-08T12:00:00+00:00"
+                      updated_at: "2025-08-09T12:00:00+00:00"
+                      logo_url: https://example.com/logo.svg
+    post:
+      summary: Create a new account
+      description: >
+        Creates a new account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: createAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+            example:
+              account_type: depository
+              account_subtype: checking
+              institution_name: Test Bank
+              account_name: Checking
+              account_mask: "1234"
+              balance: 1000.00
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAccountResponse'
+              example:
+                Service: WalterAPI
+                API: CreateAccount
+                Status: Success
+                Message: Account created successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  account:
+                    account_id: acct-123456
+                    user_id: user-abc
+                    account_type: depository
+                    account_subtype: checking
+                    institution_name: Test Bank
+                    account_name: Checking
+                    account_mask: "1234"
+                    balance: 1000.00
+                    created_at: "2025-08-08T12:00:00+00:00"
+                    updated_at: "2025-08-08T12:00:00+00:00"
+                    logo_url: https://example.com/logo.svg
+    put:
+      summary: Update an existing account
+      description: >
+        Updates an existing account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: updateAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+            example:
+              account_id: acct-123456
+              account_type: depository
+              account_subtype: savings
+              institution_name: Test Bank
+              account_name: Rainy Day
+              account_mask: "1234"
+              balance: 1500.00
+              logo_url: https://example.com/logo.svg
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateAccountResponse'
+              example:
+                Service: WalterAPI
+                API: UpdateAccount
+                Status: Success
+                Message: Account updated successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  account:
+                    account_id: acct-123456
+                    user_id: user-abc
+                    account_type: depository
+                    account_subtype: savings
+                    institution_name: Test Bank
+                    account_name: Rainy Day
+                    account_mask: "1234"
+                    balance: 1500.00
+                    created_at: "2025-08-08T12:00:00+00:00"
+                    updated_at: "2025-08-09T12:00:00+00:00"
+                    logo_url: https://example.com/logo.svg
+    delete:
+      summary: Delete an account
+      description: >
+        Deletes an account for the authenticated user.
+        Requires a valid Bearer token in the `Authorization` header.
+      operationId: deleteAccount
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+            example:
+              account_id: acct-123456
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAccountResponse'
+              example:
+                Service: WalterAPI
+                API: DeleteAccount
+                Status: Success
+                Message: Successfully deleted account!
+                ResponseTimeMillis: 500.000000
   /transactions:
     get:
       summary: Retrieve user transactions
@@ -921,7 +752,77 @@ components:
               type: string
               description: JWT token to be used for authenticated requests
               example: TEST_TOKEN
-    CashAccountsResponse:
+    # Unified Accounts Schemas
+    Account:
+      type: object
+      properties:
+        account_id:
+          type: string
+          description: The unique ID for the account
+          example: acct-123456
+        user_id:
+          type: string
+          description: The user ID that owns this account
+          example: user-abc
+        account_type:
+          type: string
+          description: The general type of the account
+          enum: [ depository, credit, investment, loan ]
+          example: depository
+        account_subtype:
+          type: string
+          description: The specific subtype of the account (e.g., checking, savings)
+          example: checking
+        institution_name:
+          type: string
+          description: The financial institution name
+          example: Test Bank
+        account_name:
+          type: string
+          description: The user-friendly name for the account
+          example: Checking
+        account_mask:
+          type: string
+          description: The last 2-4 digits of the account (masked)
+          example: "1234"
+        balance:
+          type: number
+          format: double
+          description: The current account balance
+          example: 1000.00
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the account was created
+          example: "2025-08-08T12:00:00+00:00"
+        updated_at:
+          type: string
+          format: date-time
+          description: The timestamp when the account was last updated
+          example: "2025-08-09T12:00:00+00:00"
+        plaid_account_id:
+          type: string
+          nullable: true
+          description: The Plaid account ID if linked
+          example: acc_12345
+        plaid_item_id:
+          type: string
+          nullable: true
+          description: The Plaid item ID if linked
+          example: item_abc
+        plaid_last_sync_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: The last time we synced this account via Plaid
+          example: "2025-08-09T12:00:00+00:00"
+        logo_url:
+          type: string
+          format: uri
+          description: A URL to the account's institution logo
+          example: https://example.com/logo.svg
+
+    GetAccountsResponse:
       type: object
       properties:
         Service:
@@ -929,13 +830,13 @@ components:
           example: WalterAPI
         API:
           type: string
-          example: GetCashAccounts
+          example: GetAccounts
         Status:
           type: string
           example: Success
         Message:
           type: string
-          example: Retrieved cash accounts successfully!
+          example: Successfully retrieved accounts!
         ResponseTimeMillis:
           type: number
           format: double
@@ -943,121 +844,50 @@ components:
         Data:
           type: object
           properties:
-            total_num_cash_accounts:
+            total_num_accounts:
               type: integer
-              example: 1
-            total_cash:
+              example: 2
+            total_balance:
               type: number
               format: double
-              example: 10000.00
-            cash_accounts:
+              example: 12345.67
+            accounts:
               type: array
               items:
-                $ref: '#/components/schemas/CashAccount'
-    CashAccount:
-      type: object
-      properties:
-        account_id:
-          type: string
-          format: uuid
-        bank_name:
-          type: string
-        account_name:
-          type: string
-        account_last_four_numbers:
-          type: string
-        balance:
-          type: number
-          format: double
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        logo_url:
-          type: string
-          format: uri
-        account_type:
-          type: string
-          enum: [ SAVINGS, CHECKING, MONEY_MARKET ]
-    CreateCashAccountRequest:
+                $ref: '#/components/schemas/Account'
+
+    CreateAccountRequest:
       type: object
       required:
-        - bank_name
-        - account_name
         - account_type
+        - account_subtype
+        - institution_name
+        - account_name
+        - account_mask
         - balance
-        - account_last_four_numbers
       properties:
-        bank_name:
+        account_type:
+          type: string
+          enum: [ depository, credit, investment, loan ]
+          example: depository
+        account_subtype:
+          type: string
+          example: checking
+        institution_name:
           type: string
           example: Test Bank
         account_name:
           type: string
-          example: Test Checking
-        account_type:
-          type: string
-          enum: [ SAVINGS, CHECKING, MONEY_MARKET ]
-          example: CHECKING
-        balance:
-          type: number
-          format: double
-          example: 5000.00
-        account_last_four_numbers:
+          example: Checking
+        account_mask:
           type: string
           example: "1234"
-    CreateCashAccountResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: CreateCashAccount
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Cash account created successfully!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            cash_account:
-              $ref: '#/components/schemas/CashAccount'
-    UpdateCashAccountRequest:
-      type: object
-      required:
-        - account_id
-        - bank_name
-        - account_name
-        - account_last_four_numbers
-        - balance
-      properties:
-        account_id:
-          type: string
-          format: uuid
-          example: abcdef12-3456-7890-abcd-1234567890ab
-        bank_name:
-          type: string
-          example: Updated Bank Name
-        account_name:
-          type: string
-          example: Updated Account Name
-        account_last_four_numbers:
-          type: string
-          example: "5678"
         balance:
           type: number
           format: double
-          example: 7500.00
-    UpdateCashAccountResponse:
+          example: 1000.00
+
+    CreateAccountResponse:
       type: object
       properties:
         Service:
@@ -1065,13 +895,13 @@ components:
           example: WalterAPI
         API:
           type: string
-          example: UpdateCashAccount
+          example: CreateAccount
         Status:
           type: string
           example: Success
         Message:
           type: string
-          example: Cash account updated successfully!
+          example: Account created successfully!
         ResponseTimeMillis:
           type: number
           format: double
@@ -1080,116 +910,49 @@ components:
           type: object
           properties:
             account:
-              $ref: '#/components/schemas/CashAccount'
-    DeleteCashAccountRequest:
+              $ref: '#/components/schemas/Account'
+
+    UpdateAccountRequest:
       type: object
       required:
         - account_id
-      properties:
-        account_id:
-          type: string
-          format: uuid
-          example: abcdef12-3456-7890-abcd-1234567890ab
-    DeleteCashAccountResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: DeleteCashAccount
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Cash account deleted successfully!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-          
-    # Credit Account Schemas
-    CreditAccount:
-      type: object
-      properties:
-        account_id:
-          type: string
-          format: uuid
-        bank_name:
-          type: string
-        account_name:
-          type: string
-        account_last_four_numbers:
-          type: string
-        balance:
-          type: number
-          format: double
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-          
-    CreditAccountsResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: GetCreditAccounts
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Successfully retrieved credit accounts!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            total_num_credit_accounts:
-              type: integer
-              example: 2
-            total_credit_balance:
-              type: number
-              format: double
-              example: 5000.00
-            credit_accounts:
-              type: array
-              items:
-                $ref: '#/components/schemas/CreditAccount'
-                
-    CreateCreditAccountRequest:
-      type: object
-      required:
-        - bank_name
+        - account_type
+        - account_subtype
+        - institution_name
         - account_name
+        - account_mask
         - balance
-        - account_last_four_numbers
+        - logo_url
       properties:
-        bank_name:
+        account_id:
+          type: string
+          example: acct-123456
+        account_type:
+          type: string
+          enum: [ depository, credit, investment, loan ]
+          example: depository
+        account_subtype:
+          type: string
+          example: savings
+        institution_name:
           type: string
           example: Test Bank
         account_name:
           type: string
-          example: Test Credit Card
+          example: Rainy Day
+        account_mask:
+          type: string
+          example: "1234"
         balance:
           type: number
           format: double
-          example: 3000.00
-        account_last_four_numbers:
+          example: 1500.00
+        logo_url:
           type: string
-          example: "1234"
-          
-    CreateCreditAccountResponse:
+          format: uri
+          example: https://example.com/logo.svg
+
+    UpdateAccountResponse:
       type: object
       properties:
         Service:
@@ -1197,13 +960,13 @@ components:
           example: WalterAPI
         API:
           type: string
-          example: CreateCreditAccount
+          example: UpdateAccount
         Status:
           type: string
           example: Success
         Message:
           type: string
-          example: Credit account created successfully!
+          example: Account updated successfully!
         ResponseTimeMillis:
           type: number
           format: double
@@ -1211,20 +974,19 @@ components:
         Data:
           type: object
           properties:
-            credit_account:
-              $ref: '#/components/schemas/CreditAccount'
-              
-    DeleteCreditAccountRequest:
+            account:
+              $ref: '#/components/schemas/Account'
+
+    DeleteAccountRequest:
       type: object
       required:
         - account_id
       properties:
         account_id:
           type: string
-          format: uuid
-          example: abcdef12-3456-7890-abcd-1234567890ab
-          
-    DeleteCreditAccountResponse:
+          example: acct-123456
+
+    DeleteAccountResponse:
       type: object
       properties:
         Service:
@@ -1232,146 +994,18 @@ components:
           example: WalterAPI
         API:
           type: string
-          example: DeleteCreditAccount
+          example: DeleteAccount
         Status:
           type: string
           example: Success
         Message:
           type: string
-          example: Successfully deleted credit account!
+          example: Successfully deleted account!
         ResponseTimeMillis:
           type: number
           format: double
           example: 500.000000
-          
-    InvestmentAccount:
-      type: object
-      properties:
-        account_id:
-          type: string
-          format: uuid
-        bank_name:
-          type: string
-        account_name:
-          type: string
-        account_last_four_numbers:
-          type: string
-        balance:
-          type: number
-          format: double
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-          
-    InvestmentAccountsResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: GetInvestmentAccounts
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Successfully retrieved investment accounts!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            total_num_investment_accounts:
-              type: integer
-              example: 2
-            total_investment_balance:
-              type: number
-              format: double
-              example: 15000.00
-            investment_accounts:
-              type: array
-              items:
-                $ref: '#/components/schemas/InvestmentAccount'
-                
-    DeleteInvestmentAccountRequest:
-      type: object
-      required:
-        - account_id
-      properties:
-        account_id:
-          type: string
-          format: uuid
-          example: abcdef12-3456-7890-abcd-1234567890ab
-          
-    DeleteInvestmentAccountResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: DeleteInvestmentAccount
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Successfully deleted investment account!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-          
-    CreateInvestmentAccountRequest:
-      type: object
-      required:
-        - bank_name
-        - account_name
-        - account_last_four_numbers
-      properties:
-        bank_name:
-          type: string
-          example: Test Investment Bank
-        account_name:
-          type: string
-          example: Test Investment Account
-        account_last_four_numbers:
-          type: string
-          example: "1234"
-          
-    CreateInvestmentAccountResponse:
-      type: object
-      properties:
-        Service:
-          type: string
-          example: WalterAPI
-        API:
-          type: string
-          example: CreateInvestmentAccount
-        Status:
-          type: string
-          example: Success
-        Message:
-          type: string
-          example: Investment account created successfully!
-        ResponseTimeMillis:
-          type: number
-          format: double
-          example: 500.000000
-        Data:
-          type: object
-          properties:
-            investment_account:
-              $ref: '#/components/schemas/InvestmentAccount'
-          
+
     # Plaid Schemas
     CreateLinkTokenResponse:
       type: object

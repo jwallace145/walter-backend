@@ -366,29 +366,22 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIUserAccountsResource:
+  ############
+  # ACCOUNTS #
+  ############
+
+  WalterAPIAccountsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt WalterAPIGateway.RootResourceId
       RestApiId: !Ref WalterAPIGateway
       PathPart: accounts
 
-  ###################
-  # CREDIT ACCOUNTS #
-  ###################
-
-  WalterAPICreditAccountsResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref WalterAPIUserAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: credit
-
-  WalterAPICreditAccountsCORSMethod:
+  WalterAPIAccountsCORSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPICreditAccountsResource
+      ResourceId: !Ref WalterAPIAccountsResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -413,11 +406,11 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  WalterAPICreateCreditAccountMethod:
+  WalterAPICreateAccountMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
-      ResourceId: !Ref WalterAPICreditAccountsResource
+      ResourceId: !Ref WalterAPIAccountsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
@@ -427,64 +420,11 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIGetCreditAccountsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: GET
-      ResourceId: !Ref WalterAPICreditAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPIDeleteCreditAccountMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: DELETE
-      ResourceId: !Ref WalterAPICreditAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  #################
-  # CASH ACCOUNTS #
-  #################
-
-  WalterAPICashAccountsResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref WalterAPIUserAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: cash
-
-  WalterAPIGetCashAccountsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: GET
-      ResourceId: !Ref WalterAPICashAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPIUpdateCashAccountMethod:
+  WalterAPIUpdateAccountMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: PUT
-      ResourceId: !Ref WalterAPICashAccountsResource
+      ResourceId: !Ref WalterAPIAccountsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
@@ -494,108 +434,11 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPIDeleteCashAccountMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: DELETE
-      ResourceId: !Ref WalterAPICashAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPICreateCashAccountMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: POST
-      ResourceId: !Ref WalterAPICashAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPICashAccountsCORSMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPICashAccountsResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-            ResponseTemplates:
-              application/json: ''
-        PassthroughBehavior: WHEN_NO_MATCH
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
-
-  #######################
-  # INVESTMENT ACCOUNTS #
-  #######################
-
-  WalterAPIInvestmentAccountsResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref WalterAPIUserAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      PathPart: investment
-
-  WalterAPIInvestmentAccountsCORSMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref WalterAPIGateway
-      ResourceId: !Ref WalterAPIInvestmentAccountsResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,DELETE,POST,PUT,OPTIONS'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-            ResponseTemplates:
-              application/json: ''
-        PassthroughBehavior: WHEN_NO_MATCH
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-      MethodResponses:
-        - StatusCode: 200
-          ResponseModels:
-            application/json: 'Empty'
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Headers: false
-            method.response.header.Access-Control-Allow-Methods: false
-            method.response.header.Access-Control-Allow-Origin: false
-
-  WalterAPIGetInvestmentAccountsMethod:
+  WalterAPIGetAccountsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: GET
-      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      ResourceId: !Ref WalterAPIAccountsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
@@ -605,25 +448,11 @@ Resources:
       MethodResponses:
         - StatusCode: 200
 
-  WalterAPICreateInvestmentAccountMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      HttpMethod: POST
-      ResourceId: !Ref WalterAPIInvestmentAccountsResource
-      RestApiId: !Ref WalterAPIGateway
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalterAPI.Arn}:release/invocations"
-      MethodResponses:
-        - StatusCode: 200
-
-  WalterAPIDeleteInvestmentAccountMethod:
+  WalterAPIDeleteAccountMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: DELETE
-      ResourceId: !Ref WalterAPIInvestmentAccountsResource
+      ResourceId: !Ref WalterAPIAccountsResource
       RestApiId: !Ref WalterAPIGateway
       AuthorizationType: NONE
       Integration:
@@ -896,8 +725,8 @@ Resources:
       FunctionName: !Ref WalterAPI
       FunctionVersion: {{ walter_api_version }}
       Name: "release"
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount
+{#      ProvisionedConcurrencyConfig:#}
+{#        ProvisionedConcurrentExecutions: !Ref WalterAPILambdaProvisionedConcurrencyCount#}
 
   WalterAPI:
     Type: AWS::Lambda::Function

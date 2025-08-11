@@ -1,6 +1,6 @@
 # WalterBackend
 
-[![Walter](https://img.shields.io/badge/Walter-555555)](https://walterai.dev)  [![codecov](https://codecov.io/gh/jwallace145/walter-backend/graph/badge.svg?token=OKI43GAC28)](https://codecov.io/gh/jwallace145/walter-backend) ![Static Badge](https://img.shields.io/badge/WalterAPI-Documentation-green)
+[![Walter](https://img.shields.io/badge/Walter-555555)](https://walterai.dev)  [![codecov](https://codecov.io/gh/jwallace145/walter-backend/graph/badge.svg?token=OKI43GAC28)](https://codecov.io/gh/jwallace145/walter-backend) [![Static Badge](https://img.shields.io/badge/WalterAPI-Documentation-green)](http://walterapi-docs.s3-website-us-east-1.amazonaws.com/)
 
 [**Walter**](https://walterai.dev) is an AI-powered personal finance platform that provides a complete, real-time view of your financial life. Securely connect all your accounts — banking, credit, investments, and more — to track expenses, optimize budgets, and accelerate wealth building through intelligent automation.
 
