@@ -147,7 +147,9 @@ class WalterAPIMethod(ABC):
 
         log.debug(f"Validating required headers: {self.required_headers}")
         # lowercase the headers for case-insensitive verification
-        headers = {key.lower(): value for key, value in event["headers"].items()}
+        headers = {
+            key.lower(): value for key, value in event.get("headers", {}).items()
+        }
         for key, value in self.required_headers.items():
             if key.lower() not in headers or value not in headers[key.lower()]:
                 raise BadRequest(
