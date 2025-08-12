@@ -95,7 +95,7 @@ class WalterDB:
     ################
 
     def create_transaction(self, transaction: Transaction) -> Transaction:
-        self.transactions_table.put_transaction(transaction)
+        return self.transactions_table.put_transaction(transaction)
 
     ############
     # ACCOUNTS #
