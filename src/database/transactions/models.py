@@ -1,7 +1,27 @@
-import datetime as dt
-import uuid
-from dataclasses import dataclass
+import random
+from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from enum import Enum
+
+
+class TransactionType(Enum):
+    """Transaction Types"""
+
+    # investing transactions
+    BUY = "buy"
+    SELL = "sell"
+
+    # banking transactions
+    DEBIT = "debit"
+    CREDIT = "credit"
+    TRANSFER = "transfer"
+
+    @classmethod
+    def from_string(cls, transaction_type_str: str):
+        for transaction_type in TransactionType:
+            if transaction_type.name.lower() == transaction_type_str.lower():
+                return transaction_type
+        raise ValueError(f"Invalid transaction type '{transaction_type_str}'!")
 
 
 class TransactionCategory(Enum):
@@ -23,6 +43,7 @@ class TransactionCategory(Enum):
     SUBSCRIPTIONS = "Subscriptions"
     TRANSPORTATION = "Transportation"
     TRAVEL = "Travel"
+    INVESTMENT = "Investment"
 
     @classmethod
     def from_string(cls, category_str: str):
@@ -38,122 +59,263 @@ class TransactionCategory(Enum):
         )
 
 
-@dataclass
-class Transaction:
-    """
-    Transaction Model
+class Transaction(ABC):
+    """Transaction Model"""
 
-    This model represents a user transaction. A user
-    transaction can be an expense or income. Expenses
-    subtract money from the user's total net worth while
-    income adds money to the user's total net worth.
-    """
+    def __init__(
+        self,
+        transaction_id: str,
+        account_id: str,
+        user_id: str,
+        transaction_type: TransactionType,
+        transaction_category: TransactionCategory,
+        transaction_date: datetime,
+        transaction_amount: float,
+    ) -> None:
+        self.transaction_id = transaction_id
+        self.account_id = account_id
+        self.user_id = user_id
+        self.transaction_type = transaction_type
+        self.transaction_category = transaction_category
+        self.transaction_date = (
+            f"{transaction_date.strftime('%Y-%m-%d')}#{transaction_id}"
+        )
+        self.transaction_amount = transaction_amount
 
-    DATE_FORMAT = "%Y-%m-%d"
+    @abstractmethod
+    def _generate_transaction_id(self, **kwargs) -> str:
+        pass
 
-    user_id: str  # hash key
-    date: dt.datetime  # range key
-    account_id: str  # foreign key to accounts table
-    vendor: str
-    amount: float
-    category: TransactionCategory
+    @abstractmethod
+    def to_dict(self) -> dict:
+        pass
 
-    transaction_id: str = None  # set during post init
-    date_uuid: str = (
-        None  # sort key -> format: `<date>#<transaction_id>` set during post init
-    )
-    reviewed: bool = (
-        False  # on transaction creation, transactions are considered "not reviewed"
-    )
+    @abstractmethod
+    def to_ddb_item(self) -> dict:
+        pass
 
-    def __post_init__(self):
-        if self.transaction_id is None:
-            self.transaction_id = str(uuid.uuid4())
 
-        if self.date_uuid is None:
-            datestamp = self.date.strftime(Transaction.DATE_FORMAT)
-            self.date_uuid = f"{datestamp}#{self.transaction_id}"
+class InvestmentTransaction(Transaction):
+    """Investment Transaction Model"""
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        transaction_type: TransactionType,
+        transaction_category: TransactionCategory,
+        transaction_date: datetime,
+        transaction_amount: float,
+        security_id: str,
+        quantity: float,
+        price_per_share: float,
+        transaction_id: str = None,
+    ) -> None:
+        if not transaction_id:
+            transaction_id = self._generate_transaction_id()
+        super().__init__(
+            transaction_id,
+            account_id,
+            user_id,
+            transaction_type,
+            transaction_category,
+            transaction_date,
+            transaction_amount,
+        )
+        self.security_id = security_id
+        self.quantity = quantity
+        self.price_per_share = price_per_share
+
+    def _generate_transaction_id(self, **kwargs) -> str:
+        timestamp_part = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
+        random_part = str(random.randint(1000, 9999))
+        return f"investment-txn-{timestamp_part}{random_part}"
 
     def to_dict(self) -> dict:
         return {
-            "date": self.date.strftime(Transaction.DATE_FORMAT),
-            "account_id": self.account_id,
             "transaction_id": self.transaction_id,
-            "vendor": self.vendor,
-            "amount": self.amount,
-            "category": self.category.value,
-            "reviewed": self.reviewed,
+            "account_id": self.account_id,
+            "user_id": self.user_id,
+            "transaction_type": self.transaction_type.value,
+            "transaction_category": self.transaction_category.value,
+            "transaction_date": self.transaction_date,
+            "transaction_amount": self.transaction_amount,
+            "security_id": self.security_id,
+            "quantity": self.quantity,
+            "price_per_share": self.price_per_share,
         }
 
     def to_ddb_item(self) -> dict:
         return {
-            "user_id": {
-                "S": self.user_id,
+            "transaction_id": {
+                "S": self.transaction_id,
             },
             "account_id": {
                 "S": self.account_id,
             },
-            "date_uuid": {
-                "S": self.date_uuid,
+            "user_id": {
+                "S": self.user_id,
             },
-            "vendor": {
-                "S": self.vendor,
+            "transaction_type": {
+                "S": self.transaction_type.value,
             },
-            "amount": {
-                "S": str(self.amount),
+            "transaction_category": {
+                "S": self.transaction_category.value,
             },
-            "category": {
-                "S": self.category.value,
+            "transaction_date": {
+                "S": self.transaction_date,
             },
-            "reviewed": {
-                "BOOL": self.reviewed,
+            "transaction_amount": {
+                "N": str(self.transaction_amount),
+            },
+            "security_id": {
+                "S": self.security_id,
+            },
+            "quantity": {
+                "N": str(self.quantity),
+            },
+            "price_per_share": {
+                "N": str(self.price_per_share),
             },
         }
 
-    def is_reviewed(self) -> bool:
-        return self.reviewed
-
-    def is_expense(self) -> bool:
-        return self.amount < 0
-
-    def is_income(self) -> bool:
-        return self.amount > 0
-
     @classmethod
-    def from_ddb_item(cls, item: dict):
-        date_uuid = item["date_uuid"]["S"]
-        date_str, transaction_id = date_uuid.split("#")
-        date = dt.datetime.strptime(date_str, "%Y-%m-%d")
-        amount = float(item["amount"]["S"])
-        category = TransactionCategory.from_string(item["category"]["S"])
-        return Transaction(
-            user_id=item["user_id"]["S"],
-            date=date,
-            vendor=item["vendor"]["S"],
-            account_id=item["account_id"]["S"],
-            amount=amount,
-            category=category,
-            transaction_id=transaction_id,
-            date_uuid=date_uuid,
-            reviewed=item["reviewed"]["BOOL"],
+    def create(
+        cls,
+        account_id: str,
+        user_id: str,
+        security_id: str,
+        transaction_type: TransactionType,
+        transaction_category: TransactionCategory,
+        quantity: float,
+        price_per_share: float,
+    ):
+        return InvestmentTransaction(
+            account_id=account_id,
+            user_id=user_id,
+            transaction_type=transaction_type,
+            transaction_category=transaction_category,
+            transaction_date=datetime.now(timezone.utc),
+            transaction_amount=quantity * price_per_share,
+            security_id=security_id,
+            quantity=quantity,
+            price_per_share=price_per_share,
         )
 
     @classmethod
-    def from_plaid_transaction(cls, user_id: str, transaction_dict: dict):
-        vendor = transaction_dict["name"]
-        if len(transaction_dict["counterparties"]) > 0:
-            vendor = transaction_dict["counterparties"][0]["name"]
-        elif (
-            "merchant_name" in transaction_dict
-            and transaction_dict["merchant_name"] is not None
-        ):
-            vendor = transaction_dict["merchant_name"]
-        return Transaction(
+    def from_ddb_item(cls, ddb_item: dict):
+        return InvestmentTransaction(
+            transaction_id=ddb_item["transaction_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            user_id=ddb_item["user_id"]["S"],
+            transaction_type=TransactionType.from_string(
+                ddb_item["transaction_type"]["S"]
+            ),
+            transaction_category=TransactionCategory.from_string(
+                ddb_item["transaction_category"]["S"]
+            ),
+            transaction_date=datetime.strptime(
+                ddb_item["transaction_date"]["S"].split("#")[0], "%Y-%m-%d"
+            ),
+            transaction_amount=float(ddb_item["transaction_amount"]["N"]),
+            security_id=ddb_item["security_id"]["S"],
+            quantity=float(ddb_item["quantity"]["N"]),
+            price_per_share=float(ddb_item["price_per_share"]["N"]),
+        )
+
+
+class BankTransaction(Transaction):
+    """Bank Transaction Model"""
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        transaction_type: TransactionType,
+        transaction_category: TransactionCategory,
+        transaction_date: datetime,
+        transaction_amount: float,
+        merchant_name: str,
+        transaction_id: str = None,
+    ) -> None:
+        if not transaction_id:
+            transaction_id = self._generate_transaction_id()
+        super().__init__(
+            transaction_id,
+            account_id,
+            user_id,
+            transaction_type,
+            transaction_category,
+            transaction_date,
+            transaction_amount,
+        )
+        self.merchant_name = merchant_name
+
+    def _generate_transaction_id(self, **kwargs) -> str:
+        timestamp_part = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
+        random_part = str(random.randint(1000, 9999))
+        return f"bank-txn-{timestamp_part}{random_part}"
+
+    def to_dict(self) -> dict:
+        return {
+            "transaction_id": self.transaction_id,
+            "account_id": self.account_id,
+            "user_id": self.user_id,
+            "transaction_type": self.transaction_type.value,
+            "transaction_category": self.transaction_category.value,
+            "transaction_date": self.transaction_date,
+            "transaction_amount": self.transaction_amount,
+            "merchant_name": self.merchant_name,
+        }
+
+    def to_ddb_item(self) -> dict:
+        return {
+            "transaction_id": {"S": self.transaction_id},
+            "account_id": {"S": self.account_id},
+            "user_id": {"S": self.user_id},
+            "transaction_type": {"S": self.transaction_type.value},
+            "transaction_category": {"S": self.transaction_category.value},
+            "transaction_date": {"S": self.transaction_date},
+            "transaction_amount": {"N": str(self.transaction_amount)},
+            "merchant_name": {"S": self.merchant_name},
+        }
+
+    @classmethod
+    def create(
+        cls,
+        account_id: str,
+        user_id: str,
+        transaction_type: TransactionType,
+        transaction_category: TransactionCategory,
+        transaction_date: datetime,
+        transaction_amount: float,
+        merchant_name: str,
+    ):
+        return BankTransaction(
+            account_id=account_id,
             user_id=user_id,
-            date=transaction_dict["date"],
-            vendor=vendor,
-            account_id=transaction_dict["account_id"],
-            amount=transaction_dict["amount"],
-            category=TransactionCategory.BILLS,
-            reviewed=False,
+            transaction_type=transaction_type,
+            transaction_category=transaction_category,
+            transaction_date=transaction_date,
+            transaction_amount=transaction_amount,
+            merchant_name=merchant_name,
+        )
+
+    @classmethod
+    def from_ddb_item(cls, ddb_item: dict):
+        return BankTransaction(
+            transaction_id=ddb_item["transaction_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            user_id=ddb_item["user_id"]["S"],
+            transaction_type=TransactionType.from_string(
+                ddb_item["transaction_type"]["S"]
+            ),
+            transaction_category=TransactionCategory.from_string(
+                ddb_item["transaction_category"]["S"]
+            ),
+            transaction_date=datetime.strptime(
+                ddb_item["transaction_date"]["S"].split("#")[0], "%Y-%m-%d"
+            ),
+            transaction_amount=float(ddb_item["transaction_amount"]["N"]),
+            merchant_name=ddb_item["merchant_name"]["S"],
         )

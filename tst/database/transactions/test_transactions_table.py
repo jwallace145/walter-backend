@@ -3,7 +3,12 @@ import datetime as dt
 import pytest
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.transactions.models import Transaction, TransactionCategory
+from src.database.transactions.models import (
+    TransactionType,
+    TransactionCategory,
+    InvestmentTransaction,
+    BankTransaction,
+)
 from src.database.transactions.table import TransactionsTable
 from src.environment import Domain
 from tst.constants import TRANSACTIONS_TABLE_NAME
@@ -16,106 +21,101 @@ def transactions_table(ddb_client) -> TransactionsTable:
 
 
 def test_table_name_format(transactions_table: TransactionsTable):
-    # Ensure the table name follows the expected format for the testing domain
-    assert transactions_table.table == TRANSACTIONS_TABLE_NAME
+    assert transactions_table.table_name == TRANSACTIONS_TABLE_NAME
 
 
-def test_get_transaction_seeded_items(transactions_table: TransactionsTable):
+def test_get_transaction_investment(transactions_table: TransactionsTable):
     # Seeded by MockDDB from tst/database/data/transactions.jsonl
-    t1 = transactions_table.get_transaction(
-        user_id="user-001",
-        date=dt.datetime.strptime("2025-08-01", "%Y-%m-%d"),
-        transaction_id="001",
-    )
-    assert isinstance(t1, Transaction)
-    assert t1.user_id == "user-001"
-    assert t1.account_id == "acct-001"
-    assert t1.vendor == "Starbucks"
-    assert t1.amount == pytest.approx(5.0)
-    assert t1.category == TransactionCategory.RESTAURANTS
-    assert t1.reviewed is True
+    account_id = "acct-002"
+    txn_id = "investment-txn-001"
+    date = dt.datetime(2025, 8, 1)
 
-    t2 = transactions_table.get_transaction(
-        user_id="user-001",
-        date=dt.datetime.strptime("2025-08-03", "%Y-%m-%d"),
-        transaction_id="004",
-    )
-    assert isinstance(t2, Transaction)
-    assert t2.vendor == "Car Insurance"
-    assert t2.category == TransactionCategory.INSURANCE
-    assert t2.reviewed is False
+    txn = transactions_table.get_transaction(account_id, date, txn_id)
+    assert isinstance(txn, InvestmentTransaction)
+    assert txn.transaction_id == txn_id
+    assert txn.account_id == account_id
+    assert txn.transaction_type == TransactionType.BUY
+    assert txn.transaction_category == TransactionCategory.INVESTMENT
+    assert txn.security_id == "sec-nasdaq-aapl"
+    assert txn.quantity == pytest.approx(10.0)
+    assert txn.price_per_share == pytest.approx(100.0)
+    assert txn.transaction_amount == pytest.approx(1000.0)
+    # Ensure the stored sort-key format is preserved (YYYY-MM-DD#id)
+    assert txn.transaction_date.startswith("2025-08-01#")
 
 
-def test_get_transaction_not_found(transactions_table: TransactionsTable):
-    result = transactions_table.get_transaction(
-        user_id="user-001",
-        date=dt.datetime.strptime("2025-08-05", "%Y-%m-%d"),
-        transaction_id="999",
-    )
-    assert result is None
+def test_get_transaction_bank(transactions_table: TransactionsTable):
+    account_id = "acct-003"
+    txn_id = "bank-txn-001"
+    date = dt.datetime(2025, 8, 5)
+
+    txn = transactions_table.get_transaction(account_id, date, txn_id)
+    assert isinstance(txn, BankTransaction)
+    assert txn.transaction_id == txn_id
+    assert txn.account_id == account_id
+    assert txn.transaction_type == TransactionType.DEBIT
+    assert txn.transaction_category == TransactionCategory.RESTAURANTS
+    assert txn.merchant_name == "Starbucks"
+    assert txn.transaction_amount == pytest.approx(5.0)
+    assert txn.transaction_date.startswith("2025-08-05#")
 
 
 def test_get_transactions_date_range(transactions_table: TransactionsTable):
-    # Full range covering all seeded transactions
-    txns = transactions_table.get_transactions(
-        user_id="user-001",
-        start_date=dt.datetime.strptime("2025-08-01", "%Y-%m-%d"),
-        end_date=dt.datetime.strptime("2025-08-03", "%Y-%m-%d"),
-    )
+    # For acct-003 we have entries on 2025-08-05 and 2025-08-06 (three total)
+    account_id = "acct-003"
+    start = dt.datetime(2025, 8, 5)
+    end = dt.datetime(2025, 8, 6)
+
+    txns = transactions_table.get_transactions(account_id, start, end)
+    assert isinstance(txns, list)
+    ids = {t.transaction_id for t in txns}
+    assert ids == {"bank-txn-001", "bank-txn-002", "bank-txn-003"}
+    assert all(isinstance(t, BankTransaction) for t in txns)
+
+
+def test_get_transactions_by_account(transactions_table: TransactionsTable):
+    # acct-002 has four investment transactions in the seed file
+    txns = transactions_table.get_transactions_by_account("acct-002")
     assert isinstance(txns, list)
     assert len(txns) == 4
-    # Ensure sorted descending by date
-    dates = [t.date for t in txns]
-    assert dates == sorted(dates, reverse=True)
-
-    # Narrower range (first two days)
-    txns2 = transactions_table.get_transactions(
-        user_id="user-001",
-        start_date=dt.datetime.strptime("2025-08-01", "%Y-%m-%d"),
-        end_date=dt.datetime.strptime("2025-08-02", "%Y-%m-%d"),
-    )
-    assert len(txns2) == 3
-    dates2 = [t.date for t in txns2]
-    assert max(dates2) <= dt.datetime.strptime("2025-08-02", "%Y-%m-%d")
-    assert min(dates2) >= dt.datetime.strptime("2025-08-01", "%Y-%m-%d")
+    assert all(isinstance(t, InvestmentTransaction) for t in txns)
 
 
-def test_put_and_delete_transaction(transactions_table: TransactionsTable):
-    # Create and put a new transaction for the seeded user/account
-    new_txn = Transaction(
-        user_id="user-001",
-        date=dt.datetime.strptime("2025-08-04", "%Y-%m-%d"),
-        account_id="acct-001",
-        vendor="Grocery Store",
-        amount=42.50,
-        category=TransactionCategory.GROCERIES,
-        reviewed=False,
+def test_put_and_get_transaction(transactions_table: TransactionsTable):
+    # Create and put a new bank transaction
+    date = dt.datetime(2025, 8, 7)
+    new_txn = BankTransaction.create(
+        account_id="acct-003",
+        user_id="user-002",
+        transaction_type=TransactionType.DEBIT,
+        transaction_category=TransactionCategory.RESTAURANTS,
+        transaction_date=date,
+        transaction_amount=12.34,
+        merchant_name="Chipotle",
     )
 
-    transactions_table.put_transaction(new_txn)
-
-    # Verify it can be retrieved
+    created = transactions_table.put_transaction(new_txn)
+    assert isinstance(created, BankTransaction)
+    # Retrieve it back using its generated id and the same date
     fetched = transactions_table.get_transaction(
-        user_id=new_txn.user_id,
-        date=new_txn.date,
-        transaction_id=new_txn.transaction_id,
+        "acct-003", date, created.transaction_id
     )
-    assert isinstance(fetched, Transaction)
-    assert fetched.vendor == "Grocery Store"
-    assert fetched.amount == pytest.approx(42.50)
-    assert fetched.category == TransactionCategory.GROCERIES
+    assert isinstance(fetched, BankTransaction)
+    assert fetched.transaction_id == created.transaction_id
+    assert fetched.account_id == "acct-003"
+    assert fetched.merchant_name == "Chipotle"
+    assert fetched.transaction_amount == pytest.approx(12.34)
+
+
+def test_delete_transaction(transactions_table: TransactionsTable):
+    # Delete an existing seeded transaction and check it's gone
+    account_id = "acct-003"
+    txn_id = "bank-txn-002"
+    date = dt.datetime(2025, 8, 6)
+
+    # Ensure it exists first
+    assert transactions_table.get_transaction(account_id, date, txn_id) is not None
 
     # Delete and verify removal
-    transactions_table.delete_transaction(
-        user_id=new_txn.user_id,
-        date=new_txn.date,
-        transaction_id=new_txn.transaction_id,
-    )
-    assert (
-        transactions_table.get_transaction(
-            user_id=new_txn.user_id,
-            date=new_txn.date,
-            transaction_id=new_txn.transaction_id,
-        )
-        is None
-    )
+    transactions_table.delete_transaction(account_id, date, txn_id)
+    assert transactions_table.get_transaction(account_id, date, txn_id) is None

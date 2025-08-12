@@ -341,8 +341,10 @@ paths:
             example:
               account_id: account-12345
               date: "2025-08-08"
-              vendor: Coffee Shop
               amount: -5.00
+              transaction_type: debit
+              transaction_category: Groceries
+              merchant_name: Coffee Shop
       responses:
         '201':
           description: Transaction added successfully
@@ -358,14 +360,14 @@ paths:
                 ResponseTimeMillis: 500.000000
                 Data:
                   transaction:
-                    transaction_id: jkl012
+                    transaction_id: bank-txn-12345678
                     user_id: user-12345
                     account_id: account-12345
-                    date: "2025-08-08"
-                    vendor: Coffee Shop
-                    amount: -5.00
-                    category: DINING
-                    reviewed: false
+                    transaction_type: debit
+                    transaction_category: Groceries
+                    transaction_date: "2025-08-08#bank-txn-12345678"
+                    transaction_amount: -5.00
+                    merchant_name: Coffee Shop
 
     put:
       summary: Edit an existing transaction
@@ -1128,6 +1130,92 @@ components:
           description: Whether the transaction has been reviewed
           example: false
           
+    BankTransaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          description: The unique identifier for the transaction
+          example: bank-txn-12345678
+        account_id:
+          type: string
+          description: The account ID
+          example: account-12345
+        user_id:
+          type: string
+          description: The user ID
+          example: user-12345
+        transaction_type:
+          type: string
+          description: The type of the transaction
+          enum: [ buy, sell, debit, credit, transfer ]
+          example: debit
+        transaction_category:
+          type: string
+          description: The category of the transaction
+          enum: [ Bills, Entertainment, Groceries, Health and Wellness, Hobbies, Housing, Income, Insurance, Merchandise, Restaurants, Shopping, Subscriptions, Transportation, Travel, Investment ]
+          example: Groceries
+        transaction_date:
+          type: string
+          description: The transaction date combined with an internal identifier (format YYYY-MM-DD#<id>)
+          example: "2025-08-08#bank-txn-1234"
+        transaction_amount:
+          type: number
+          format: double
+          description: The transaction amount
+          example: -5.00
+        merchant_name:
+          type: string
+          description: The merchant name for bank transactions
+          example: Coffee Shop
+    InvestmentTransaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          description: The unique identifier for the transaction
+          example: investment-txn-12345678
+        account_id:
+          type: string
+          description: The account ID
+          example: account-12345
+        user_id:
+          type: string
+          description: The user ID
+          example: user-12345
+        transaction_type:
+          type: string
+          description: The type of the transaction
+          enum: [ buy, sell, debit, credit, transfer ]
+          example: buy
+        transaction_category:
+          type: string
+          description: The category of the transaction
+          enum: [ Bills, Entertainment, Groceries, Health and Wellness, Hobbies, Housing, Income, Insurance, Merchandise, Restaurants, Shopping, Subscriptions, Transportation, Travel, Investment ]
+          example: Investment
+        transaction_date:
+          type: string
+          description: The transaction date combined with an internal identifier (format YYYY-MM-DD#<id>)
+          example: "2025-08-08#investment-txn-1234"
+        transaction_amount:
+          type: number
+          format: double
+          description: The total trade amount (quantity * price_per_share)
+          example: 500.00
+        security_id:
+          type: string
+          description: The security identifier
+          example: AAPL
+        quantity:
+          type: number
+          format: double
+          description: The number of shares
+          example: 2.0
+        price_per_share:
+          type: number
+          format: double
+          description: The price per share
+          example: 250.00
     TransactionsResponse:
       type: object
       properties:
@@ -1184,8 +1272,9 @@ components:
       required:
         - account_id
         - date
-        - vendor
         - amount
+        - transaction_type
+        - transaction_category
       properties:
         account_id:
           type: string
@@ -1196,15 +1285,39 @@ components:
           format: date
           description: The date of the transaction (YYYY-MM-DD)
           example: "2025-08-08"
-        vendor:
-          type: string
-          description: The vendor or merchant name
-          example: Coffee Shop
         amount:
           type: number
           format: double
           description: The transaction amount (negative for expenses, positive for income)
           example: -5.00
+        transaction_type:
+          type: string
+          description: The type of the transaction
+          enum: [ buy, sell, debit, credit, transfer ]
+          example: debit
+        transaction_category:
+          type: string
+          description: The category of the transaction
+          enum: [ Bills, Entertainment, Groceries, Health and Wellness, Hobbies, Housing, Income, Insurance, Merchandise, Restaurants, Shopping, Subscriptions, Transportation, Travel, Investment ]
+          example: Groceries
+        merchant_name:
+          type: string
+          description: Required for bank transactions (debit/credit/transfer). The merchant name.
+          example: Coffee Shop
+        security_id:
+          type: string
+          description: Required for investment transactions (buy/sell). The security identifier.
+          example: AAPL
+        quantity:
+          type: number
+          format: double
+          description: Required for investment transactions (buy/sell). The number of shares.
+          example: 1.0
+        price_per_share:
+          type: number
+          format: double
+          description: Required for investment transactions (buy/sell). The price per share.
+          example: 5.00
           
     AddTransactionResponse:
       type: object
@@ -1229,7 +1342,9 @@ components:
           type: object
           properties:
             transaction:
-              $ref: '#/components/schemas/Transaction'
+              oneOf:
+                - $ref: '#/components/schemas/BankTransaction'
+                - $ref: '#/components/schemas/InvestmentTransaction'
               
     EditTransactionRequest:
       type: object

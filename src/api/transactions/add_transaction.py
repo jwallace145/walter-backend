@@ -15,7 +15,13 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
-from src.database.transactions.models import Transaction
+from src.database.transactions.models import (
+    Transaction,
+    TransactionType,
+    TransactionCategory,
+    InvestmentTransaction,
+    BankTransaction,
+)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -35,8 +41,9 @@ class AddTransaction(WalterAPIMethod):
     REQUIRED_FIELDS = [
         "account_id",
         "date",
-        "vendor",
         "amount",
+        "transaction_type",
+        "transaction_category",
     ]
     EXCEPTIONS = [
         BadRequest,
@@ -73,7 +80,7 @@ class AddTransaction(WalterAPIMethod):
         transaction = self._create_transaction(
             user_id=user.user_id, account_id=account.account_id, event=event
         )
-        self.walter_db.put_transaction(transaction)
+        self.walter_db.create_transaction(transaction)
         return Response(
             api_name=AddTransaction.API_NAME,
             http_status=HTTPStatus.CREATED,
@@ -117,7 +124,7 @@ class AddTransaction(WalterAPIMethod):
         self, user_id: str, account_id: str, event: dict
     ) -> Transaction:
         """
-        Create a transaction object from the provided event.
+        Create a transaction object from the provided event using the new models.
 
         Args:
             user_id: The user ID of the transaction.
@@ -127,23 +134,131 @@ class AddTransaction(WalterAPIMethod):
         Returns:
             (Transaction): The created transaction object.
         """
-        body = json.loads(event["body"])
+        body = (
+            json.loads(event["body"])
+            if isinstance(event.get("body"), str)
+            else event.get("body", {})
+        )
+
+        # Base fields
         date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
-        vendor = body["vendor"]
         amount = float(body["amount"])
-        category = self.transaction_categorizer.categorize(vendor, amount)
-        return Transaction(
-            user_id=user_id,
+        txn_type = TransactionType.from_string(body["transaction_type"])
+        txn_category = TransactionCategory.from_string(body["transaction_category"])
+
+        # Investment transactions (buy/sell)
+        if txn_type in {TransactionType.BUY, TransactionType.SELL}:
+            try:
+                security_id = body["security_id"]
+                quantity = float(body["quantity"])
+                price_per_share = float(body["price_per_share"])
+            except KeyError as e:
+                raise BadRequest(
+                    f"Missing required field for investment transaction: {str(e)}"
+                )
+            except ValueError:
+                raise BadRequest(
+                    "Invalid numeric value for quantity or price_per_share"
+                )
+
+            computed_amount = quantity * price_per_share
+            # Validate amount consistency (allow small floating error)
+            if abs(computed_amount - amount) > 0.01:
+                raise BadRequest(
+                    "Amount must equal quantity * price_per_share for investment transactions"
+                )
+
+            return InvestmentTransaction(
+                account_id=account_id,
+                user_id=user_id,
+                transaction_type=txn_type,
+                transaction_category=txn_category,
+                transaction_date=date,
+                transaction_amount=amount,
+                security_id=security_id,
+                quantity=quantity,
+                price_per_share=price_per_share,
+            )
+
+        # Bank transactions (debit/credit/transfer)
+        try:
+            merchant_name = body["merchant_name"]
+        except KeyError as e:
+            raise BadRequest(f"Missing required field for bank transaction: {str(e)}")
+
+        return BankTransaction(
             account_id=account_id,
-            date=date,
-            vendor=vendor,
-            amount=amount,
-            category=category,
-            reviewed=False,
+            user_id=user_id,
+            transaction_type=txn_type,
+            transaction_category=txn_category,
+            transaction_date=date,
+            transaction_amount=amount,
+            merchant_name=merchant_name,
         )
 
     def validate_fields(self, event: dict) -> None:
-        pass
+        # Validate base required fields and type-specific fields
+        try:
+            body = (
+                json.loads(event["body"])
+                if isinstance(event.get("body"), str)
+                else event.get("body", {})
+            )
+        except Exception:
+            raise BadRequest("Invalid JSON body")
+
+        # Base fields (aligned with Transaction base model)
+        base_required = [
+            "account_id",
+            "date",
+            "amount",
+            "transaction_type",
+            "transaction_category",
+        ]
+        missing = [f for f in base_required if f not in body]
+        if missing:
+            raise BadRequest(f"Missing required fields: {missing}")
+
+        # Validate date format
+        try:
+            dt.datetime.strptime(body["date"], "%Y-%m-%d")
+        except Exception:
+            raise BadRequest("Invalid date format. Expected YYYY-MM-DD")
+
+        # Validate enums
+        try:
+            _ = TransactionType.from_string(body["transaction_type"])  # noqa: F841
+            _ = TransactionCategory.from_string(
+                body["transaction_category"]
+            )  # noqa: F841
+        except ValueError as e:
+            raise BadRequest(str(e))
+
+        # Validate amount is numeric
+        try:
+            float(body["amount"])  # ensure numeric
+        except Exception:
+            raise BadRequest("Invalid amount. Must be a number")
+
+        # Type specific
+        if body["transaction_type"].lower() in {"buy", "sell"}:
+            inv_required = ["security_id", "quantity", "price_per_share"]
+            missing_inv = [f for f in inv_required if f not in body]
+            if missing_inv:
+                raise BadRequest(
+                    f"Missing required fields for investment transaction: {missing_inv}"
+                )
+            # numeric validation
+            try:
+                float(body["quantity"])  # noqa: F841
+                float(body["price_per_share"])  # noqa: F841
+            except Exception:
+                raise BadRequest("Invalid quantity or price_per_share. Must be numbers")
+        else:
+            if "merchant_name" not in body:
+                raise BadRequest(
+                    "Missing required field for bank transaction: 'merchant_name'"
+                )
 
     def is_authenticated_api(self) -> bool:
         return True
