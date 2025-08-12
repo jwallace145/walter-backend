@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
 from src.database.accounts.models import Account, AccountType
+from src.database.holdings.models import Holding
 from src.database.securities.models import SecurityType, Stock, Crypto
 from src.database.users.models import User
 from src.environment import Domain
@@ -16,6 +17,8 @@ from tst.constants import (
     ACCOUNTS_TEST_FILE,
     SECURITIES_TABLE_NAME,
     SECURITIES_TEST_FILE,
+    HOLDINGS_TABLE_NAME,
+    HOLDINGS_TEST_FILE,
 )
 
 
@@ -33,6 +36,7 @@ class MockDDB:
         self._create_users_table(USERS_TABLE_NAME, USERS_TEST_FILE)
         self._create_accounts_table(ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE)
         self._create_securities_table(SECURITIES_TABLE_NAME, SECURITIES_TEST_FILE)
+        self._create_holdings_table(HOLDINGS_TABLE_NAME, HOLDINGS_TEST_FILE)
         self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
 
     def _create_users_table(self, table_name: str, input_file_name: str) -> None:
@@ -174,6 +178,41 @@ class MockDDB:
                 self.mock_ddb.put_item(
                     TableName=table_name,
                     Item=security.to_ddb_item(),
+                )
+
+    def _create_holdings_table(self, table_name: str, input_file_name: str) -> None:
+        self.mock_ddb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "account_id", "KeyType": "HASH"},
+                {"AttributeName": "security_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "security_id", "AttributeType": "S"},
+            ],
+            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+        )
+        with open(input_file_name) as holdings_f:
+            for holding in holdings_f:
+                if not holding.strip():
+                    continue
+                holding_json = json.loads(holding)
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=Holding(
+                        account_id=holding_json["account_id"],
+                        security_id=holding_json["security_id"],
+                        quantity=float(holding_json["quantity"]),
+                        total_cost_basis=float(holding_json["total_cost_basis"]),
+                        average_cost_basis=float(holding_json["average_cost_basis"]),
+                        created_at=datetime.datetime.strptime(
+                            holding_json["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                        updated_at=datetime.datetime.strptime(
+                            holding_json["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                    ).to_ddb_item(),
                 )
 
     def _create_transactions_table(self, table_name: str) -> None:

@@ -1,0 +1,2 @@
+{"account_id": "acct-7769234555", "security_id": "sec-nasdaq-appl", "quantity": 100, "total_cost_basis": 1000, "average_cost_basis": 10, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}
+{"account_id": "acct-7769234555", "security_id": "sec-crypto-btc", "quantity": 250, "total_cost_basis": 1000, "average_cost_basis": 4, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}

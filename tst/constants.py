@@ -37,6 +37,12 @@ SECURITIES_TABLE_NAME = f"Securities-{Domain.TESTING.value}"
 SECURITIES_TEST_FILE = "tst/database/data/securities.jsonl"
 """(str): The name of the test securities input file."""
 
+HOLDINGS_TABLE_NAME = f"Holdings-{Domain.TESTING.value}"
+"""(str): The name of the Holdings table that stores all holdings of users."""
+
+HOLDINGS_TEST_FILE = "tst/database/data/holdings.jsonl"
+"""(str): The name of the test holdings input file."""
+
 TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
 """(str): The name of the Transactions table that stores all transactions made by users."""
 
