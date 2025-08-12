@@ -46,6 +46,9 @@ HOLDINGS_TEST_FILE = "tst/database/data/holdings.jsonl"
 TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
 """(str): The name of the Transactions table that stores all transactions made by users."""
 
+TRANSACTIONS_TEST_FILE = "tst/database/data/transactions.jsonl"
+"""(str): The name of the test transactions input file."""
+
 ###################
 # TEST SQS QUEUES #
 ###################

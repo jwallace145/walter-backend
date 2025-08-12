@@ -7,6 +7,7 @@ from mypy_boto3_dynamodb.client import DynamoDBClient
 from src.database.accounts.models import Account, AccountType
 from src.database.holdings.models import Holding
 from src.database.securities.models import SecurityType, Stock, Crypto
+from src.database.transactions.models import Transaction, TransactionCategory
 from src.database.users.models import User
 from src.environment import Domain
 from tst.constants import (
@@ -19,6 +20,7 @@ from tst.constants import (
     SECURITIES_TEST_FILE,
     HOLDINGS_TABLE_NAME,
     HOLDINGS_TEST_FILE,
+    TRANSACTIONS_TEST_FILE,
 )
 
 
@@ -37,7 +39,7 @@ class MockDDB:
         self._create_accounts_table(ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE)
         self._create_securities_table(SECURITIES_TABLE_NAME, SECURITIES_TEST_FILE)
         self._create_holdings_table(HOLDINGS_TABLE_NAME, HOLDINGS_TEST_FILE)
-        self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
+        self._create_transactions_table(TRANSACTIONS_TABLE_NAME, TRANSACTIONS_TEST_FILE)
 
     def _create_users_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
@@ -215,7 +217,7 @@ class MockDDB:
                     ).to_ddb_item(),
                 )
 
-    def _create_transactions_table(self, table_name: str) -> None:
+    def _create_transactions_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
@@ -228,3 +230,27 @@ class MockDDB:
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
         )
+        # seed transactions from the provided JSONL file
+        with open(input_file_name) as transactions_f:
+            for txn in transactions_f:
+                if not txn.strip():
+                    continue
+                transaction_json = json.loads(txn)
+                # Parse date and build Transaction model for proper DDB schema
+                date = datetime.datetime.strptime(transaction_json["date"], "%Y-%m-%d")
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=Transaction(
+                        user_id=transaction_json["user_id"],
+                        date=date,
+                        vendor=transaction_json["vendor"],
+                        amount=float(transaction_json["amount"]),
+                        category=TransactionCategory.from_string(
+                            transaction_json["category"]
+                        ),
+                        reviewed=bool(transaction_json["reviewed"]),
+                        account_id=transaction_json["account_id"],
+                        transaction_id=transaction_json.get("transaction_id"),
+                        date_uuid=transaction_json.get("date_uuid"),
+                    ).to_ddb_item(),
+                )

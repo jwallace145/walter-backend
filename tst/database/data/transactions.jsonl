@@ -1,0 +1,4 @@
+{"user_id": "user-001", "account_id": "acct-001", "date": "2025-08-01", "transaction_id": "001", "date_uuid": "2025-08-01#001", "vendor": "Starbucks", "amount": 5.0, "category": "restaurants", "reviewed": true}
+{"user_id": "user-001", "account_id": "acct-001", "date": "2025-08-01", "transaction_id": "002", "date_uuid": "2025-08-01#002", "vendor": "Chipotle", "amount": 10.0, "category": "restaurants", "reviewed": true}
+{"user_id": "user-001", "account_id": "acct-001", "date": "2025-08-02", "transaction_id": "003", "date_uuid": "2025-08-02#003", "vendor": "Rent", "amount": 1250.00, "category": "housing", "reviewed": true}
+{"user_id": "user-001", "account_id": "acct-001", "date": "2025-08-03", "transaction_id": "004", "date_uuid": "2025-08-03#004", "vendor": "Car Insurance", "amount": 180.00, "category": "insurance", "reviewed": false}
