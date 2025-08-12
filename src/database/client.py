@@ -9,6 +9,8 @@ from src.database.accounts.table import AccountsTable
 from src.database.models import AccountTransaction
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
+from src.database.securities.models import Security
+from src.database.securities.table import SecuritiesTable
 from src.database.transactions.models import Transaction
 from src.database.transactions.table import TransactionsTable
 from src.database.users.models import User
@@ -33,12 +35,14 @@ class WalterDB:
     transactions_table: TransactionsTable = None
     users_table: UsersTable = None
     accounts_table: AccountsTable = None
+    securities_table: SecuritiesTable = None
     plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
         self.transactions_table = TransactionsTable(self.ddb, self.domain)
         self.users_table = UsersTable(self.ddb, self.domain)
         self.accounts_table = AccountsTable(self.ddb, self.domain)
+        self.securities_table = SecuritiesTable(self.ddb, self.domain)
         self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
     #########
@@ -233,6 +237,13 @@ class WalterDB:
 
     def delete_account(self, user_id: str, account_id: str) -> None:
         return self.accounts_table.delete_account(user_id, account_id)
+
+    ##############
+    # SECURITIES #
+    ##############
+
+    def create_security(self, security: Security) -> Security:
+        return self.securities_table.create_security(security)
 
     ###############
     # PLAID ITEMS #

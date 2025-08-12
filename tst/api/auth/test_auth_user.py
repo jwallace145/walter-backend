@@ -36,6 +36,6 @@ def test_auth_user_failure_user_does_not_exist(auth_user_api: AuthUser) -> None:
         api_name=auth_user_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="User not found!",
+        message="User with email 'sally@gmail.com' does not exist!",
     )
     assert expected_response == auth_user_api.invoke(event)

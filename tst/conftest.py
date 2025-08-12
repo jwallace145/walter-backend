@@ -21,7 +21,6 @@ from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.events.parser import WalterEventParser
-from src.stocks.alphavantage.client import AlphaVantageClient
 from src.stocks.client import WalterStocksAPI
 from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
@@ -113,19 +112,9 @@ def polygon_client(
 
 
 @pytest.fixture
-def alpha_vantage_client() -> AlphaVantageClient:
-    # return MockAlphaVantageClient()
-    pass
-
-
-@pytest.fixture
-def walter_stocks_api(
-    polygon_client: PolygonClient, alpha_vantage_client: AlphaVantageClient
-) -> WalterStocksAPI:
+def walter_stocks_api(polygon_client: PolygonClient) -> WalterStocksAPI:
     return WalterStocksAPI(
         polygon=polygon_client,
-        alpha_vantage=alpha_vantage_client,
-        stock_news=alpha_vantage_client,
     )
 
 
