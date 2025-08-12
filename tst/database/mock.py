@@ -7,7 +7,12 @@ from mypy_boto3_dynamodb.client import DynamoDBClient
 from src.database.accounts.models import Account, AccountType
 from src.database.holdings.models import Holding
 from src.database.securities.models import SecurityType, Stock, Crypto
-from src.database.transactions.models import Transaction, TransactionCategory
+from src.database.transactions.models import (
+    TransactionCategory,
+    InvestmentTransaction,
+    TransactionType,
+    BankTransaction,
+)
 from src.database.users.models import User
 from src.environment import Domain
 from tst.constants import (
@@ -221,12 +226,12 @@ class MockDDB:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
-                {"AttributeName": "user_id", "KeyType": "HASH"},
-                {"AttributeName": "date_uuid", "KeyType": "RANGE"},
+                {"AttributeName": "account_id", "KeyType": "HASH"},
+                {"AttributeName": "transaction_date", "KeyType": "RANGE"},
             ],
             AttributeDefinitions=[
-                {"AttributeName": "user_id", "AttributeType": "S"},
-                {"AttributeName": "date_uuid", "AttributeType": "S"},
+                {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "transaction_date", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
         )
@@ -236,21 +241,46 @@ class MockDDB:
                 if not txn.strip():
                     continue
                 transaction_json = json.loads(txn)
-                # Parse date and build Transaction model for proper DDB schema
-                date = datetime.datetime.strptime(transaction_json["date"], "%Y-%m-%d")
-                self.mock_ddb.put_item(
-                    TableName=table_name,
-                    Item=Transaction(
+                transaction_id = transaction_json["transaction_id"]
+                transaction_item = None
+                if transaction_id.startswith("investment"):
+                    transaction_item = InvestmentTransaction(
                         user_id=transaction_json["user_id"],
-                        date=date,
-                        vendor=transaction_json["vendor"],
-                        amount=float(transaction_json["amount"]),
-                        category=TransactionCategory.from_string(
-                            transaction_json["category"]
-                        ),
-                        reviewed=bool(transaction_json["reviewed"]),
                         account_id=transaction_json["account_id"],
-                        transaction_id=transaction_json.get("transaction_id"),
-                        date_uuid=transaction_json.get("date_uuid"),
-                    ).to_ddb_item(),
-                )
+                        transaction_type=TransactionType.from_string(
+                            transaction_json["transaction_type"]
+                        ),
+                        transaction_category=TransactionCategory.from_string(
+                            transaction_json["transaction_category"]
+                        ),
+                        transaction_date=datetime.datetime.strptime(
+                            transaction_json["transaction_date"], "%Y-%m-%d"
+                        ),
+                        transaction_amount=float(
+                            transaction_json["transaction_amount"]
+                        ),
+                        security_id=transaction_json["security_id"],
+                        quantity=float(transaction_json["quantity"]),
+                        price_per_share=float(transaction_json["price_per_share"]),
+                        transaction_id=transaction_id,
+                    ).to_ddb_item()
+                else:
+                    transaction_item = BankTransaction(
+                        user_id=transaction_json["user_id"],
+                        account_id=transaction_json["account_id"],
+                        transaction_type=TransactionType.from_string(
+                            transaction_json["transaction_type"]
+                        ),
+                        transaction_category=TransactionCategory.from_string(
+                            transaction_json["transaction_category"]
+                        ),
+                        transaction_date=datetime.datetime.strptime(
+                            transaction_json["transaction_date"], "%Y-%m-%d"
+                        ),
+                        transaction_amount=float(
+                            transaction_json["transaction_amount"]
+                        ),
+                        merchant_name=transaction_json["merchant_name"],
+                        transaction_id=transaction_id,
+                    ).to_ddb_item()
+                self.mock_ddb.put_item(TableName=table_name, Item=transaction_item)

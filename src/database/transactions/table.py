@@ -1,10 +1,14 @@
 import datetime as dt
-import json
 from dataclasses import dataclass
 from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.transactions.models import Transaction
+from src.database.transactions.models import (
+    Transaction,
+    TransactionType,
+    InvestmentTransaction,
+    BankTransaction,
+)
 from src.environment import Domain
 from src.utils.log import Logger
 
@@ -13,135 +17,118 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class TransactionsTable:
+    """Transactions Table
+
+    Responsible for creating, updating, getting, and deleting
+    transactions in the DynamoDB Transactions table.
+    """
 
     TABLE_NAME_FORMAT = "Transactions-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
 
-    table: str = None  # set during post init
+    table_name: str = None  # set during post-init
 
     def __post_init__(self) -> None:
-        self.table = TransactionsTable._get_table_name(self.domain)
-        log.debug(
-            f"Creating Transactions table DynamoDB client with table name '{self.table}'"
-        )
+        self.table_name = self.TABLE_NAME_FORMAT.format(domain=self.domain.value)
+        log.debug(f"Initializing Transactions Table with name '{self.table_name}'")
 
     def get_transaction(
-        self, user_id: str, date: dt.datetime, transaction_id: str
+        self, account_id: str, date: dt.datetime, transaction_id: str
     ) -> Optional[Transaction]:
-        """
-        Get the transaction for the user on the given date from the
-        Transactions table.
-
-        If the transaction is not found, return None.
-
-        Args:
-            user_id: The unique ID of the user.
-            date: The date of the transaction.
-            transaction_id: The unique ID of the transaction.
-
-        Returns:
-            The transaction if found, else None.
-        """
+        """Get a single transaction by account, date, and transaction id."""
         log.info(
-            f"Getting transaction '{transaction_id}' on date '{date}' for user from table '{self.table}'"
+            f"Getting transaction '{transaction_id}' for account '{account_id}' on date '{date.date()}'"
         )
-
-        transaction = self.ddb.get_item(
-            table=self.table,
-            key=TransactionsTable._get_transaction_primary_key(
-                user_id, date, transaction_id
-            ),
+        item = self.ddb.get_item(
+            table=self.table_name,
+            key=TransactionsTable._get_primary_key(account_id, date, transaction_id),
         )
-
-        # return None if transaction not found
-        if not transaction:
-            log.warning(f"Transaction '{transaction_id}' not found for user!")
+        if item is None:
+            log.info(
+                f"Transaction '{transaction_id}' for account '{account_id}' on date '{date.date()}' not found!"
+            )
             return None
-
-        log.info(f"Found transaction '{transaction_id}' on date '{date}' for user!")
-        return Transaction.from_ddb_item(transaction)
+        return TransactionsTable._from_ddb_item(item)
 
     def get_transactions(
-        self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
+        self, account_id: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Transaction]:
-        """
-        Get the transactions for a user in a given date range.
-
-        Args:
-            user_id: The unique user ID of the user to get transactions for.
-            start_date: The start date of the date range user transactions query.
-            end_date:  The end date of the date range user transactions query.
-
-        Returns:
-            The list of user transactions over the given date range.
-        """
-        log.info(f"Getting transactions for user from table '{self.table}'")
-
-        transaction_items = self.ddb.query(
-            table=self.table,
-            query=TransactionsTable._get_expenses_by_user_id_and_date_range_query(
-                user_id, start_date, end_date
-            ),
+        """Get all transactions for an account between start_date and end_date (inclusive)."""
+        log.info(
+            f"Getting transactions for account '{account_id}' between '{start_date.date()}' and '{end_date.date()}'"
         )
-
-        transactions = [Transaction.from_ddb_item(item) for item in transaction_items]
-
-        log.info(f"Returned {len(transactions)} transactions for user!")
-        log.debug(
-            f"Transactions:\n{json.dumps([transaction.to_dict() for transaction in transactions], indent=4)}"
+        lower = TransactionsTable._sort_key_prefix(start_date) + "#"
+        upper = TransactionsTable._sort_key_prefix(end_date) + "#~"
+        items = self.ddb.query(
+            table=self.table_name,
+            query={
+                "account_id": {
+                    "AttributeValueList": [{"S": account_id}],
+                    "ComparisonOperator": "EQ",
+                },
+                "transaction_date": {
+                    "AttributeValueList": [{"S": lower}, {"S": upper}],
+                    "ComparisonOperator": "BETWEEN",
+                },
+            },
         )
+        transactions = [TransactionsTable._from_ddb_item(item) for item in items]
+        log.info(f"Found {len(transactions)} transactions for account '{account_id}'")
+        return transactions
 
-        # return transactions sorted by date in descending order
-        return sorted(transactions, key=lambda e: e.date, reverse=True)
+    def get_transactions_by_account(self, account_id: str) -> List[Transaction]:
+        """Get all transactions for a given account."""
+        log.info(f"Getting all transactions for account '{account_id}'")
+        return self.get_transactions(account_id, dt.datetime.min, dt.datetime.max)
 
-    def put_transaction(self, transaction: Transaction) -> None:
-        log.info("Putting transaction for user to Transactions table")
-        log.debug(f"Transaction:\n{json.dumps(transaction.to_dict(), indent=4)}")
-        self.ddb.put_item(self.table, transaction.to_ddb_item())
+    def put_transaction(self, transaction: Transaction) -> Transaction:
+        """
+        Add or update a transaction in the table.
+
+        If callers change the transaction date, they should delete the old entry first
+        to avoid duplicates, as the date is part of the sort key.
+        """
+        log.info(
+            f"Putting transaction '{transaction.transaction_id}' for account '{transaction.account_id}'"
+        )
+        self.ddb.put_item(self.table_name, transaction.to_ddb_item())
+        log.info("Transaction put successfully!")
+        return transaction
 
     def delete_transaction(
-        self, user_id: str, date: dt.datetime, transaction_id: str
+        self, account_id: str, date: dt.datetime, transaction_id: str
     ) -> None:
-        log.info("Deleting transaction for user from Transactions table")
-        log.debug(
-            f"Transaction:\n{json.dumps({'user_id': user_id, 'date': date.strftime('%Y-%m-%d'), 'transaction_id': transaction_id}, indent=4)}"
+        log.info(
+            f"Deleting transaction '{transaction_id}' for account '{account_id}' on date '{date.date()}'"
         )
         self.ddb.delete_item(
-            self.table,
-            TransactionsTable._get_transaction_primary_key(
-                user_id, date, transaction_id
-            ),
+            table=self.table_name,
+            key=TransactionsTable._get_primary_key(account_id, date, transaction_id),
         )
+        log.info("Transaction deleted successfully!")
 
     @staticmethod
-    def _get_table_name(domain: Domain) -> str:
-        return TransactionsTable.TABLE_NAME_FORMAT.format(domain=domain.value)
+    def _sort_key_prefix(date: dt.datetime) -> str:
+        return date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def _get_expenses_by_user_id_and_date_range_query(
-        user_id: str, start_date: dt.datetime, end_date: dt.datetime
+    def _get_primary_key(
+        account_id: str, date: dt.datetime, transaction_id: str
     ) -> dict:
         return {
-            "user_id": {
-                "AttributeValueList": [{"S": user_id}],
-                "ComparisonOperator": "EQ",
-            },
-            "date_uuid": {
-                "AttributeValueList": [
-                    {"S": f"{start_date.strftime('%Y-%m-%d')}#"},
-                    {"S": f"{end_date.strftime('%Y-%m-%d')}#\uffff"},
-                ],
-                "ComparisonOperator": "BETWEEN",
+            "account_id": {"S": account_id},
+            "transaction_date": {
+                "S": f"{TransactionsTable._sort_key_prefix(date)}#{transaction_id}",
             },
         }
 
     @staticmethod
-    def _get_transaction_primary_key(
-        user_id: str, date: dt.datetime, transaction_id: str
-    ) -> dict:
-        return {
-            "user_id": {"S": user_id},
-            "date_uuid": {"S": f"{date.strftime('%Y-%m-%d')}#{transaction_id}"},
-        }
+    def _from_ddb_item(item: dict) -> Transaction:
+        """Deserialize a DDB item into the appropriate Transaction subclass."""
+        txn_type_val = item["transaction_type"]["S"].lower()
+        if txn_type_val in {TransactionType.BUY.value, TransactionType.SELL.value}:
+            return InvestmentTransaction.from_ddb_item(item)
+        else:
+            return BankTransaction.from_ddb_item(item)
