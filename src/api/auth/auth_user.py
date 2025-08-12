@@ -55,7 +55,8 @@ class AuthUser(WalterAPIMethod):
         self.walter_sm = walter_sm
 
     def execute(self, event: dict, authenticated_email: str = None) -> Response:
-        user = self._verify_user_exists(event)
+        email = json.loads(event["body"])["email"].lower()
+        user = self._verify_user_exists(self.walter_db, email)
         self._verify_password(event, user)
         self._update_last_active_date(user)
         token = self.authenticator.generate_user_token(user.email)
@@ -77,15 +78,6 @@ class AuthUser(WalterAPIMethod):
 
     def is_authenticated_api(self) -> bool:
         return False
-
-    def _verify_user_exists(self, event: dict) -> User:
-        email = json.loads(event["body"])["email"].lower()
-        log.info(f"Verifying user exists with email '{email}'")
-        user = self.walter_db.get_user_by_email(email)
-        if user is None:
-            raise UserDoesNotExist("User not found!")
-        log.info("Verified user exists!")
-        return user
 
     def _verify_password(self, event: dict, user: User) -> None:
         log.info("Verifying password matches stored password hash")

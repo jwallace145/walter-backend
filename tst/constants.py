@@ -31,8 +31,23 @@ ACCOUNTS_TABLE_NAME = f"Accounts-{Domain.TESTING.value}"
 ACCOUNTS_TEST_FILE = "tst/database/data/accounts.jsonl"
 """(str): The name of the test accounts input file."""
 
+SECURITIES_TABLE_NAME = f"Securities-{Domain.TESTING.value}"
+"""(str): The name of the Securities table that stores all securities owned by users."""
+
+SECURITIES_TEST_FILE = "tst/database/data/securities.jsonl"
+"""(str): The name of the test securities input file."""
+
+HOLDINGS_TABLE_NAME = f"Holdings-{Domain.TESTING.value}"
+"""(str): The name of the Holdings table that stores all holdings of users."""
+
+HOLDINGS_TEST_FILE = "tst/database/data/holdings.jsonl"
+"""(str): The name of the test holdings input file."""
+
 TRANSACTIONS_TABLE_NAME = f"Transactions-{Domain.TESTING.value}"
 """(str): The name of the Transactions table that stores all transactions made by users."""
+
+TRANSACTIONS_TEST_FILE = "tst/database/data/transactions.jsonl"
+"""(str): The name of the test transactions input file."""
 
 ###################
 # TEST SQS QUEUES #

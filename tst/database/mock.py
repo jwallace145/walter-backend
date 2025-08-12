@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
 from src.database.accounts.models import Account, AccountType
+from src.database.holdings.models import Holding
+from src.database.securities.models import SecurityType, Stock, Crypto
+from src.database.transactions.models import Transaction, TransactionCategory
 from src.database.users.models import User
 from src.environment import Domain
 from tst.constants import (
@@ -13,6 +16,11 @@ from tst.constants import (
     TRANSACTIONS_TABLE_NAME,
     ACCOUNTS_TABLE_NAME,
     ACCOUNTS_TEST_FILE,
+    SECURITIES_TABLE_NAME,
+    SECURITIES_TEST_FILE,
+    HOLDINGS_TABLE_NAME,
+    HOLDINGS_TEST_FILE,
+    TRANSACTIONS_TEST_FILE,
 )
 
 
@@ -29,7 +37,9 @@ class MockDDB:
     def initialize(self) -> None:
         self._create_users_table(USERS_TABLE_NAME, USERS_TEST_FILE)
         self._create_accounts_table(ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE)
-        self._create_transactions_table(TRANSACTIONS_TABLE_NAME)
+        self._create_securities_table(SECURITIES_TABLE_NAME, SECURITIES_TEST_FILE)
+        self._create_holdings_table(HOLDINGS_TABLE_NAME, HOLDINGS_TEST_FILE)
+        self._create_transactions_table(TRANSACTIONS_TABLE_NAME, TRANSACTIONS_TEST_FILE)
 
     def _create_users_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
@@ -120,7 +130,94 @@ class MockDDB:
                     ).to_ddb_item(),
                 )
 
-    def _create_transactions_table(self, table_name: str) -> None:
+    def _create_securities_table(self, table_name: str, input_file_name: str) -> None:
+        self.mock_ddb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "security_id", "KeyType": "HASH"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "security_id", "AttributeType": "S"},
+            ],
+            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+        )
+        with open(input_file_name) as securities_f:
+            for security_jsonl in securities_f:
+                if not security_jsonl.strip():
+                    continue
+                security_json = json.loads(security_jsonl)
+                security_type = SecurityType.from_string(security_json["security_type"])
+                match security_type:
+                    case SecurityType.STOCK:
+                        security = Stock(
+                            name=security_json["security_name"],
+                            ticker=security_json["ticker"],
+                            exchange=security_json["exchange"],
+                            price=float(security_json["current_price"]),
+                            price_updated_at=datetime.datetime.strptime(
+                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            ),
+                            price_expires_at=datetime.datetime.strptime(
+                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            ),
+                            security_id=security_json["security_id"],
+                        )
+                    case SecurityType.CRYPTO:
+                        security = Crypto(
+                            name=security_json["security_name"],
+                            ticker=security_json["ticker"],
+                            price=float(security_json["current_price"]),
+                            price_updated_at=datetime.datetime.strptime(
+                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            ),
+                            price_expires_at=datetime.datetime.strptime(
+                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            ),
+                            security_id=security_json["security_id"],
+                        )
+                    case _:
+                        raise ValueError(f"Invalid security type: {security_type}")
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=security.to_ddb_item(),
+                )
+
+    def _create_holdings_table(self, table_name: str, input_file_name: str) -> None:
+        self.mock_ddb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "account_id", "KeyType": "HASH"},
+                {"AttributeName": "security_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "security_id", "AttributeType": "S"},
+            ],
+            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+        )
+        with open(input_file_name) as holdings_f:
+            for holding in holdings_f:
+                if not holding.strip():
+                    continue
+                holding_json = json.loads(holding)
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=Holding(
+                        account_id=holding_json["account_id"],
+                        security_id=holding_json["security_id"],
+                        quantity=float(holding_json["quantity"]),
+                        total_cost_basis=float(holding_json["total_cost_basis"]),
+                        average_cost_basis=float(holding_json["average_cost_basis"]),
+                        created_at=datetime.datetime.strptime(
+                            holding_json["created_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                        updated_at=datetime.datetime.strptime(
+                            holding_json["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                    ).to_ddb_item(),
+                )
+
+    def _create_transactions_table(self, table_name: str, input_file_name: str) -> None:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
@@ -133,3 +230,27 @@ class MockDDB:
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
         )
+        # seed transactions from the provided JSONL file
+        with open(input_file_name) as transactions_f:
+            for txn in transactions_f:
+                if not txn.strip():
+                    continue
+                transaction_json = json.loads(txn)
+                # Parse date and build Transaction model for proper DDB schema
+                date = datetime.datetime.strptime(transaction_json["date"], "%Y-%m-%d")
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=Transaction(
+                        user_id=transaction_json["user_id"],
+                        date=date,
+                        vendor=transaction_json["vendor"],
+                        amount=float(transaction_json["amount"]),
+                        category=TransactionCategory.from_string(
+                            transaction_json["category"]
+                        ),
+                        reviewed=bool(transaction_json["reviewed"]),
+                        account_id=transaction_json["account_id"],
+                        transaction_id=transaction_json.get("transaction_id"),
+                        date_uuid=transaction_json.get("date_uuid"),
+                    ).to_ddb_item(),
+                )

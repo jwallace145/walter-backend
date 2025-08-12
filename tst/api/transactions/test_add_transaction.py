@@ -24,19 +24,19 @@ def add_transaction_api(
 
 
 def test_add_transaction(
-    add_transaction_api: AddTransaction, jwt_walter: str, walter_db: WalterDB
+    add_transaction_api: AddTransaction, jwt_walrus: str, walter_db: WalterDB
 ) -> None:
     # verify user transaction does not exist before adding the transaction
     transactions = walter_db.get_transactions(
-        user_id="f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        user_id="user-002",
         start_date=dt.datetime.strptime("2025-07-31", "%Y-%m-%d"),
         end_date=dt.datetime.strptime("2025-08-02", "%Y-%m-%d"),
     )
     assert len(transactions) == 0
     # create add transaction event with required details
     event = get_add_transaction_event(
-        token=jwt_walter,
-        account_id="acct-8801861911",
+        token=jwt_walrus,
+        account_id="acct-003",
         date="2025-08-01",
         vendor="Starbucks",
         amount=5.00,
@@ -44,7 +44,7 @@ def test_add_transaction(
     # add the user transaction via the api
     add_transaction_api.invoke(event)
     transactions = walter_db.get_transactions(
-        user_id="f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        user_id="user-002",
         start_date=dt.datetime.strptime("2025-07-31", "%Y-%m-%d"),
         end_date=dt.datetime.strptime("2025-08-02", "%Y-%m-%d"),
     )

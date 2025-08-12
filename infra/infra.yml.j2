@@ -667,17 +667,17 @@ Resources:
           KeyType: RANGE
       TableName: !Sub "Transactions-${AppEnvironment}"
 
-{#  SecuritiesTable:#}
-{#    Type: AWS::DynamoDB::Table#}
-{#    Properties:#}
-{#      AttributeDefinitions:#}
-{#        - AttributeName: symbol#}
-{#          AttributeType: S#}
-{#      BillingMode: PAY_PER_REQUEST#}
-{#      KeySchema:#}
-{#          - AttributeName: symbol#}
-{#            KeyType: HASH#}
-{#      TableName: !Sub "Securities-${AppEnvironment}"#}
+  SecuritiesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: security_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+          - AttributeName: security_id
+            KeyType: HASH
+      TableName: !Sub "Securities-${AppEnvironment}"
 
   HoldingsTable:
     Type: AWS::DynamoDB::Table
@@ -842,26 +842,6 @@ Resources:
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
-                - ":secret:AlphaVantageAPIKey-F7qJAw"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":secret:AlphaVantagePremiumAPIKey-xB99wz"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
                 - ":secret:PolygonAPIKey-vZymuJ"
           - Effect: Allow
             Action:
@@ -893,16 +873,6 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:JWTChangePasswordSecretKey-f0RsUz"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":secret:StockNewsAPIKey-elCcnH"
           - Effect: Allow
             Action:
               - "secretsmanager:GetSecretValue"
@@ -961,26 +931,26 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
 
-{#  SecuritiesTableAccessPolicy:#}
-{#    Type: AWS::IAM::Policy#}
-{#    Properties:#}
-{#      PolicyName: !Sub "SecuritiesTableAccessPolicy-${AppEnvironment}"#}
-{#      PolicyDocument:#}
-{#        Version: "2012-10-17"#}
-{#        Statement:#}
-{#          - Effect: Allow#}
-{#            Action:#}
-{#              - "dynamodb:BatchGet*"#}
-{#              - "dynamodb:Get*"#}
-{#              - "dynamodb:Query"#}
-{#              - "dynamodb:Scan"#}
-{#              - "dynamodb:BatchWrite*"#}
-{#              - "dynamodb:Delete*"#}
-{#              - "dynamodb:Update*"#}
-{#              - "dynamodb:PutItem"#}
-{#            Resource: !GetAtt SecuritiesTable.Arn#}
-{#      Roles:#}
-{#        - !Ref WalterAPIRole#}
+  SecuritiesTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "SecuritiesTableAccessPolicy-${AppEnvironment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:BatchGet*"
+              - "dynamodb:Get*"
+              - "dynamodb:Query"
+              - "dynamodb:Scan"
+              - "dynamodb:BatchWrite*"
+              - "dynamodb:Delete*"
+              - "dynamodb:Update*"
+              - "dynamodb:PutItem"
+            Resource: !GetAtt SecuritiesTable.Arn
+      Roles:
+        - !Ref WalterAPIRole
 
   HoldingsTableAccessPolicy:
     Type: AWS::IAM::Policy
