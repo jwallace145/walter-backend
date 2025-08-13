@@ -8,6 +8,8 @@ from src.database.transactions.models import (
     TransactionCategory,
     InvestmentTransaction,
     BankTransaction,
+    InvestmentTransactionSubType,
+    BankingTransactionSubType,
 )
 from src.database.transactions.table import TransactionsTable
 from src.environment import Domain
@@ -34,7 +36,8 @@ def test_get_transaction_investment(transactions_table: TransactionsTable):
     assert isinstance(txn, InvestmentTransaction)
     assert txn.transaction_id == txn_id
     assert txn.account_id == account_id
-    assert txn.transaction_type == TransactionType.BUY
+    assert txn.transaction_type == TransactionType.INVESTMENT
+    assert txn.transaction_subtype == InvestmentTransactionSubType.BUY
     assert txn.transaction_category == TransactionCategory.INVESTMENT
     assert txn.security_id == "sec-nasdaq-aapl"
     assert txn.quantity == pytest.approx(10.0)
@@ -53,7 +56,8 @@ def test_get_transaction_bank(transactions_table: TransactionsTable):
     assert isinstance(txn, BankTransaction)
     assert txn.transaction_id == txn_id
     assert txn.account_id == account_id
-    assert txn.transaction_type == TransactionType.DEBIT
+    assert txn.transaction_type == TransactionType.BANKING
+    assert txn.transaction_subtype == BankingTransactionSubType.DEBIT
     assert txn.transaction_category == TransactionCategory.RESTAURANTS
     assert txn.merchant_name == "Starbucks"
     assert txn.transaction_amount == pytest.approx(5.0)
@@ -87,7 +91,8 @@ def test_put_and_get_transaction(transactions_table: TransactionsTable):
     new_txn = BankTransaction.create(
         account_id="acct-003",
         user_id="user-002",
-        transaction_type=TransactionType.DEBIT,
+        transaction_type=TransactionType.BANKING,
+        transaction_subtype=BankingTransactionSubType.DEBIT,
         transaction_category=TransactionCategory.RESTAURANTS,
         transaction_date=date,
         transaction_amount=12.34,

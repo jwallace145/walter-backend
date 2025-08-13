@@ -6,6 +6,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.accounts.models import Account
 from src.database.accounts.table import AccountsTable
+from src.database.holdings.models import Holding
 from src.database.holdings.table import HoldingsTable
 from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
@@ -17,6 +18,7 @@ from src.database.users.models import User
 from src.database.users.table import UsersTable
 from src.environment import Domain
 from src.utils.log import Logger
+
 
 log = Logger(__name__).get_logger()
 
@@ -94,8 +96,15 @@ class WalterDB:
     # TRANSACTIONS #
     ################
 
-    def create_transaction(self, transaction: Transaction) -> Transaction:
+    def add_transaction(self, transaction: Transaction) -> Transaction:
         return self.transactions_table.put_transaction(transaction)
+
+    def get_transaction(
+        self, account_id: str, transaction_id: str, transaction_date: dt.datetime
+    ) -> Optional[Transaction]:
+        return self.transactions_table.get_transaction(
+            account_id, transaction_date, transaction_id
+        )
 
     ############
     # ACCOUNTS #
@@ -139,6 +148,16 @@ class WalterDB:
 
     def create_security(self, security: Security) -> Security:
         return self.securities_table.create_security(security)
+
+    ############
+    # HOLDINGS #
+    ############
+
+    def get_holding(self, account_id: str, security_id: str) -> Optional[Holding]:
+        return self.holdings_table.get_holding(account_id, security_id)
+
+    def put_holding(self, holding: Holding) -> Holding:
+        return self.holdings_table.create_holding(holding)
 
     ###############
     # PLAID ITEMS #

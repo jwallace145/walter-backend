@@ -12,6 +12,8 @@ from src.database.transactions.models import (
     InvestmentTransaction,
     TransactionType,
     BankTransaction,
+    InvestmentTransactionSubType,
+    BankingTransactionSubType,
 )
 from src.database.users.models import User
 from src.environment import Domain
@@ -250,6 +252,9 @@ class MockDDB:
                         transaction_type=TransactionType.from_string(
                             transaction_json["transaction_type"]
                         ),
+                        transaction_subtype=InvestmentTransactionSubType.from_string(
+                            transaction_json["transaction_subtype"]
+                        ),
                         transaction_category=TransactionCategory.from_string(
                             transaction_json["transaction_category"]
                         ),
@@ -270,6 +275,9 @@ class MockDDB:
                         account_id=transaction_json["account_id"],
                         transaction_type=TransactionType.from_string(
                             transaction_json["transaction_type"]
+                        ),
+                        transaction_subtype=BankingTransactionSubType.from_string(
+                            transaction_json["transaction_subtype"]
                         ),
                         transaction_category=TransactionCategory.from_string(
                             transaction_json["transaction_category"]
