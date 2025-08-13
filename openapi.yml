@@ -342,7 +342,8 @@ paths:
               account_id: account-12345
               date: "2025-08-08"
               amount: -5.00
-              transaction_type: debit
+              transaction_type: banking
+              transaction_subtype: debit
               transaction_category: Groceries
               merchant_name: Coffee Shop
       responses:
@@ -363,7 +364,8 @@ paths:
                     transaction_id: bank-txn-12345678
                     user_id: user-12345
                     account_id: account-12345
-                    transaction_type: debit
+                    transaction_type: banking
+                    transaction_subtype: debit
                     transaction_category: Groceries
                     transaction_date: "2025-08-08#bank-txn-12345678"
                     transaction_amount: -5.00
@@ -1147,8 +1149,13 @@ components:
           example: user-12345
         transaction_type:
           type: string
-          description: The type of the transaction
-          enum: [ buy, sell, debit, credit, transfer ]
+          description: The high-level type of the transaction
+          enum: [ banking ]
+          example: banking
+        transaction_subtype:
+          type: string
+          description: The specific subtype of the bank transaction
+          enum: [ debit, credit, transfer ]
           example: debit
         transaction_category:
           type: string
@@ -1185,8 +1192,13 @@ components:
           example: user-12345
         transaction_type:
           type: string
-          description: The type of the transaction
-          enum: [ buy, sell, debit, credit, transfer ]
+          description: The high-level type of the transaction
+          enum: [ investment ]
+          example: investment
+        transaction_subtype:
+          type: string
+          description: The specific subtype of the investment transaction
+          enum: [ buy, sell ]
           example: buy
         transaction_category:
           type: string
@@ -1274,6 +1286,7 @@ components:
         - date
         - amount
         - transaction_type
+        - transaction_subtype
         - transaction_category
       properties:
         account_id:
@@ -1292,7 +1305,12 @@ components:
           example: -5.00
         transaction_type:
           type: string
-          description: The type of the transaction
+          description: The high-level type of the transaction
+          enum: [ banking, investment ]
+          example: banking
+        transaction_subtype:
+          type: string
+          description: The specific subtype of the transaction
           enum: [ buy, sell, debit, credit, transfer ]
           example: debit
         transaction_category:

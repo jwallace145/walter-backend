@@ -42,9 +42,9 @@ def test_get_holdings_for_account(holdings_table: HoldingsTable):
     holdings = holdings_table.get_holdings("acct-002")
     # Two entries in the seed file for this account
     assert isinstance(holdings, list)
-    assert len(holdings) == 2
+    assert len(holdings) == 3
     ids = {h.security_id for h in holdings}
-    assert ids == {"sec-nasdaq-appl", "sec-crypto-btc"}
+    assert ids == {"sec-nasdaq-appl", "sec-crypto-btc", "sec-nyse-coke"}
 
 
 def test_get_holding_not_found(holdings_table: HoldingsTable):

@@ -128,7 +128,7 @@ class TransactionsTable:
     def _from_ddb_item(item: dict) -> Transaction:
         """Deserialize a DDB item into the appropriate Transaction subclass."""
         txn_type_val = item["transaction_type"]["S"].lower()
-        if txn_type_val in {TransactionType.BUY.value, TransactionType.SELL.value}:
+        if txn_type_val == TransactionType.INVESTMENT.value:
             return InvestmentTransaction.from_ddb_item(item)
         else:
             return BankTransaction.from_ddb_item(item)
