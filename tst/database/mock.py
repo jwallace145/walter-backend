@@ -232,10 +232,21 @@ class MockDDB:
                 {"AttributeName": "transaction_date", "KeyType": "RANGE"},
             ],
             AttributeDefinitions=[
+                {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "account_id", "AttributeType": "S"},
                 {"AttributeName": "transaction_date", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Transactions-UserIndex-{Domain.TESTING.value}",
+                    "KeySchema": [
+                        {"AttributeName": "user_id", "KeyType": "HASH"},
+                        {"AttributeName": "transaction_date", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
         )
         # seed transactions from the provided JSONL file
         with open(input_file_name) as transactions_f:

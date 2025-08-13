@@ -50,10 +50,10 @@ class UsersTable:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         expression = "email = :email"
         attributes = {":email": {"S": email}}
-        item = self.ddb.query_index(
+        items = self.ddb.query_index(
             self.table, self.email_index_name, expression, attributes
         )
-        return None if item is None else UsersTable._get_user_from_ddb_item(item)
+        return None if len(items) == 0 else UsersTable._get_user_from_ddb_item(items[0])
 
     def update_user(self, user: User) -> None:
         log.info(f"Updating user with email '{user.email}'")

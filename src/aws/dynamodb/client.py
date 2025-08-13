@@ -78,7 +78,7 @@ class WalterDDBClient:
                 IndexName=index_name,
                 KeyConditionExpression=expression,
                 ExpressionAttributeValues=attributes,
-            )["Items"][0]
+            )["Items"]
         except ClientError as error:
             log.error(
                 f"Unexpected error occurred querying items from table '{table}'!\n"

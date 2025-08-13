@@ -24,6 +24,7 @@ class TransactionsTable:
     """
 
     TABLE_NAME_FORMAT = "Transactions-{domain}"
+    USER_INDEX_NAME_FORMAT = "Transactions-UserIndex-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
@@ -83,6 +84,29 @@ class TransactionsTable:
         log.info(f"Getting all transactions for account '{account_id}'")
         return self.get_transactions(account_id, dt.datetime.min, dt.datetime.max)
 
+    def get_user_transactions(
+        self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Transaction]:
+        """Get all transactions for a given user."""
+        log.info(
+            f"Getting transactions for user '{user_id}' between '{start_date.date()}' and '{end_date.date()}'"
+        )
+        lower = TransactionsTable._sort_key_prefix(start_date) + "#"
+        upper = TransactionsTable._sort_key_prefix(end_date) + "#~"
+        items = self.ddb.query_index(
+            table=self.table_name,
+            index_name=self._get_user_index_name(self.domain),
+            expression="user_id = :user_id AND transaction_date BETWEEN :start_date AND :end_date",
+            attributes={
+                ":user_id": {"S": user_id},
+                ":start_date": {"S": lower},
+                ":end_date": {"S": upper},
+            },
+        )
+        transactions = [TransactionsTable._from_ddb_item(item) for item in items]
+        log.info(f"Found {len(transactions)} transactions for user '{user_id}'")
+        return transactions
+
     def put_transaction(self, transaction: Transaction) -> Transaction:
         """
         Add or update a transaction in the table.
@@ -123,6 +147,10 @@ class TransactionsTable:
                 "S": f"{TransactionsTable._sort_key_prefix(date)}#{transaction_id}",
             },
         }
+
+    @staticmethod
+    def _get_user_index_name(domain: Domain) -> str:
+        return TransactionsTable.USER_INDEX_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
     def _from_ddb_item(item: dict) -> Transaction:

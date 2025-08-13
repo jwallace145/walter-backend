@@ -137,6 +137,19 @@ class Transaction(ABC):
             "transaction_amount": {"N": str(self.transaction_amount)},
         }
 
+    def is_income(self) -> bool:
+        if self.transaction_type == TransactionType.BANKING:
+            return self.transaction_subtype in [
+                BankingTransactionSubType.CREDIT,
+                BankingTransactionSubType.INTEREST,
+            ]
+        return False
+
+    def is_expense(self) -> bool:
+        if self.transaction_type == TransactionType.BANKING:
+            return self.transaction_subtype in [BankingTransactionSubType.DEBIT]
+        return False
+
     @abstractmethod
     def to_dict(self) -> dict:
         pass
