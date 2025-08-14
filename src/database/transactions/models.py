@@ -121,7 +121,7 @@ class Transaction(ABC):
             "transaction_type": self.transaction_type.value,
             "transaction_subtype": self.transaction_subtype.value,
             "transaction_category": self.transaction_category.value,
-            "transaction_date": self.transaction_date,
+            "transaction_date": self.transaction_date.split("#")[0],
             "transaction_amount": self.transaction_amount,
         }
 

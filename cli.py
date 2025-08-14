@@ -274,13 +274,18 @@ def delete_account(
 
 @app.command()
 def get_transactions(
-    token: str = None, start_date: str = None, end_date: str = None
+    token: str = None,
+    account_id: str = None,
+    start_date: str = None,
+    end_date: str = None,
 ) -> None:
     log.info("WalterCLI: GetTransactions")
     event = create_api_event(
         token,
         query_params={"start_date": start_date, "end_date": end_date},
     )
+    if account_id:
+        event["queryStringParameters"]["account_id"] = account_id
     response = get_transactions_api.invoke(event).to_json()
     log.info(f"WalterCLI: GetTransactions Response:\n{parse_response(response)}")
 

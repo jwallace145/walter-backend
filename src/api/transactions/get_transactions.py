@@ -75,17 +75,19 @@ class GetTransactions(WalterAPIMethod):
                 user.user_id, start_date, end_date
             )
 
-        income_transactions = [
-            transaction for transaction in transactions if transaction.is_income()
-        ]
         total_income = sum(
-            [transaction.transaction_amount for transaction in income_transactions]
+            [
+                transaction.transaction_amount
+                for transaction in transactions
+                if transaction.is_income()
+            ]
         )
-        expense_transactions = [
-            transaction for transaction in transactions if transaction.is_expense()
-        ]
         total_expenses = sum(
-            [transaction.transaction_amount for transaction in expense_transactions]
+            [
+                transaction.transaction_amount
+                for transaction in transactions
+                if transaction.is_expense()
+            ]
         )
         return Response(
             api_name=GetTransactions.API_NAME,
