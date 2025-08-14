@@ -252,7 +252,9 @@ class AddTransaction(WalterAPIMethod):
                     )
                 else:
                     holding.quantity -= quantity
-                    holding.total_cost_basis -= quantity * price_per_share
+                    holding.total_cost_basis = (
+                        holding.quantity * holding.average_cost_basis
+                    )
 
                 self.walter_db.put_holding(holding)
             case _:

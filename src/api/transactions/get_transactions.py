@@ -5,11 +5,13 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.users.models import User
 from src.utils.log import Logger
 import datetime as dt
 from typing import Tuple
+from src.api.common.exceptions import AccountDoesNotExist
 
 log = Logger(__name__).get_logger()
 
@@ -53,31 +55,39 @@ class GetTransactions(WalterAPIMethod):
         self.walter_db = walter_db
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(authenticated_email)
+        # Ensure the authenticated user exists
+        user = self._verify_user_exists(self.walter_db, authenticated_email)
+
+        # Parse date range
         start_date, end_date = self._get_date_range(event)
-        transactions = self.walter_db.get_transactions(
-            user.user_id, start_date, end_date
-        )
-        unreviewed_transactions = [
-            transaction
-            for transaction in transactions
-            if not transaction.transaction.is_reviewed()
-        ]
-        income_transactions = [
-            transaction
-            for transaction in transactions
-            if transaction.transaction.is_income()
-        ]
+
+        query_params = event.get("queryStringParameters") or {}
+        account_id = query_params.get("account_id")
+
+        # if account_id is provided, get transactions for that account, else get transactions for user
+        if account_id:
+            account = self._verify_account_exists(user, account_id)
+            transactions = self.walter_db.get_transactions_by_account(
+                account.account_id, start_date, end_date
+            )
+        else:
+            transactions = self.walter_db.get_transactions_by_user(
+                user.user_id, start_date, end_date
+            )
+
         total_income = sum(
-            [transaction.transaction.amount for transaction in income_transactions]
+            [
+                transaction.transaction_amount
+                for transaction in transactions
+                if transaction.is_income()
+            ]
         )
-        expense_transactions = [
-            transaction
-            for transaction in transactions
-            if transaction.transaction.is_expense()
-        ]
         total_expenses = sum(
-            [transaction.transaction.amount for transaction in expense_transactions]
+            [
+                transaction.transaction_amount
+                for transaction in transactions
+                if transaction.is_expense()
+            ]
         )
         return Response(
             api_name=GetTransactions.API_NAME,
@@ -86,10 +96,9 @@ class GetTransactions(WalterAPIMethod):
             message="Retrieved transactions!",
             data={
                 "num_transactions": len(transactions),
-                "num_unreviewed_transactions": len(unreviewed_transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,
-                "cash_flow": total_income + total_expenses,  # expenses are negative
+                "cash_flow": total_income - total_expenses,
                 "transactions": [transaction.to_dict() for transaction in transactions],
             },
         )
@@ -100,13 +109,31 @@ class GetTransactions(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _verify_user_exists(self, email: str) -> User:
-        log.info(f"Verifying user exists with email '{email}'")
-        user = self.walter_db.get_user_by_email(email)
-        if user is None:
-            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
-        log.info("Verified user exists!")
-        return user
+    def _verify_account_exists(self, user: User, account_id: str) -> Account:
+        """
+        Verify that the account exists for the user.
+
+        Args:
+            user: The owner of the account.
+            account_id: The ID of the account to verify.
+
+        Returns:
+            (Account): The verified account object.
+        """
+        log.info(
+            f"Verifying account exists for user '{user.user_id}' with account_id '{account_id}'"
+        )
+
+        # check db to see if an account exists for the user
+        account = self.walter_db.get_account(user.user_id, account_id)
+
+        # if an account does not exist for the user, raise a user account does not exist exception
+        if account is None:
+            raise AccountDoesNotExist("Account does not exist for user!")
+
+        log.info(f"Verified account '{account_id}' exists for user '{user.user_id}'!")
+
+        return account
 
     def _get_date_range(self, event: dict) -> Tuple[dt.datetime, dt.datetime]:
         start_date = dt.datetime.strptime(
@@ -115,4 +142,4 @@ class GetTransactions(WalterAPIMethod):
         end_date = dt.datetime.strptime(
             WalterAPIMethod.get_query_field(event, "end_date"), "%Y-%m-%d"
         )
-        return [start_date, end_date]
+        return start_date, end_date

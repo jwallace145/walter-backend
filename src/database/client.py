@@ -106,6 +106,20 @@ class WalterDB:
             account_id, transaction_date, transaction_id
         )
 
+    def get_transactions_by_account(
+        self, account_id: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Transaction]:
+        return self.transactions_table.get_transactions(
+            account_id, start_date, end_date
+        )
+
+    def get_transactions_by_user(
+        self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
+    ) -> List[Transaction]:
+        return self.transactions_table.get_user_transactions(
+            user_id, start_date, end_date
+        )
+
     ############
     # ACCOUNTS #
     ############

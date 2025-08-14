@@ -121,7 +121,7 @@ class Transaction(ABC):
             "transaction_type": self.transaction_type.value,
             "transaction_subtype": self.transaction_subtype.value,
             "transaction_category": self.transaction_category.value,
-            "transaction_date": self.transaction_date,
+            "transaction_date": self.transaction_date.split("#")[0],
             "transaction_amount": self.transaction_amount,
         }
 
@@ -136,6 +136,19 @@ class Transaction(ABC):
             "transaction_date": {"S": self.transaction_date},
             "transaction_amount": {"N": str(self.transaction_amount)},
         }
+
+    def is_income(self) -> bool:
+        if self.transaction_type == TransactionType.BANKING:
+            return self.transaction_subtype in [
+                BankingTransactionSubType.CREDIT,
+                BankingTransactionSubType.INTEREST,
+            ]
+        return False
+
+    def is_expense(self) -> bool:
+        if self.transaction_type == TransactionType.BANKING:
+            return self.transaction_subtype in [BankingTransactionSubType.DEBIT]
+        return False
 
     @abstractmethod
     def to_dict(self) -> dict:

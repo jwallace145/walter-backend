@@ -260,8 +260,8 @@ paths:
     get:
       summary: Retrieve user transactions
       description: >
-        Returns the user's transactions for a specific date range.
-        Requires a valid Bearer token in the `Authorization` header.
+        Returns transactions for a specific date range, scoped either to a user or a specific account.
+        Provide either user_id or account_id as query parameters; at least one is required. If both are provided, account_id is preferred. Requires a valid Bearer token in the Authorization header.
       operationId: getTransactions
       security:
         - bearerAuth: [ ]
@@ -282,6 +282,20 @@ paths:
             format: date
           description: The end date for the transaction range (YYYY-MM-DD)
           example: "2025-08-08"
+        - name: account_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional. If provided, transactions will be scoped to this account. At least one of user_id or account_id must be provided.
+          example: "acct-123456"
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional. If account_id is not provided, transactions will be scoped to this user. At least one of user_id or account_id must be provided.
+          example: "user-123456"
       responses:
         '200':
           description: Successfully retrieved transactions

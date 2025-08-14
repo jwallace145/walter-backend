@@ -150,13 +150,37 @@ def test_add_investment_sell_insufficient_quantity(
             "security_id": "sec-crypto-btc",
             "quantity": 251.0,
             "price_per_share": 10.0,
-            "merchant_name": "N/A",
         },
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.FAILURE
     assert "Not enough holding" in response.message
+
+
+def test_add_investment_sell_updates_holding(
+    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walrus: str
+):
+    event = create_add_transaction_event(
+        token=jwt_walrus,
+        body={
+            "account_id": "acct-002",
+            "date": "2025-08-09",
+            "amount": 1000.00,
+            "transaction_type": TransactionType.INVESTMENT.value,
+            "transaction_subtype": InvestmentTransactionSubType.SELL.value,
+            "transaction_category": TransactionCategory.INVESTMENT.value,
+            "security_id": "sec-crypto-btc",
+            "quantity": 200,
+            "price_per_share": 5.0,
+        },
+    )
+    response = add_transaction_api.invoke(event)
+    assert response.status == Status.SUCCESS
+    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    assert holding.quantity == pytest.approx(50)
+    assert holding.total_cost_basis == pytest.approx(200.00)
+    assert holding.average_cost_basis == pytest.approx(4.0)
 
 
 def test_account_not_found(add_transaction_api: AddTransaction, jwt_walrus: str):

@@ -12,6 +12,7 @@ from src.clients import (
     delete_account_api,
     create_user_api,
 )
+from src.clients import get_transactions_api
 from src.utils.log import Logger
 from tst.api.utils import (
     get_auth_user_event,
@@ -20,7 +21,6 @@ from tst.api.utils import (
     get_portfolio_event,
     get_get_stock_event,
     get_get_prices_event,
-    get_get_transactions_event,
     get_add_transaction_event,
     get_edit_transaction_event,
     get_delete_transaction_event,
@@ -40,7 +40,9 @@ def parse_response(response: dict) -> str:
     return json.dumps(response, indent=4)
 
 
-def create_api_event(token: Optional[str] = None, **kwargs) -> dict:
+def create_api_event(
+    token: Optional[str] = None, query_params: dict = {}, **kwargs
+) -> dict:
     """
     Create an API event with the provided token and kwargs.
 
@@ -51,6 +53,7 @@ def create_api_event(token: Optional[str] = None, **kwargs) -> dict:
 
     Args:
         token: The authentication token to include in the event for authenticated APIs.
+        query_params: The query parameters to include in the event.
         **kwargs: The additional kwargs to include in the event as body.
 
     Returns:
@@ -61,6 +64,9 @@ def create_api_event(token: Optional[str] = None, **kwargs) -> dict:
     # if api token is provided, add it to the event
     if token:
         event["headers"] = {"Authorization": f"Bearer {token}"}
+
+    if len(query_params) > 0:
+        event["queryStringParameters"] = query_params
 
     # if additional kwargs are provided, add them to the event as body
     if kwargs:
@@ -268,11 +274,19 @@ def delete_account(
 
 @app.command()
 def get_transactions(
-    token: str = None, start_date: str = None, end_date: str = None
+    token: str = None,
+    account_id: str = None,
+    start_date: str = None,
+    end_date: str = None,
 ) -> None:
     log.info("WalterCLI: GetTransactions")
-    event = get_get_transactions_event(token, start_date, end_date)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    event = create_api_event(
+        token,
+        query_params={"start_date": start_date, "end_date": end_date},
+    )
+    if account_id:
+        event["queryStringParameters"]["account_id"] = account_id
+    response = get_transactions_api.invoke(event).to_json()
     log.info(f"WalterCLI: GetTransactions Response:\n{parse_response(response)}")
 
 
