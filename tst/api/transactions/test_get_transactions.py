@@ -64,13 +64,13 @@ def test_get_account_transactions_acct003_full_range_success(
 def test_get_account_transactions_success(
     get_transactions_api: GetTransactions, jwt_walrus: str
 ):
-    # acct-002 has 4 investment transactions in the seed
+    # acct-003 has 3 banking transactions in the seed
     event = create_get_transactions_event(
         token=jwt_walrus,
         query={
             "start_date": "2025-08-01",
             "end_date": "2025-08-08",
-            "account_id": "acct-002",
+            "account_id": "acct-003",
         },
     )
     response = get_transactions_api.invoke(event)
@@ -80,19 +80,21 @@ def test_get_account_transactions_success(
     assert response.data is not None
 
     data = response.data
-    assert data["num_transactions"] == 4
+    assert data["num_transactions"] == 3
 
-    # Validate all returned transactions belong to acct-002 and expected IDs are included
+    # Validate all returned transactions belong to acct-003 and expected IDs are included
     txn_accounts = {t["account_id"] for t in data["transactions"]}
-    assert txn_accounts == {"acct-002"}
+    assert txn_accounts == {"acct-003"}
 
     txn_ids = {t["transaction_id"] for t in data["transactions"]}
     assert {
-        "investment-txn-001",
-        "investment-txn-002",
-        "investment-txn-003",
-        "investment-txn-004",
+        "bank-txn-001",
+        "bank-txn-002",
+        "bank-txn-003",
     } == txn_ids
+    assert response.data["total_income"] == pytest.approx(2500.00)
+    assert response.data["total_expense"] == pytest.approx(1505.00)
+    assert response.data["cash_flow"] == pytest.approx(995.00)
 
 
 def test_get_account_transactions_date_filter_single_day(

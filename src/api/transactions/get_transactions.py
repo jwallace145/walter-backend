@@ -98,7 +98,7 @@ class GetTransactions(WalterAPIMethod):
                 "num_transactions": len(transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,
-                "cash_flow": total_income + total_expenses,  # expenses are negative
+                "cash_flow": total_income - total_expenses,
                 "transactions": [transaction.to_dict() for transaction in transactions],
             },
         )
