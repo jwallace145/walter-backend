@@ -45,6 +45,7 @@ pytest-cov = "*"
 pytest-mock = "*"
 typer = "*"
 pytest = "*"
+freezegun = "*"
 
 [requires]
 python_version = "3.12"

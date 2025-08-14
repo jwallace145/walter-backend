@@ -18,26 +18,43 @@ def delete_account_api(
     return DeleteAccount(walter_authenticator, walter_cw, walter_db)
 
 
-def _event_with_auth_and_body(token: str, body: dict) -> dict:
+def create_delete_account_event(token: str, account_id: str) -> dict:
     return {
+        "path": "/accounts",
+        "httpMethod": "DELETE",
         "headers": {
             "Authorization": f"Bearer {token}",
             "content-type": "application/json",
         },
         "queryStringParameters": None,
-        "body": json.dumps(body) if body is not None else None,
+        "body": json.dumps(
+            {
+                "account_id": account_id,
+            }
+        ),
     }
 
 
 def test_delete_account_success(
-    delete_account_api: DeleteAccount, walter_db: WalterDB, jwt_walter: str
+    delete_account_api: DeleteAccount,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ) -> None:
-    user = walter_db.get_user_by_email("walter@gmail.com")
-    existing = walter_db.get_accounts(user.user_id)
-    assert len(existing) >= 1
-    account_id = existing[0].account_id
+    # data seeded in the mock db
+    email = "john@gmail.com"
+    user_id = "user-004"
+    account_id = "acct-006"
 
-    event = _event_with_auth_and_body(jwt_walter, {"account_id": account_id})
+    # assert account exists prior to api invocation
+    assert walter_db.get_account(user_id, account_id) is not None
+    assert walter_db.get_transactions_by_account(account_id) is not None
+    assert walter_db.get_holdings(account_id) is not None
+
+    # prepare delete account event
+    jwt = walter_authenticator.generate_user_token(email)
+    create_delete_account_event(jwt, account_id)
+
+    event = create_delete_account_event(jwt, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -45,16 +62,20 @@ def test_delete_account_success(
         message="Successfully deleted account!",
     )
 
+    # assert expected response
     assert expected_response == delete_account_api.invoke(event)
-    # verify account deleted
-    assert walter_db.get_account(user.user_id, account_id) is None
+
+    # assert account, transactions, and holdings are deleted
+    assert walter_db.get_account(user_id, account_id) is None
+    assert walter_db.get_transactions_by_account(account_id) == []
+    assert walter_db.get_holdings(account_id) == []
 
 
 def test_delete_account_failure_missing_required_field(
     delete_account_api: DeleteAccount, jwt_walter: str
 ) -> None:
     # omit account_id
-    event = _event_with_auth_and_body(jwt_walter, {})
+    event = create_delete_account_event(jwt_walter, None)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -67,7 +88,7 @@ def test_delete_account_failure_missing_required_field(
 def test_delete_account_failure_not_authenticated(
     delete_account_api: DeleteAccount,
 ) -> None:
-    event = _event_with_auth_and_body("invalid-token", {"account_id": "acct-123"})
+    event = create_delete_account_event("invalid-token", "acct-123")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -81,7 +102,7 @@ def test_delete_account_failure_user_does_not_exist(
     delete_account_api: DeleteAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
     ghost_token = walter_authenticator.generate_user_token("ghost@ghost.com")
-    event = _event_with_auth_and_body(ghost_token, {"account_id": "acct-ghost"})
+    event = create_delete_account_event(ghost_token, "acct-ghost")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -94,7 +115,7 @@ def test_delete_account_failure_user_does_not_exist(
 def test_delete_account_failure_account_does_not_exist(
     delete_account_api: DeleteAccount, jwt_walter: str
 ) -> None:
-    event = _event_with_auth_and_body(jwt_walter, {"account_id": "does-not-exist"})
+    event = create_delete_account_event(jwt_walter, "does-not-exist")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,

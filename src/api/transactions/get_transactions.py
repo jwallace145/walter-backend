@@ -1,5 +1,8 @@
+import datetime as dt
 from dataclasses import dataclass
+from typing import Tuple, List
 
+from src.api.common.exceptions import AccountDoesNotExist
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
@@ -7,11 +10,12 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
+from src.database.transactions.models import (
+    Transaction,
+    TransactionType,
+)
 from src.database.users.models import User
 from src.utils.log import Logger
-import datetime as dt
-from typing import Tuple
-from src.api.common.exceptions import AccountDoesNotExist
 
 log = Logger(__name__).get_logger()
 
@@ -32,6 +36,7 @@ class GetTransactions(WalterAPIMethod):
     EXCEPTIONS = [
         BadRequest,
         NotAuthenticated,
+        AccountDoesNotExist,
         UserDoesNotExist,
     ]
 
@@ -70,9 +75,16 @@ class GetTransactions(WalterAPIMethod):
             transactions = self.walter_db.get_transactions_by_account(
                 account.account_id, start_date, end_date
             )
+            account_transactions = self._get_account_transactions(
+                [account], transactions
+            )
         else:
+            accounts = self.walter_db.get_accounts(user.user_id)
             transactions = self.walter_db.get_transactions_by_user(
                 user.user_id, start_date, end_date
+            )
+            account_transactions = self._get_account_transactions(
+                accounts, transactions
             )
 
         total_income = sum(
@@ -99,7 +111,7 @@ class GetTransactions(WalterAPIMethod):
                 "total_income": total_income,
                 "total_expense": total_expenses,
                 "cash_flow": total_income - total_expenses,
-                "transactions": [transaction.to_dict() for transaction in transactions],
+                "transactions": account_transactions,
             },
         )
 
@@ -143,3 +155,59 @@ class GetTransactions(WalterAPIMethod):
             WalterAPIMethod.get_query_field(event, "end_date"), "%Y-%m-%d"
         )
         return start_date, end_date
+
+    def _get_account_transactions(
+        self, accounts: List[Account], transactions: List[Transaction]
+    ) -> List[dict]:
+        accounts_dict = {}
+        for account in accounts:
+            accounts_dict[account.account_id] = account
+
+        account_transactions = []
+        for transaction in transactions:
+            account = accounts_dict[transaction.account_id]
+            match transaction.transaction_type:
+                case TransactionType.INVESTMENT:
+                    account_transactions.append(
+                        {
+                            "user_id": account.user_id,
+                            "account_id": account.account_id,
+                            "transaction_id": transaction.transaction_id,
+                            "security_id": transaction.security_id,
+                            "account_institution_name": account.institution_name,
+                            "account_name": account.account_name,
+                            "account_type": account.account_type.value,
+                            "account_mask": account.account_mask,
+                            "transaction_date": transaction.transaction_date.split("#")[
+                                0
+                            ],
+                            "transaction_type": transaction.transaction_type.value,
+                            "transaction_subtype": transaction.transaction_subtype.value,
+                            "transaction_category": transaction.transaction_category.value,
+                            "price_per_share": transaction.price_per_share,
+                            "quantity": transaction.quantity,
+                            "transaction_amount": transaction.transaction_amount,
+                        }
+                    )
+                case TransactionType.BANKING:
+                    account_transactions.append(
+                        {
+                            "user_id": account.user_id,
+                            "account_id": account.account_id,
+                            "transaction_id": transaction.transaction_id,
+                            "account_institution_name": account.institution_name,
+                            "account_name": account.account_name,
+                            "account_type": account.account_type.value,
+                            "account_mask": account.account_mask,
+                            "transaction_type": transaction.transaction_type.value,
+                            "transaction_subtype": transaction.transaction_subtype.value,
+                            "transaction_category": transaction.transaction_category.value,
+                            "transaction_date": transaction.transaction_date.split("#")[
+                                0
+                            ],
+                            "merchant_name": transaction.merchant_name,
+                            "transaction_amount": transaction.transaction_amount,
+                        }
+                    )
+
+        return account_transactions

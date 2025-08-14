@@ -113,7 +113,13 @@ class DeleteAccount(WalterAPIMethod):
         body = json.loads(event["body"])
         account_id = body["account_id"]
 
-        # TODO: delete transactions for account
-        self.walter_db.delete_account(user_id=user.user_id, account_id=account_id)
+        log.info(f"Deleting transactions for account '{account_id}'")
+        self.walter_db.delete_account_transactions(account_id)
+
+        log.info(f"Deleting holdings for account '{account_id}'")
+        self.walter_db.delete_account_holdings(account_id)
+
+        log.info(f"Deleting account '{account_id}'")
+        self.walter_db.delete_account(user.user_id, account_id)
 
         log.info("Account deleted successfully!")

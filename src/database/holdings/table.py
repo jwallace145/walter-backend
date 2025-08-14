@@ -61,7 +61,7 @@ class HoldingsTable:
             query=HoldingsTable._get_holdings_by_account_key(account_id),
         )
         holdings = [Holding.from_ddb_item(item) for item in items]
-        log.info(f"Found {len(holdings)} holdings for account '{account_id}'")
+        log.info(f"Found {len(holdings)} holding(s) for account '{account_id}'")
         return holdings
 
     def update_holding(self, holding: Holding) -> Holding:

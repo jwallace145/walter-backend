@@ -127,6 +127,9 @@ class MockDDB:
                         account_name=json_account["account_name"],
                         account_mask=json_account["account_mask"],
                         balance=float(json_account["balance"]),
+                        balance_last_updated_at=datetime.datetime.fromisoformat(
+                            json_account["balance_last_updated_at"]
+                        ),
                         created_at=datetime.datetime.strptime(
                             json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),

@@ -35,6 +35,7 @@ class Account:
     account_name: str
     account_mask: str
     balance: float
+    balance_last_updated_at: datetime
     created_at: datetime
     updated_at: datetime
     plaid_account_id: Optional[str] = None
@@ -52,6 +53,7 @@ class Account:
             "account_name": self.account_name,
             "account_mask": self.account_mask,
             "balance": self.balance,
+            "balance_last_updated_at": self.balance_last_updated_at.isoformat(),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "plaid_account_id": self.plaid_account_id,
@@ -87,6 +89,9 @@ class Account:
             },
             "balance": {
                 "N": str(self.balance),
+            },
+            "balance_last_updated_at": {
+                "S": self.balance_last_updated_at.isoformat(),
             },
             "created_at": {
                 "S": self.created_at.isoformat(),
@@ -140,6 +145,7 @@ class Account:
             account_name=account_name,
             account_mask=account_mask,
             balance=balance,
+            balance_last_updated_at=now,
             created_at=now,
             updated_at=now,
         )
@@ -160,6 +166,9 @@ class Account:
             account_name=ddb_item["account_name"]["S"],
             account_mask=ddb_item["account_mask"]["S"],
             balance=float(ddb_item["balance"]["N"]),
+            balance_last_updated_at=datetime.fromisoformat(
+                ddb_item["balance_last_updated_at"]["S"]
+            ),
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
             logo_url=ddb_item["logo_url"]["S"],

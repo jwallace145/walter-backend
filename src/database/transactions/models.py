@@ -113,6 +113,9 @@ class Transaction(ABC):
         )
         self.transaction_amount = transaction_amount
 
+    def get_transaction_date(self) -> datetime:
+        return datetime.strptime(self.transaction_date.split("#")[0], "%Y-%m-%d")
+
     def _get_common_attributes_dict(self) -> dict:
         return {
             "transaction_id": self.transaction_id,
