@@ -20,7 +20,17 @@ MOCK_DATA = {
         "exchange": "XNYS",
         "price": 100.00,
     },
+    "META": {
+        "ticker": "BTC",
+        "name": "Bitcoin",
+        "price": 10000.00,
+    },
     "BTC": {
+        "ticker": "BTC",
+        "name": "Bitcoin",
+        "price": 10000.00,
+    },
+    "ETH": {
         "ticker": "BTC",
         "name": "Bitcoin",
         "price": 10000.00,

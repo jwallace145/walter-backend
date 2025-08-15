@@ -172,11 +172,11 @@ class MockDDB:
                             ticker=security_json["ticker"],
                             exchange=security_json["exchange"],
                             price=float(security_json["current_price"]),
-                            price_updated_at=datetime.datetime.strptime(
-                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_updated_at=datetime.datetime.fromisoformat(
+                                security_json["price_updated_at"]
                             ),
-                            price_expires_at=datetime.datetime.strptime(
-                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_expires_at=datetime.datetime.fromisoformat(
+                                security_json["price_expires_at"]
                             ),
                             security_id=security_json["security_id"],
                         )
@@ -185,11 +185,11 @@ class MockDDB:
                             name=security_json["security_name"],
                             ticker=security_json["ticker"],
                             price=float(security_json["current_price"]),
-                            price_updated_at=datetime.datetime.strptime(
-                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_updated_at=datetime.datetime.fromisoformat(
+                                security_json["price_updated_at"]
                             ),
-                            price_expires_at=datetime.datetime.strptime(
-                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_expires_at=datetime.datetime.fromisoformat(
+                                security_json["price_expires_at"]
                             ),
                             security_id=security_json["security_id"],
                         )

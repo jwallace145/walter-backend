@@ -12,6 +12,9 @@ log = Logger(__name__).get_logger()
 
 @dataclass
 class UpdateSecurityPrices(Workflow):
+    """
+    Update Security Prices
+    """
 
     WORKFLOW_NAME = "UpdateSecurityPrices"
 
