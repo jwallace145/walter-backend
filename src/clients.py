@@ -36,13 +36,11 @@ from src.events.parser import WalterEventParser
 from src.media.bucket import PublicMediaBucket
 from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
-from src.stocks.client import WalterStocksAPI
-from src.stocks.polygon.client import PolygonClient
+from src.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from src.transactions.queue import SyncUserTransactionsQueue
 from src.utils.log import Logger
-from src.utils.web_scraper import WebScraper
 
 log = Logger(__name__).get_logger()
 
@@ -119,13 +117,7 @@ walter_db = WalterDB(
 # WALTER STOCKS API #
 #####################
 
-web_scraper = WebScraper()
-
-walter_stocks_api = WalterStocksAPI(
-    polygon=PolygonClient(
-        api_key=POLYGON_API_KEY,
-    ),
-)
+polygon_client = PolygonClient(api_key=POLYGON_API_KEY)
 
 #########################
 # JINJA TEMPLATE ENGINE #
@@ -183,7 +175,7 @@ delete_account_api = DeleteAccount(walter_authenticator, walter_cw, walter_db)
 # TRANSACTIONS
 get_transactions_api = GetTransactions(walter_authenticator, walter_cw, walter_db)
 add_transaction_api = AddTransaction(
-    walter_authenticator, walter_cw, walter_db, expense_categorizer
+    walter_authenticator, walter_cw, walter_db, expense_categorizer, polygon_client
 )
 edit_transaction_api = EditTransaction(walter_authenticator, walter_cw, walter_db)
 delete_transaction_api = DeleteTransaction(walter_authenticator, walter_cw, walter_db)

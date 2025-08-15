@@ -101,3 +101,8 @@ class PlaidItemAlreadyExists(Exception):
 class AccountDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class SecurityDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)

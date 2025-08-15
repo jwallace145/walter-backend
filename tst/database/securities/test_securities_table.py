@@ -21,9 +21,9 @@ def test_table_name_format(securities_table: SecuritiesTable):
 
 def test_get_security_stock(securities_table: SecuritiesTable):
     # seeded by tst/conftest.py via MockDDB
-    stock = securities_table.get_security("sec-nasdaq-appl")
+    stock = securities_table.get_security("sec-nasdaq-aapl")
     assert isinstance(stock, Stock)
-    assert stock.security_id == "sec-nasdaq-appl"
+    assert stock.security_id == "sec-nasdaq-aapl"
     assert stock.security_type == SecurityType.STOCK
     assert stock.security_name.lower().startswith("apple")
     assert stock.ticker == "AAPL"

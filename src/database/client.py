@@ -178,6 +178,18 @@ class WalterDB:
     def get_security(self, security_id: str) -> Optional[Security]:
         return self.securities_table.get_security(security_id)
 
+    def get_security_by_ticker(self, ticker: str) -> Optional[Security]:
+        return self.securities_table.get_security_by_ticker(ticker)
+
+    def get_securities(self) -> List[Security]:
+        return self.securities_table.get_securities()
+
+    def update_security(self, security: Security) -> Security:
+        return self.securities_table.update_security(security)
+
+    def put_security(self, security: Security) -> Security:
+        return self.securities_table.update_security(security)
+
     ############
     # HOLDINGS #
     ############

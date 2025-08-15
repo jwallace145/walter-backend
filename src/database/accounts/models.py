@@ -135,7 +135,7 @@ class Account:
         account_mask: str,
         balance: float,
     ):
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         return Account(
             account_id=Account.generate_account_id(),
             user_id=user_id,

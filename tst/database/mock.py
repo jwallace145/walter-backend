@@ -148,8 +148,16 @@ class MockDDB:
             ],
             AttributeDefinitions=[
                 {"AttributeName": "security_id", "AttributeType": "S"},
+                {"AttributeName": "ticker", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Securities-TickerIndex-{Domain.TESTING.value}",
+                    "KeySchema": [{"AttributeName": "ticker", "KeyType": "HASH"}],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
         )
         with open(input_file_name) as securities_f:
             for security_jsonl in securities_f:

@@ -21,10 +21,10 @@ def test_table_name_format(holdings_table: HoldingsTable):
 
 def test_get_holding_seeded_items(holdings_table: HoldingsTable):
     # Seeded by MockDDB from tst/database/data/holdings.jsonl
-    h1 = holdings_table.get_holding("acct-002", "sec-nasdaq-appl")
+    h1 = holdings_table.get_holding("acct-002", "sec-nasdaq-aapl")
     assert isinstance(h1, Holding)
     assert h1.account_id == "acct-002"
-    assert h1.security_id == "sec-nasdaq-appl"
+    assert h1.security_id == "sec-nasdaq-aapl"
     assert h1.quantity == pytest.approx(100.0)
     assert h1.total_cost_basis == pytest.approx(1000.0)
     assert h1.average_cost_basis == pytest.approx(10.0)
@@ -44,7 +44,7 @@ def test_get_holdings_for_account(holdings_table: HoldingsTable):
     assert isinstance(holdings, list)
     assert len(holdings) == 3
     ids = {h.security_id for h in holdings}
-    assert ids == {"sec-nasdaq-appl", "sec-crypto-btc", "sec-nyse-coke"}
+    assert ids == {"sec-nasdaq-aapl", "sec-crypto-btc", "sec-nyse-coke"}
 
 
 def test_get_holding_not_found(holdings_table: HoldingsTable):

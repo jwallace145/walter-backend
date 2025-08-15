@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from datetime import timezone, datetime, timedelta
+from typing import List
 
 from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist, BadRequest
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import Response, HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.accounts.models import Account
+from src.database.accounts.models import AccountType
 from src.database.client import WalterDB
 from src.utils.log import Logger
-from src.database.accounts.models import AccountType
-from src.database.accounts.models import Account
-from typing import List
 
 log = Logger(__name__).get_logger()
 

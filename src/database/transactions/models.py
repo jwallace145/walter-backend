@@ -227,7 +227,8 @@ class InvestmentTransaction(Transaction):
         account_id: str,
         user_id: str,
         date: datetime,
-        security_id: str,
+        ticker: str,
+        exchange: str,
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
@@ -243,7 +244,7 @@ class InvestmentTransaction(Transaction):
             transaction_category=transaction_category,
             transaction_date=date,
             transaction_amount=quantity * price_per_share,
-            security_id=security_id,
+            security_id=f"sec-{exchange.lower()}-{ticker.lower()}",
             quantity=quantity,
             price_per_share=price_per_share,
         )

@@ -589,6 +589,27 @@ Resources:
           DOMAIN: DEVELOPMENT
           LOG_LEVEL: !Ref WalterAPILogLevel
 
+  WalterWorkflows:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "WalterWorkflows-${AppEnvironment}"
+      Description: !Sub "The entrypoint function for all asynchronous workflows in WalterBackend (${AppEnvironment})"
+      PackageType: Image
+      Role: !GetAtt WalterAPIRole.Arn
+      Code:
+        ImageUri: !Ref WalterAPIImageURI
+      ImageConfig:
+        Command:
+          - walter.walter_workflows_entrypoint
+      Timeout: 60
+      MemorySize: 512
+      Architectures:
+        - "arm64"
+      Environment:
+        Variables:
+          DOMAIN: DEVELOPMENT
+          LOG_LEVEL: !Ref WalterAPILogLevel
+
   WalterCanary:
     Type: AWS::Lambda::Function
     Properties:
@@ -684,11 +705,20 @@ Resources:
       AttributeDefinitions:
         - AttributeName: security_id
           AttributeType: S
+        - AttributeName: ticker
+          AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
           - AttributeName: security_id
             KeyType: HASH
       TableName: !Sub "Securities-${AppEnvironment}"
+      GlobalSecondaryIndexes:
+        - IndexName: !Sub "Securities-TickerIndex-${AppEnvironment}"
+          KeySchema:
+            - AttributeName: 'ticker'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
 
   HoldingsTable:
     Type: AWS::DynamoDB::Table
@@ -960,6 +990,20 @@ Resources:
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
             Resource: !GetAtt SecuritiesTable.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:Query"
+            Resource:
+              - !Join
+                - ""
+                - - "arn:aws:dynamodb:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":table/"
+                  - !Sub "Transactions-${AppEnvironment}"
+                  - "/index/"
+                  - !Sub "Securities-TickerIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
 

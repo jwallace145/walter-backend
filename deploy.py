@@ -52,6 +52,7 @@ WALTER_API_CFN_TEMPLATE_URL = (
 LAMBDA_FUNCTIONS = [
     f"WalterAPI-{APP_ENVIRONMENT}",
     f"WalterCanary-{APP_ENVIRONMENT}",
+    f"WalterWorkflows-{APP_ENVIRONMENT}",
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
 
@@ -211,6 +212,8 @@ def get_latest_versions(lambda_client: LambdaClient, functions) -> Dict[str, str
             latest_versions["walter_api_version"] = latest_version
         if func == f"WalterCanary-{APP_ENVIRONMENT}":
             latest_versions["walter_canary_version"] = latest_version
+        if func == f"WalterWorkflows-{APP_ENVIRONMENT}":
+            latest_versions["walter_workflows_version"] = latest_version
 
     return latest_versions
 

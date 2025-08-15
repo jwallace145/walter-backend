@@ -9,7 +9,6 @@ from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
 from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
-from pytest_mock import MockerFixture
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.auth.authenticator import WalterAuthenticator
@@ -21,8 +20,6 @@ from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.events.parser import WalterEventParser
-from src.stocks.client import WalterStocksAPI
-from src.stocks.polygon.client import PolygonClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from tst.aws.mock import MockSecretsManager, MockS3, MockSQS
@@ -30,6 +27,7 @@ from tst.constants import (
     AWS_REGION,
 )
 from tst.database.mock import MockDDB
+from tst.polygon.mock import MockPolygonClient
 from tst.transactions.mock import MockTransactionsCategorizer
 
 
@@ -101,21 +99,8 @@ def walter_sm(
 
 
 @pytest.fixture
-def polygon_client(
-    mocker: MockerFixture, walter_sm: WalterSecretsManagerClient
-) -> PolygonClient:
-    # return PolygonClient(
-    #     api_key=walter_sm.get_polygon_api_key(),
-    #     client=MockPolygon(mocker).create_client(),
-    # )
-    pass
-
-
-@pytest.fixture
-def walter_stocks_api(polygon_client: PolygonClient) -> WalterStocksAPI:
-    return WalterStocksAPI(
-        polygon=polygon_client,
-    )
+def polygon_client() -> MockPolygonClient:
+    return MockPolygonClient()
 
 
 @pytest.fixture
