@@ -1,3 +1,5 @@
-{"account_id": "acct-002", "security_id": "sec-nasdaq-appl", "quantity": 100, "total_cost_basis": 1000, "average_cost_basis": 10, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}
+{"account_id": "acct-002", "security_id": "sec-nasdaq-aapl", "quantity": 100, "total_cost_basis": 1000, "average_cost_basis": 10, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}
 {"account_id": "acct-002", "security_id": "sec-nyse-coke", "quantity": 4, "total_cost_basis": 800, "average_cost_basis": 200, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}
 {"account_id": "acct-002", "security_id": "sec-crypto-btc", "quantity": 250, "total_cost_basis": 1000, "average_cost_basis": 4, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-12T00:00:00Z"}
+{"account_id": "acct-004", "security_id": "sec-crypto-btc", "quantity": 1.0, "total_cost_basis": 15000, "average_cost_basis": 15000, "created_at": "2025-07-01T00:00:00Z", "updated_at": "2025-07-01T00:00:00Z"}
+{"account_id": "acct-006", "security_id": "sec-crypto-btc", "quantity": 2.0, "total_cost_basis": 150.0, "average_cost_basis": 75.0, "created_at": "2025-08-01T00:00:00Z", "updated_at": "2025-08-01T00:00:00Z"}

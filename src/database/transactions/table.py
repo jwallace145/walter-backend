@@ -125,7 +125,7 @@ class TransactionsTable:
         self, account_id: str, date: dt.datetime, transaction_id: str
     ) -> None:
         log.info(
-            f"Deleting transaction '{transaction_id}' for account '{account_id}' on date '{date.date()}'"
+            f"Deleting transaction '{transaction_id}' for account '{account_id}' on date '{date}'"
         )
         self.ddb.delete_item(
             table=self.table_name,

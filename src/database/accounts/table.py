@@ -75,7 +75,7 @@ class AccountsTable:
         accounts = self.ddb.query(
             self.table_name, AccountsTable._get_accounts_by_user_key(user_id)
         )
-        log.info(f"Found {len(accounts)} accounts for user!")
+        log.info(f"Found {len(accounts)} account(s) for user!")
         return [Account.from_ddb_item(account) for account in accounts]
 
     def update_account(self, account: Account) -> Account:

@@ -107,7 +107,10 @@ class WalterDB:
         )
 
     def get_transactions_by_account(
-        self, account_id: str, start_date: dt.datetime, end_date: dt.datetime
+        self,
+        account_id: str,
+        start_date: dt.datetime = dt.datetime.min,
+        end_date: dt.datetime = dt.datetime.max,
     ) -> List[Transaction]:
         return self.transactions_table.get_transactions(
             account_id, start_date, end_date
@@ -119,6 +122,15 @@ class WalterDB:
         return self.transactions_table.get_user_transactions(
             user_id, start_date, end_date
         )
+
+    def delete_account_transactions(self, account_id: str) -> None:
+        transactions = self.transactions_table.get_transactions_by_account(account_id)
+        for transaction in transactions:
+            self.transactions_table.delete_transaction(
+                account_id,
+                transaction.get_transaction_date(),
+                transaction.transaction_id,
+            )
 
     ############
     # ACCOUNTS #
@@ -163,6 +175,21 @@ class WalterDB:
     def create_security(self, security: Security) -> Security:
         return self.securities_table.create_security(security)
 
+    def get_security(self, security_id: str) -> Optional[Security]:
+        return self.securities_table.get_security(security_id)
+
+    def get_security_by_ticker(self, ticker: str) -> Optional[Security]:
+        return self.securities_table.get_security_by_ticker(ticker)
+
+    def get_securities(self) -> List[Security]:
+        return self.securities_table.get_securities()
+
+    def update_security(self, security: Security) -> Security:
+        return self.securities_table.update_security(security)
+
+    def put_security(self, security: Security) -> Security:
+        return self.securities_table.update_security(security)
+
     ############
     # HOLDINGS #
     ############
@@ -170,8 +197,19 @@ class WalterDB:
     def get_holding(self, account_id: str, security_id: str) -> Optional[Holding]:
         return self.holdings_table.get_holding(account_id, security_id)
 
+    def get_holdings(self, account_id: str) -> List[Holding]:
+        return self.holdings_table.get_holdings(account_id)
+
     def put_holding(self, holding: Holding) -> Holding:
         return self.holdings_table.create_holding(holding)
+
+    def delete_holding(self, account_id: str, security_id: str) -> None:
+        return self.holdings_table.delete_holding(account_id, security_id)
+
+    def delete_account_holdings(self, account_id: str) -> None:
+        holdings = self.holdings_table.get_holdings(account_id)
+        for holding in holdings:
+            self.holdings_table.delete_holding(account_id, holding.security_id)
 
     ###############
     # PLAID ITEMS #

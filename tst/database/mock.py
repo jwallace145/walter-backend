@@ -127,6 +127,9 @@ class MockDDB:
                         account_name=json_account["account_name"],
                         account_mask=json_account["account_mask"],
                         balance=float(json_account["balance"]),
+                        balance_last_updated_at=datetime.datetime.fromisoformat(
+                            json_account["balance_last_updated_at"]
+                        ),
                         created_at=datetime.datetime.strptime(
                             json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
@@ -145,8 +148,16 @@ class MockDDB:
             ],
             AttributeDefinitions=[
                 {"AttributeName": "security_id", "AttributeType": "S"},
+                {"AttributeName": "ticker", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Securities-TickerIndex-{Domain.TESTING.value}",
+                    "KeySchema": [{"AttributeName": "ticker", "KeyType": "HASH"}],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
         )
         with open(input_file_name) as securities_f:
             for security_jsonl in securities_f:
@@ -161,11 +172,11 @@ class MockDDB:
                             ticker=security_json["ticker"],
                             exchange=security_json["exchange"],
                             price=float(security_json["current_price"]),
-                            price_updated_at=datetime.datetime.strptime(
-                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_updated_at=datetime.datetime.fromisoformat(
+                                security_json["price_updated_at"]
                             ),
-                            price_expires_at=datetime.datetime.strptime(
-                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_expires_at=datetime.datetime.fromisoformat(
+                                security_json["price_expires_at"]
                             ),
                             security_id=security_json["security_id"],
                         )
@@ -174,11 +185,11 @@ class MockDDB:
                             name=security_json["security_name"],
                             ticker=security_json["ticker"],
                             price=float(security_json["current_price"]),
-                            price_updated_at=datetime.datetime.strptime(
-                                security_json["price_updated_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_updated_at=datetime.datetime.fromisoformat(
+                                security_json["price_updated_at"]
                             ),
-                            price_expires_at=datetime.datetime.strptime(
-                                security_json["price_expires_at"], "%Y-%m-%dT%H:%M:%SZ"
+                            price_expires_at=datetime.datetime.fromisoformat(
+                                security_json["price_expires_at"]
                             ),
                             security_id=security_json["security_id"],
                         )

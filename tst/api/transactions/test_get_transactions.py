@@ -120,3 +120,20 @@ def test_get_account_transactions_date_filter_single_day(
 
     txn_ids = {t["transaction_id"] for t in data["transactions"]}
     assert {"bank-txn-002", "bank-txn-003"} == txn_ids
+
+
+def test_get_account_transactions_failure_account_does_not_exist(
+    get_transactions_api: GetTransactions, jwt_walter: str
+) -> None:
+    event = create_get_transactions_event(
+        token=jwt_walter,
+        query={
+            "start_date": "2025-08-01",
+            "end_date": "2025-08-31",
+            "account_id": "acct-004",
+        },
+    )
+    response = get_transactions_api.invoke(event)
+    assert response.http_status == HTTPStatus.OK
+    assert response.status == Status.FAILURE
+    assert "Account does not exist" in response.message

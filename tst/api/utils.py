@@ -73,7 +73,10 @@ def get_create_user_event(
 
 
 def get_get_user_event(token: str) -> dict:
-    EVENT["headers"] = {"Authorization": f"Bearer {token}"}
+    EVENT["headers"] = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
     return EVENT
 
 

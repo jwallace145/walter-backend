@@ -11,17 +11,19 @@ from src.clients import (
     update_account_api,
     delete_account_api,
     create_user_api,
+    add_transaction_api,
+    get_user_api,
 )
 from src.clients import get_transactions_api
+from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
+from src.workflows.common.router import WorkflowRouter
 from tst.api.utils import (
     get_auth_user_event,
-    get_get_user_event,
     get_add_stock_event,
     get_portfolio_event,
     get_get_stock_event,
     get_get_prices_event,
-    get_add_transaction_event,
     get_edit_transaction_event,
     get_delete_transaction_event,
     get_create_link_token_event,
@@ -70,7 +72,7 @@ def create_api_event(
 
     # if additional kwargs are provided, add them to the event as body
     if kwargs:
-        event["headers"] = {"content-type": "application/json"}
+        event.get("headers", {})["content-type"] = "application/json"
         event["body"] = json.dumps(kwargs)
 
     return event
@@ -99,8 +101,8 @@ def auth_user(email: str = None, password: str = None) -> None:
 @app.command()
 def get_user(token: str = None) -> None:
     log.info("Walter CLI: Getting user...")
-    event = get_get_user_event(token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    event = create_api_event(token)
+    response = get_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -295,12 +297,42 @@ def add_transaction(
     token: str = None,
     account_id: str = None,
     date: str = None,
-    vendor: str = None,
     amount: float = None,
+    transaction_type: str = None,
+    transaction_subtype: str = None,
+    transaction_category: str = None,
+    security_id: str = None,
+    security_type: str = None,
+    quantity: float = None,
+    price_per_share: float = None,
+    merchant_name: str = None,
 ) -> None:
     log.info("WalterCLI: AddTransaction")
-    event = get_add_transaction_event(token, account_id, date, vendor, amount)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+
+    kwargs = {
+        "account_id": account_id,
+        "transaction_type": transaction_type,
+        "transaction_subtype": transaction_subtype,
+        "transaction_category": transaction_category,
+        "date": date,
+        "amount": amount,
+    }
+
+    match TransactionType.from_string(transaction_type):
+        case TransactionType.BANKING:
+            kwargs["merchant_name"] = merchant_name
+        case TransactionType.INVESTMENT:
+            kwargs["security_id"] = security_id
+            kwargs["security_type"] = security_type
+            kwargs["quantity"] = quantity
+            kwargs["price_per_share"] = price_per_share
+
+    event = create_api_event(
+        token=token,
+        query_params={},
+        **kwargs,
+    )
+    response = add_transaction_api.invoke(event).to_json()
     log.info(f"WalterCLI: AddTransaction Response:\n{parse_response(response)}")
 
 
@@ -411,6 +443,26 @@ def get_prices_canary() -> None:
     log.info("WalterCLI: GetPricesCanary...")
     response = CanaryRouter.get_canary(event={"canary": "get_prices"}).invoke()
     log.info(f"WalterCLI: GetPricesCanary Response:\n{parse_response(response)}")
+
+
+#############
+# WORKFLOWS #
+#############
+
+
+def get_workflow_event(workflow_name: str, token: str = None) -> dict:
+    return {
+        "workflow_name": workflow_name,
+    }
+
+
+@app.command()
+def update_security_prices() -> None:
+    workflow_name = "UpdateSecurityPrices"
+    log.info(f"WalterCLI: {workflow_name}")
+    event = get_workflow_event(workflow_name)
+    response = WorkflowRouter.get_workflow(event).invoke(event).to_json()
+    log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
 
 
 if __name__ == "__main__":

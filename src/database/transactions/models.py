@@ -113,6 +113,9 @@ class Transaction(ABC):
         )
         self.transaction_amount = transaction_amount
 
+    def get_transaction_date(self) -> datetime:
+        return datetime.strptime(self.transaction_date.split("#")[0], "%Y-%m-%d")
+
     def _get_common_attributes_dict(self) -> dict:
         return {
             "transaction_id": self.transaction_id,
@@ -224,7 +227,8 @@ class InvestmentTransaction(Transaction):
         account_id: str,
         user_id: str,
         date: datetime,
-        security_id: str,
+        ticker: str,
+        exchange: str,
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
@@ -240,7 +244,7 @@ class InvestmentTransaction(Transaction):
             transaction_category=transaction_category,
             transaction_date=date,
             transaction_amount=quantity * price_per_share,
-            security_id=security_id,
+            security_id=f"sec-{exchange.lower()}-{ticker.lower()}",
             quantity=quantity,
             price_per_share=price_per_share,
         )

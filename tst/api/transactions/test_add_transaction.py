@@ -16,6 +16,7 @@ from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
 )
+from tst.polygon.mock import MockPolygonClient
 
 
 @pytest.fixture()
@@ -24,9 +25,14 @@ def add_transaction_api(
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
     transactions_categorizer: ExpenseCategorizerMLP,
+    polygon_client: MockPolygonClient,
 ):
     return AddTransaction(
-        walter_authenticator, walter_cw, walter_db, transactions_categorizer
+        walter_authenticator,
+        walter_cw,
+        walter_db,
+        transactions_categorizer,
+        polygon_client,
     )
 
 
@@ -79,10 +85,15 @@ def test_add_bank_debit_success(
 
 
 def test_add_investment_buy_new_holding_success(
-    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walrus: str
-):
+    add_transaction_api: AddTransaction,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
+) -> None:
+    # create add investment transaction test event, user does not have a holding for this security
+    email = "walrus@gmail.com"
+    jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=jwt,
         body={
             "account_id": "acct-002",
             "date": "2025-08-04",
@@ -90,20 +101,34 @@ def test_add_investment_buy_new_holding_success(
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.BUY.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
-            "security_id": "sec-nasdaq-aapl",
+            "security_id": "META",
+            "security_type": "stock",
             "quantity": 50,
             "price_per_share": 10,
         },
     )
+
+    # assert holding does not exist before transaction is added
+    holding = walter_db.get_holding(
+        account_id="acct-002", security_id="sec-nasdaq-meta"
+    )
+    assert holding is None
+
+    # invoke add transaction api
     response = add_transaction_api.invoke(event)
+
+    # assert transaction is created successfully
     assert response.http_status == HTTPStatus.CREATED
     assert response.status == Status.SUCCESS
+
+    # assert add transaction api response data
     data_txn = response.data["transaction"]
     assert data_txn["transaction_type"] == TransactionType.INVESTMENT.value
-    assert data_txn["security_id"] == "sec-nasdaq-aapl"
-    # holding created
+    assert data_txn["security_id"] == "sec-nasdaq-meta"
+
+    # assert holding was created successfully
     holding = walter_db.get_holding(
-        account_id="acct-002", security_id="sec-nasdaq-aapl"
+        account_id="acct-002", security_id="sec-nasdaq-meta"
     )
     assert holding is not None
     assert holding.quantity == pytest.approx(50)
@@ -111,10 +136,15 @@ def test_add_investment_buy_new_holding_success(
 
 
 def test_add_investment_buy_updates_holding(
-    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walrus: str
-):
+    add_transaction_api: AddTransaction,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
+) -> None:
+    # create add investment transaction test event, user has a holding for this security
+    email = "walrus@gmail.com"
+    jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=jwt,
         body={
             "account_id": "acct-002",
             "date": "2025-08-08",
@@ -122,13 +152,27 @@ def test_add_investment_buy_updates_holding(
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.BUY.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
-            "security_id": "sec-nyse-coke",
+            "security_id": "COKE",
+            "security_type": "stock",
             "quantity": 4,
             "price_per_share": 150,
         },
     )
+
+    # assert holding exists before transaction is added
+    holding = walter_db.get_holding("acct-002", "sec-nyse-coke")
+    assert holding is not None
+    assert holding.quantity == pytest.approx(4)
+    assert holding.average_cost_basis == pytest.approx(200)
+
+    # invoke add transaction api
     response = add_transaction_api.invoke(event)
+
+    # assert transaction is created successfully
+    assert response.http_status == HTTPStatus.CREATED
     assert response.status == Status.SUCCESS
+
+    # assert holding was updated successfully
     holding = walter_db.get_holding("acct-002", "sec-nyse-coke")
     assert holding.quantity == pytest.approx(8)
     assert holding.total_cost_basis == pytest.approx(1400)
@@ -136,10 +180,15 @@ def test_add_investment_buy_updates_holding(
 
 
 def test_add_investment_sell_insufficient_quantity(
-    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walrus: str
+    add_transaction_api: AddTransaction,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ):
+    # create test add investment transaction event, user does not have enough holding for this security
+    email = "walrus@gmail.com"
+    jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=jwt,
         body={
             "account_id": "acct-002",
             "date": "2025-08-09",
@@ -147,22 +196,44 @@ def test_add_investment_sell_insufficient_quantity(
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.SELL.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
-            "security_id": "sec-crypto-btc",
+            "security_id": "BTC",
+            "security_type": "crypto",
             "quantity": 251.0,
             "price_per_share": 10.0,
         },
     )
+
+    # assert holding exists before transaction is added
+    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    assert holding is not None
+    assert holding.quantity == pytest.approx(250)
+    assert holding.average_cost_basis == pytest.approx(4.0)
+
+    # invoke add transaction api
     response = add_transaction_api.invoke(event)
+
+    # assert transaction is not created as user does not have enough holding to sell this
+    # quantity of shares
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.FAILURE
     assert "Not enough holding" in response.message
 
+    # assert holding was not updated as transaction was not created
+    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    assert holding.quantity == pytest.approx(250)
+    assert holding.average_cost_basis == pytest.approx(4.0)
+
 
 def test_add_investment_sell_updates_holding(
-    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walrus: str
+    add_transaction_api: AddTransaction,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ):
+    # create test add investment transaction event, user has enough holding to sell this quantity of shares
+    email = "walrus@gmail.com"
+    jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=jwt,
         body={
             "account_id": "acct-002",
             "date": "2025-08-09",
@@ -170,13 +241,27 @@ def test_add_investment_sell_updates_holding(
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.SELL.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
-            "security_id": "sec-crypto-btc",
+            "security_id": "BTC",
+            "security_type": "crypto",
             "quantity": 200,
             "price_per_share": 5.0,
         },
     )
+
+    # assert holding exists before transaction is added
+    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    assert holding is not None
+    assert holding.quantity == pytest.approx(250)
+    assert holding.average_cost_basis == pytest.approx(4.0)
+
+    # invoke add transaction api
     response = add_transaction_api.invoke(event)
+
+    # assert transaction is created successfully
+    assert response.http_status == HTTPStatus.CREATED
     assert response.status == Status.SUCCESS
+
+    # assert holding was updated successfully after the quantity of security was sold
     holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
     assert holding.quantity == pytest.approx(50)
     assert holding.total_cost_basis == pytest.approx(200.00)
@@ -283,7 +368,8 @@ def test_investment_amount_mismatch(
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.BUY.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
-            "security_id": "sec-nyse-coke",
+            "security_id": "COKE",
+            "security_type": "stock",
             "quantity": 10,
             "price_per_share": 10,
             "merchant_name": "N/A",

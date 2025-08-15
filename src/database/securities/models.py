@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 
 
@@ -134,6 +134,18 @@ class Stock(Security):
             security_id,
         )
 
+    @classmethod
+    def create(cls, name: str, ticker: str, exchange: str, price: float):
+        now = datetime.now(timezone.utc)
+        return Stock(
+            name=name,
+            ticker=ticker.upper(),
+            exchange=exchange,
+            price=price,
+            price_updated_at=now,
+            price_expires_at=now + timedelta(minutes=15),
+        )
+
 
 class Crypto(Security):
     """Crypto Model"""
@@ -182,4 +194,15 @@ class Crypto(Security):
         price_expires_at = datetime.fromisoformat(item["price_expires_at"]["S"])
         return Crypto(
             name, ticker, price, price_updated_at, price_expires_at, security_id
+        )
+
+    @classmethod
+    def create(cls, name: str, ticker: str, price: float):
+        now = datetime.now(timezone.utc)
+        return Crypto(
+            name=name,
+            ticker=ticker.upper(),
+            price=price,
+            price_updated_at=now,
+            price_expires_at=now + timedelta(minutes=15),
         )

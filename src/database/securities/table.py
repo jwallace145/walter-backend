@@ -5,6 +5,7 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.database.securities.models import Security, SecurityType, Stock, Crypto
 from src.environment import Domain
 from src.utils.log import Logger
+from typing import List
 
 log = Logger(__name__).get_logger()
 
@@ -45,6 +46,28 @@ class SecuritiesTable:
             log.info(f"Security '{security_id}' not found!")
             return None
         return SecuritiesTable._from_ddb_item(item)
+
+    def get_security_by_ticker(self, ticker: str) -> Optional[Security]:
+        log.info(
+            f"Getting security by ticker '{ticker}' from table '{self.table_name}'"
+        )
+        items = self.ddb.query_index(
+            table=self.table_name,
+            index_name=f"Securities-TickerIndex-{self.domain.value}",
+            expression="ticker = :ticker",
+            attributes={":ticker": {"S": ticker}},
+        )
+        if not items:
+            log.info(f"Security with ticker '{ticker}' not found!")
+            return None
+        return SecuritiesTable._from_ddb_item(items[0])
+
+    def get_securities(self) -> List[Security]:
+        log.info(f"Getting all securities from table '{self.table_name}'")
+        securities = []
+        for item in self.ddb.scan_table(self.table_name):
+            securities.append(SecuritiesTable._from_ddb_item(item))
+        return securities
 
     def update_security(self, security: Security) -> Security:
         log.info(f"Updating security '{security.security_id}'")
