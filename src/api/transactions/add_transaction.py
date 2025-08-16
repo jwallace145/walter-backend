@@ -5,9 +5,13 @@ from dataclasses import dataclass
 from polygon.exceptions import BadResponse
 from polygon.rest.models import TickerDetails
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
-from src.api.common.exceptions import (AccountDoesNotExist, BadRequest,
-                                       NotAuthenticated, SecurityDoesNotExist,
-                                       UserDoesNotExist)
+from src.api.common.exceptions import (
+    AccountDoesNotExist,
+    BadRequest,
+    NotAuthenticated,
+    SecurityDoesNotExist,
+    UserDoesNotExist,
+)
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
@@ -17,13 +21,16 @@ from src.database.client import WalterDB
 from src.database.holdings.models import Holding
 from src.database.securities.exchanges import get_market_exchange
 from src.database.securities.models import Crypto, SecurityType, Stock
-from src.database.transactions.models import (BankingTransactionSubType,
-                                              BankTransaction,
-                                              InvestmentTransaction,
-                                              InvestmentTransactionSubType,
-                                              Transaction, TransactionCategory,
-                                              TransactionSubType,
-                                              TransactionType)
+from src.database.transactions.models import (
+    BankingTransactionSubType,
+    BankTransaction,
+    InvestmentTransaction,
+    InvestmentTransactionSubType,
+    Transaction,
+    TransactionCategory,
+    TransactionSubType,
+    TransactionType,
+)
 from src.database.users.models import User
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger

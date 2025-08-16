@@ -5,9 +5,13 @@ from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 
-from tst.constants import (NEWS_SUMMARIES_QUEUE_NAME, NEWSLETTERS_QUEUE_NAME,
-                           OBJECTS_TEST_FILE, SECRETS_TEST_FILE,
-                           TEMPLATES_BUCKET_NAME)
+from tst.constants import (
+    NEWS_SUMMARIES_QUEUE_NAME,
+    NEWSLETTERS_QUEUE_NAME,
+    OBJECTS_TEST_FILE,
+    SECRETS_TEST_FILE,
+    TEMPLATES_BUCKET_NAME,
+)
 
 
 @dataclass

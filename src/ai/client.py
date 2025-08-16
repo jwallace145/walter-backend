@@ -5,9 +5,12 @@ from src.ai.anthropic.models import Claude3Haiku, Claude3SonnetV2
 from src.ai.common.model import WalterFoundationModel
 from src.ai.exceptions import UnknownModel
 from src.ai.meta.models import Llama370B
-from src.ai.models import (SUPPORTED_MODEL_NAME_TO_WALTER_MODEL,
-                           SUPPORTED_WALTER_MODEL_NAMES,
-                           SUPPORTED_WALTER_MODELS, WalterModel)
+from src.ai.models import (
+    SUPPORTED_MODEL_NAME_TO_WALTER_MODEL,
+    SUPPORTED_WALTER_MODEL_NAMES,
+    SUPPORTED_WALTER_MODELS,
+    WalterModel,
+)
 from src.aws.bedrock.client import WalterBedrockClient
 from src.config import CONFIG
 from src.utils.log import Logger

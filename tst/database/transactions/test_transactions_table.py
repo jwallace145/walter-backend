@@ -3,12 +3,14 @@ import datetime as dt
 import pytest
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.transactions.models import (BankingTransactionSubType,
-                                              BankTransaction,
-                                              InvestmentTransaction,
-                                              InvestmentTransactionSubType,
-                                              TransactionCategory,
-                                              TransactionType)
+from src.database.transactions.models import (
+    BankingTransactionSubType,
+    BankTransaction,
+    InvestmentTransaction,
+    InvestmentTransactionSubType,
+    TransactionCategory,
+    TransactionType,
+)
 from src.database.transactions.table import TransactionsTable
 from src.environment import Domain
 from tst.constants import TRANSACTIONS_TABLE_NAME

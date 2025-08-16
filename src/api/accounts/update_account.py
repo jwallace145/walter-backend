@@ -2,8 +2,12 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from src.api.common.exceptions import (AccountDoesNotExist, BadRequest,
-                                       NotAuthenticated, UserDoesNotExist)
+from src.api.common.exceptions import (
+    AccountDoesNotExist,
+    BadRequest,
+    NotAuthenticated,
+    UserDoesNotExist,
+)
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator

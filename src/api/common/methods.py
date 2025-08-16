@@ -3,11 +3,13 @@ import json
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
-from src.api.common.exceptions import (BadRequest, NotAuthenticated,
-                                       UserDoesNotExist)
-from src.api.common.metrics import (METRICS_FAILURE_COUNT,
-                                    METRICS_RESPONSE_TIME_MILLISECONDS,
-                                    METRICS_SUCCESS_COUNT, METRICS_TOTAL_COUNT)
+from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
+from src.api.common.metrics import (
+    METRICS_FAILURE_COUNT,
+    METRICS_RESPONSE_TIME_MILLISECONDS,
+    METRICS_SUCCESS_COUNT,
+    METRICS_TOTAL_COUNT,
+)
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient

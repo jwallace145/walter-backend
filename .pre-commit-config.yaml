@@ -14,7 +14,7 @@ repos:
       - id: isort
         name: isort
         description: "isort: Ensures imports are sorted properly"
-        entry: pipenv run isort --check-only --diff
+        entry: pipenv run isort --check-only --diff --profile black
         language: python
         types: [ python ]
   

@@ -9,11 +9,13 @@ from src.api.transactions.add_transaction import AddTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
-from src.database.transactions.models import (BankingTransactionSubType,
-                                              BankTransaction,
-                                              InvestmentTransactionSubType,
-                                              TransactionCategory,
-                                              TransactionType)
+from src.database.transactions.models import (
+    BankingTransactionSubType,
+    BankTransaction,
+    InvestmentTransactionSubType,
+    TransactionCategory,
+    TransactionType,
+)
 from tst.polygon.mock import MockPolygonClient
 
 

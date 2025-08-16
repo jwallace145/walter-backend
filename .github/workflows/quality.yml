@@ -47,7 +47,7 @@ jobs:
     - name: Check import sorting with isort
       run: |
         echo "Checking import sorting..."
-        if ! isort --check-only --diff .; then
+        if ! isort --check-only --diff . --profile black; then
           echo "❌ Import sorting check failed"
           exit 1
         else

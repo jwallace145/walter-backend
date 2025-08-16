@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Union
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.securities.models import (Crypto, Security, SecurityType,
-                                            Stock)
+from src.database.securities.models import Crypto, Security, SecurityType, Stock
 from src.environment import Domain
 from src.utils.log import Logger
 

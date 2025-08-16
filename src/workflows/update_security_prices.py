@@ -5,8 +5,7 @@ from src.database.client import WalterDB
 from src.database.securities.models import Crypto, SecurityType, Stock
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
-from src.workflows.common.models import (Workflow, WorkflowResponse,
-                                         WorkflowStatus)
+from src.workflows.common.models import Workflow, WorkflowResponse, WorkflowStatus
 
 log = Logger(__name__).get_logger()
 

@@ -4,8 +4,7 @@ from dataclasses import dataclass
 
 from requests_toolbelt.multipart import decoder
 
-from src.api.common.exceptions import (BadRequest, NotAuthenticated,
-                                       UserDoesNotExist)
+from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
