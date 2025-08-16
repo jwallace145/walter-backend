@@ -10,7 +10,7 @@ help:
 
 
 format:
-	pipenv run black .
+	pipenv run black . && pipenv run isort . --profile black
 
 lint:
 	pipenv run flake8 src --count --max-complexity=10 --max-line-length=127 --show-source --statistics --ignore=E203,E501,W503,C901,W291

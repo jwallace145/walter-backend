@@ -10,6 +10,7 @@ from src.clients import (
     create_account_api,
     create_user_api,
     delete_account_api,
+    delete_transaction_api,
     get_accounts_api,
     get_transactions_api,
     get_user_api,
@@ -23,7 +24,6 @@ from tst.api.utils import (
     get_auth_user_event,
     get_create_link_token_event,
     get_delete_stock_event,
-    get_delete_transaction_event,
     get_edit_transaction_event,
     get_exchange_public_token_event,
     get_get_prices_event,
@@ -359,8 +359,8 @@ def delete_transaction(
     token: str = None, date: str = None, transaction_id: str = None
 ) -> None:
     log.info("WalterCLI: DeleteTransaction")
-    event = get_delete_transaction_event(token, date, transaction_id)
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    event = create_api_event(token, date=date, transaction_id=transaction_id)
+    response = delete_transaction_api.invoke(event).to_json()
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
 
 
