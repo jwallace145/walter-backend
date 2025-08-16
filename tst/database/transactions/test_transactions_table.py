@@ -4,12 +4,12 @@ import pytest
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.transactions.models import (
-    TransactionType,
-    TransactionCategory,
-    InvestmentTransaction,
-    BankTransaction,
-    InvestmentTransactionSubType,
     BankingTransactionSubType,
+    BankTransaction,
+    InvestmentTransaction,
+    InvestmentTransactionSubType,
+    TransactionCategory,
+    TransactionType,
 )
 from src.database.transactions.table import TransactionsTable
 from src.environment import Domain

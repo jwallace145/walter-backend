@@ -1,16 +1,14 @@
 import datetime as dt
 from dataclasses import dataclass
 
-from src.api.common.exceptions import UserDoesNotExist, NotAuthenticated
-from src.api.common.methods import HTTPStatus, Status
-from src.api.common.methods import WalterAPIMethod
+from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
-
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

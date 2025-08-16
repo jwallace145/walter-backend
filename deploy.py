@@ -4,15 +4,14 @@ import subprocess
 import sys
 from enum import Enum
 from time import sleep
-from typing import List, Dict
+from typing import Dict, List
 
 import boto3
 from jinja2 import Template
 from mypy_boto3_cloudformation import CloudFormationClient
-from mypy_boto3_s3 import S3Client
-from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_ecr import ECRClient
-
+from mypy_boto3_lambda import LambdaClient
+from mypy_boto3_s3 import S3Client
 
 ##########
 # MODELS #

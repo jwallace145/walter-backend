@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, List
 
-from src.ai.amazon.models import NovaMicro, NovaLite
+from src.ai.amazon.models import NovaLite, NovaMicro
 from src.ai.anthropic.models import Claude3Haiku, Claude3SonnetV2
 from src.ai.meta.models import Llama370B
 

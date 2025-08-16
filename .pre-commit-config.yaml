@@ -10,6 +10,13 @@ repos:
         entry: pipenv run black . --diff --color
         language: python
         types: [ python ]
+
+      - id: isort
+        name: isort
+        description: "isort: Ensures imports are sorted properly"
+        entry: pipenv run isort --check-only --diff --profile black
+        language: python
+        types: [ python ]
   
       - id: codespell # devs cant spell
         name: codespell

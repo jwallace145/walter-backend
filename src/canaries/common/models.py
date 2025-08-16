@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-from src.api.common.models import Status, HTTPStatus
+from src.api.common.models import HTTPStatus, Status
 
 
 @dataclass

@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
+
 from src.environment import Domain
 from src.templates.models import TemplateAssets
 from src.utils.log import Logger

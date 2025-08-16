@@ -2,8 +2,8 @@ import datetime as dt
 import json
 from dataclasses import dataclass
 
-from src.api.common.exceptions import UserDoesNotExist, InvalidPassword, InvalidEmail
-from src.api.common.methods import WalterAPIMethod, HTTPStatus, Status
+from src.api.common.exceptions import InvalidEmail, InvalidPassword, UserDoesNotExist
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
 from src.api.common.utils import is_valid_email
 from src.auth.authenticator import WalterAuthenticator

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 
 from src.database.client import WalterDB
-from datetime import datetime, timezone, timedelta
-from src.database.securities.models import Crypto, Stock, SecurityType
+from src.database.securities.models import Crypto, SecurityType, Stock
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow, WorkflowResponse, WorkflowStatus

@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-
 from dataclasses import dataclass
-from src.utils.log import Logger
 from enum import Enum
 from typing import Optional
+
+from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 

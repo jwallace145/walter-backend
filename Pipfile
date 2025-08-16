@@ -38,7 +38,6 @@ black = "*"
 flake8 = "*"
 pre-commit = "*"
 codespell = "*"
-isort = "*"
 moto = {extras = ["dynamodb2"], version = "*"}
 coverage = "*"
 pytest-cov = "*"
@@ -46,6 +45,7 @@ pytest-mock = "*"
 typer = "*"
 pytest = "*"
 freezegun = "*"
+isort = "*"
 
 [requires]
 python_version = "3.12"

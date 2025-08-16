@@ -19,7 +19,6 @@ from src.database.users.table import UsersTable
 from src.environment import Domain
 from src.utils.log import Logger
 
-
 log = Logger(__name__).get_logger()
 
 

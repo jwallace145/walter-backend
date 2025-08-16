@@ -4,10 +4,10 @@ from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.transactions.models import (
+    BankTransaction,
+    InvestmentTransaction,
     Transaction,
     TransactionType,
-    InvestmentTransaction,
-    BankTransaction,
 )
 from src.environment import Domain
 from src.utils.log import Logger

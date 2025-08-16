@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from src.api.accounts.update_account import UpdateAccount

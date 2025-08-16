@@ -2,8 +2,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from io import BytesIO
-from typing import Dict
-from typing import List
+from typing import Dict, List
 
 
 class SupportedTemplate(Enum):

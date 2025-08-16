@@ -1,19 +1,20 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import Tuple, List
+from typing import List, Tuple
 
-from src.api.common.exceptions import AccountDoesNotExist
-from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
+from src.api.common.exceptions import (
+    AccountDoesNotExist,
+    BadRequest,
+    NotAuthenticated,
+    UserDoesNotExist,
+)
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import Response, HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
-from src.database.transactions.models import (
-    Transaction,
-    TransactionType,
-)
+from src.database.transactions.models import Transaction, TransactionType
 from src.database.users.models import User
 from src.utils.log import Logger
 

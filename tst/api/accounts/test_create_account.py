@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from src.api.accounts.create_account import CreateAccount

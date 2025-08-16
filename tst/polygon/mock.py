@@ -1,11 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from typing import Dict
 
 from polygon import BadResponse
 from polygon.rest.models import TickerDetails
-
 from src.database.securities.models import SecurityType
-from datetime import datetime, timezone, timedelta
-from typing import Dict
 
 MOCK_DATA = {
     "AAPL": {

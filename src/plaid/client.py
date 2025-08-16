@@ -14,7 +14,6 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from plaid.model.products import Products
 from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
-
 from src.database.transactions.models import Transaction
 from src.plaid.models import (
     CreateLinkTokenResponse,

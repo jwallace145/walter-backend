@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.auth.auth_user import AuthUser
-from src.api.common.methods import Status, HTTPStatus
+from src.api.common.methods import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient

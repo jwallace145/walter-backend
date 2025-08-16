@@ -6,11 +6,11 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 
 from tst.constants import (
-    SECRETS_TEST_FILE,
-    OBJECTS_TEST_FILE,
-    TEMPLATES_BUCKET_NAME,
-    NEWSLETTERS_QUEUE_NAME,
     NEWS_SUMMARIES_QUEUE_NAME,
+    NEWSLETTERS_QUEUE_NAME,
+    OBJECTS_TEST_FILE,
+    SECRETS_TEST_FILE,
+    TEMPLATES_BUCKET_NAME,
 )
 
 

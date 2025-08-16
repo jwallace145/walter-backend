@@ -6,30 +6,30 @@ import typer
 from src.api.routing.router import APIRouter
 from src.canaries.routing.router import CanaryRouter
 from src.clients import (
-    get_accounts_api,
-    create_account_api,
-    update_account_api,
-    delete_account_api,
-    create_user_api,
     add_transaction_api,
+    create_account_api,
+    create_user_api,
+    delete_account_api,
+    get_accounts_api,
+    get_transactions_api,
     get_user_api,
+    update_account_api,
 )
-from src.clients import get_transactions_api
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
 from src.workflows.common.router import WorkflowRouter
 from tst.api.utils import (
-    get_auth_user_event,
     get_add_stock_event,
-    get_portfolio_event,
-    get_get_stock_event,
-    get_get_prices_event,
-    get_edit_transaction_event,
-    get_delete_transaction_event,
+    get_auth_user_event,
     get_create_link_token_event,
-    get_exchange_public_token_event,
-    get_sync_transactions_event,
     get_delete_stock_event,
+    get_delete_transaction_event,
+    get_edit_transaction_event,
+    get_exchange_public_token_event,
+    get_get_prices_event,
+    get_get_stock_event,
+    get_portfolio_event,
+    get_sync_transactions_event,
 )
 
 log = Logger(__name__).get_logger()

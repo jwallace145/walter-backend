@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.accounts.models import Account

@@ -1,6 +1,6 @@
 import pytest
 
-from src.api.common.models import Status, HTTPStatus
+from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.get_transactions import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient

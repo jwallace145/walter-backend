@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 import requests
 from requests import Response
-from datetime import datetime
 
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
