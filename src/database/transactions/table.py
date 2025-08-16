@@ -84,6 +84,39 @@ class TransactionsTable:
         log.info(f"Getting all transactions for account '{account_id}'")
         return self.get_transactions(account_id, dt.datetime.min, dt.datetime.max)
 
+    def get_user_transaction(
+        self, user_id: str, transaction_id: str, transaction_date: dt.datetime
+    ) -> Optional[Transaction]:
+        """Get a single transaction for a given user."""
+        log.info(
+            f"Getting transaction '{transaction_id}' for user '{user_id}' on date '{transaction_date.strftime('%Y-%m-%d')}'"
+        )
+
+        items = self.ddb.query_index(
+            table=self.table_name,
+            index_name=self._get_user_index_name(self.domain),
+            expression="user_id = :user_id AND transaction_date = :transaction_date",
+            attributes={
+                ":user_id": {"S": user_id},
+                ":transaction_date": {
+                    "S": f"{transaction_date.strftime('%Y-%m-%d')}#{transaction_id}"
+                },
+            },
+        )
+
+        if len(items) == 0:
+            log.info(
+                f"Transaction '{transaction_id}' for user '{user_id}' on date '{transaction_date.strftime('%Y-%m-%d')}' not found!"
+            )
+            return None
+
+        if len(items) > 1:
+            raise ValueError(
+                f"Multiple transactions found for user '{user_id}' on date '{transaction_date.strftime('%Y-%m-%d')}': {items}"
+            )
+
+        return TransactionsTable._from_ddb_item(items[0])
+
     def get_user_transactions(
         self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Transaction]:

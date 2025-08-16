@@ -115,11 +115,25 @@ class WalterDB:
             account_id, start_date, end_date
         )
 
+    def get_user_transaction(
+        self, user_id: str, transaction_id: str, transaction_date: dt.datetime
+    ) -> Optional[Transaction]:
+        return self.transactions_table.get_user_transaction(
+            user_id, transaction_id, transaction_date
+        )
+
     def get_transactions_by_user(
         self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
     ) -> List[Transaction]:
         return self.transactions_table.get_user_transactions(
             user_id, start_date, end_date
+        )
+
+    def delete_transaction(
+        self, account_id: str, transaction_id: str, date: dt.datetime
+    ) -> None:
+        return self.transactions_table.delete_transaction(
+            account_id, date, transaction_id
         )
 
     def delete_account_transactions(self, account_id: str) -> None:

@@ -106,3 +106,8 @@ class AccountDoesNotExist(Exception):
 class SecurityDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class HoldingDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
