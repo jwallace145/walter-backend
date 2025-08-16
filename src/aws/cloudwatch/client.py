@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from mypy_boto3_cloudwatch import CloudWatchClient
+
 from src.environment import Domain
 from src.utils.log import Logger
 

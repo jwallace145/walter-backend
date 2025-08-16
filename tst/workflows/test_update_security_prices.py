@@ -1,10 +1,9 @@
 import pytest
 
 from src.database.client import WalterDB
-from src.database.securities.models import Crypto
+from src.database.securities.models import Crypto, Stock
 from src.workflows.update_security_prices import UpdateSecurityPrices
 from tst.polygon.mock import MockPolygonClient
-from src.database.securities.models import Stock
 
 
 @pytest.fixture

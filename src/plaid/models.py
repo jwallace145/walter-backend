@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import datetime as dt
+from dataclasses import dataclass
 from typing import List
 
 from src.database.transactions.models import Transaction

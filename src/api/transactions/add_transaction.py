@@ -4,36 +4,26 @@ from dataclasses import dataclass
 
 from polygon.exceptions import BadResponse
 from polygon.rest.models import TickerDetails
-
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
-from src.api.common.exceptions import (
-    BadRequest,
-    NotAuthenticated,
-    UserDoesNotExist,
-    AccountDoesNotExist,
-)
-from src.database.securities.exchanges import get_market_exchange
-from src.database.securities.models import Stock, Crypto
-from src.api.common.exceptions import SecurityDoesNotExist
+from src.api.common.exceptions import (AccountDoesNotExist, BadRequest,
+                                       NotAuthenticated, SecurityDoesNotExist,
+                                       UserDoesNotExist)
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import Response, HTTPStatus, Status
+from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.accounts.models import Account
-from src.database.accounts.models import AccountType
+from src.database.accounts.models import Account, AccountType
 from src.database.client import WalterDB
 from src.database.holdings.models import Holding
-from src.database.securities.models import SecurityType
-from src.database.transactions.models import (
-    Transaction,
-    TransactionType,
-    TransactionCategory,
-    InvestmentTransaction,
-    BankTransaction,
-    TransactionSubType,
-    InvestmentTransactionSubType,
-    BankingTransactionSubType,
-)
+from src.database.securities.exchanges import get_market_exchange
+from src.database.securities.models import Crypto, SecurityType, Stock
+from src.database.transactions.models import (BankingTransactionSubType,
+                                              BankTransaction,
+                                              InvestmentTransaction,
+                                              InvestmentTransactionSubType,
+                                              Transaction, TransactionCategory,
+                                              TransactionSubType,
+                                              TransactionType)
 from src.database.users.models import User
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger

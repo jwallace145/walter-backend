@@ -1,14 +1,10 @@
 import json
 from dataclasses import dataclass
 
-from src.api.common.exceptions import (
-    NotAuthenticated,
-    UserDoesNotExist,
-    AccountDoesNotExist,
-    BadRequest,
-)
+from src.api.common.exceptions import (AccountDoesNotExist, BadRequest,
+                                       NotAuthenticated, UserDoesNotExist)
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import Response, Status, HTTPStatus
+from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB

@@ -1,15 +1,15 @@
 from dataclasses import dataclass
-
 from enum import Enum
+
+from src.canaries.auth_user import AuthUserCanary
 from src.canaries.common.canary import BaseCanary
 from src.canaries.get_portfolio import GetPortfolioCanary
 from src.canaries.get_prices import GetPricesCanary
 from src.canaries.get_stock import GetStockCanary
 from src.canaries.get_transactions import GetTransactionsCanary
 from src.canaries.get_user import GetUserCanary
-from src.clients import walter_cw, walter_authenticator
+from src.clients import walter_authenticator, walter_cw
 from src.utils.log import Logger
-from src.canaries.auth_user import AuthUserCanary
 
 log = Logger(__name__).get_logger()
 

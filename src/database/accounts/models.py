@@ -1,7 +1,7 @@
+import random
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-import random
 from typing import Optional
 
 

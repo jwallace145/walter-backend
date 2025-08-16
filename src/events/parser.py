@@ -2,11 +2,9 @@ import datetime as dt
 import json
 from dataclasses import dataclass
 
-from src.events.models import (
-    CreateNewsletterAndSendEvent,
-    CreateNewsSummaryAndArchiveEvent,
-    SyncUserTransactionsEvent,
-)
+from src.events.models import (CreateNewsletterAndSendEvent,
+                               CreateNewsSummaryAndArchiveEvent,
+                               SyncUserTransactionsEvent)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

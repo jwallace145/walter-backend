@@ -6,29 +6,20 @@ from mypy_boto3_dynamodb.client import DynamoDBClient
 
 from src.database.accounts.models import Account, AccountType
 from src.database.holdings.models import Holding
-from src.database.securities.models import SecurityType, Stock, Crypto
-from src.database.transactions.models import (
-    TransactionCategory,
-    InvestmentTransaction,
-    TransactionType,
-    BankTransaction,
-    InvestmentTransactionSubType,
-    BankingTransactionSubType,
-)
+from src.database.securities.models import Crypto, SecurityType, Stock
+from src.database.transactions.models import (BankingTransactionSubType,
+                                              BankTransaction,
+                                              InvestmentTransaction,
+                                              InvestmentTransactionSubType,
+                                              TransactionCategory,
+                                              TransactionType)
 from src.database.users.models import User
 from src.environment import Domain
-from tst.constants import (
-    USERS_TABLE_NAME,
-    USERS_TEST_FILE,
-    TRANSACTIONS_TABLE_NAME,
-    ACCOUNTS_TABLE_NAME,
-    ACCOUNTS_TEST_FILE,
-    SECURITIES_TABLE_NAME,
-    SECURITIES_TEST_FILE,
-    HOLDINGS_TABLE_NAME,
-    HOLDINGS_TEST_FILE,
-    TRANSACTIONS_TEST_FILE,
-)
+from tst.constants import (ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE,
+                           HOLDINGS_TABLE_NAME, HOLDINGS_TEST_FILE,
+                           SECURITIES_TABLE_NAME, SECURITIES_TEST_FILE,
+                           TRANSACTIONS_TABLE_NAME, TRANSACTIONS_TEST_FILE,
+                           USERS_TABLE_NAME, USERS_TEST_FILE)
 
 
 @dataclass

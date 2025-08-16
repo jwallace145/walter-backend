@@ -4,18 +4,16 @@ import json
 import pytest
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
-from src.api.common.models import Status, HTTPStatus
+from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.add_transaction import AddTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
-from src.database.transactions.models import (
-    TransactionType,
-    TransactionCategory,
-    InvestmentTransactionSubType,
-    BankingTransactionSubType,
-    BankTransaction,
-)
+from src.database.transactions.models import (BankingTransactionSubType,
+                                              BankTransaction,
+                                              InvestmentTransactionSubType,
+                                              TransactionCategory,
+                                              TransactionType)
 from tst.polygon.mock import MockPolygonClient
 
 

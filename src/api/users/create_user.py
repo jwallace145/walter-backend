@@ -1,21 +1,12 @@
 import json
 from dataclasses import dataclass
 
-from src.api.common.exceptions import (
-    InvalidEmail,
-    UserAlreadyExists,
-    BadRequest,
-    InvalidPassword,
-    InvalidName,
-)
-from src.api.common.methods import HTTPStatus, Status
-from src.api.common.methods import WalterAPIMethod
+from src.api.common.exceptions import (BadRequest, InvalidEmail, InvalidName,
+                                       InvalidPassword, UserAlreadyExists)
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
-from src.api.common.utils import (
-    is_valid_email,
-    is_valid_password,
-    is_valid_name,
-)
+from src.api.common.utils import (is_valid_email, is_valid_name,
+                                  is_valid_password)
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB

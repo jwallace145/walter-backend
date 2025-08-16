@@ -7,7 +7,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
-from tst.api.utils import get_get_user_event, get_expected_response
+from tst.api.utils import get_expected_response, get_get_user_event
 
 
 @pytest.fixture

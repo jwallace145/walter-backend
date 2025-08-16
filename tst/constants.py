@@ -1,6 +1,5 @@
 from src.environment import Domain
 
-
 #############
 # CONSTANTS #
 #############

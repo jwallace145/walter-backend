@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import yaml
-from jinja2 import Environment, BaseLoader
+from jinja2 import BaseLoader, Environment
 
 from src.templates.bucket import TemplatesBucket
 from src.templates.models import TemplateSpec, template_spec_from_dict

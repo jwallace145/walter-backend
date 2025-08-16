@@ -1,4 +1,5 @@
 import pytest
+from freezegun import freeze_time
 
 from src.api.accounts.get_accounts import GetAccounts
 from src.api.common.models import HTTPStatus, Status
@@ -6,7 +7,6 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from tst.api.utils import get_expected_response
-from freezegun import freeze_time
 
 
 @pytest.fixture

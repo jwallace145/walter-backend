@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from src.api.accounts.delete_account import DeleteAccount

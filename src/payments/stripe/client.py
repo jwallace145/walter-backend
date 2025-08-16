@@ -6,7 +6,8 @@ from stripe.checkout import Session
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.config import CONFIG
 from src.payments.stripe.exceptions import InvalidPaymentStatus
-from src.payments.stripe.models import NewsletterSubscriptionOffering, PaymentStatus
+from src.payments.stripe.models import (NewsletterSubscriptionOffering,
+                                        PaymentStatus)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

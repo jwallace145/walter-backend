@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from polygon import RESTClient
 from polygon.rest.models import TickerDetails
-
 from src.database.securities.models import SecurityType
 from src.environment import Domain
 from src.utils.log import Logger

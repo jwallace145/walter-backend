@@ -1,7 +1,7 @@
+from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
-from datetime import datetime, timezone
 
 from polygon.exceptions import BadResponse
 from src.database.securities.models import SecurityType

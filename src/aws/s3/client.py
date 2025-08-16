@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from dataclasses import dataclass
 from io import BytesIO
@@ -8,7 +9,6 @@ from mypy_boto3_s3 import S3Client
 
 from src.environment import Domain
 from src.utils.log import Logger
-import datetime as dt
 
 log = Logger(__name__).get_logger()
 

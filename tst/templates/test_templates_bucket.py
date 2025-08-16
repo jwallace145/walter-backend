@@ -1,6 +1,5 @@
 from src.templates.bucket import TemplatesBucket
 
-
 TEMPLATE_NAME = "default"
 
 

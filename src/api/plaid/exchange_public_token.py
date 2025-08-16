@@ -2,14 +2,11 @@ import json
 from dataclasses import dataclass
 from typing import List
 
-from src.api.common.exceptions import (
-    NotAuthenticated,
-    UserDoesNotExist,
-    BadRequest,
-    PlaidItemAlreadyExists,
-)
+from src.api.common.exceptions import (BadRequest, NotAuthenticated,
+                                       PlaidItemAlreadyExists,
+                                       UserDoesNotExist)
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import Response, Status, HTTPStatus
+from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
@@ -17,10 +14,8 @@ from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User
 from src.plaid.client import PlaidClient
 from src.plaid.models import ExchangePublicTokenResponse
-from src.transactions.queue import (
-    SyncUserTransactionsQueue,
-    SyncUserTransactionsSQSEvent,
-)
+from src.transactions.queue import (SyncUserTransactionsQueue,
+                                    SyncUserTransactionsSQSEvent)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

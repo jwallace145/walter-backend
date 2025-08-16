@@ -1,6 +1,6 @@
 import pytest
 
-from src.events.parser import WalterEventParser, CreateNewsletterAndSendEvent
+from src.events.parser import CreateNewsletterAndSendEvent, WalterEventParser
 from tst.events.utils import get_walter_backend_event
 
 EMAIL = "walter@gmail.com"

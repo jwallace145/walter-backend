@@ -1,8 +1,8 @@
 import os
 
 import boto3
-from plaid import Environment
 
+from plaid import Environment
 from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.accounts.create_account import CreateAccount

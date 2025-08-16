@@ -22,14 +22,11 @@ from src.environment import Domain
 from src.events.parser import WalterEventParser
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
-from tst.aws.mock import MockSecretsManager, MockS3, MockSQS
-from tst.constants import (
-    AWS_REGION,
-)
+from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
+from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
 from tst.polygon.mock import MockPolygonClient
 from tst.transactions.mock import MockTransactionsCategorizer
-
 
 ###################
 # GLOBAL FIXTURES #

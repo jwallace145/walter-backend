@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow
-from src.workflows.workflows import update_security_prices_workflow
 from src.workflows.update_security_prices import UpdateSecurityPrices
+from src.workflows.workflows import update_security_prices_workflow
 
 log = Logger(__name__).get_logger()
 

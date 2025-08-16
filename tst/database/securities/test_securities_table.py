@@ -3,7 +3,7 @@ import datetime as dt
 import pytest
 
 from src.aws.dynamodb.client import WalterDDBClient
-from src.database.securities.models import SecurityType, Stock, Crypto
+from src.database.securities.models import Crypto, SecurityType, Stock
 from src.database.securities.table import SecuritiesTable
 from src.environment import Domain
 from tst.constants import SECURITIES_TABLE_NAME

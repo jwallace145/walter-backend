@@ -6,21 +6,18 @@ from plaid import ApiClient, Configuration
 from plaid.api.plaid_api import PlaidApi
 from plaid.model.accounts_get_request import AccountsGetRequest
 from plaid.model.country_code import CountryCode
-from plaid.model.item_public_token_exchange_request import (
-    ItemPublicTokenExchangeRequest,
-)
+from plaid.model.item_public_token_exchange_request import \
+    ItemPublicTokenExchangeRequest
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
-from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.link_token_create_request_user import \
+    LinkTokenCreateRequestUser
 from plaid.model.products import Products
 from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
-
 from src.database.transactions.models import Transaction
-from src.plaid.models import (
-    CreateLinkTokenResponse,
-    ExchangePublicTokenResponse,
-    SyncTransactionsResponse,
-)
+from src.plaid.models import (CreateLinkTokenResponse,
+                              ExchangePublicTokenResponse,
+                              SyncTransactionsResponse)
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
