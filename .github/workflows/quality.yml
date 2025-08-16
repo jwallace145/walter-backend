@@ -1,0 +1,100 @@
+name: Code Quality Check
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  code-formatting:
+    runs-on: ubuntu-latest
+    name: Check Black Code Formatting
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8
+
+    - name: Black Formatting Check
+      id: black-check
+      run: |
+        echo "Checking Black formatting..."
+        if ! black --check --diff .; then
+          echo "black_failed=true" >> $GITHUB_OUTPUT
+          echo "❌ Black formatting check failed"
+          exit 1
+        else
+          echo "✅ Black formatting check passed"
+        fi
+
+    - name: Check import sorting with isort
+      run: |
+        echo "Checking import sorting..."
+        if ! isort --check-only --diff .; then
+          echo "❌ Import sorting check failed"
+          exit 1
+        else
+          echo "✅ Import sorting check passed"
+        fi
+
+    - name: Check code style with flake8
+      run: |
+        echo "Checking code style..."
+        flake8 . --count --max-complexity=10 --max-line-length=127 --show-source --statistics --ignore=E203,E501,W503,C901,W291
+
+    - name: Add PR comment on formatting failure
+      if: failure() && github.event_name == 'pull_request' && steps.black-check.outputs.black_failed == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const comment = `## ❌ Code Quality Issues Found
+          
+          Code needs to be formatted with **Black** before it can be merged.
+          
+          ### How to fix:
+          
+          1. **Install Black** (if you haven't already):
+             \`\`\`bash
+             pip install black isort
+             \`\`\`
+          
+          2. **Format your code**:
+             \`\`\`bash
+             # Format with Black
+             black .
+             
+             # Sort imports
+             isort .
+             \`\`\`
+          
+          3. **Commit and push** the changes:
+             \`\`\`bash
+             git add .
+             git commit -m "Format code with Black"
+             git push
+             \`\`\`
+          
+          ### For Walter contributors:
+          Consider setting up a pre-commit hook to automatically format code before commits.
+          
+          ---
+          This check will automatically pass once your code is properly formatted! 🚀`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

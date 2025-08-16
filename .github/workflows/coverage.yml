@@ -1,4 +1,4 @@
-name: Run tests and upload coverage on PRs to main
+name: Run Tests and Collect Coverage
 
 on:
   pull_request:
