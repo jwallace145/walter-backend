@@ -17,6 +17,7 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
 from tst.polygon.mock import MockPolygonClient
 
 
@@ -28,6 +29,7 @@ def add_transaction_api(
     transactions_categorizer: ExpenseCategorizerMLP,
     polygon_client: MockPolygonClient,
     holding_updater: HoldingUpdater,
+    security_updater: SecurityUpdater,
 ):
     return AddTransaction(
         walter_authenticator,
@@ -36,6 +38,7 @@ def add_transaction_api(
         transactions_categorizer,
         polygon_client,
         holding_updater,
+        security_updater,
     )
 
 

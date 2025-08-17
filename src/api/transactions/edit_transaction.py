@@ -13,6 +13,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.securities.models import SecurityType
 from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
@@ -24,6 +25,7 @@ from src.database.transactions.models import (
 )
 from src.database.users.models import User
 from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -62,6 +64,7 @@ class EditTransaction(WalterAPIMethod):
     walter_db: WalterDB
     polygon: PolygonClient
     holding_updater: HoldingUpdater
+    security_updater: SecurityUpdater
 
     def __init__(
         self,
@@ -70,6 +73,7 @@ class EditTransaction(WalterAPIMethod):
         walter_db: WalterDB,
         polygon: PolygonClient,
         holding_updater: HoldingUpdater,
+        security_updater: SecurityUpdater,
     ) -> None:
         super().__init__(
             EditTransaction.API_NAME,
@@ -83,6 +87,7 @@ class EditTransaction(WalterAPIMethod):
         self.walter_db = walter_db
         self.polygon = polygon
         self.holding_updater = holding_updater
+        self.security_updater = security_updater
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
@@ -150,6 +155,12 @@ class EditTransaction(WalterAPIMethod):
             log.info(
                 f"User updated transaction date! Deleting user transaction '{transaction_id}'"
             )
+
+            # update holding if investment transaction
+            if isinstance(transaction, InvestmentTransaction):
+                self.holding_updater.delete_transaction(transaction)
+
+            # delete the transaction
             self.walter_db.delete_transaction(
                 account_id=transaction.account_id,
                 transaction_id=transaction.transaction_id,
@@ -169,6 +180,9 @@ class EditTransaction(WalterAPIMethod):
                     raise BadRequest(
                         f"Missing required field for investment transaction: {str(e)}"
                     )
+
+                security_type = EditTransaction._get_security_type(ticker)
+                self.security_updater.add_security_if_not_exists(ticker, security_type)
 
                 return InvestmentTransaction.create(
                     user_id=transaction.user_id,
@@ -224,3 +238,9 @@ class EditTransaction(WalterAPIMethod):
         except Exception:
             log.error(f"Invalid transaction amount: '{amount}'")
             raise BadRequest(f"Invalid transaction amount '{amount}'!")
+
+    @staticmethod
+    def _get_security_type(security_id: str) -> SecurityType:
+        if security_id.split("-")[1] == "crypto":
+            return SecurityType.CRYPTO
+        return SecurityType.STOCK

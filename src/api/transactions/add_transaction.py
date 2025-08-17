@@ -2,8 +2,6 @@ import datetime as dt
 import json
 from dataclasses import dataclass
 
-from polygon.exceptions import BadResponse
-from polygon.rest.models import TickerDetails
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.common.exceptions import (
     AccountDoesNotExist,
@@ -18,8 +16,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account, AccountType
 from src.database.client import WalterDB
-from src.database.securities.exchanges import get_market_exchange
-from src.database.securities.models import Crypto, SecurityType, Stock
+from src.database.securities.models import SecurityType, Stock
 from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
@@ -33,6 +30,7 @@ from src.database.transactions.models import (
 from src.database.users.models import User
 from src.investments.holdings.exceptions import InvalidHoldingUpdate
 from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -71,6 +69,7 @@ class AddTransaction(WalterAPIMethod):
     transaction_categorizer: ExpenseCategorizerMLP
     polygon: PolygonClient
     holding_updater: HoldingUpdater
+    security_updater: SecurityUpdater
 
     def __init__(
         self,
@@ -80,6 +79,7 @@ class AddTransaction(WalterAPIMethod):
         expense_categorizer: ExpenseCategorizerMLP,
         polygon: PolygonClient,
         holding_updater: HoldingUpdater,
+        security_updater: SecurityUpdater,
     ) -> None:
         super().__init__(
             AddTransaction.API_NAME,
@@ -94,6 +94,7 @@ class AddTransaction(WalterAPIMethod):
         self.transaction_categorizer = expense_categorizer
         self.polygon = polygon
         self.holding_updater = holding_updater
+        self.security_updater = security_updater
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
@@ -246,46 +247,12 @@ class AddTransaction(WalterAPIMethod):
                 "Amount must equal quantity * price_per_share for investment transactions"
             )
 
-        log.info(f"Checking for security in database with ticker '{security_id}'")
-        existing_security = self.walter_db.get_security_by_ticker(security_id)
-        if not existing_security:
-            log.info(f"Security with security_id '{security_id}' not found in database")
+        # verify security exists in database or polygon before creating transaction
+        security = self.security_updater.add_security_if_not_exists(
+            security_id, security_type
+        )
 
-            # raise exception if security not found in polygon
-            security_details = self._verify_security_exists(security_id, security_type)
-
-            new_security = None
-            match security_type:
-                case SecurityType.STOCK:
-                    price = self.polygon.get_latest_price(
-                        security_details.ticker.upper(), SecurityType.STOCK
-                    )
-                    new_security = Stock.create(
-                        name=security_details.name,
-                        ticker=security_details.ticker.upper(),
-                        exchange=get_market_exchange(
-                            security_details.primary_exchange
-                        ).key_name,
-                        price=price,
-                    )
-                case SecurityType.CRYPTO:
-                    price = self.polygon.get_latest_price(
-                        security_details.ticker.upper(), SecurityType.CRYPTO
-                    )
-                    new_security = Crypto.create(
-                        name=security_details.name,
-                        ticker=security_details.ticker.upper(),
-                        price=price,
-                    )
-
-            log.info(f"Adding security with security_id '{security_id}' to database")
-            self.walter_db.put_security(new_security)
-
-            # update existing security with new security details
-            existing_security = new_security
-        else:
-            log.info(f"Security with security_id '{security_id}' found in database")
-
+        # create transaction after verifying security exists in database or polygon
         return InvestmentTransaction.create(
             account_id=account.account_id,
             user_id=user.user_id,
@@ -294,11 +261,7 @@ class AddTransaction(WalterAPIMethod):
             transaction_subtype=transaction_subtype,
             transaction_category=transaction_category,
             ticker=security_id,
-            exchange=(
-                existing_security.exchange
-                if isinstance(existing_security, Stock)
-                else "CRYPTO"
-            ),
+            exchange=(security.exchange if isinstance(security, Stock) else "CRYPTO"),
             quantity=quantity,
             price_per_share=price_per_share,
         )
@@ -334,25 +297,6 @@ class AddTransaction(WalterAPIMethod):
             transaction_date=date,
             transaction_amount=amount,
             merchant_name=merchant_name,
-        )
-
-    def _verify_security_exists(
-        self, security_id: str, security_type: SecurityType
-    ) -> TickerDetails:
-        log.info(f"Verifying security exists for security_id '{security_id}'")
-        try:
-            return self.polygon.get_ticker_info(security_id, security_type)
-        except BadResponse as e:
-            if json.loads(str(e))["status"] == "NOT_FOUND":
-                raise SecurityDoesNotExist(
-                    f"Security with security_id '{security_id}' does not exist!"
-                )
-        except Exception as e:
-            raise BadRequest(
-                f"Error verifying security with security_id '{security_id}': {str(e)}"
-            )
-        log.info(
-            f"Verified security exists for security_id '{security_id}' in Polygon!"
         )
 
     def validate_fields(self, event: dict) -> None:

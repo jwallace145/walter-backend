@@ -89,11 +89,3 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     assert transaction.transaction_id == transaction_id
     assert isinstance(transaction, InvestmentTransaction)
     assert transaction.security_id == security_id
-
-
-# def test_delete_sell_investment_transaction(
-#     delete_transaction_api: DeleteTransaction,
-#     walter_db: WalterDB,
-#     walter_authenticator: WalterAuthenticator,
-# ) -> None:
-#     pass
