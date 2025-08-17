@@ -16,11 +16,12 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.transactions.models import (
     InvestmentTransaction,
-    InvestmentTransactionSubType,
     Transaction,
     TransactionType,
 )
 from src.database.users.models import User
+from src.investments.holdings.exceptions import InvalidHoldingUpdate
+from src.investments.holdings.updater import HoldingUpdater
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -31,8 +32,8 @@ class DeleteTransaction(WalterAPIMethod):
     """
     WalterAPI: DeleteTransaction
 
-    This API deletes a user transaction from the Transactions table
-    in WalterDB.
+    This API deletes a transaction from the database. For investment transactions,
+    it also updates the associated holding.
     """
 
     API_NAME = "DeleteTransaction"
@@ -45,15 +46,18 @@ class DeleteTransaction(WalterAPIMethod):
         UserDoesNotExist,
         TransactionDoesNotExist,
         HoldingDoesNotExist,
+        InvalidHoldingUpdate,
     ]
 
     walter_db: WalterDB
+    holding_updater: HoldingUpdater
 
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
+        holding_updater: HoldingUpdater,
     ) -> None:
         super().__init__(
             DeleteTransaction.API_NAME,
@@ -65,11 +69,12 @@ class DeleteTransaction(WalterAPIMethod):
             walter_cw,
         )
         self.walter_db = walter_db
+        self.holding_updater = holding_updater
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
         transaction = self._verify_transaction_exists(user, event)
-        self._delete_transaction(user, transaction)
+        self._delete_transaction(transaction)
         return Response(
             api_name=DeleteTransaction.API_NAME,
             http_status=HTTPStatus.OK,
@@ -106,7 +111,7 @@ class DeleteTransaction(WalterAPIMethod):
 
         return transaction
 
-    def _delete_transaction(self, user: User, transaction: Transaction) -> None:
+    def _delete_transaction(self, transaction: Transaction) -> None:
         log.info(
             f"Deleting transaction with ID '{transaction.transaction_id}' and date '{transaction.get_transaction_date()}'"
         )
@@ -116,57 +121,17 @@ class DeleteTransaction(WalterAPIMethod):
                 "Updating investment holding as a result of deleting the investment transaction"
             )
 
+            # update the associated holding due to transaction deletion
             if isinstance(transaction, InvestmentTransaction):
-
-                log.info(
-                    f"Getting holding for account '{transaction.account_id}' and security '{transaction.security_id}'"
-                )
-                security = self.walter_db.get_security_by_ticker(
-                    transaction.security_id
-                )
-                holding = self.walter_db.get_holding(
-                    transaction.account_id, security.security_id
+                self.holding_updater.delete_transaction(transaction)
+            else:
+                raise BadRequest(
+                    f"Transaction {transaction} is not an instance of InvestmentTransaction!"
                 )
 
-                if not holding:
-                    raise HoldingDoesNotExist(
-                        f"Holding for account '{transaction.account_id}' and security '{transaction.security_id}' does not exist!"
-                    )
-
-                if transaction.transaction_subtype == InvestmentTransactionSubType.BUY:
-                    log.info("Buy investment transaction! Updating holding...")
-                    holding.quantity -= transaction.quantity
-                    if holding.quantity <= 0:
-                        self.walter_db.delete_holding(
-                            transaction.account_id, holding.security_id
-                        )
-                    else:
-                        holding.total_cost_basis -= (
-                            transaction.quantity * transaction.price_per_share
-                        )
-                        holding.average_cost_basis = (
-                            holding.total_cost_basis / holding.quantity
-                        )
-                        self.walter_db.put_holding(holding)
-                elif (
-                    transaction.transaction_subtype == InvestmentTransactionSubType.SELL
-                ):
-                    log.info("Sell investment transaction! Updating holding...")
-                    holding.quantity += transaction.quantity
-                    holding.total_cost_basis += (
-                        transaction.quantity * transaction.price_per_share
-                    )
-                    holding.average_cost_basis = (
-                        holding.total_cost_basis / holding.quantity
-                    )
-                    self.walter_db.put_holding(holding)
-                else:
-                    log.info(
-                        "Transaction subtype is not a buy or sell! Skipping holding update"
-                    )
-
-            self.walter_db.delete_transaction(
-                transaction.account_id,
-                transaction.transaction_id,
-                transaction.get_transaction_date(),
-            )
+        # after any side effects of deleting the transaction are handled, delete the transaction
+        self.walter_db.delete_transaction(
+            transaction.account_id,
+            transaction.transaction_id,
+            transaction.get_transaction_date(),
+        )

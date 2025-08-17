@@ -20,6 +20,7 @@ from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.events.parser import WalterEventParser
+from src.investments.holdings.updater import HoldingUpdater
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
@@ -149,6 +150,11 @@ def walter_event_parser() -> WalterEventParser:
 @pytest.fixture
 def transactions_categorizer() -> ExpenseCategorizerMLP:
     return MockTransactionsCategorizer()
+
+
+@pytest.fixture
+def holding_updater(walter_db: WalterDB) -> HoldingUpdater:
+    return HoldingUpdater(walter_db)
 
 
 ####################

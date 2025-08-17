@@ -18,7 +18,6 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account, AccountType
 from src.database.client import WalterDB
-from src.database.holdings.models import Holding
 from src.database.securities.exchanges import get_market_exchange
 from src.database.securities.models import Crypto, SecurityType, Stock
 from src.database.transactions.models import (
@@ -32,6 +31,8 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.database.users.models import User
+from src.investments.holdings.exceptions import InvalidHoldingUpdate
+from src.investments.holdings.updater import HoldingUpdater
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -63,11 +64,13 @@ class AddTransaction(WalterAPIMethod):
         UserDoesNotExist,
         AccountDoesNotExist,
         SecurityDoesNotExist,
+        InvalidHoldingUpdate,
     ]
 
     walter_db: WalterDB
     transaction_categorizer: ExpenseCategorizerMLP
     polygon: PolygonClient
+    holding_updater: HoldingUpdater
 
     def __init__(
         self,
@@ -76,6 +79,7 @@ class AddTransaction(WalterAPIMethod):
         walter_db: WalterDB,
         expense_categorizer: ExpenseCategorizerMLP,
         polygon: PolygonClient,
+        holding_updater: HoldingUpdater,
     ) -> None:
         super().__init__(
             AddTransaction.API_NAME,
@@ -89,12 +93,22 @@ class AddTransaction(WalterAPIMethod):
         self.walter_db = walter_db
         self.transaction_categorizer = expense_categorizer
         self.polygon = polygon
+        self.holding_updater = holding_updater
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
         account = self._verify_account_exists(user, event)
         transaction = self._create_transaction(user, account, event)
+
+        # if the transaction is an investment transaction, update the holding
+        if transaction.transaction_type == TransactionType.INVESTMENT and isinstance(
+            transaction, InvestmentTransaction
+        ):
+            self.holding_updater.add_transaction(transaction)
+
+        # add the transaction to the database
         self.walter_db.add_transaction(transaction)
+
         return Response(
             api_name=AddTransaction.API_NAME,
             http_status=HTTPStatus.CREATED,
@@ -271,54 +285,6 @@ class AddTransaction(WalterAPIMethod):
             existing_security = new_security
         else:
             log.info(f"Security with security_id '{security_id}' found in database")
-            log.info(existing_security.to_dict())
-
-        match transaction_subtype:
-            case InvestmentTransactionSubType.BUY:
-                holding = self.walter_db.get_holding(
-                    account.account_id, existing_security.security_id
-                )
-
-                if not holding:
-                    log.info(
-                        f"Holding not found for account '{account.account_id}' and security '{security_id}'"
-                    )
-                    holding = Holding.create_new_holding(
-                        account_id=account.account_id,
-                        security_id=existing_security.security_id,
-                        quantity=quantity,
-                        average_cost_basis=price_per_share,
-                    )
-                else:
-                    holding.quantity += quantity
-                    holding.total_cost_basis += quantity * price_per_share
-                    holding.average_cost_basis = (
-                        holding.total_cost_basis / holding.quantity
-                    )
-
-                self.walter_db.put_holding(holding)
-            case InvestmentTransactionSubType.SELL:
-                holding = self.walter_db.get_holding(
-                    account.account_id, existing_security.security_id
-                )
-
-                if not holding:
-                    raise BadRequest(f"No holding found for security_id {security_id}")
-                elif holding.quantity < quantity:
-                    raise BadRequest(
-                        f"Not enough holding for security_id {security_id}"
-                    )
-                else:
-                    holding.quantity -= quantity
-                    holding.total_cost_basis = (
-                        holding.quantity * holding.average_cost_basis
-                    )
-
-                self.walter_db.put_holding(holding)
-            case _:
-                raise BadRequest(
-                    f"Invalid investment transaction subtype: {transaction_subtype}"
-                )
 
         return InvestmentTransaction.create(
             account_id=account.account_id,
