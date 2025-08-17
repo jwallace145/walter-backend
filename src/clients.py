@@ -33,6 +33,8 @@ from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
 from src.events.parser import WalterEventParser
+from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
 from src.media.bucket import PublicMediaBucket
 from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
@@ -113,11 +115,16 @@ walter_db = WalterDB(
     domain=DOMAIN,
 )
 
+holding_updater = HoldingUpdater(walter_db)
+
+
 #####################
 # WALTER STOCKS API #
 #####################
 
 polygon_client = PolygonClient(api_key=POLYGON_API_KEY)
+
+security_updater = SecurityUpdater(polygon_client, walter_db)
 
 #########################
 # JINJA TEMPLATE ENGINE #
@@ -175,10 +182,25 @@ delete_account_api = DeleteAccount(walter_authenticator, walter_cw, walter_db)
 # TRANSACTIONS
 get_transactions_api = GetTransactions(walter_authenticator, walter_cw, walter_db)
 add_transaction_api = AddTransaction(
-    walter_authenticator, walter_cw, walter_db, expense_categorizer, polygon_client
+    walter_authenticator,
+    walter_cw,
+    walter_db,
+    expense_categorizer,
+    polygon_client,
+    holding_updater,
+    security_updater,
 )
-edit_transaction_api = EditTransaction(walter_authenticator, walter_cw, walter_db)
-delete_transaction_api = DeleteTransaction(walter_authenticator, walter_cw, walter_db)
+edit_transaction_api = EditTransaction(
+    walter_authenticator,
+    walter_cw,
+    walter_db,
+    polygon_client,
+    holding_updater,
+    security_updater,
+)
+delete_transaction_api = DeleteTransaction(
+    walter_authenticator, walter_cw, walter_db, holding_updater
+)
 
 # USERS
 get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)

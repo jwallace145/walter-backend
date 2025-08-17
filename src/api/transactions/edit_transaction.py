@@ -13,8 +13,20 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
-from src.database.transactions.models import Transaction, TransactionCategory
+from src.database.securities.models import SecurityType
+from src.database.transactions.models import (
+    BankingTransactionSubType,
+    BankTransaction,
+    InvestmentTransaction,
+    InvestmentTransactionSubType,
+    Transaction,
+    TransactionCategory,
+    TransactionType,
+)
 from src.database.users.models import User
+from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
+from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -33,12 +45,14 @@ class EditTransaction(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = [
-        "transaction_date",  # sort key: <DATE>#<TRANSACTION_ID>
-        "transaction_id",  # sort key: <DATE>#<TRANSACTION_ID>
+        "transaction_date",
+        "transaction_id",
         "updated_date",
-        "updated_vendor",
         "updated_amount",
         "updated_category",
+        "updated_transaction_type",
+        "updated_transaction_subtype",
+        "updated_transaction_category",
     ]
     EXCEPTIONS = [
         BadRequest,
@@ -48,12 +62,18 @@ class EditTransaction(WalterAPIMethod):
     ]
 
     walter_db: WalterDB
+    polygon: PolygonClient
+    holding_updater: HoldingUpdater
+    security_updater: SecurityUpdater
 
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
         walter_cw: WalterCloudWatchClient,
         walter_db: WalterDB,
+        polygon: PolygonClient,
+        holding_updater: HoldingUpdater,
+        security_updater: SecurityUpdater,
     ) -> None:
         super().__init__(
             EditTransaction.API_NAME,
@@ -65,11 +85,19 @@ class EditTransaction(WalterAPIMethod):
             walter_cw,
         )
         self.walter_db = walter_db
+        self.polygon = polygon
+        self.holding_updater = holding_updater
+        self.security_updater = security_updater
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(authenticated_email)
-        transaction = self._verify_transaction_exists(user.user_id, event)
+        user = self._verify_user_exists(self.walter_db, authenticated_email)
+        transaction = self._verify_transaction_exists(user, event)
         updated_transaction = self._get_updated_transaction(transaction, event)
+
+        # if investment transaction, update holdings
+        if isinstance(updated_transaction, InvestmentTransaction):
+            self.holding_updater.update_transaction(updated_transaction)
+
         self.walter_db.put_transaction(updated_transaction)
         return Response(
             api_name=EditTransaction.API_NAME,
@@ -81,15 +109,7 @@ class EditTransaction(WalterAPIMethod):
             },
         )
 
-    def _verify_user_exists(self, email: str) -> User:
-        log.info(f"Verifying user exists with email '{email}'")
-        user = self.walter_db.get_user_by_email(email)
-        if user is None:
-            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
-        log.info("Verified user exists!")
-        return user
-
-    def _verify_transaction_exists(self, user_id: str, event: dict) -> Transaction:
+    def _verify_transaction_exists(self, user: User, event: dict) -> Transaction:
         log.info("Verifying transaction exists")
 
         # get sort key fields of existing transaction from request body
@@ -98,10 +118,8 @@ class EditTransaction(WalterAPIMethod):
         transaction_id = body["transaction_id"]
 
         # query walter db for existence of transaction
-        transaction = self.walter_db.get_transaction(
-            user_id=user_id,
-            date=date,
-            transaction_id=transaction_id,
+        transaction = self.walter_db.get_user_transaction(
+            user.user_id, transaction_id, date
         )
 
         # raise transaction does not exist exception if transaction not found in db
@@ -123,34 +141,81 @@ class EditTransaction(WalterAPIMethod):
 
         # get updated transaction request body fields
         updated_date = EditTransaction._get_date(body["updated_date"])
-        updated_vendor = body["updated_vendor"]
         updated_amount = EditTransaction._get_transaction_amount(body["updated_amount"])
-        updated_category = EditTransaction._get_transaction_category(
-            body["updated_category"]
+        updated_transaction_type = TransactionType.from_string(
+            body["updated_transaction_type"]
+        )
+        updated_transaction_category = TransactionCategory.from_string(
+            body["updated_transaction_category"]
         )
 
         # if user updated transaction date, delete and recreate transaction as
         # date is part of the primary key
-        if updated_date != transaction.date:
+        if updated_date != transaction.get_transaction_date():
             log.info(
                 f"User updated transaction date! Deleting user transaction '{transaction_id}'"
             )
+
+            # update holding if investment transaction
+            if isinstance(transaction, InvestmentTransaction):
+                self.holding_updater.delete_transaction(transaction)
+
+            # delete the transaction
             self.walter_db.delete_transaction(
-                user_id=transaction.user_id,
-                date=transaction.date,
+                account_id=transaction.account_id,
                 transaction_id=transaction.transaction_id,
+                date=transaction.get_transaction_date(),
             )
 
-        return Transaction(
-            user_id=transaction.user_id,
-            account_id=transaction.account_id,
-            date=updated_date,
-            vendor=updated_vendor,
-            amount=updated_amount,
-            category=updated_category,
-            transaction_id=transaction_id,
-            reviewed=True,
-        )
+        match transaction.transaction_type:
+            case TransactionType.INVESTMENT:
+                # get required fields for investment transaction from request body
+                try:
+                    transaction_subtype = InvestmentTransactionSubType.from_string(
+                        body["updated_transaction_subtype"]
+                    )
+                    ticker = body["ticker"]
+                    exchange = body["exchange"]
+                except KeyError as e:
+                    raise BadRequest(
+                        f"Missing required field for investment transaction: {str(e)}"
+                    )
+
+                security_type = EditTransaction._get_security_type(ticker)
+                self.security_updater.add_security_if_not_exists(ticker, security_type)
+
+                return InvestmentTransaction.create(
+                    user_id=transaction.user_id,
+                    account_id=transaction.account_id,
+                    date=updated_date,
+                    ticker=ticker,
+                    exchange=exchange,
+                    transaction_type=updated_transaction_type,
+                    transaction_subtype=transaction_subtype,
+                    transaction_category=updated_transaction_category,
+                )
+            case TransactionType.BANKING:
+                # get required fields for banking transaction from request body
+                try:
+                    transaction_subtype = BankingTransactionSubType.from_string(
+                        body["updated_transaction_subtype"]
+                    )
+                    merchant_name = body["merchant_name"]
+                except KeyError as e:
+                    raise BadRequest(
+                        f"Missing required field for bank transaction: {str(e)}"
+                    )
+
+                return BankTransaction.create(
+                    user_id=transaction.user_id,
+                    account_id=transaction.account_id,
+                    transaction_type=updated_transaction_type,
+                    transaction_subtype=transaction_subtype,
+                    transaction_category=updated_transaction_category,
+                    transaction_date=updated_date,
+                    transaction_amount=updated_amount,
+                    merchant_name=merchant_name,
+                )
 
     def validate_fields(self, event: dict) -> None:
         pass
@@ -175,9 +240,7 @@ class EditTransaction(WalterAPIMethod):
             raise BadRequest(f"Invalid transaction amount '{amount}'!")
 
     @staticmethod
-    def _get_transaction_category(category: str) -> TransactionCategory:
-        try:
-            return TransactionCategory.from_string(category)
-        except Exception:
-            log.error(f"Invalid transaction category: '{category}'")
-            raise BadRequest(f"Invalid transaction category '{category}'!")
+    def _get_security_type(security_id: str) -> SecurityType:
+        if security_id.split("-")[1] == "crypto":
+            return SecurityType.CRYPTO
+        return SecurityType.STOCK

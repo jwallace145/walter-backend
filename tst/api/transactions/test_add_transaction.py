@@ -16,6 +16,8 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
+from src.investments.holdings.updater import HoldingUpdater
+from src.investments.securities.updater import SecurityUpdater
 from tst.polygon.mock import MockPolygonClient
 
 
@@ -26,6 +28,8 @@ def add_transaction_api(
     walter_db: WalterDB,
     transactions_categorizer: ExpenseCategorizerMLP,
     polygon_client: MockPolygonClient,
+    holding_updater: HoldingUpdater,
+    security_updater: SecurityUpdater,
 ):
     return AddTransaction(
         walter_authenticator,
@@ -33,6 +37,8 @@ def add_transaction_api(
         walter_db,
         transactions_categorizer,
         polygon_client,
+        holding_updater,
+        security_updater,
     )
 
 
@@ -142,28 +148,30 @@ def test_add_investment_buy_updates_holding(
 ) -> None:
     # create add investment transaction test event, user has a holding for this security
     email = "walrus@gmail.com"
+    account_id = "acct-002"
+    security_id = "sec-nyse-coke"
     jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
         token=jwt,
         body={
-            "account_id": "acct-002",
+            "account_id": account_id,
             "date": "2025-08-08",
-            "amount": 600,
+            "amount": 1000,
             "transaction_type": TransactionType.INVESTMENT.value,
             "transaction_subtype": InvestmentTransactionSubType.BUY.value,
             "transaction_category": TransactionCategory.INVESTMENT.value,
             "security_id": "COKE",
             "security_type": "stock",
-            "quantity": 4,
-            "price_per_share": 150,
+            "quantity": 50,
+            "price_per_share": 20,
         },
     )
 
     # assert holding exists before transaction is added
-    holding = walter_db.get_holding("acct-002", "sec-nyse-coke")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is not None
-    assert holding.quantity == pytest.approx(4)
-    assert holding.average_cost_basis == pytest.approx(200)
+    assert holding.quantity == pytest.approx(50)
+    assert holding.average_cost_basis == pytest.approx(10)
 
     # invoke add transaction api
     response = add_transaction_api.invoke(event)
@@ -173,10 +181,10 @@ def test_add_investment_buy_updates_holding(
     assert response.status == Status.SUCCESS
 
     # assert holding was updated successfully
-    holding = walter_db.get_holding("acct-002", "sec-nyse-coke")
-    assert holding.quantity == pytest.approx(8)
-    assert holding.total_cost_basis == pytest.approx(1400)
-    assert holding.average_cost_basis == pytest.approx(175)
+    holding = walter_db.get_holding(account_id, security_id)
+    assert holding.quantity == pytest.approx(100)
+    assert holding.total_cost_basis == pytest.approx(1500)
+    assert holding.average_cost_basis == pytest.approx(15)
 
 
 def test_add_investment_sell_insufficient_quantity(
@@ -186,11 +194,13 @@ def test_add_investment_sell_insufficient_quantity(
 ):
     # create test add investment transaction event, user does not have enough holding for this security
     email = "walrus@gmail.com"
+    account_id = "acct-002"
+    security_id = "sec-crypto-btc"
     jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
         token=jwt,
         body={
-            "account_id": "acct-002",
+            "account_id": account_id,
             "date": "2025-08-09",
             "amount": 2510.0,
             "transaction_type": TransactionType.INVESTMENT.value,
@@ -204,7 +214,7 @@ def test_add_investment_sell_insufficient_quantity(
     )
 
     # assert holding exists before transaction is added
-    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is not None
     assert holding.quantity == pytest.approx(250)
     assert holding.average_cost_basis == pytest.approx(4.0)
@@ -216,10 +226,10 @@ def test_add_investment_sell_insufficient_quantity(
     # quantity of shares
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.FAILURE
-    assert "Not enough holding" in response.message
+    assert "greater than holding quantity" in response.message
 
     # assert holding was not updated as transaction was not created
-    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding.quantity == pytest.approx(250)
     assert holding.average_cost_basis == pytest.approx(4.0)
 
@@ -231,11 +241,13 @@ def test_add_investment_sell_updates_holding(
 ):
     # create test add investment transaction event, user has enough holding to sell this quantity of shares
     email = "walrus@gmail.com"
+    account_id = "acct-002"
+    security_id = "sec-crypto-btc"
     jwt = walter_authenticator.generate_user_token(email)
     event = create_add_transaction_event(
         token=jwt,
         body={
-            "account_id": "acct-002",
+            "account_id": account_id,
             "date": "2025-08-09",
             "amount": 1000.00,
             "transaction_type": TransactionType.INVESTMENT.value,
@@ -249,7 +261,7 @@ def test_add_investment_sell_updates_holding(
     )
 
     # assert holding exists before transaction is added
-    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is not None
     assert holding.quantity == pytest.approx(250)
     assert holding.average_cost_basis == pytest.approx(4.0)
@@ -262,7 +274,7 @@ def test_add_investment_sell_updates_holding(
     assert response.status == Status.SUCCESS
 
     # assert holding was updated successfully after the quantity of security was sold
-    holding = walter_db.get_holding("acct-002", "sec-crypto-btc")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding.quantity == pytest.approx(50)
     assert holding.total_cost_basis == pytest.approx(200.00)
     assert holding.average_cost_basis == pytest.approx(4.0)

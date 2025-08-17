@@ -54,7 +54,10 @@ class TransactionsTable:
         return TransactionsTable._from_ddb_item(item)
 
     def get_transactions(
-        self, account_id: str, start_date: dt.datetime, end_date: dt.datetime
+        self,
+        account_id: str,
+        start_date: dt.datetime = dt.datetime.min,
+        end_date: dt.datetime = dt.datetime.max,
     ) -> List[Transaction]:
         """Get all transactions for an account between start_date and end_date (inclusive)."""
         log.info(

@@ -24,6 +24,12 @@ MOCK_DATA = {
         "name": "Bitcoin",
         "price": 10000.00,
     },
+    "NFLX": {
+        "ticker": "NFLX",
+        "name": "Netflix Inc.",
+        "exchange": "XNAS",
+        "price": 100.00,
+    },
     "BTC": {
         "ticker": "BTC",
         "name": "Bitcoin",

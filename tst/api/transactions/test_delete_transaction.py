@@ -3,10 +3,13 @@ from datetime import datetime
 
 import pytest
 
+from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.transactions.models import InvestmentTransaction
+from src.investments.holdings.updater import HoldingUpdater
 
 
 @pytest.fixture
@@ -14,8 +17,11 @@ def delete_transaction_api(
     walter_authenticator: WalterAuthenticator,
     walter_cw: WalterCloudWatchClient,
     walter_db: WalterDB,
+    holding_updater: HoldingUpdater,
 ) -> DeleteTransaction:
-    return DeleteTransaction(walter_authenticator, walter_cw, walter_db)
+    return DeleteTransaction(
+        walter_authenticator, walter_cw, walter_db, holding_updater
+    )
 
 
 def create_delete_transaction_event(
@@ -39,40 +45,47 @@ def create_delete_transaction_event(
     }
 
 
-def test_delete_buy_investment_transaction(
+def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     delete_transaction_api: DeleteTransaction,
     walter_db: WalterDB,
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # create test delete transaction event, user has a holding for this security
     email = "lucy@gmail.com"
+    account_id = "acct-007"
+    transaction_date = "2025-08-02"
+    transaction_id = "investment-txn-010"
+    security_id = "sec-nyse-coke"
     jwt = walter_authenticator.generate_user_token(email)
-    event = create_delete_transaction_event(jwt, "investment-txn-007", "2025-08-01")
+    event = create_delete_transaction_event(jwt, transaction_id, transaction_date)
 
     # assert holding exists prior to api invocation
-    holding = walter_db.get_holding("acct-007", "sec-nasdaq-aapl")
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is not None
-    assert holding.quantity == pytest.approx(2.0)
-    assert holding.average_cost_basis == pytest.approx(75.0)
-    assert holding.total_cost_basis == pytest.approx(150.0)
+    assert holding.quantity == pytest.approx(20.0)
+    assert holding.average_cost_basis == pytest.approx(150.0)
+    assert holding.total_cost_basis == pytest.approx(3000.0)
 
     # invoke delete transaction api
-    delete_transaction_api.invoke(event)
+    response = delete_transaction_api.invoke(event)
 
-    # assert holding was deleted successfully
-    holding = walter_db.get_holding("acct-007", "sec-nasdaq-aapl")
-    assert holding is None
+    # assert response details
+    assert response.http_status == HTTPStatus.OK
+    assert response.status == Status.FAILURE
+    assert "greater than holding quantity" in response.message
 
-    # assert transaction was deleted successfully
+    # assert holding was not updated
+    holding = walter_db.get_holding(account_id, security_id)
+    assert holding is not None
+    assert holding.quantity == pytest.approx(20.0)
+    assert holding.average_cost_basis == pytest.approx(150.0)
+    assert holding.total_cost_basis == pytest.approx(3000.0)
+
+    # assert transaction still exists
     transaction = walter_db.get_transaction(
-        "acct-007", "investment-txn-007", datetime.strptime("2025-08-01", "%Y-%m-%d")
+        account_id, transaction_id, datetime.strptime(transaction_date, "%Y-%m-%d")
     )
-    assert transaction is None
-
-
-# def test_delete_sell_investment_transaction(
-#     delete_transaction_api: DeleteTransaction,
-#     walter_db: WalterDB,
-#     walter_authenticator: WalterAuthenticator,
-# ) -> None:
-#     pass
+    assert transaction is not None
+    assert transaction.transaction_id == transaction_id
+    assert isinstance(transaction, InvestmentTransaction)
+    assert transaction.security_id == security_id

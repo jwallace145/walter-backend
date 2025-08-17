@@ -12,7 +12,7 @@ from src.database.plaid_items.model import PlaidItem
 from src.database.plaid_items.table import PlaidItemsTable
 from src.database.securities.models import Security
 from src.database.securities.table import SecuritiesTable
-from src.database.transactions.models import Transaction
+from src.database.transactions.models import InvestmentTransaction, Transaction
 from src.database.transactions.table import TransactionsTable
 from src.database.users.models import User
 from src.database.users.table import UsersTable
@@ -115,6 +115,29 @@ class WalterDB:
             account_id, start_date, end_date
         )
 
+    def get_transactions_by_holding(
+        self, account_id: str, security_id: str
+    ) -> List[InvestmentTransaction]:
+        log.info(
+            f"Getting transactions for holding '{security_id}' in account '{account_id}'"
+        )
+        transactions = self.transactions_table.get_transactions(account_id)
+
+        log.info(
+            f"Found {len(transactions)} transactions in account '{account_id}'! Filtering transactions for holding '{security_id}'"
+        )
+        holding_transactions = []
+        for transaction in transactions:
+            if isinstance(transaction, InvestmentTransaction):
+                if transaction.security_id == security_id:
+                    holding_transactions.append(transaction)
+
+        log.info(
+            f"Found {len(holding_transactions)} transactions for holding '{security_id}' in account '{account_id}'"
+        )
+
+        return holding_transactions
+
     def get_user_transaction(
         self, user_id: str, transaction_id: str, transaction_date: dt.datetime
     ) -> Optional[Transaction]:
@@ -128,6 +151,9 @@ class WalterDB:
         return self.transactions_table.get_user_transactions(
             user_id, start_date, end_date
         )
+
+    def update_transaction(self, transaction: Transaction) -> Transaction:
+        return self.transactions_table.put_transaction(transaction)
 
     def delete_transaction(
         self, account_id: str, transaction_id: str, date: dt.datetime
