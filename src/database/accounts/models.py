@@ -458,6 +458,31 @@ class InvestmentAccount(Account):
         return self.get_common_attributes_ddb_item()
 
     @classmethod
+    def create(
+        cls,
+        user_id: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+    ):
+        now = datetime.now(timezone.utc)
+        return InvestmentAccount(
+            account_id=Account.generate_account_id(),
+            user_id=user_id,
+            account_type=AccountType.INVESTMENT,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+
+    @classmethod
     def from_ddb_item(cls, ddb_item: dict):
         plaid_last_sync_at = None
         if ddb_item.get("plaid_last_sync_at", {}).get("S"):

@@ -7,7 +7,7 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
-from src.database.accounts.models import Account, AccountType
+from src.database.accounts.models import AccountType, InvestmentAccount
 from src.database.client import WalterDB
 from src.utils.log import Logger
 
@@ -49,8 +49,7 @@ class GetAccounts(WalterAPIMethod):
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
         user = self._verify_user_exists(self.walter_db, authenticated_email)
-        accounts = self.walter_db.get_accounts(user.user_id)
-        accounts = self._update_account_balances(accounts)
+        accounts = self._get_accounts(user.user_id)
         return Response(
             api_name=GetAccounts.API_NAME,
             http_status=HTTPStatus.OK,
@@ -58,8 +57,8 @@ class GetAccounts(WalterAPIMethod):
             message="Successfully retrieved accounts!",
             data={
                 "total_num_accounts": len(accounts),
-                "total_balance": sum([account.balance for account in accounts]),
-                "accounts": [account.to_dict() for account in accounts],
+                "total_balance": sum([account["balance"] for account in accounts]),
+                "accounts": accounts,
             },
         )
 
@@ -69,43 +68,79 @@ class GetAccounts(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _update_account_balances(self, accounts: List[Account]) -> List[Account]:
+    def _get_accounts(self, user_id: str) -> List[dict]:
+        log.info(f"Getting accounts for user '{user_id}'")
+        accounts = self.walter_db.get_accounts(user_id)
+
         if len(accounts) == 0:
-            log.info("No accounts found to update balances for!")
+            log.info("No accounts found for user!")
             return []
 
-        log.info("Updating account balances...")
-
-        updated_accounts = []
+        account_dicts = []
         for account in accounts:
-            if account.account_type == AccountType.INVESTMENT:
+            if account.account_type == AccountType.INVESTMENT and isinstance(
+                account, InvestmentAccount
+            ):
                 log.info(
                     f"Updating balance for investment account '{account.account_id}'"
                 )
+                investment_account_dict = self._get_investment_account_dict(account)
 
-                # get current holdings for investment account
-                holdings = self.walter_db.get_holdings(account.account_id)
-
-                # get current securities and quantities from holdings
-                holdings_securities = []
-                holdings_quantities = {}
-                for holding in holdings:
-                    holdings_securities.append(holding.security_id)
-                    holdings_quantities[holding.security_id] = holding.quantity
-
-                investment_account_balance = 0
-                for security in holdings_securities:
-                    price = self.walter_db.get_security(security).current_price
-                    security_equity = price * holdings_quantities[security]
-                    investment_account_balance += security_equity
-                    log.info(
-                        f"Investment account balance for security '{security}': ${security_equity:,.2f}"
-                    )
-
-                account.balance = investment_account_balance
+                # update account balance
+                account.balance = investment_account_dict["balance"]
                 account.balance_last_updated_at = datetime.now(timezone.utc)
                 self.walter_db.update_account(account)
-                log.info(f"Updated balance for account '{account.account_id}'")
-            updated_accounts.append(account)
 
-        return updated_accounts
+                account_dicts.append(investment_account_dict)
+            else:
+                account_dicts.append(account.to_dict())
+
+        return account_dicts
+
+    def _get_investment_account_dict(
+        self,
+        account: InvestmentAccount,
+    ) -> dict:
+        # get current holdings for investment account
+        holdings = self.walter_db.get_holdings(account.account_id)
+
+        # get securities for holdings
+        securities = []
+        for holding in holdings:
+            security = self.walter_db.get_security(holding.security_id)
+            securities.append(security)
+
+        # create securities dict for fast lookups
+        securities_dict = {}
+        for security in securities:
+            securities_dict[security.security_id] = security
+
+        account_holdings = []
+        for holding in holdings:
+            security = securities_dict[holding.security_id]
+            account_holdings.append(
+                {
+                    "security_id": holding.security_id,
+                    "security_name": security.security_name,
+                    "quantity": holding.quantity,
+                    "current_price": security.current_price,
+                    "total_value": holding.quantity * security.current_price,
+                    "average_cost_basis": holding.average_cost_basis,
+                    "total_cost_basis": holding.total_cost_basis,
+                    "gain_loss": holding.quantity * security.current_price
+                    - holding.total_cost_basis,
+                }
+            )
+
+        now = datetime.now(timezone.utc)
+        return {
+            "account_id": account.account_id,
+            "account_name": account.account_name,
+            "account_type": account.account_type.value,
+            "balance": sum([holding["total_value"] for holding in account_holdings]),
+            "total_gain_loss": sum(
+                [holding["gain_loss"] for holding in account_holdings]
+            ),
+            "balance_last_updated_at": now.isoformat(),
+            "holdings": account_holdings,
+        }
