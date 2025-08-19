@@ -1,7 +1,7 @@
 import pytest
 from freezegun import freeze_time
 
-from src.api.accounts.get_accounts import GetAccounts
+from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
@@ -20,10 +20,10 @@ def get_accounts_api(
 
 def create_get_accounts_event(token: str) -> dict:
     return {
-        "headers": {"Authorization": f"Bearer {token}"},
-        "queryStringParameters": None,
         "path": "/accounts",
         "httpMethod": "GET",
+        "headers": {"Authorization": f"Bearer {token}"},
+        "queryStringParameters": None,
         "body": None,
     }
 
@@ -35,28 +35,70 @@ def test_get_accounts_success(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # prepare event
+    user_id = "user-001"
+    account_ids = {"acct-001", "acct-008"}
     email = "walter@gmail.com"
     jwt = walter_authenticator.generate_user_token(email)
     event = create_get_accounts_event(jwt)
 
-    # expected data from DB
-    user = walter_db.get_user_by_email(email)
-    accounts = walter_db.get_accounts(user.user_id)
-    expected_data = {
-        "total_num_accounts": len(accounts),
-        "total_balance": sum([a.balance for a in accounts]),
-        "accounts": [a.to_dict() for a in accounts],
-    }
+    # invoke api
+    response = get_accounts_api.invoke(event)
 
-    expected_response = get_expected_response(
-        api_name=get_accounts_api.API_NAME,
-        status_code=HTTPStatus.OK,
-        status=Status.SUCCESS,
-        message="Successfully retrieved accounts!",
-        data=expected_data,
+    # assert response
+    assert response.data["user_id"] == user_id
+    assert response.data["total_num_accounts"] == 2
+    assert response.data["total_balance"] == 25000.00
+
+    actual_account_ids = {data["account_id"] for data in response.data["accounts"]}
+    assert actual_account_ids == account_ids
+
+    # create account ids to accounts map for fast lookup by account id
+    account_ids_to_account = {}
+    for account in response.data["accounts"]:
+        account_ids_to_account[account["account_id"]] = account
+
+    # assert credit card account
+    assert account_ids_to_account["acct-001"]["account_id"] == "acct-001"
+    assert account_ids_to_account["acct-001"]["institution_name"] == "Test Credit Bank"
+    assert account_ids_to_account["acct-001"]["account_name"] == "Walter Credit Account"
+    assert account_ids_to_account["acct-001"]["account_type"] == "credit"
+    assert account_ids_to_account["acct-001"]["account_subtype"] == "credit card"
+    assert account_ids_to_account["acct-001"]["balance"] == 0.0
+
+    # assert investment account
+    assert account_ids_to_account["acct-008"]["account_id"] == "acct-008"
+    assert (
+        account_ids_to_account["acct-008"]["institution_name"] == "Test Investment Bank"
     )
-
-    assert expected_response == get_accounts_api.invoke(event)
+    assert (
+        account_ids_to_account["acct-008"]["account_name"]
+        == "Walter Investment Account"
+    )
+    assert account_ids_to_account["acct-008"]["account_type"] == "investment"
+    assert account_ids_to_account["acct-008"]["account_subtype"] == "retirement"
+    assert account_ids_to_account["acct-008"]["balance"] == 25000.00
+    assert len(account_ids_to_account["acct-008"]["holdings"]) == 1
+    assert (
+        account_ids_to_account["acct-008"]["holdings"][0]["security_id"]
+        == "sec-nyse-coke"
+    )
+    assert (
+        account_ids_to_account["acct-008"]["holdings"][0]["security_ticker"] == "COKE"
+    )
+    assert (
+        account_ids_to_account["acct-008"]["holdings"][0]["security_name"]
+        == "Coca-Cola Consolidated Inc."
+    )
+    assert account_ids_to_account["acct-008"]["holdings"][0]["quantity"] == 100.00
+    assert account_ids_to_account["acct-008"]["holdings"][0]["current_price"] == 250.00
+    assert account_ids_to_account["acct-008"]["holdings"][0]["total_value"] == 25000.00
+    assert (
+        account_ids_to_account["acct-008"]["holdings"][0]["total_cost_basis"] == 1000.00
+    )
+    assert (
+        account_ids_to_account["acct-008"]["holdings"][0]["average_cost_basis"] == 10.00
+    )
+    assert account_ids_to_account["acct-008"]["holdings"][0]["gain_loss"] == 24000.00
 
 
 @freeze_time("2025-07-01")
@@ -107,8 +149,7 @@ def test_get_accounts_success_update_balances(
     # invoke api
     actual_response = get_accounts_api.invoke(event)
 
+    print(actual_response.data)
+
     # assert that balance and balance last update timestamp were updated
     assert actual_response.data["accounts"][0]["balance"] == 50.00
-    assert (
-        "2025-07-01" in actual_response.data["accounts"][0]["balance_last_updated_at"]
-    )

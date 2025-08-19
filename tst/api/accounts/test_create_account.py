@@ -27,11 +27,15 @@ def _event_with_auth_and_body(token: str, body: dict) -> dict:
 
 
 def test_create_account_success(
-    create_account_api: CreateAccount, walter_db: WalterDB, jwt_walter: str
+    create_account_api: CreateAccount,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ) -> None:
+    email = "walter@gmail.com"
+    jwt = walter_authenticator.generate_user_token(email)
     user = walter_db.get_user_by_email("walter@gmail.com")
     event = _event_with_auth_and_body(
-        jwt_walter,
+        jwt,
         {
             "account_type": "credit",
             "account_subtype": "credit card",

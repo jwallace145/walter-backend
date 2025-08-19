@@ -7,7 +7,7 @@ from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.accounts.create_account import CreateAccount
 from src.api.accounts.delete_account import DeleteAccount
-from src.api.accounts.get_accounts import GetAccounts
+from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.accounts.update_account import UpdateAccount
 from src.api.auth.auth_user import AuthUser
 from src.api.plaid.create_link_token import CreateLinkToken

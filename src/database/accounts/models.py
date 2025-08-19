@@ -1,5 +1,5 @@
 import random
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
@@ -21,29 +21,46 @@ class AccountType(Enum):
         raise ValueError(f"Invalid account type '{account_type_str}'!")
 
 
-@dataclass
-class Account:
+class Account(ABC):
     """Account Model"""
 
     DEFAULT_LOGO_URL = "https://walterai-public-media-dev.s3.us-east-1.amazonaws.com/cash-accounts/default/logo.svg"
 
-    account_id: str
-    user_id: str
-    account_type: AccountType
-    account_subtype: str
-    institution_name: str
-    account_name: str
-    account_mask: str
-    balance: float
-    balance_last_updated_at: datetime
-    created_at: datetime
-    updated_at: datetime
-    plaid_account_id: Optional[str] = None
-    plaid_item_id: Optional[str] = None
-    plaid_last_sync_at: Optional[datetime] = None
-    logo_url: str = DEFAULT_LOGO_URL
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        account_type: AccountType,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        balance_last_updated_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        plaid_account_id: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+        logo_url: Optional[str] = DEFAULT_LOGO_URL,
+    ) -> None:
+        self.account_id = account_id
+        self.user_id = user_id
+        self.account_type = account_type
+        self.account_subtype = account_subtype
+        self.institution_name = institution_name
+        self.account_name = account_name
+        self.account_mask = account_mask
+        self.balance = balance
+        self.balance_last_updated_at = balance_last_updated_at
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.plaid_account_id = plaid_account_id
+        self.plaid_item_id = plaid_item_id
+        self.plaid_last_sync_at = plaid_last_sync_at
+        self.logo_url = logo_url
 
-    def to_dict(self) -> dict:
+    def get_common_attributes_dict(self) -> dict:
         return {
             "account_id": self.account_id,
             "user_id": self.user_id,
@@ -64,7 +81,7 @@ class Account:
             "logo_url": self.logo_url,
         }
 
-    def to_ddb_item(self) -> dict:
+    def get_common_attributes_ddb_item(self) -> dict:
         ddb_item = {
             "user_id": {
                 "S": self.user_id,
@@ -118,6 +135,14 @@ class Account:
 
         return ddb_item
 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        pass
+
+    @abstractmethod
+    def to_ddb_item(self) -> dict:
+        pass
+
     @staticmethod
     def generate_account_id() -> str:
         timestamp_part = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
@@ -125,7 +150,7 @@ class Account:
         return f"acct-{timestamp_part}{random_part}"
 
     @classmethod
-    def create_new_account(
+    def create(
         cls,
         user_id: str,
         account_type: str,
@@ -135,11 +160,124 @@ class Account:
         account_mask: str,
         balance: float,
     ):
+        account_type = AccountType.from_string(account_type)
+
+        match account_type:
+            case AccountType.DEPOSITORY:
+                return DepositoryAccount.create(
+                    user_id=user_id,
+                    account_subtype=account_subtype,
+                    institution_name=institution_name,
+                    account_name=account_name,
+                    account_mask=account_mask,
+                    balance=balance,
+                )
+            case AccountType.CREDIT:
+                return CreditAccount.create(
+                    user_id=user_id,
+                    account_subtype=account_subtype,
+                    institution_name=institution_name,
+                    account_name=account_name,
+                    account_mask=account_mask,
+                    balance=balance,
+                )
+            case AccountType.INVESTMENT:
+                return InvestmentAccount.create(
+                    user_id=user_id,
+                    account_subtype=account_subtype,
+                    institution_name=institution_name,
+                    account_name=account_name,
+                    account_mask=account_mask,
+                    balance=balance,
+                )
+            case AccountType.LOAN:
+                return LoanAccount.create(
+                    user_id=user_id,
+                    account_subtype=account_subtype,
+                    institution_name=institution_name,
+                    account_name=account_name,
+                    account_mask=account_mask,
+                    balance=balance,
+                )
+            case _:
+                raise ValueError(f"Unknown account type: {account_type}")
+
+    @classmethod
+    def from_ddb_item(cls, ddb_item: dict):
+        account_type = AccountType.from_string(ddb_item["account_type"]["S"])
+
+        match account_type:
+            case AccountType.DEPOSITORY:
+                return DepositoryAccount.from_ddb_item(ddb_item)
+            case AccountType.CREDIT:
+                return CreditAccount.from_ddb_item(ddb_item)
+            case AccountType.INVESTMENT:
+                return InvestmentAccount.from_ddb_item(ddb_item)
+            case AccountType.LOAN:
+                return LoanAccount.from_ddb_item(ddb_item)
+            case _:
+                raise ValueError(f"Unknown account type: {account_type}")
+
+
+class DepositoryAccount(Account):
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        account_type: AccountType,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        balance_last_updated_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        plaid_account_id: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+    ) -> None:
+        super().__init__(
+            account_id=account_id,
+            user_id=user_id,
+            account_type=account_type,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=balance_last_updated_at,
+            created_at=created_at,
+            updated_at=updated_at,
+            plaid_account_id=plaid_account_id,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
+            logo_url=logo_url,
+        )
+
+    def to_dict(self) -> dict:
+        return self.get_common_attributes_dict()
+
+    def to_ddb_item(self) -> dict:
+        return self.get_common_attributes_ddb_item()
+
+    @classmethod
+    def create(
+        cls,
+        user_id: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+    ):
         now = datetime.now(timezone.utc)
-        return Account(
+        return DepositoryAccount(
             account_id=Account.generate_account_id(),
             user_id=user_id,
-            account_type=AccountType.from_string(account_type),
+            account_type=AccountType.DEPOSITORY,
             account_subtype=account_subtype,
             institution_name=institution_name,
             account_name=account_name,
@@ -157,7 +295,273 @@ class Account:
             plaid_last_sync_at = datetime.fromisoformat(
                 ddb_item["plaid_last_sync_at"]["S"]
             )
-        return Account(
+        return DepositoryAccount(
+            user_id=ddb_item["user_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            account_type=AccountType.from_string(ddb_item["account_type"]["S"]),
+            account_subtype=ddb_item["account_subtype"]["S"],
+            institution_name=ddb_item["institution_name"]["S"],
+            account_name=ddb_item["account_name"]["S"],
+            account_mask=ddb_item["account_mask"]["S"],
+            balance=float(ddb_item["balance"]["N"]),
+            balance_last_updated_at=datetime.fromisoformat(
+                ddb_item["balance_last_updated_at"]["S"]
+            ),
+            created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
+            updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
+            logo_url=ddb_item["logo_url"]["S"],
+            plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_last_sync_at=plaid_last_sync_at,
+        )
+
+
+class CreditAccount(Account):
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        account_type: AccountType,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        balance_last_updated_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        plaid_account_id: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+    ) -> None:
+        super().__init__(
+            account_id=account_id,
+            user_id=user_id,
+            account_type=account_type,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=balance_last_updated_at,
+            created_at=created_at,
+            updated_at=updated_at,
+            plaid_account_id=plaid_account_id,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
+            logo_url=logo_url,
+        )
+
+    def to_dict(self) -> dict:
+        return self.get_common_attributes_dict()
+
+    def to_ddb_item(self) -> dict:
+        return self.get_common_attributes_ddb_item()
+
+    @classmethod
+    def create(
+        cls,
+        user_id: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+    ):
+        now = datetime.now(timezone.utc)
+        return CreditAccount(
+            account_id=Account.generate_account_id(),
+            user_id=user_id,
+            account_type=AccountType.CREDIT,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+
+    @classmethod
+    def from_ddb_item(cls, ddb_item: dict):
+        plaid_last_sync_at = None
+        if ddb_item.get("plaid_last_sync_at", {}).get("S"):
+            plaid_last_sync_at = datetime.fromisoformat(
+                ddb_item["plaid_last_sync_at"]["S"]
+            )
+        return CreditAccount(
+            user_id=ddb_item["user_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            account_type=AccountType.from_string(ddb_item["account_type"]["S"]),
+            account_subtype=ddb_item["account_subtype"]["S"],
+            institution_name=ddb_item["institution_name"]["S"],
+            account_name=ddb_item["account_name"]["S"],
+            account_mask=ddb_item["account_mask"]["S"],
+            balance=float(ddb_item["balance"]["N"]),
+            balance_last_updated_at=datetime.fromisoformat(
+                ddb_item["balance_last_updated_at"]["S"]
+            ),
+            created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
+            updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
+            logo_url=ddb_item["logo_url"]["S"],
+            plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_last_sync_at=plaid_last_sync_at,
+        )
+
+
+class InvestmentAccount(Account):
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        account_type: AccountType,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        balance_last_updated_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        plaid_account_id: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+    ) -> None:
+        super().__init__(
+            account_id=account_id,
+            user_id=user_id,
+            account_type=account_type,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=balance_last_updated_at,
+            created_at=created_at,
+            updated_at=updated_at,
+            plaid_account_id=plaid_account_id,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
+            logo_url=logo_url,
+        )
+
+    def to_dict(self) -> dict:
+        return self.get_common_attributes_dict()
+
+    def to_ddb_item(self) -> dict:
+        return self.get_common_attributes_ddb_item()
+
+    @classmethod
+    def create(
+        cls,
+        user_id: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+    ):
+        now = datetime.now(timezone.utc)
+        return InvestmentAccount(
+            account_id=Account.generate_account_id(),
+            user_id=user_id,
+            account_type=AccountType.INVESTMENT,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+
+    @classmethod
+    def from_ddb_item(cls, ddb_item: dict):
+        plaid_last_sync_at = None
+        if ddb_item.get("plaid_last_sync_at", {}).get("S"):
+            plaid_last_sync_at = datetime.fromisoformat(
+                ddb_item["plaid_last_sync_at"]["S"]
+            )
+        return InvestmentAccount(
+            user_id=ddb_item["user_id"]["S"],
+            account_id=ddb_item["account_id"]["S"],
+            account_type=AccountType.from_string(ddb_item["account_type"]["S"]),
+            account_subtype=ddb_item["account_subtype"]["S"],
+            institution_name=ddb_item["institution_name"]["S"],
+            account_name=ddb_item["account_name"]["S"],
+            account_mask=ddb_item["account_mask"]["S"],
+            balance=float(ddb_item["balance"]["N"]),
+            balance_last_updated_at=datetime.fromisoformat(
+                ddb_item["balance_last_updated_at"]["S"]
+            ),
+            created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
+            updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
+            logo_url=ddb_item["logo_url"]["S"],
+            plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_last_sync_at=plaid_last_sync_at,
+        )
+
+
+class LoanAccount(Account):
+
+    def __init__(
+        self,
+        account_id: str,
+        user_id: str,
+        account_type: AccountType,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        balance_last_updated_at: datetime,
+        created_at: datetime,
+        updated_at: datetime,
+        plaid_account_id: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+    ) -> None:
+        super().__init__(
+            account_id=account_id,
+            user_id=user_id,
+            account_type=account_type,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=balance_last_updated_at,
+            created_at=created_at,
+            updated_at=updated_at,
+            plaid_account_id=plaid_account_id,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
+            logo_url=logo_url,
+        )
+
+    def to_dict(self) -> dict:
+        return self.get_common_attributes_dict()
+
+    def to_ddb_item(self) -> dict:
+        return self.get_common_attributes_ddb_item()
+
+    @classmethod
+    def from_ddb_item(cls, ddb_item: dict):
+        plaid_last_sync_at = None
+        if ddb_item.get("plaid_last_sync_at", {}).get("S"):
+            plaid_last_sync_at = datetime.fromisoformat(
+                ddb_item["plaid_last_sync_at"]["S"]
+            )
+        return LoanAccount(
             user_id=ddb_item["user_id"]["S"],
             account_id=ddb_item["account_id"]["S"],
             account_type=AccountType.from_string(ddb_item["account_type"]["S"]),

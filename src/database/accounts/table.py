@@ -47,7 +47,7 @@ class AccountsTable:
         }
         log.info(f"Creating new {account_type.lower()} account for user '{user_id}'")
         log.debug(f"Account args:\n{json.dumps(args, indent=4)}")
-        account = Account.create_new_account(
+        account = Account.create(
             user_id=user_id,
             account_type=account_type,
             account_subtype=account_subtype,

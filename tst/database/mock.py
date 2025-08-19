@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from mypy_boto3_dynamodb.client import DynamoDBClient
 
-from src.database.accounts.models import Account, AccountType
+from src.database.accounts.models import Account
 from src.database.holdings.models import Holding
 from src.database.securities.models import Crypto, SecurityType, Stock
 from src.database.transactions.models import (
@@ -114,30 +114,49 @@ class MockDDB:
                 if not account.strip():
                     continue
                 json_account = json.loads(account)
+                account_item = Account.from_ddb_item(
+                    {
+                        "account_id": {
+                            "S": json_account["account_id"],
+                        },
+                        "user_id": {
+                            "S": json_account["user_id"],
+                        },
+                        "account_type": {
+                            "S": json_account["account_type"],
+                        },
+                        "account_subtype": {
+                            "S": json_account["account_subtype"],
+                        },
+                        "institution_name": {
+                            "S": json_account["institution_name"],
+                        },
+                        "account_name": {
+                            "S": json_account["account_name"],
+                        },
+                        "account_mask": {
+                            "S": json_account["account_mask"],
+                        },
+                        "balance": {
+                            "N": str(json_account["balance"]),
+                        },
+                        "balance_last_updated_at": {
+                            "S": json_account["balance_last_updated_at"],
+                        },
+                        "created_at": {
+                            "S": json_account["created_at"],
+                        },
+                        "updated_at": {
+                            "S": json_account["updated_at"],
+                        },
+                        "logo_url": {
+                            "S": json_account["logo_url"],
+                        },
+                    }
+                ).to_ddb_item()
                 self.mock_ddb.put_item(
                     TableName=table_name,
-                    Item=Account(
-                        user_id=json_account["user_id"],
-                        account_id=json_account["account_id"],
-                        account_type=AccountType.from_string(
-                            json_account["account_type"]
-                        ),
-                        account_subtype=json_account["account_subtype"],
-                        institution_name=json_account["institution_name"],
-                        account_name=json_account["account_name"],
-                        account_mask=json_account["account_mask"],
-                        balance=float(json_account["balance"]),
-                        balance_last_updated_at=datetime.datetime.fromisoformat(
-                            json_account["balance_last_updated_at"]
-                        ),
-                        created_at=datetime.datetime.strptime(
-                            json_account["created_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        updated_at=datetime.datetime.strptime(
-                            json_account["updated_at"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
-                        logo_url=json_account["logo_url"],
-                    ).to_ddb_item(),
+                    Item=account_item,
                 )
 
     def _create_securities_table(self, table_name: str, input_file_name: str) -> None:
