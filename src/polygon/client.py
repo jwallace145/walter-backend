@@ -39,7 +39,7 @@ class PolygonClient:
         self,
         security_ticker: str,
         security_type: SecurityType,
-        start_date: datetime = datetime.now(timezone.utc) - timedelta(days=1),
+        start_date: datetime = datetime.now(timezone.utc) - timedelta(days=7),
         end_date: datetime = datetime.now(timezone.utc),
     ) -> float:
         ticker = PolygonClient._get_ticker(security_ticker, security_type)

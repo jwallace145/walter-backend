@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import List
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
@@ -76,19 +76,17 @@ class GetAccounts(WalterAPIMethod):
 
         log.info("Updating account balances...")
 
-        update_account_balance_cutoff = datetime.now(timezone.utc) - timedelta(
-            minutes=10
-        )
-
         updated_accounts = []
         for account in accounts:
-            if (
-                account.account_type == AccountType.INVESTMENT
-                and account.balance_last_updated_at < update_account_balance_cutoff
-            ):
-                log.info(f"Updating balance for account '{account.account_id}'")
+            if account.account_type == AccountType.INVESTMENT:
+                log.info(
+                    f"Updating balance for investment account '{account.account_id}'"
+                )
+
+                # get current holdings for investment account
                 holdings = self.walter_db.get_holdings(account.account_id)
 
+                # get current securities and quantities from holdings
                 holdings_securities = []
                 holdings_quantities = {}
                 for holding in holdings:
@@ -101,14 +99,13 @@ class GetAccounts(WalterAPIMethod):
                     security_equity = price * holdings_quantities[security]
                     investment_account_balance += security_equity
                     log.info(
-                        f"Investment account balance for security '{security}': {security_equity}"
+                        f"Investment account balance for security '{security}': ${security_equity:,.2f}"
                     )
 
                 account.balance = investment_account_balance
                 account.balance_last_updated_at = datetime.now(timezone.utc)
                 self.walter_db.update_account(account)
                 log.info(f"Updated balance for account '{account.account_id}'")
-
             updated_accounts.append(account)
 
         return updated_accounts
