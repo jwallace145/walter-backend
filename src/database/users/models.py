@@ -1,10 +1,8 @@
 import json
 import random
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Optional
-
-from src.config import CONFIG
 
 
 @dataclass
@@ -13,18 +11,14 @@ class User:
     Walter User Model
     """
 
+    user_id: str
     email: str
     first_name: str
     last_name: str
     password_hash: str
-    user_id: str = None  # user primary key, set during post init as unique id
     sign_up_date: datetime = datetime.now(timezone.utc)
     last_active_date: datetime = datetime.now(timezone.utc)
-    free_trial_end_date: datetime = datetime.now(timezone.utc) + timedelta(
-        days=CONFIG.newsletter.free_trial_length_days
-    )
     verified: bool = False
-    subscribed: bool = True
     profile_picture_s3_uri: Optional[str] = None
     profile_picture_url: Optional[str] = None
     profile_picture_url_expiration: Optional[datetime] = None
@@ -57,9 +51,7 @@ class User:
             "password_hash": self.password_hash,
             "sign_up_date": self.sign_up_date.isoformat(),
             "last_active_date": self.last_active_date.isoformat(),
-            "free_trial_end_date": self.free_trial_end_date.isoformat(),
             "verified": self.verified,
-            "subscribed": self.subscribed,
             "profile_picture_s3_uri": self.profile_picture_s3_uri,
             "profile_picture_url": self.profile_picture_url,
             "profile_picture_url_expiration": (
@@ -127,9 +119,7 @@ class User:
             "password_hash": {"S": self.password_hash},
             "sign_up_date": {"S": self.sign_up_date.isoformat()},
             "last_active_date": {"S": self.last_active_date.isoformat()},
-            "free_trial_end_date": {"S": self.free_trial_end_date.isoformat()},
             "verified": {"BOOL": self.verified},
-            "subscribed": {"BOOL": self.subscribed},
             "profile_picture_s3_uri": {"S": profile_picture_s3_uri},
             "profile_picture_url": {"S": profile_picture_url},
             "profile_picture_url_expiration": {"S": profile_picture_url_expiration},

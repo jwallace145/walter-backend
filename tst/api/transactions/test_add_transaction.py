@@ -57,10 +57,18 @@ def create_add_transaction_event(token: str, body: dict) -> dict:
 
 
 def test_add_bank_debit_success(
-    add_transaction_api: AddTransaction, walter_db: WalterDB, jwt_walter: str
+    add_transaction_api: AddTransaction,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ):
+    user_id = "user-001"
+    session_id = "session-001"
+    account_id = "acct-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walter,
+        token=token,
         body={
             "account_id": "acct-001",
             "date": "2025-08-07",
@@ -82,7 +90,7 @@ def test_add_bank_debit_success(
     assert txn["merchant_name"] == "Chipotle"
     # ensure persisted
     txn = walter_db.get_transaction(
-        account_id="acct-001",
+        account_id=account_id,
         transaction_id=txn["transaction_id"],
         transaction_date=dt.datetime.strptime("2025-08-07", "%Y-%m-%d"),
     )
@@ -96,10 +104,15 @@ def test_add_investment_buy_new_holding_success(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # create add investment transaction test event, user does not have a holding for this security
-    email = "walrus@gmail.com"
-    jwt = walter_authenticator.generate_user_token(email)
+    user_id = "user-002"
+    session_id = "session-004"
+    account_id = "acct-002"
+    security_id = "sec-nasdaq-meta"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt,
+        token=token,
         body={
             "account_id": "acct-002",
             "date": "2025-08-04",
@@ -115,9 +128,7 @@ def test_add_investment_buy_new_holding_success(
     )
 
     # assert holding does not exist before transaction is added
-    holding = walter_db.get_holding(
-        account_id="acct-002", security_id="sec-nasdaq-meta"
-    )
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is None
 
     # invoke add transaction api
@@ -133,9 +144,7 @@ def test_add_investment_buy_new_holding_success(
     assert data_txn["security_id"] == "sec-nasdaq-meta"
 
     # assert holding was created successfully
-    holding = walter_db.get_holding(
-        account_id="acct-002", security_id="sec-nasdaq-meta"
-    )
+    holding = walter_db.get_holding(account_id, security_id)
     assert holding is not None
     assert holding.quantity == pytest.approx(50)
     assert holding.average_cost_basis == pytest.approx(10)
@@ -147,12 +156,15 @@ def test_add_investment_buy_updates_holding(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # create add investment transaction test event, user has a holding for this security
-    email = "walrus@gmail.com"
+    user_id = "user-002"
+    session_id = "session-004"
     account_id = "acct-002"
     security_id = "sec-nyse-coke"
-    jwt = walter_authenticator.generate_user_token(email)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt,
+        token=token,
         body={
             "account_id": account_id,
             "date": "2025-08-08",
@@ -193,12 +205,15 @@ def test_add_investment_sell_insufficient_quantity(
     walter_authenticator: WalterAuthenticator,
 ):
     # create test add investment transaction event, user does not have enough holding for this security
-    email = "walrus@gmail.com"
+    user_id = "user-002"
+    session_id = "session-004"
     account_id = "acct-002"
     security_id = "sec-crypto-btc"
-    jwt = walter_authenticator.generate_user_token(email)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt,
+        token=token,
         body={
             "account_id": account_id,
             "date": "2025-08-09",
@@ -240,12 +255,15 @@ def test_add_investment_sell_updates_holding(
     walter_authenticator: WalterAuthenticator,
 ):
     # create test add investment transaction event, user has enough holding to sell this quantity of shares
-    email = "walrus@gmail.com"
+    user_id = "user-002"
+    session_id = "session-004"
     account_id = "acct-002"
     security_id = "sec-crypto-btc"
-    jwt = walter_authenticator.generate_user_token(email)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt,
+        token=token,
         body={
             "account_id": account_id,
             "date": "2025-08-09",
@@ -280,10 +298,17 @@ def test_add_investment_sell_updates_holding(
     assert holding.average_cost_basis == pytest.approx(4.0)
 
 
-def test_account_not_found(add_transaction_api: AddTransaction, jwt_walrus: str):
+def test_account_not_found(
+    add_transaction_api: AddTransaction, walter_authenticator: WalterAuthenticator
+) -> None:
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     # account does not exist for acct-999
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=token,
         body={
             "account_id": "acct-999",
             "date": "2025-08-07",
@@ -303,10 +328,15 @@ def test_account_not_found(add_transaction_api: AddTransaction, jwt_walrus: str)
 def test_invalid_account_type_for_investment(
     add_transaction_api: AddTransaction,
     walter_db: WalterDB,
-    jwt_walter: str,
+    walter_authenticator: WalterAuthenticator,
 ):
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walter,
+        token=token,
         body={
             "account_id": "acct-001",
             "date": "2025-08-04",
@@ -327,12 +357,18 @@ def test_invalid_account_type_for_investment(
 
 
 def test_invalid_date_format_fails_validation(
-    add_transaction_api: AddTransaction, jwt_walrus: str
+    add_transaction_api: AddTransaction, walter_authenticator: WalterAuthenticator
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    account_id = "acct-003"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=token,
         body={
-            "account_id": "acct-003",
+            "account_id": account_id,
             "date": "08-07-2025",  # wrong format
             "amount": 12.34,
             "transaction_type": TransactionType.BANKING.value,
@@ -348,10 +384,15 @@ def test_invalid_date_format_fails_validation(
 
 
 def test_invalid_amount_fails_validation(
-    add_transaction_api: AddTransaction, jwt_walrus: str
+    add_transaction_api: AddTransaction, walter_authenticator: WalterAuthenticator
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=token,
         body={
             "account_id": "acct-003",
             "date": "2025-08-07",
@@ -369,10 +410,16 @@ def test_invalid_amount_fails_validation(
 
 
 def test_investment_amount_mismatch(
-    add_transaction_api: AddTransaction, jwt_walrus: str
+    add_transaction_api: AddTransaction,
+    walter_authenticator: WalterAuthenticator,
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=token,
         body={
             "account_id": "acct-002",
             "date": "2025-08-04",
@@ -394,10 +441,16 @@ def test_investment_amount_mismatch(
 
 
 def test_bank_missing_merchant_name_validation(
-    add_transaction_api: AddTransaction, jwt_walrus: str
+    add_transaction_api: AddTransaction,
+    walter_authenticator: WalterAuthenticator,
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_add_transaction_event(
-        token=jwt_walrus,
+        token=token,
         body={
             "account_id": "acct-003",
             "date": "2025-08-07",

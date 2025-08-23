@@ -49,7 +49,7 @@ Walter's REST API is fully documented using [OpenAPI 3.0](https://spec.openapis.
 
 ```bash
 # 1. Get access token for user from Swagger UI
-POST /auth
+POST /auth/login
 {
   "email": "user@example.com",
   "password": "your_password"

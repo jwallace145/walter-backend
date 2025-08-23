@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
@@ -7,6 +8,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.utils.log import Logger
 
@@ -34,8 +36,6 @@ class CreateAccount(WalterAPIMethod):
         UserDoesNotExist,
     ]
 
-    walter_db: WalterDB
-
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
@@ -50,11 +50,11 @@ class CreateAccount(WalterAPIMethod):
             CreateAccount.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
         account = self._create_new_account(user, event)
         return Response(
             api_name=CreateAccount.API_NAME,
@@ -74,7 +74,7 @@ class CreateAccount(WalterAPIMethod):
         log.info("Creating new account for user")
 
         body = json.loads(event["body"])
-        account = self.walter_db.create_account(
+        account = self.db.create_account(
             user_id=user.user_id,
             account_type=body["account_type"],
             account_subtype=body["account_subtype"],

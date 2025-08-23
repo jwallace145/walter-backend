@@ -36,10 +36,12 @@ def test_get_accounts_success(
 ) -> None:
     # prepare event
     user_id = "user-001"
+    session_id = "session-001"
     account_ids = {"acct-001", "acct-008"}
-    email = "walter@gmail.com"
-    jwt = walter_authenticator.generate_user_token(email)
-    event = create_get_accounts_event(jwt)
+    access_token, access_token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_get_accounts_event(access_token)
 
     # invoke api
     response = get_accounts_api.invoke(event)
@@ -110,23 +112,25 @@ def test_get_accounts_failure_not_authenticated(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="Not authenticated! Token is invalid.",
+        message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == get_accounts_api.invoke(event)
 
 
 @freeze_time("2025-07-01")
-def test_get_accounts_failure_user_does_not_exist(
+def test_get_accounts_failure_session_does_not_exist(
     get_accounts_api: GetAccounts, walter_authenticator: WalterAuthenticator
 ) -> None:
     # create a valid JWT for a non-existent user
-    ghost_token = walter_authenticator.generate_user_token("ghost@ghost.com")
-    event = create_get_accounts_event(ghost_token)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        "user-ghost", "jti-ghost"
+    )
+    event = create_get_accounts_event(token)
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="User with email 'ghost@ghost.com' does not exist!",
+        message="Not authenticated! Session does not exist.",
     )
     assert expected_response == get_accounts_api.invoke(event)
 
@@ -137,19 +141,21 @@ def test_get_accounts_success_update_balances(
     walter_db: WalterDB,
     walter_authenticator: WalterAuthenticator,
 ) -> None:
-    email = "bob@gmail.com"
-    jwt = walter_authenticator.generate_user_token(email)
-    event = create_get_accounts_event(jwt)
+    user_id = "user-003"
+    session_id = "session-002"
+    account_id = "acct-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_get_accounts_event(token)
 
     # assert balance and last updated timestamp prior to api invocation
-    account = walter_db.get_account("user-003", "acct-004")
+    account = walter_db.get_account(user_id, account_id)
     assert account.balance == 0.0
     assert "2025-06-01" in account.balance_last_updated_at.isoformat()
 
     # invoke api
     actual_response = get_accounts_api.invoke(event)
-
-    print(actual_response.data)
 
     # assert that balance and balance last update timestamp were updated
     assert actual_response.data["accounts"][0]["balance"] == 50.00

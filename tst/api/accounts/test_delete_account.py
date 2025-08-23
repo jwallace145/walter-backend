@@ -42,8 +42,8 @@ def test_delete_account_success(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # data seeded in the mock db
-    email = "john@gmail.com"
     user_id = "user-004"
+    session_id = "session-003"
     account_id = "acct-006"
 
     # assert account exists prior to api invocation
@@ -52,10 +52,11 @@ def test_delete_account_success(
     assert walter_db.get_holdings(account_id) is not None
 
     # prepare delete account event
-    jwt = walter_authenticator.generate_user_token(email)
-    create_delete_account_event(jwt, account_id)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_delete_account_event(token, account_id)
 
-    event = create_delete_account_event(jwt, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -73,10 +74,15 @@ def test_delete_account_success(
 
 
 def test_delete_account_failure_missing_required_field(
-    delete_account_api: DeleteAccount, jwt_walter: str
+    delete_account_api: DeleteAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
-    # omit account_id
-    event = create_delete_account_event(jwt_walter, None)
+    user_id = "user-001"
+    session_id = "session-001"
+    account_id = None  # omit account_id
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_delete_account_event(token, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
@@ -94,29 +100,39 @@ def test_delete_account_failure_not_authenticated(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="Not authenticated! Token is invalid.",
+        message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == delete_account_api.invoke(event)
 
 
-def test_delete_account_failure_user_does_not_exist(
+def test_delete_account_failure_session_does_not_exist(
     delete_account_api: DeleteAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
-    ghost_token = walter_authenticator.generate_user_token("ghost@ghost.com")
-    event = create_delete_account_event(ghost_token, "acct-ghost")
+    user_id = "user-001"
+    session_id = "session-does-not-exist"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_delete_account_event(token, "acct-ghost")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="User with email 'ghost@ghost.com' does not exist!",
+        message="Not authenticated! Session does not exist.",
     )
     assert expected_response == delete_account_api.invoke(event)
 
 
 def test_delete_account_failure_account_does_not_exist(
-    delete_account_api: DeleteAccount, jwt_walter: str
+    delete_account_api: DeleteAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
-    event = create_delete_account_event(jwt_walter, "does-not-exist")
+    user_id = "user-001"
+    session_id = "session-001"
+    account_id = "acct-does-not-exist"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_delete_account_event(token, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.OK,

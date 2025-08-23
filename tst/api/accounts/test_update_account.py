@@ -31,13 +31,19 @@ def _event_with_auth_and_body(token: str, body) -> dict:
 
 
 def test_update_account_success(
-    update_account_api: UpdateAccount, walter_db: WalterDB, jwt_walter: str
+    update_account_api: UpdateAccount,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ) -> None:
-    user = walter_db.get_user_by_email("walter@gmail.com")
-    account = walter_db.get_accounts(user.user_id)[0]
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    account = walter_db.get_accounts(user_id)[0]
 
     event = _event_with_auth_and_body(
-        jwt_walter,
+        token,
         {
             "account_id": account.account_id,
             "account_type": "investment",
@@ -57,7 +63,7 @@ def test_update_account_success(
 
     updated = response.data["account"]
     assert updated["account_id"] == account.account_id
-    assert updated["user_id"] == user.user_id
+    assert updated["user_id"] == user_id
     assert updated["account_type"] == "investment"
     assert updated["account_subtype"] == "brokerage"
     assert updated["institution_name"] == "Fidelity"
@@ -68,12 +74,18 @@ def test_update_account_success(
 
 
 def test_update_account_failure_invalid_account_type(
-    update_account_api: UpdateAccount, walter_db: WalterDB, jwt_walter: str
+    update_account_api: UpdateAccount,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
 ) -> None:
-    user = walter_db.get_user_by_email("walter@gmail.com")
-    account = walter_db.get_accounts(user.user_id)[0]
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    account = walter_db.get_accounts(user_id)[0]
     event = _event_with_auth_and_body(
-        jwt_walter,
+        token,
         {
             "account_id": account.account_id,
             "account_type": "invalid-type",
@@ -95,10 +107,15 @@ def test_update_account_failure_invalid_account_type(
 
 
 def test_update_account_failure_account_does_not_exist(
-    update_account_api: UpdateAccount, jwt_walter: str
+    update_account_api: UpdateAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = _event_with_auth_and_body(
-        jwt_walter,
+        token,
         {
             "account_id": "does-not-exist",
             "account_type": "credit",
@@ -139,6 +156,6 @@ def test_update_account_failure_not_authenticated(
         api_name=update_account_api.API_NAME,
         status_code=HTTPStatus.OK,
         status=Status.FAILURE,
-        message="Not authenticated! Token is invalid.",
+        message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == update_account_api.invoke(event)

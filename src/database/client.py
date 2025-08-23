@@ -8,10 +8,10 @@ from src.database.accounts.models import Account
 from src.database.accounts.table import AccountsTable
 from src.database.holdings.models import Holding
 from src.database.holdings.table import HoldingsTable
-from src.database.plaid_items.model import PlaidItem
-from src.database.plaid_items.table import PlaidItemsTable
 from src.database.securities.models import Security
 from src.database.securities.table import SecuritiesTable
+from src.database.sessions.models import Session
+from src.database.sessions.table import SessionsTable
 from src.database.transactions.models import InvestmentTransaction, Transaction
 from src.database.transactions.table import TransactionsTable
 from src.database.users.models import User
@@ -34,19 +34,19 @@ class WalterDB:
 
     # all tables created in post init
     users_table: UsersTable = None
+    sessions_table: SessionsTable = None
     accounts_table: AccountsTable = None
     transactions_table: TransactionsTable = None
     securities_table: SecuritiesTable = None
     holdings_table: HoldingsTable = None
-    plaid_items_table: PlaidItemsTable = None
 
     def __post_init__(self) -> None:
         self.users_table = UsersTable(self.ddb, self.domain)
+        self.sessions_table = SessionsTable(self.ddb, self.domain)
         self.accounts_table = AccountsTable(self.ddb, self.domain)
         self.transactions_table = TransactionsTable(self.ddb, self.domain)
         self.securities_table = SecuritiesTable(self.ddb, self.domain)
         self.holdings_table = HoldingsTable(self.ddb, self.domain)
-        self.plaid_items_table = PlaidItemsTable(self.ddb, self.domain)
 
     #########
     # USERS #
@@ -56,7 +56,7 @@ class WalterDB:
         self, email: str, first_name: str, last_name: str, password: str
     ) -> User:
         # generate salt and hash the given password to store in users table
-        salt, password_hash = self.authenticator.hash_password(password)
+        salt, password_hash = self.authenticator.hash_secret(password)
         user = User(
             email=email,
             first_name=first_name,
@@ -67,8 +67,8 @@ class WalterDB:
         )
         return self.users_table.create_user(user)
 
-    def get_user(self, email: str) -> User:
-        return self.users_table.get_user_by_email(email)
+    def get_user_by_id(self, user_id: str) -> User:
+        return self.users_table.get_user_by_id(user_id)
 
     def get_user_by_email(self, email: str) -> User:
         return self.users_table.get_user_by_email(email)
@@ -90,6 +90,21 @@ class WalterDB:
 
     def delete_user(self, email: str) -> None:
         self.users_table.delete_user(email)
+
+    ############
+    # SESSIONS #
+    ############
+
+    def create_session(
+        self, user_id: str, token_id: str, ip_address: str, device: str
+    ) -> Session:
+        return self.sessions_table.create_session(user_id, token_id, ip_address, device)
+
+    def get_session(self, user_id: str, token_id: str) -> Optional[Session]:
+        return self.sessions_table.get_session(user_id, token_id)
+
+    def update_session(self, session: Session) -> Session:
+        return self.sessions_table.update_session(session)
 
     ################
     # TRANSACTIONS #
@@ -249,19 +264,3 @@ class WalterDB:
         holdings = self.holdings_table.get_holdings(account_id)
         for holding in holdings:
             self.holdings_table.delete_holding(account_id, holding.security_id)
-
-    ###############
-    # PLAID ITEMS #
-    ###############
-
-    def get_plaid_item_by_item_id(self, item_id: str) -> Optional[PlaidItem]:
-        return self.plaid_items_table.get_item_by_item_id(item_id)
-
-    def get_plaid_items(self, user_id: str) -> List[PlaidItem]:
-        return self.plaid_items_table.get_items(user_id)
-
-    def put_plaid_item(self, item: PlaidItem) -> PlaidItem:
-        return self.plaid_items_table.put_item(item)
-
-    def delete_plaid_item(self, user_id: str, item_id: str) -> None:
-        self.plaid_items_table.delete_item(user_id, item_id)

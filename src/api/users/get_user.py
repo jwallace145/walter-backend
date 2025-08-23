@@ -1,5 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
@@ -9,6 +10,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -34,7 +36,6 @@ class GetUser(WalterAPIMethod):
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
 
-    walter_db: WalterDB
     walter_sm: WalterSecretsManagerClient
     walter_s3: WalterS3Client
 
@@ -54,15 +55,13 @@ class GetUser(WalterAPIMethod):
             GetUser.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.walter_sm = walter_sm
         self.walter_s3 = walter_s3
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self.walter_db.get_user(authenticated_email)
-        if user is None:
-            raise UserDoesNotExist("User does not exist!")
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
 
         # update user last active date
         user.last_active_date = dt.datetime.now(dt.UTC)
@@ -83,7 +82,7 @@ class GetUser(WalterAPIMethod):
             )
 
         # save user and any updates to db
-        self.walter_db.update_user(user)
+        self.db.update_user(user)
 
         return Response(
             api_name=GetUser.API_NAME,
@@ -91,17 +90,13 @@ class GetUser(WalterAPIMethod):
             status=Status.SUCCESS,
             message="Successfully retrieved user!",
             data={
-                "email": authenticated_email,
+                "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "verified": user.verified,
-                "subscribed": user.subscribed,
                 "sign_up_date": user.sign_up_date.strftime(GetUser.DATE_FORMAT),
                 "last_active_date": user.last_active_date.strftime(GetUser.DATE_FORMAT),
                 "profile_picture_url": user.profile_picture_url,
-                "free_trial_end_date": user.free_trial_end_date.strftime(
-                    GetUser.DATE_FORMAT
-                ),
                 "active_stripe_subscription": (
                     True if user.stripe_subscription_id else False
                 ),

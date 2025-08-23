@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -14,6 +15,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.securities.models import SecurityType
+from src.database.sessions.models import Session
 from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
@@ -61,7 +63,6 @@ class EditTransaction(WalterAPIMethod):
         TransactionDoesNotExist,
     ]
 
-    walter_db: WalterDB
     polygon: PolygonClient
     holding_updater: HoldingUpdater
     security_updater: SecurityUpdater
@@ -83,14 +84,14 @@ class EditTransaction(WalterAPIMethod):
             EditTransaction.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.polygon = polygon
         self.holding_updater = holding_updater
         self.security_updater = security_updater
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
         transaction = self._verify_transaction_exists(user, event)
         updated_transaction = self._get_updated_transaction(transaction, event)
 
@@ -98,7 +99,7 @@ class EditTransaction(WalterAPIMethod):
         if isinstance(updated_transaction, InvestmentTransaction):
             self.holding_updater.update_transaction(updated_transaction)
 
-        self.walter_db.put_transaction(updated_transaction)
+        self.db.put_transaction(updated_transaction)
         return Response(
             api_name=EditTransaction.API_NAME,
             http_status=HTTPStatus.OK,
@@ -118,9 +119,7 @@ class EditTransaction(WalterAPIMethod):
         transaction_id = body["transaction_id"]
 
         # query walter db for existence of transaction
-        transaction = self.walter_db.get_user_transaction(
-            user.user_id, transaction_id, date
-        )
+        transaction = self.db.get_user_transaction(user.user_id, transaction_id, date)
 
         # raise transaction does not exist exception if transaction not found in db
         if transaction is None:
@@ -161,7 +160,7 @@ class EditTransaction(WalterAPIMethod):
                 self.holding_updater.delete_transaction(transaction)
 
             # delete the transaction
-            self.walter_db.delete_transaction(
+            self.db.delete_transaction(
                 account_id=transaction.account_id,
                 transaction_id=transaction.transaction_id,
                 date=transaction.get_transaction_date(),

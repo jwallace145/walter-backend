@@ -5,7 +5,6 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.routing.methods import HTTPMethod
 from src.clients import (
     add_transaction_api,
-    auth_user_api,
     create_account_api,
     create_user_api,
     delete_account_api,
@@ -14,9 +13,9 @@ from src.clients import (
     get_accounts_api,
     get_transactions_api,
     get_user_api,
-    plaid_create_link_token_api,
-    plaid_exchange_public_token_api,
-    plaid_sync_transactions_api,
+    login_api,
+    logout_api,
+    refresh_api,
     update_account_api,
     update_user_api,
 )
@@ -29,7 +28,9 @@ log = Logger(__name__).get_logger()
 class APIRouter:
     """Router for Walter API methods"""
 
-    AUTH_RESOURCE = "/auth"
+    LOGIN_RESOURCE = "/auth/login"
+    REFRESH_RESOURCE = "/auth/refresh"
+    LOGOUT_RESOURCE = "/auth/logout"
     ACCOUNTS_RESOURCE = "/accounts"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
@@ -53,8 +54,12 @@ class APIRouter:
             # AUTHENTICATION #
             ##################
 
-            case (APIRouter.AUTH_RESOURCE, HTTPMethod.POST):
-                return auth_user_api
+            case (APIRouter.LOGIN_RESOURCE, HTTPMethod.POST):
+                return login_api
+            case (APIRouter.REFRESH_RESOURCE, HTTPMethod.POST):
+                return refresh_api
+            case (APIRouter.LOGOUT_RESOURCE, HTTPMethod.POST):
+                return logout_api
 
             ############
             # ACCOUNTS #
@@ -68,17 +73,6 @@ class APIRouter:
                 return update_account_api
             case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
                 return delete_account_api
-
-            #########
-            # PLAID #
-            #########
-
-            case (APIRouter.PLAID_CREATE_LINK_TOKEN_RESOURCE, HTTPMethod.POST):
-                return plaid_create_link_token_api
-            case (APIRouter.PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE, HTTPMethod.POST):
-                return plaid_exchange_public_token_api
-            case (APIRouter.PLAID_SYNC_TRANSACTIONS_RESOURCE, HTTPMethod.POST):
-                return plaid_sync_transactions_api
 
             ################
             # TRANSACTIONS #

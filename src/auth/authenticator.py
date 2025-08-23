@@ -1,10 +1,13 @@
-import datetime as dt
+import secrets
+import string
 from dataclasses import dataclass
-from typing import Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Tuple
 
 import bcrypt
 import jwt
 
+from src.auth.models import Tokens, TokenType
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.utils.log import Logger
 
@@ -19,206 +22,185 @@ class WalterAuthenticator:
 
     walter_sm: WalterSecretsManagerClient
 
-    def generate_user_token(self, email: str) -> str:
-        """
-        Generate JSON web token for user.
+    ACCESS_TOKEN_EXPIRY_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRY_DAYS: int = 7
 
-        After a user successfully authenticates themselves via login, Walter creates
-        a token to give to the user to verify their identity. This allows the user
-        to make subsequent authenticated requests. The token is generated via JSON
-        web tokens with the algorithm specified in Walter's configs.
+    def generate_tokens(self, user_id: str) -> Tokens:
+        """
+        Generate access and refresh tokens for a user.
+
+        This method creates a pair of JWT tokens for authentication:
+        - Access token: Short-lived token (15 min) used for API authentication
+        - Refresh token: Long-lived token (7 days) used to obtain new access tokens
+
+        Both tokens share the same JTI (JWT ID) for tracking purposes.
 
         Args:
-            email: The user email to generate the identity token.
+            user_id: The unique identifier of the user to generate tokens for
 
         Returns:
-            The JSON web token for the authenticated user.
+            Tokens: Object containing the generated access_token and refresh_token
         """
-        now = dt.datetime.now(dt.UTC)
-        return jwt.encode(
-            {
-                "sub": email,
-                "iat": now,
-                "exp": now + dt.timedelta(days=7),
-            },
-            self.walter_sm.get_jwt_secret_key(),
+        # generate token expiry times
+        now = datetime.now(timezone.utc)
+        access_token_expiry = now + timedelta(minutes=self.ACCESS_TOKEN_EXPIRY_MINUTES)
+        refresh_token_expiry = now + timedelta(days=self.REFRESH_TOKEN_EXPIRY_DAYS)
+
+        # generate unique token id for tracking the access and refresh tokens
+        jti = WalterAuthenticator._generate_jti()
+
+        # access token payload, contains user data for api calls
+        access_payload = {
+            "sub": user_id,
+            "iat": int(now.timestamp()),
+            "exp": int(access_token_expiry.timestamp()),
+            "type": TokenType.ACCESS.value,
+            "jti": jti,  # same id as refresh token
+        }
+
+        # refresh token payload, contains user data for getting new access tokens
+        refresh_payload = {
+            "sub": user_id,
+            "iat": int(now.timestamp()),
+            "exp": int(refresh_token_expiry.timestamp()),
+            "type": TokenType.REFRESH.value,
+            "jti": jti,  # same id as access token
+        }
+
+        access_token = jwt.encode(
+            access_payload,
+            self.walter_sm.get_access_token_secret_key(),
             algorithm="HS256",
         )
 
-    def decode_user_token(self, token: str) -> dict | None:
-        """
-        Decode the given user token to verify identity.
-
-        Args:
-            token: The user identity token
-
-        Returns:
-            decoded_token_payload: The decoded token payload which includes the
-            email address of the authenticated user.
-        """
-        try:
-            return jwt.decode(
-                token,
-                self.walter_sm.get_jwt_secret_key(),
-                algorithms=["HS256"],
-            )
-        except jwt.ExpiredSignatureError:
-            log.error("Token has expired!")
-            return None
-        except jwt.InvalidTokenError:
-            log.error("Invalid token!")
-            return None
-
-    def generate_email_token(self, email: str) -> str:
-        """
-        Generate JSON web token for email verification purposes.
-
-        To verify a user email, Walter sends a verification email to the given
-        email address. The email contains the email identity token that can then
-        be used to verify the address via a link in the email. This ensures
-        subscribed users actually have access to the emails they provided.
-
-        Args:
-            email: The candidate user email address for verification.
-
-        Returns:
-            The unique JSON web token for the email address.
-        """
-        now = dt.datetime.now(dt.UTC)
-        return jwt.encode(
-            {
-                "sub": email,
-                "iat": now,
-                "exp": now + dt.timedelta(days=7),
-            },
-            self.walter_sm.get_jwt_verify_email_secret_key(),
+        refresh_token = jwt.encode(
+            refresh_payload,
+            self.walter_sm.get_refresh_token_secret_key(),
             algorithm="HS256",
         )
 
-    def decode_email_token(self, token: str) -> bool:
-        """
-        Decode the email verification token to verify user ownership.
+        return Tokens(
+            jti, access_token, refresh_token, access_token_expiry, refresh_token_expiry
+        )
 
-        If a user can provide a valid email verification JSON web token, the email address
-        can be set to verified and Walter can start sending newsletters to the user.
-
-        Args:
-            token: The email verification JSON web token to decode.
-
-        Returns:
-            True if the token is valid, False otherwise.
-        """
+    def decode_access_token(self, access_token: str) -> Optional[Tuple[str, str]]:
         try:
-            return jwt.decode(
-                token,
-                self.walter_sm.get_jwt_verify_email_secret_key(),
+            payload = jwt.decode(
+                access_token,
+                self.walter_sm.get_access_token_secret_key(),
                 algorithms=["HS256"],
             )
+
+            token_type = payload.get("type")
+            if token_type != TokenType.ACCESS.value:
+                log.error(f"Invalid token type: {token_type}")
+                return None
+
+            user_id = payload["sub"]
+            jti = payload["jti"]
+
+            return user_id, jti
+
         except jwt.ExpiredSignatureError:
-            log.error("Token has expired!")
+            log.error("Access token has expired!")
             return None
-        except jwt.InvalidTokenError:
-            log.error("Invalid token!")
+        except jwt.InvalidTokenError as e:
+            log.error(f"Invalid access token: {e}")
             return None
 
-    def generate_change_password_token(self, email: str) -> str:
+    def decode_refresh_token(self, refresh_token: str) -> Optional[Tuple[str, str]]:
+        try:
+            payload = jwt.decode(
+                refresh_token,
+                self.walter_sm.get_refresh_token_secret_key(),
+                algorithms=["HS256"],
+            )
+
+            token_type = payload.get("type")
+            if token_type != TokenType.REFRESH.value:
+                log.error(f"Invalid token type for refresh: {token_type}")
+                return None
+
+            user_id = payload["sub"]
+            jti = payload["jti"]
+
+            return user_id, jti
+
+        except jwt.ExpiredSignatureError:
+            log.error("Refresh token has expired!")
+            return None
+        except jwt.InvalidTokenError as e:
+            log.error(f"Invalid refresh token: {e}")
+            return None
+
+    def generate_access_token(self, user_id: str, jti: str) -> Tuple[str, datetime]:
         """
-        Generate JSON web token for changing user password purposes.
-
-        Users can change their passwords if they forgot them by having
-        Walter send an email to their email address that contains a token
-        in a URL to change their password. This method generates the change
-        password tokens.
-
-        Args:
-            email: The email address of the user to change password.
-
-        Returns:
-            The unique JSON web token for changing the user's password.
+        Generate a new access token for the given user with the provided JTI.
+        Returns (access_token, access_token_expiry).
         """
-        now = dt.datetime.now(dt.UTC)
-        return jwt.encode(
-            {
-                "sub": email,
-                "iat": now,
-                "exp": now + dt.timedelta(days=7),
-            },
-            self.walter_sm.get_jwt_change_password_secret_key(),
+        # generate access token expiry time
+        now = datetime.now(timezone.utc)
+        access_token_expiry = now + timedelta(minutes=self.ACCESS_TOKEN_EXPIRY_MINUTES)
+
+        # create new access token payload with existing user_id and jti of the parent refresh token
+        access_payload = {
+            "sub": user_id,
+            "iat": int(now.timestamp()),
+            "exp": int(access_token_expiry.timestamp()),
+            "type": TokenType.ACCESS.value,
+            "jti": jti,
+        }
+
+        access_token = jwt.encode(
+            access_payload,
+            self.walter_sm.get_access_token_secret_key(),
             algorithm="HS256",
         )
 
-    def decode_change_password_token(self, token: str) -> bool:
+        return access_token, access_token_expiry
+
+    def hash_secret(self, secret: str) -> Tuple[bytes, bytes]:
         """
-        Decode the change password token to ensure change password request is authenticated.
-
-        This method decodes the change password token given to users attempting
-        to change their password.This method ensures requests to change a password
-        are valid and authenticated.
-
-        Args:
-            token: The change password JSON web token to decode.
-
-        Returns:
-            True if the token is valid, False otherwise.
-        """
-        try:
-            return jwt.decode(
-                token,
-                self.walter_sm.get_jwt_change_password_secret_key(),
-                algorithms=["HS256"],
-            )
-        except jwt.ExpiredSignatureError:
-            log.error("Token has expired!")
-            return None
-        except jwt.InvalidTokenError:
-            log.error("Invalid token!")
-            return None
-
-    def hash_password(self, password: str) -> Tuple[bytes, bytes]:
-        """
-        Hash the given password.
+        Hash the given secret using bcrypt.
 
         This method just uses bcrypt: https://github.com/pyca/bcrypt
 
         Args:
-            password: The password in plaintext before salting and hashing.
+            secret: The secret in plaintext before salting and hashing.
 
         Returns:
             salt, password_hash
         """
-        if isinstance(password, str) is False:
+        if isinstance(secret, str) is False:
             raise TypeError("Password must be a string!")
         salt = bcrypt.gensalt()
-        password_hash = bcrypt.hashpw(password.encode(), salt)
+        password_hash = bcrypt.hashpw(secret.encode(), salt)
         return salt, password_hash
 
-    def check_password(self, password: str, password_hash: str) -> bool:
+    def check_secret(self, secret: str, secret_hash: str) -> bool:
         """
-        Checks if a given password matches the given password hash.
+        Checks if a given secret matches the given secret hash.
 
         Args:
-            password: The password in plaintext to check.
-            password_hash: The hashed password to check against.
+            secret: The secret in plaintext to check.
+            secret_hash: The hashed secret to check against.
 
         Returns:
-            boolean: True if the given password matches the given password hash, False otherwise.
+            boolean: True if the given secret matches the given secret hash, False otherwise.
         """
-        if (
-            isinstance(password, str) is False
-            or isinstance(password_hash, str) is False
-        ):
+        if isinstance(secret, str) is False or isinstance(secret_hash, str) is False:
             raise TypeError("Password and password hash must both be strings!")
-        return bcrypt.checkpw(password.encode(), password_hash.encode())
+        return bcrypt.checkpw(secret.encode(), secret_hash.encode())
 
-    def get_token(self, event: dict) -> str | None:
+    def get_bearer_token(self, event: dict) -> str | None:
         """
-        Get the user identity token from the request event for authenticated APIs.
+        Get the bearer token from the request event headers.
 
         Args:
-            event: The request event for authenticated APIs that require user identity tokens.
+            event: The request event for an API that requires a bearer token.
 
         Returns:
-            The user identity token if provided, else None.
+            The bearer token if found, else None.
         """
         if event["headers"] is None or "Authorization" not in event["headers"]:
             return None
@@ -227,3 +209,12 @@ class WalterAuthenticator:
         except Exception:
             log.error("Unexpected error occurred while parsing token!")
             return None
+
+    @staticmethod
+    def _generate_jti() -> str:
+        """Generate JTI with timestamp and random component"""
+        timestamp_part = int(datetime.now(timezone.utc).timestamp())
+        random_part = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(10)
+        )
+        return f"jti-{timestamp_part}{random_part}"

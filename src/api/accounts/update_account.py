@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Optional
 
 from src.api.common.exceptions import (
     AccountDoesNotExist,
@@ -14,6 +15,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account, AccountType
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.utils.log import Logger
 
@@ -44,8 +46,6 @@ class UpdateAccount(WalterAPIMethod):
         AccountDoesNotExist,
     ]
 
-    walter_db: WalterDB
-
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
@@ -60,11 +60,11 @@ class UpdateAccount(WalterAPIMethod):
             UpdateAccount.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
         account = self._verify_account_exists(user, event)
         updated_account = self._update_account(user, account, event)
         return Response(
@@ -109,7 +109,7 @@ class UpdateAccount(WalterAPIMethod):
         body = json.loads(event["body"])
         account_id = body["account_id"]
 
-        account = self.walter_db.get_account(
+        account = self.db.get_account(
             user_id=user.user_id,
             account_id=account_id,
         )
@@ -137,7 +137,7 @@ class UpdateAccount(WalterAPIMethod):
         account.updated_at = datetime.now(timezone.utc)
 
         # Persist changes
-        updated = self.walter_db.update_account(account)
+        updated = self.db.update_account(account)
 
         log.info("Account updated successfully!")
         return updated

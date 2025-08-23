@@ -20,6 +20,8 @@ def create_account_api(
 
 def _event_with_auth_and_body(token: str, body: dict) -> dict:
     return {
+        "path": "/accounts",
+        "httpMethod": "POST",
         "headers": {"Authorization": f"Bearer {token}"},
         "queryStringParameters": None,
         "body": json.dumps(body),
@@ -32,10 +34,14 @@ def test_create_account_success(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     email = "walter@gmail.com"
-    jwt = walter_authenticator.generate_user_token(email)
-    user = walter_db.get_user_by_email("walter@gmail.com")
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    user = walter_db.get_user_by_email(email)
     event = _event_with_auth_and_body(
-        jwt,
+        token,
         {
             "account_type": "credit",
             "account_subtype": "credit card",
@@ -64,8 +70,11 @@ def test_create_account_success(
 
 
 def test_create_account_failure_missing_required_field(
-    create_account_api: CreateAccount, jwt_walter: str
+    create_account_api: CreateAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
+    user_id = "user-001"
+    session_id = "session-001"
+    jwt_walter = walter_authenticator.generate_access_token(user_id, session_id)
     # omit account_type
     event = _event_with_auth_and_body(
         jwt_walter,
@@ -102,15 +111,19 @@ def test_create_account_failure_not_authenticated(
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.FAILURE
-    assert response.message == "Not authenticated! Token is invalid."
+    assert response.message == "Not authenticated! Token is expired or invalid."
 
 
-def test_create_account_failure_user_does_not_exist(
+def test_create_account_failure_session_does_not_exist(
     create_account_api: CreateAccount, walter_authenticator: WalterAuthenticator
 ) -> None:
-    ghost_token = walter_authenticator.generate_user_token("ghost@ghost.com")
+    user_id = "user-001"
+    session_id = "session-does-not-exist"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = _event_with_auth_and_body(
-        ghost_token,
+        token,
         {
             "account_type": "depository",
             "account_subtype": "checking",
@@ -123,4 +136,4 @@ def test_create_account_failure_user_does_not_exist(
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.FAILURE
-    assert response.message == "User with email 'ghost@ghost.com' does not exist!"
+    assert response.message == "Not authenticated! Session does not exist."

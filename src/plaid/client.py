@@ -71,12 +71,13 @@ class PlaidClient:
             user=LinkTokenCreateRequestUser(client_user_id=user_id),
         )
         response = self.client.link_token_create(request).to_dict()
+        log.info(f"Successfully created link token for user '{user_id}'")
+        log.debug(f"Plaid LinkTokenCreate API response:\n{response}")
         return CreateLinkTokenResponse(
+            request_id=response["request_id"],
+            user_id=user_id,
             link_token=response["link_token"],
             expiration=response["expiration"],
-            request_id=response["request_id"],
-            walter_user_id=user_id,
-            plaid_user_id=response["user_id"],
         )
 
     def exchange_public_token(self, public_token: str) -> ExchangePublicTokenResponse:

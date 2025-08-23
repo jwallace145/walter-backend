@@ -24,6 +24,12 @@ USERS_TABLE_NAME = f"Users-{Domain.TESTING.value}"
 USERS_TEST_FILE = "tst/database/data/users.jsonl"
 """(str): The name of the test users input file."""
 
+SESSIONS_TABLE_NAME = f"Sessions-{Domain.TESTING.value}"
+"""(str): The name of the Sessions table that stores all sessions of users."""
+
+SESSIONS_TEST_FILE = "tst/database/data/sessions.jsonl"
+"""(str): The name of the test sessions input file."""
+
 ACCOUNTS_TABLE_NAME = f"Accounts-{Domain.TESTING.value}"
 """(str): The name of the Accounts table that stores all accounts owned by users."""
 
