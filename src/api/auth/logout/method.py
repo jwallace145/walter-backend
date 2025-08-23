@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from src.api.common.exceptions import (
+    BadRequest,
     NotAuthenticated,
     SessionDoesNotExist,
 )
@@ -30,7 +31,7 @@ class Logout(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"authorization": "Bearer"}
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, SessionDoesNotExist]
+    EXCEPTIONS = [BadRequest, NotAuthenticated, SessionDoesNotExist]
 
     def __init__(
         self,

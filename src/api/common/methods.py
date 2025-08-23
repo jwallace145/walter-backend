@@ -71,11 +71,11 @@ class WalterAPIMethod(ABC):
             self._validate_request(event)
 
             # authenticate request if necessary
-            authenticated_session = None
+            session = None
             if self.is_authenticated_api():
-                authenticated_session = self._authenticate_request(event)
+                session = self._authenticate_request(event)
 
-            response = self.execute(event, authenticated_session)
+            response = self.execute(event, session)
         except Exception as exception:
             log.error("Error occurred during API invocation!", exc_info=True)
             response = self._handle_exception(exception)
@@ -298,7 +298,23 @@ class WalterAPIMethod(ABC):
     @abstractmethod
     def execute(self, event: dict, session: Optional[Session]) -> Response:
         """
-        The core action implemented by the API.
+        Executes the core action implemented by the API method.
+
+        This abstract method serves as a contract for subclasses to define the logic for
+        processing API requests. Each subclass implements specific business logic while
+        following a consistent interface pattern.
+
+        Args:
+            event: The API Gateway Lambda event dictionary containing request data
+                   including headers, body, path parameters, and query parameters.
+            session: Authentication session context. None for unauthenticated endpoints,
+                    populated with user and session data for authenticated endpoints.
+
+        Returns:
+            Response object with status code, headers, and serialized body data.
+
+        Raises:
+            NotImplementedError: This method must be implemented in a subclass.
         """
         pass
 

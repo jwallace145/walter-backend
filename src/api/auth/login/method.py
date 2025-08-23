@@ -6,7 +6,12 @@ from typing import Optional
 from user_agents import parse
 
 from src.api.auth.login.models import LoginResponse
-from src.api.common.exceptions import InvalidEmail, InvalidPassword, UserDoesNotExist
+from src.api.common.exceptions import (
+    BadRequest,
+    InvalidEmail,
+    InvalidPassword,
+    UserDoesNotExist,
+)
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
 from src.api.common.utils import is_valid_email
@@ -32,7 +37,7 @@ class Login(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "password"]
-    EXCEPTIONS = [UserDoesNotExist, InvalidPassword, InvalidEmail]
+    EXCEPTIONS = [BadRequest, UserDoesNotExist, InvalidPassword, InvalidEmail]
 
     walter_sm: WalterSecretsManagerClient
 
@@ -83,7 +88,7 @@ class Login(WalterAPIMethod):
 
     def _verify_user_exists(self, email: str) -> User:
         log.info(f"Verifying user exists with email: '{email}'")
-        user = self.walter_db.get_user_by_email(email)
+        user = self.db.get_user_by_email(email)
         if user is None:
             raise UserDoesNotExist(f"User with email '{email}' does not exist!")
         log.info("Verified user exists!")
@@ -108,7 +113,7 @@ class Login(WalterAPIMethod):
     def _update_last_active_date(self, user: User) -> None:
         log.info("Updating user last active time")
         user.last_active_date = dt.datetime.now(dt.UTC)
-        self.walter_db.update_user(user)
+        self.db.update_user(user)
         log.info("Updated user last active time")
 
     def _create_session(self, user: User, tokens: Tokens, event: dict) -> None:
@@ -117,9 +122,7 @@ class Login(WalterAPIMethod):
         )
         client_ip = self._get_client_ip(event)
         client_device = self._get_client_device(event)
-        self.walter_db.create_session(
-            user.user_id, tokens.jti, client_ip, client_device
-        )
+        self.db.create_session(user.user_id, tokens.jti, client_ip, client_device)
         log.info(
             f"Created new session for user '{user.user_id}' with token ID '{tokens.jti}'"
         )
