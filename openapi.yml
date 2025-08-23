@@ -52,6 +52,8 @@ paths:
       description: >
         Accepts a refresh token via Authorization Bearer header and issues a new access token.
       operationId: refreshAccessToken
+      security:
+        - bearerAuth: [ ]
       parameters:
         - in: header
           name: Authorization
