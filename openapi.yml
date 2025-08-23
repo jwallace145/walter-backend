@@ -12,37 +12,6 @@ servers:
         enum:
           - dev
 paths:
-  /auth:
-    post:
-      summary: Authenticate a user
-      description: >
-        Authenticates a user using their email and password.  
-        Returns a JWT token upon successful authentication.
-      operationId: authenticateUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthRequest'
-            example:
-              email: test@gmail.com
-              password: test_password
-      responses:
-        '200':
-          description: Successfully authenticated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-              example:
-                Service: WalterAPI
-                API: AuthUser
-                Status: Success
-                Message: User authenticated!
-                ResponseTimeMillis: 1925.8990000000001
-                Data:
-                  token: TEST_TOKEN
   /users:
     post:
       summary: Create a new user
@@ -563,6 +532,92 @@ paths:
                   user_id: user-12345
                   institution_id: ins_123456
                   institution_name: Test Bank
+
+  /auth/login:
+    post:
+      summary: Login
+      description: >
+        Authenticates a user using their email and password and returns access and refresh tokens.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+            example:
+              email: test@gmail.com
+              password: test_password
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                Service: WalterAPI
+                API: Login
+                Status: Success
+                Message: User logged in successfully!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  user_id: user-123456
+                  access_token: ACCESS_TOKEN
+                  refresh_token: REFRESH_TOKEN
+                  access_token_expires_at: "2025-08-09T12:00:00+00:00"
+                  refresh_token_expires_at: "2025-08-10T12:00:00+00:00"
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: >
+        Accepts a refresh token via Authorization Bearer header and issues a new access token.
+      operationId: refreshAccessToken
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: 'Bearer <refresh_token>'
+      responses:
+        '200':
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+              example:
+                Service: WalterAPI
+                API: Refresh
+                Status: Success
+                Message: Access token refreshed!
+                ResponseTimeMillis: 500.000000
+                Data:
+                  access_token: NEW_ACCESS_TOKEN
+                  access_token_expiration: "2025-08-09T13:00:00+00:00"
+  /auth/logout:
+    post:
+      summary: Logout
+      description: >
+        Revokes the current session so that associated access and refresh tokens are no longer valid.
+        Requires a valid Bearer access token in the Authorization header.
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+              example:
+                Service: WalterAPI
+                API: Logout
+                Status: Success
+                Message: User logged out successfully!
+                ResponseTimeMillis: 500.000000
 
 components:
   securitySchemes:
@@ -1478,3 +1533,97 @@ components:
           format: double
           example: 500.000000
 
+
+    LoginResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: Login
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: User logged in successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            user_id:
+              type: string
+              example: user-123456
+            access_token:
+              type: string
+              description: JWT access token
+              example: ACCESS_TOKEN
+            refresh_token:
+              type: string
+              description: JWT refresh token
+              example: REFRESH_TOKEN
+            access_token_expires_at:
+              type: string
+              format: date-time
+              example: "2025-08-09T12:00:00+00:00"
+            refresh_token_expires_at:
+              type: string
+              format: date-time
+              example: "2025-08-10T12:00:00+00:00"
+
+    RefreshResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: Refresh
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: Access token refreshed!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000
+        Data:
+          type: object
+          properties:
+            access_token:
+              type: string
+              description: Newly issued access token
+              example: NEW_ACCESS_TOKEN
+            access_token_expiration:
+              type: string
+              format: date-time
+              description: Expiration time of the new access token
+              example: "2025-08-09T13:00:00+00:00"
+
+    LogoutResponse:
+      type: object
+      properties:
+        Service:
+          type: string
+          example: WalterAPI
+        API:
+          type: string
+          example: Logout
+        Status:
+          type: string
+          example: Success
+        Message:
+          type: string
+          example: User logged out successfully!
+        ResponseTimeMillis:
+          type: number
+          format: double
+          example: 500.000000

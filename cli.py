@@ -15,6 +15,7 @@ from src.clients import (
     get_transactions_api,
     get_user_api,
     login_api,
+    logout_api,
     refresh_api,
     update_account_api,
 )
@@ -101,6 +102,14 @@ def refresh(refresh_token: str = None) -> None:
     log.info("WalterCLI: Refresh")
     event = create_api_event(token=refresh_token)
     response = refresh_api.invoke(event).to_json()
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def logout(access_token: str = None) -> None:
+    log.info("WalterCLI: Logout")
+    event = create_api_event(token=access_token)
+    response = logout_api.invoke(event).to_json()
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 

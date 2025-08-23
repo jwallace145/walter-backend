@@ -13,6 +13,8 @@ from src.clients import (
     get_accounts_api,
     get_transactions_api,
     get_user_api,
+    login_api,
+    refresh_api,
     update_account_api,
     update_user_api,
 )
@@ -25,7 +27,9 @@ log = Logger(__name__).get_logger()
 class APIRouter:
     """Router for Walter API methods"""
 
-    AUTH_RESOURCE = "/auth"
+    LOGIN_RESOURCE = "/auth/login"
+    REFRESH_RESOURCE = "/auth/refresh"
+    LOGOUT_RESOURCE = "/auth/logout"
     ACCOUNTS_RESOURCE = "/accounts"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
@@ -49,8 +53,12 @@ class APIRouter:
             # AUTHENTICATION #
             ##################
 
-            case (APIRouter.AUTH_RESOURCE, HTTPMethod.POST):
-                return None
+            case (APIRouter.LOGIN_RESOURCE, HTTPMethod.POST):
+                return login_api
+            case (APIRouter.REFRESH_RESOURCE, HTTPMethod.POST):
+                return refresh_api
+            case (APIRouter.LOGOUT_RESOURCE, HTTPMethod.POST):
+                return login_api
 
             ############
             # ACCOUNTS #
