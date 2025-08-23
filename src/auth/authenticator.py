@@ -80,7 +80,7 @@ class WalterAuthenticator:
         )
 
         return Tokens(
-            jti, access_token, refresh_token, refresh_token_expiry, access_token_expiry
+            jti, access_token, refresh_token, access_token_expiry, refresh_token_expiry
         )
 
     def decode_access_token(self, access_token: str) -> Optional[Tuple[str, str]]:

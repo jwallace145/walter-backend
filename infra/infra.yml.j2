@@ -1024,6 +1024,16 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:PlaidSandboxCredentials-GtcPUQ"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:WalterAuthSecrets-dev-sums6H"
       Roles:
         - !Ref WalterAPIRole
 
