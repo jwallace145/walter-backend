@@ -1051,10 +1051,10 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
 
-  AccountsTableAccessPolicy:
+  DynamoDBAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "AccountsTableAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "DynamoDBAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1068,28 +1068,13 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !GetAtt AccountsTable.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  SecuritiesTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "SecuritiesTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt SecuritiesTable.Arn
+            Resource:
+              - !GetAtt AccountsTable.Arn
+              - !GetAtt SecuritiesTable.Arn
+              - !GetAtt HoldingsTable.Arn
+              - !GetAtt TransactionsTable.Arn
+              - !GetAtt UsersTable.Arn
+              - !GetAtt SessionsTable.Arn
           - Effect: Allow
             Action:
               - "dynamodb:Query"
@@ -1104,27 +1089,26 @@ Resources:
                   - !Sub "Securities-${AppEnvironment}"
                   - "/index/"
                   - !Sub "Securities-TickerIndex-${AppEnvironment}"
-      Roles:
-        - !Ref WalterAPIRole
-
-  HoldingsTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "HoldingsTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt HoldingsTable.Arn
+              - !Join
+                - ""
+                - - "arn:aws:dynamodb:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":table/"
+                  - !Sub "Transactions-${AppEnvironment}"
+                  - "/index/"
+                  - !Sub "Transactions-UserIndex-${AppEnvironment}"
+              - !Join
+                - ""
+                - - "arn:aws:dynamodb:"
+                  - !Ref "AWS::Region"
+                  - ":"
+                  - !Ref "AWS::AccountId"
+                  - ":table/"
+                  - !Sub "Users-${AppEnvironment}"
+                  - "/index/"
+                  - !Sub "Users-EmailIndex-${AppEnvironment}"
       Roles:
         - !Ref WalterAPIRole
 
@@ -1143,97 +1127,6 @@ Resources:
             Action:
               - "s3:List*"
             Resource: !GetAtt TemplatesBucket.Arn
-      Roles:
-        - !Ref WalterAPIRole
-
-  TransactionsTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "TransactionsTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt TransactionsTable.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - !Join
-                - ""
-                - - "arn:aws:dynamodb:"
-                  - !Ref "AWS::Region"
-                  - ":"
-                  - !Ref "AWS::AccountId"
-                  - ":table/"
-                  - !Sub "Transactions-${AppEnvironment}"
-                  - "/index/"
-                  - !Sub "Transactions-UserIndex-${AppEnvironment}"
-      Roles:
-        - !Ref WalterAPIRole
-
-  UsersTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "UsersTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt UsersTable.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - !Join
-                - ""
-                - - "arn:aws:dynamodb:"
-                  - !Ref "AWS::Region"
-                  - ":"
-                  - !Ref "AWS::AccountId"
-                  - ":table/"
-                  - !Sub "Users-${AppEnvironment}"
-                  - "/index/"
-                  - !Sub "Users-EmailIndex-${AppEnvironment}"
-      Roles:
-        - !Ref WalterAPIRole
-
-  SessionsTableAccessPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "SessionsTableAccessPolicy-${AppEnvironment}"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:BatchGet*"
-              - "dynamodb:Get*"
-              - "dynamodb:Query"
-              - "dynamodb:Scan"
-              - "dynamodb:BatchWrite*"
-              - "dynamodb:Delete*"
-              - "dynamodb:Update*"
-              - "dynamodb:PutItem"
-            Resource: !GetAtt SessionsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 
