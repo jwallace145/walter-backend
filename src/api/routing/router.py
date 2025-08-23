@@ -14,6 +14,7 @@ from src.clients import (
     get_transactions_api,
     get_user_api,
     login_api,
+    logout_api,
     refresh_api,
     update_account_api,
     update_user_api,
@@ -58,7 +59,7 @@ class APIRouter:
             case (APIRouter.REFRESH_RESOURCE, HTTPMethod.POST):
                 return refresh_api
             case (APIRouter.LOGOUT_RESOURCE, HTTPMethod.POST):
-                return login_api
+                return logout_api
 
             ############
             # ACCOUNTS #
