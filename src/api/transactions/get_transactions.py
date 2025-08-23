@@ -1,6 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from src.api.common.exceptions import (
     AccountDoesNotExist,
@@ -14,6 +14,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.transactions.models import Transaction, TransactionType
 from src.database.users.models import User
 from src.utils.log import Logger
@@ -41,8 +42,6 @@ class GetTransactions(WalterAPIMethod):
         UserDoesNotExist,
     ]
 
-    walter_db: WalterDB
-
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
@@ -57,12 +56,12 @@ class GetTransactions(WalterAPIMethod):
             GetTransactions.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
         # Ensure the authenticated user exists
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+        user = self._verify_user_exists(session.user_id)
 
         # Parse date range
         start_date, end_date = self._get_date_range(event)
@@ -73,15 +72,15 @@ class GetTransactions(WalterAPIMethod):
         # if account_id is provided, get transactions for that account, else get transactions for user
         if account_id:
             account = self._verify_account_exists(user, account_id)
-            transactions = self.walter_db.get_transactions_by_account(
+            transactions = self.db.get_transactions_by_account(
                 account.account_id, start_date, end_date
             )
             account_transactions = self._get_account_transactions(
                 [account], transactions
             )
         else:
-            accounts = self.walter_db.get_accounts(user.user_id)
-            transactions = self.walter_db.get_transactions_by_user(
+            accounts = self.db.get_accounts(user.user_id)
+            transactions = self.db.get_transactions_by_user(
                 user.user_id, start_date, end_date
             )
             account_transactions = self._get_account_transactions(
@@ -138,7 +137,7 @@ class GetTransactions(WalterAPIMethod):
         )
 
         # check db to see if an account exists for the user
-        account = self.walter_db.get_account(user.user_id, account_id)
+        account = self.db.get_account(user.user_id, account_id)
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:

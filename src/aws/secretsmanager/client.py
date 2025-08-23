@@ -19,19 +19,16 @@ class WalterSecretsManagerClient:
 
     Secrets:
         - PolygonAPIKey: The API key to access Polygon API for market data.
-        - JWTSecretKey: The JSON web token (JWT) secret key used to verify user identity.
-        - JWTVerifyEmailSecretKey: The JSON web token (JWT) secret key used to verify user emails.
-        - JWTChangePasswordSecretKey: The JSON web token (JWT) secret key used to verify change password emails.
+        - JWTAccessTokenSecretKey: The JSON web token (JWT) secret key used to verify user identity.
+        - JWTRefreshTokenSecretKey: The JSON web token (JWT) secret key used to verify user identity.
     """
 
     POLYGON_API_KEY_SECRET_ID = "PolygonAPIKey"
     POLYGON_API_KEY_SECRET_NAME = "POLYGON_API_KEY"
-    JWT_SECRET_KEY_SECRET_ID = "JWTSecretKey"
-    JWT_SECRET_KEY_SECRET_NAME = "JWT_SECRET_KEY"
-    JWT_VERIFY_EMAIL_SECRET_KEY_ID = "JWTVerifyEmailSecretAccessKey"
-    JWT_VERIFY_EMAIL_SECRET_KEY_NAME = "JWTVerifyEmailSecretKey"
-    JWT_CHANGE_PASSWORD_SECRET_KEY_ID = "JWTChangePasswordSecretKey"
-    JWT_CHANGE_PASSWORD_SECRET_KEY_NAME = "JWT_CHANGE_PASSWORD_SECRET_KEY"
+    ACCESS_TOKEN_SECRET_KEY_ID = "WalterAuthSecrets-dev"
+    ACCESS_TOKEN_SECRET_KEY_NAME = "ACCESS_TOKEN_SECRET_KEY"
+    REFRESH_TOKEN_SECRET_KEY_ID = "WalterAuthSecrets-dev"
+    REFRESH_TOKEN_SECRET_KEY_NAME = "REFRESH_TOKEN_SECRET_KEY"
     STRIPE_TEST_SECRET_KEY_ID = "StripeTestSecretKey"
     STRIPE_TEST_SECRET_KEY_NAME = "STRIPE_TEST_SECRET_KEY"
     PLAID_SANDBOX_CREDENTIALS_SECRET_NAME = "PlaidSandboxCredentials"
@@ -43,9 +40,8 @@ class WalterSecretsManagerClient:
 
     # lazy init all secrets
     polygon_api_key: str = None
-    jwt_secret_key: str = None
-    jwt_verify_email_secret_key: str = None
-    jwt_change_password_secret_key: str = None
+    access_token_secret_key: str = None
+    refresh_token_secret_key: str = None
     stripe_test_secret_key: str = None
     plaid_sandbox_credentials_client_id: str = None
     plaid_sandbox_credentials_secret_key: str = None
@@ -63,29 +59,21 @@ class WalterSecretsManagerClient:
             )
         return self.polygon_api_key
 
-    def get_jwt_secret_key(self) -> str:
-        if self.jwt_secret_key is None:
-            self.jwt_secret_key = self._get_secret(
-                WalterSecretsManagerClient.JWT_SECRET_KEY_SECRET_ID,
-                WalterSecretsManagerClient.JWT_SECRET_KEY_SECRET_NAME,
+    def get_access_token_secret_key(self) -> str:
+        if self.access_token_secret_key is None:
+            self.access_token_secret_key = self._get_secret(
+                self.ACCESS_TOKEN_SECRET_KEY_ID,
+                self.ACCESS_TOKEN_SECRET_KEY_NAME,
             )
-        return self.jwt_secret_key
+        return self.access_token_secret_key
 
-    def get_jwt_verify_email_secret_key(self) -> str:
-        if self.jwt_verify_email_secret_key is None:
-            self.jwt_verify_email_secret_key = self._get_secret(
-                WalterSecretsManagerClient.JWT_VERIFY_EMAIL_SECRET_KEY_ID,
-                WalterSecretsManagerClient.JWT_VERIFY_EMAIL_SECRET_KEY_NAME,
+    def get_refresh_token_secret_key(self) -> str:
+        if self.refresh_token_secret_key is None:
+            self.refresh_token_secret_key = self._get_secret(
+                self.REFRESH_TOKEN_SECRET_KEY_ID,
+                self.REFRESH_TOKEN_SECRET_KEY_NAME,
             )
-        return self.jwt_verify_email_secret_key
-
-    def get_jwt_change_password_secret_key(self) -> str:
-        if self.jwt_change_password_secret_key is None:
-            self.jwt_change_password_secret_key = self._get_secret(
-                WalterSecretsManagerClient.JWT_CHANGE_PASSWORD_SECRET_KEY_ID,
-                WalterSecretsManagerClient.JWT_CHANGE_PASSWORD_SECRET_KEY_NAME,
-            )
-        return self.jwt_change_password_secret_key
+        return self.refresh_token_secret_key
 
     def get_stripe_test_secret_key(self) -> str:
         if self.stripe_test_secret_key is None:

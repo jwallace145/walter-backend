@@ -1,7 +1,7 @@
 import datetime as dt
 import json
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.metrics import (
@@ -14,6 +14,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.utils.log import Logger
 
@@ -36,6 +37,7 @@ class WalterAPIMethod(ABC):
         exceptions: List[Exception],
         authenticator: WalterAuthenticator,
         metrics: WalterCloudWatchClient,
+        db: WalterDB,
     ) -> None:
         self.api_name = api_name
         self.required_query_fields = required_query_fields
@@ -44,6 +46,7 @@ class WalterAPIMethod(ABC):
         self.exceptions = exceptions
         self.authenticator = authenticator
         self.metrics = metrics
+        self.db = db
 
     def invoke(self, event: dict) -> Response:
         """
@@ -68,11 +71,11 @@ class WalterAPIMethod(ABC):
             self._validate_request(event)
 
             # authenticate request if necessary
-            authenticated_email = None
+            authenticated_session = None
             if self.is_authenticated_api():
-                authenticated_email = self._authenticate_request(event)
+                authenticated_session = self._authenticate_request(event)
 
-            response = self.execute(event, authenticated_email)
+            response = self.execute(event, authenticated_session)
         except Exception as exception:
             log.error("Error occurred during API invocation!", exc_info=True)
             response = self._handle_exception(exception)
@@ -179,34 +182,47 @@ class WalterAPIMethod(ABC):
                 )
         log.debug("Successfully validated required fields!")
 
-    def _authenticate_request(self, event: dict) -> str:
+    def _authenticate_request(self, event: dict) -> Session:
         """
-        Authenticate request and return authenticated email.
+        Authenticate API request using Bearer access token.
 
         This method authenticates requests by verifying the Authorization
-        Bearer token in the request header. If the token is valid, the
-        request is authenticated.
+        Bearer access token in the request header. If the token is valid,
+        the request is authenticated on behalf of the user. The authenticated
+        session is returned to the caller.
 
         Args:
             event: The request event for the API.
 
         Returns:
-            user_email: The email of the authenticated user.
+            session: The authenticated user session object.
         """
         log.info("Authenticating request")
 
-        token = self.authenticator.get_token(event)
+        token = self.authenticator.get_bearer_token(event)
         if token is None:
             raise NotAuthenticated("Not authenticated! Token is null.")
 
-        decoded_token = self.authenticator.decode_user_token(token)
-        if decoded_token is None:
-            raise NotAuthenticated("Not authenticated! Token is invalid.")
+        decoded = self.authenticator.decode_access_token(token)
+        if decoded is None:
+            raise NotAuthenticated("Not authenticated! Token is expired or invalid.")
+        user_id, jti = decoded
 
-        user_email = decoded_token["sub"]
-        log.info(f"Successfully authenticated request for user '{user_email}'!")
+        session = self.db.get_session(user_id, jti)
+        if session is None:
+            raise NotAuthenticated("Not authenticated! Session does not exist.")
 
-        return user_email
+        # ensure session is not revoked or expired
+        if session.revoked:
+            raise NotAuthenticated("Session has been revoked!")
+        if session.session_expiration < dt.datetime.now(dt.UTC):
+            raise NotAuthenticated("Session has expired!")
+
+        log.info(
+            f"Successfully authenticated request for user '{user_id}' and token ID '{jti}'!"
+        )
+
+        return session
 
     def _handle_exception(self, exception: Exception) -> Response:
         """
@@ -262,26 +278,25 @@ class WalterAPIMethod(ABC):
             response_time_millis,
         )
 
-    def _verify_user_exists(self, walter_db: WalterDB, email: str) -> User:
+    def _verify_user_exists(self, user_id: str) -> User:
         """
         Verify the user exists in the database.
 
         Args:
-            walter_db: The WalterDB instance.
-            email: The email of the user.
+            user_id: The user ID of the user.
 
         Returns:
             (User): The user object if the user exists. Else raises UserDoesNotExist exception.
         """
-        log.info(f"Verifying user exists with email '{email}'")
-        user = walter_db.get_user_by_email(email)
+        log.info(f"Verifying user '{user_id}' exists")
+        user = self.db.get_user_by_id(user_id)
         if user is None:
-            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
+            raise UserDoesNotExist(f"User '{user_id}' does not exist!")
         log.info("Verified user exists!")
         return user
 
     @abstractmethod
-    def execute(self, event: dict, email: str) -> Response:
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
         """
         The core action implemented by the API.
         """

@@ -28,7 +28,6 @@ class UpdateUser(WalterAPIMethod):
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
 
-    walter_db: WalterDB
     walter_s3: WalterS3Client
 
     def __init__(
@@ -46,12 +45,12 @@ class UpdateUser(WalterAPIMethod):
             UpdateUser.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.walter_s3 = walter_s3
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self.walter_db.get_user(authenticated_email)
+        user = self.db.get_user(authenticated_email)
         if user is None:
             raise UserDoesNotExist("User does not exist!")
 
@@ -88,7 +87,7 @@ class UpdateUser(WalterAPIMethod):
         user.profile_picture_s3_uri = s3_uri
         user.profile_picture_url_expiration = dt.datetime.now(dt.UTC)
 
-        self.walter_db.update_user(user)
+        self.db.update_user(user)
 
         return Response(
             api_name=UpdateUser.API_NAME,

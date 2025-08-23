@@ -656,6 +656,22 @@ Resources:
           Projection:
             ProjectionType: 'ALL'
 
+  SessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Sessions-${AppEnvironment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: token_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: token_id
+          KeyType: RANGE
+
   AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -735,39 +751,6 @@ Resources:
         - AttributeName: security_id
           KeyType: RANGE
       TableName: !Sub "Holdings-${AppEnvironment}"
-
-  PlaidItemsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "PlaidItems-${AppEnvironment}"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: item_id
-          AttributeType: S
-        - AttributeName: institution_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-        - AttributeName: item_id
-          KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: !Sub "PlaidItems-UserInstitutionIndex-${AppEnvironment}"
-          KeySchema:
-            - AttributeName: user_id
-              KeyType: HASH
-            - AttributeName: institution_id
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-        - IndexName: !Sub "PlaidItems-ItemIdIndex-${AppEnvironment}"
-          KeySchema:
-            - AttributeName: item_id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
 
   #################
   ### IAM ROLES ###
@@ -1116,10 +1099,10 @@ Resources:
       Roles:
         - !Ref WalterAPIRole
 
-  PlaidItemsTableAccessPolicy:
+  SessionsTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "PlaidItemsTableAccessPolicy-${AppEnvironment}"
+      PolicyName: !Sub "SessionsTableAccessPolicy-${AppEnvironment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1133,35 +1116,7 @@ Resources:
               - "dynamodb:Delete*"
               - "dynamodb:Update*"
               - "dynamodb:PutItem"
-            Resource: !GetAtt PlaidItemsTable.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - !Join
-                - ""
-                - - "arn:aws:dynamodb:"
-                  - !Ref "AWS::Region"
-                  - ":"
-                  - !Ref "AWS::AccountId"
-                  - ":table/"
-                  - !Sub "PlaidItems-${AppEnvironment}"
-                  - "/index/"
-                  - !Sub "PlaidItems-UserInstitutionIndex-${AppEnvironment}"
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - !Join
-                - ""
-                - - "arn:aws:dynamodb:"
-                  - !Ref "AWS::Region"
-                  - ":"
-                  - !Ref "AWS::AccountId"
-                  - ":table/"
-                  - !Sub "PlaidItems-${AppEnvironment}"
-                  - "/index/"
-                  - !Sub "PlaidItems-ItemIdIndex-${AppEnvironment}"
+            Resource: !GetAtt SessionsTable.Arn
       Roles:
         - !Ref WalterAPIRole
 

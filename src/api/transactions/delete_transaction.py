@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -14,6 +15,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.transactions.models import (
     InvestmentTransaction,
     Transaction,
@@ -49,7 +51,6 @@ class DeleteTransaction(WalterAPIMethod):
         InvalidHoldingUpdate,
     ]
 
-    walter_db: WalterDB
     holding_updater: HoldingUpdater
 
     def __init__(
@@ -67,12 +68,12 @@ class DeleteTransaction(WalterAPIMethod):
             DeleteTransaction.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.holding_updater = holding_updater
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
         transaction = self._verify_transaction_exists(user, event)
         self._delete_transaction(transaction)
         return Response(
@@ -99,7 +100,7 @@ class DeleteTransaction(WalterAPIMethod):
         log.info(
             f"Getting transaction with ID '{transaction_id}' and date '{transaction_date}'"
         )
-        transaction = self.walter_db.get_user_transaction(
+        transaction = self.db.get_user_transaction(
             user.user_id, transaction_id, transaction_date
         )
         if transaction is None:
@@ -130,7 +131,7 @@ class DeleteTransaction(WalterAPIMethod):
                 )
 
         # after any side effects of deleting the transaction are handled, delete the transaction
-        self.walter_db.delete_transaction(
+        self.db.delete_transaction(
             transaction.account_id,
             transaction.transaction_id,
             transaction.get_transaction_date(),

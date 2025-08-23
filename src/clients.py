@@ -9,11 +9,9 @@ from src.api.accounts.create_account import CreateAccount
 from src.api.accounts.delete_account import DeleteAccount
 from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.accounts.update_account import UpdateAccount
-from src.api.auth.auth_user import AuthUser
-from src.api.plaid.create_link_token import CreateLinkToken
-from src.api.plaid.exchange_public_token import ExchangePublicToken
-from src.api.plaid.refresh_transactions import RefreshTransactions
-from src.api.plaid.sync_transactions import SyncTransactions
+from src.api.auth.login.method import Login
+from src.api.auth.logout.method import Logout
+from src.api.auth.refresh.method import Refresh
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction
@@ -97,7 +95,6 @@ walter_sm = WalterSecretsManagerClient(
 )
 
 POLYGON_API_KEY = walter_sm.get_polygon_api_key()
-JWT_TOKEN_KEY = walter_sm.get_jwt_secret_key()
 
 ########################
 # WALTER AUTHENTICATOR #
@@ -170,7 +167,9 @@ sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
 ###############
 
 # AUTHENTICATION
-auth_user_api = AuthUser(walter_authenticator, walter_cw, walter_db, walter_sm)
+login_api = Login(walter_authenticator, walter_cw, walter_db, walter_sm)
+refresh_api = Refresh(walter_authenticator, walter_cw, walter_db)
+logout_api = Logout(walter_authenticator, walter_cw, walter_db)
 
 # ACCOUNTS =
 get_accounts_api = GetAccounts(walter_authenticator, walter_cw, walter_db)
@@ -206,24 +205,3 @@ delete_transaction_api = DeleteTransaction(
 get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
 create_user_api = CreateUser(walter_authenticator, walter_cw, walter_db)
 update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
-
-# PLAID
-plaid_create_link_token_api = CreateLinkToken(
-    walter_authenticator, walter_cw, walter_db, plaid
-)
-plaid_exchange_public_token_api = ExchangePublicToken(
-    walter_authenticator,
-    walter_cw,
-    walter_db,
-    plaid,
-    sync_user_transactions_queue,
-)
-plaid_sync_transactions_api = SyncTransactions(
-    walter_authenticator,
-    walter_cw,
-    walter_db,
-    sync_user_transactions_queue,
-)
-plaid_refresh_transactions_api = RefreshTransactions(
-    walter_authenticator, walter_cw, walter_db, plaid
-)

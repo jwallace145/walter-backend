@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 from dataclasses import dataclass
+from typing import Optional
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.common.exceptions import (
@@ -17,6 +18,7 @@ from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account, AccountType
 from src.database.client import WalterDB
 from src.database.securities.models import SecurityType, Stock
+from src.database.sessions.models import Session
 from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
@@ -65,7 +67,6 @@ class AddTransaction(WalterAPIMethod):
         InvalidHoldingUpdate,
     ]
 
-    walter_db: WalterDB
     transaction_categorizer: ExpenseCategorizerMLP
     polygon: PolygonClient
     holding_updater: HoldingUpdater
@@ -89,15 +90,15 @@ class AddTransaction(WalterAPIMethod):
             AddTransaction.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.transaction_categorizer = expense_categorizer
         self.polygon = polygon
         self.holding_updater = holding_updater
         self.security_updater = security_updater
 
-    def execute(self, event: dict, authenticated_email: str) -> Response:
-        user = self._verify_user_exists(self.walter_db, authenticated_email)
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        user = self._verify_user_exists(session.user_id)
         account = self._verify_account_exists(user, event)
         transaction = self._create_transaction(user, account, event)
 
@@ -108,7 +109,7 @@ class AddTransaction(WalterAPIMethod):
             self.holding_updater.add_transaction(transaction)
 
         # add the transaction to the database
-        self.walter_db.add_transaction(transaction)
+        self.db.add_transaction(transaction)
 
         return Response(
             api_name=AddTransaction.API_NAME,
@@ -139,7 +140,7 @@ class AddTransaction(WalterAPIMethod):
         )
 
         # check db to see if an account exists for the user
-        account = self.walter_db.get_account(user.user_id, account_id)
+        account = self.db.get_account(user.user_id, account_id)
 
         # if an account does not exist for the user, raise a user account does not exist exception
         if account is None:

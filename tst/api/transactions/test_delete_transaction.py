@@ -51,13 +51,16 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     walter_authenticator: WalterAuthenticator,
 ) -> None:
     # create test delete transaction event, user has a holding for this security
-    email = "lucy@gmail.com"
+    user_id = "user-005"
+    session_id = "session-005"
     account_id = "acct-007"
     transaction_date = "2025-08-02"
     transaction_id = "investment-txn-010"
     security_id = "sec-nyse-coke"
-    jwt = walter_authenticator.generate_user_token(email)
-    event = create_delete_transaction_event(jwt, transaction_id, transaction_date)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_delete_transaction_event(token, transaction_id, transaction_date)
 
     # assert holding exists prior to api invocation
     holding = walter_db.get_holding(account_id, security_id)

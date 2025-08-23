@@ -7,6 +7,7 @@ from mypy_boto3_dynamodb.client import DynamoDBClient
 from src.database.accounts.models import Account
 from src.database.holdings.models import Holding
 from src.database.securities.models import Crypto, SecurityType, Stock
+from src.database.sessions.models import Session
 from src.database.transactions.models import (
     BankingTransactionSubType,
     BankTransaction,
@@ -24,6 +25,8 @@ from tst.constants import (
     HOLDINGS_TEST_FILE,
     SECURITIES_TABLE_NAME,
     SECURITIES_TEST_FILE,
+    SESSIONS_TABLE_NAME,
+    SESSIONS_TEST_FILE,
     TRANSACTIONS_TABLE_NAME,
     TRANSACTIONS_TEST_FILE,
     USERS_TABLE_NAME,
@@ -43,6 +46,7 @@ class MockDDB:
 
     def initialize(self) -> None:
         self._create_users_table(USERS_TABLE_NAME, USERS_TEST_FILE)
+        self._create_sessions_table(SESSIONS_TABLE_NAME, SESSIONS_TEST_FILE)
         self._create_accounts_table(ACCOUNTS_TABLE_NAME, ACCOUNTS_TEST_FILE)
         self._create_securities_table(SECURITIES_TABLE_NAME, SECURITIES_TEST_FILE)
         self._create_holdings_table(HOLDINGS_TABLE_NAME, HOLDINGS_TEST_FILE)
@@ -88,11 +92,44 @@ class MockDDB:
                         sign_up_date=datetime.datetime.strptime(
                             json_user["sign_up_date"], "%Y-%m-%dT%H:%M:%SZ"
                         ),
-                        free_trial_end_date=datetime.datetime.strptime(
-                            json_user["free_trial_end_date"], "%Y-%m-%dT%H:%M:%SZ"
-                        ),
                         stripe_subscription_id=subscription_id,
                         stripe_customer_id=customer_id,
+                    ).to_ddb_item(),
+                )
+
+    def _create_sessions_table(self, table_name: str, input_file_name: str) -> None:
+        self.mock_ddb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "user_id", "KeyType": "HASH"},
+                {"AttributeName": "token_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "user_id", "AttributeType": "S"},
+                {"AttributeName": "token_id", "AttributeType": "S"},
+            ],
+            BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+        )
+        with open(input_file_name) as sessions_f:
+            for session in sessions_f:
+                if not session.strip():
+                    continue
+                json_session = json.loads(session)
+                self.mock_ddb.put_item(
+                    TableName=table_name,
+                    Item=Session(
+                        user_id=json_session["user_id"],
+                        token_id=json_session["token_id"],
+                        ip_address=json_session["ip_address"],
+                        device=json_session["device"],
+                        session_start=datetime.datetime.fromisoformat(
+                            json_session["session_start"]
+                        ),
+                        session_expiration=datetime.datetime.fromisoformat(
+                            json_session["session_expiration"]
+                        ),
+                        revoked=json_session["revoked"],
+                        session_end=None,
                     ).to_ddb_item(),
                 )
 

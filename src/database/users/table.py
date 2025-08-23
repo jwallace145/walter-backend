@@ -1,6 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from src.aws.dynamodb.client import WalterDDBClient
 from src.database.users.models import User
@@ -38,15 +38,15 @@ class UsersTable:
         self.ddb.put_item(self.table, item)
         return user
 
-    def get_user(self, email: str) -> User | None:
-        log.info(f"Getting user with email '{email}' from table '{self.table}'")
-        key = UsersTable._get_user_key(email)
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
+        log.info(f"Getting user '{user_id}' from table '{self.table}'")
+        key = UsersTable._get_user_key(user_id)
         item = self.ddb.get_item(self.table, key)
         if item is None:
             return None
         return UsersTable._get_user_from_ddb_item(item)
 
-    def get_user_by_email(self, email: str) -> User | None:
+    def get_user_by_email(self, email: str) -> Optional[User]:
         log.info(f"Getting user with email '{email}' from table '{self.table}'")
         expression = "email = :email"
         attributes = {":email": {"S": email}}
@@ -59,9 +59,9 @@ class UsersTable:
         log.info(f"Updating user with email '{user.email}'")
         self.ddb.put_item(self.table, user.to_ddb_item())
 
-    def delete_user(self, email: str) -> None:
-        log.info(f"Deleting user with email '{email}'")
-        self.ddb.delete_item(self.table, UsersTable._get_user_key(email))
+    def delete_user(self, user_id: str) -> None:
+        log.info(f"Deleting user '{user_id}'")
+        self.ddb.delete_item(self.table, UsersTable._get_user_key(user_id))
 
     def get_users(self) -> List[User]:
         log.info(f"Getting users from table '{self.table}'")
@@ -79,8 +79,8 @@ class UsersTable:
         return UsersTable.EMAIL_INDEX_NAME_FORMAT.format(domain=domain.value)
 
     @staticmethod
-    def _get_user_key(email: str) -> dict:
-        return {"email": {"S": email}}
+    def _get_user_key(user_id: str) -> dict:
+        return {"user_id": {"S": user_id}}
 
     @staticmethod
     def _get_user_from_ddb_item(item: dict) -> User:
@@ -113,13 +113,9 @@ class UsersTable:
             first_name=item["first_name"]["S"],
             last_name=item["last_name"]["S"],
             password_hash=item["password_hash"]["S"],
-            last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
             sign_up_date=dt.datetime.fromisoformat(item["sign_up_date"]["S"]),
-            free_trial_end_date=dt.datetime.fromisoformat(
-                item["free_trial_end_date"]["S"]
-            ),
+            last_active_date=dt.datetime.fromisoformat(item["last_active_date"]["S"]),
             verified=item["verified"]["BOOL"],
-            subscribed=item["subscribed"]["BOOL"],
             profile_picture_s3_uri=profile_picture_s3_uri,
             profile_picture_url=profile_picture_url,
             profile_picture_url_expiration=profile_picture_url_expiration,

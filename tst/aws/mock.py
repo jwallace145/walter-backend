@@ -27,6 +27,9 @@ class MockSecretsManager:
 
     def _create_secrets(self) -> None:
         with open(SECRETS_TEST_FILE) as secrets_f:
+
+            # create secrets collected by secret name
+            secrets = {}
             for secret in secrets_f:
                 if not secret.strip():
                     continue
@@ -34,9 +37,16 @@ class MockSecretsManager:
                 name = json_secret["name"]
                 key = json_secret["key"]
                 value = json_secret["value"]
+                if name in secrets:
+                    secrets[name][key] = value
+                else:
+                    secrets[name] = {key: value}
+
+            # insert secrets into mock secrets manager
+            for secret_name, secrets_dict in secrets.items():
                 self.mock_secrets_manager.create_secret(
-                    Name=name,
-                    SecretString=json.dumps({key: value}),
+                    Name=secret_name,
+                    SecretString=json.dumps(secrets_dict),
                 )
 
 

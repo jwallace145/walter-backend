@@ -18,7 +18,6 @@ def get_transactions_api(
 
 def create_get_transactions_event(token: str, query: dict) -> dict:
     return {
-        "resource": "/transactions",
         "path": "/transactions",
         "httpMethod": "GET",
         "headers": {
@@ -31,11 +30,13 @@ def create_get_transactions_event(token: str, query: dict) -> dict:
 
 
 def test_get_account_transactions_acct003_full_range_success(
-    get_transactions_api: GetTransactions, jwt_walrus: str
+    get_transactions_api: GetTransactions, walter_authenticator: WalterAuthenticator
 ):
-    # acct-003 has 3 banking transactions across Aug 2025
+    user = "user-002"
+    session = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(user, session)
     event = create_get_transactions_event(
-        token=jwt_walrus,
+        token=token,
         query={
             "start_date": "2025-08-01",
             "end_date": "2025-08-31",
@@ -62,11 +63,16 @@ def test_get_account_transactions_acct003_full_range_success(
 
 
 def test_get_account_transactions_success(
-    get_transactions_api: GetTransactions, jwt_walrus: str
+    get_transactions_api: GetTransactions, walter_authenticator: WalterAuthenticator
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     # acct-003 has 3 banking transactions in the seed
     event = create_get_transactions_event(
-        token=jwt_walrus,
+        token=token,
         query={
             "start_date": "2025-08-01",
             "end_date": "2025-08-08",
@@ -98,11 +104,16 @@ def test_get_account_transactions_success(
 
 
 def test_get_account_transactions_date_filter_single_day(
-    get_transactions_api: GetTransactions, jwt_walrus: str
+    get_transactions_api: GetTransactions, walter_authenticator: WalterAuthenticator
 ):
+    user_id = "user-002"
+    session_id = "session-004"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     # On 2025-08-06 there are two banking transactions for acct-003
     event = create_get_transactions_event(
-        token=jwt_walrus,
+        token=token,
         query={
             "start_date": "2025-08-06",
             "end_date": "2025-08-06",
@@ -123,10 +134,15 @@ def test_get_account_transactions_date_filter_single_day(
 
 
 def test_get_account_transactions_failure_account_does_not_exist(
-    get_transactions_api: GetTransactions, jwt_walter: str
+    get_transactions_api: GetTransactions, walter_authenticator: WalterAuthenticator
 ) -> None:
+    user_id = "user-001"
+    session_id = "session-001"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     event = create_get_transactions_event(
-        token=jwt_walter,
+        token=token,
         query={
             "start_date": "2025-08-01",
             "end_date": "2025-08-31",

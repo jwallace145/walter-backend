@@ -1,0 +1,93 @@
+import datetime as dt
+from dataclasses import dataclass
+from typing import Optional
+
+from src.api.common.exceptions import (
+    NotAuthenticated,
+    SessionDoesNotExist,
+)
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
+from src.api.common.models import Response
+from src.auth.authenticator import WalterAuthenticator
+from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.database.client import WalterDB
+from src.database.sessions.models import Session
+from src.utils.log import Logger
+
+log = Logger(__name__).get_logger()
+
+
+@dataclass
+class Logout(WalterAPIMethod):
+    """
+    WalterAPI: Logout
+
+    Authenticated API that revokes the current session so that associated
+    access and refresh tokens are no longer valid.
+    """
+
+    API_NAME = "Logout"
+    REQUIRED_QUERY_FIELDS = []
+    REQUIRED_HEADERS = {"authorization": "Bearer"}
+    REQUIRED_FIELDS = []
+    EXCEPTIONS = [NotAuthenticated, SessionDoesNotExist]
+
+    def __init__(
+        self,
+        walter_authenticator: WalterAuthenticator,
+        walter_cw: WalterCloudWatchClient,
+        walter_db: WalterDB,
+    ) -> None:
+        super().__init__(
+            Logout.API_NAME,
+            Logout.REQUIRED_QUERY_FIELDS,
+            Logout.REQUIRED_HEADERS,
+            Logout.REQUIRED_FIELDS,
+            Logout.EXCEPTIONS,
+            walter_authenticator,
+            walter_cw,
+            walter_db,
+        )
+
+    def is_authenticated_api(self) -> bool:
+        # Requires a valid access token
+        return True
+
+    def validate_fields(self, event: dict) -> None:
+        # No body fields required
+        pass
+
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
+        # Extract access token and decode to obtain user_id and token_id (jti)
+        access_token = self.authenticator.get_bearer_token(event)
+        if access_token is None:
+            raise NotAuthenticated("Not authenticated! Token is null.")
+
+        decoded = self.authenticator.decode_access_token(access_token)
+        if decoded is None:
+            raise NotAuthenticated("Not authenticated! Token is expired or invalid.")
+
+        user_id, token_id = decoded
+
+        # Fetch session and ensure it exists
+        session = self.db.get_session(user_id, token_id)
+        if session is None:
+            raise SessionDoesNotExist("Session does not exist!")
+
+        # Revoke the session and stamp end time
+        now = dt.datetime.now(dt.UTC)
+        if not session.revoked:
+            session.revoked = True
+        session.session_end = now
+        self.db.update_session(session)
+
+        log.info(
+            f"Revoked session for user '{user_id}' and token ID '{token_id}'. Logout successful."
+        )
+
+        return Response(
+            api_name=Logout.API_NAME,
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="User logged out successfully!",
+        )

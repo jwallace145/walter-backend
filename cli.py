@@ -14,6 +14,8 @@ from src.clients import (
     get_accounts_api,
     get_transactions_api,
     get_user_api,
+    login_api,
+    refresh_api,
     update_account_api,
 )
 from src.database.transactions.models import TransactionType
@@ -21,15 +23,11 @@ from src.utils.log import Logger
 from src.workflows.common.router import WorkflowRouter
 from tst.api.utils import (
     get_add_stock_event,
-    get_auth_user_event,
-    get_create_link_token_event,
     get_delete_stock_event,
     get_edit_transaction_event,
-    get_exchange_public_token_event,
     get_get_prices_event,
     get_get_stock_event,
     get_portfolio_event,
-    get_sync_transactions_event,
 )
 
 log = Logger(__name__).get_logger()
@@ -43,7 +41,7 @@ def parse_response(response: dict) -> str:
 
 
 def create_api_event(
-    token: Optional[str] = None, query_params: dict = {}, **kwargs
+    token: Optional[str] = None, query_params: Optional[dict] = None, **kwargs
 ) -> dict:
     """
     Create an API event with the provided token and kwargs.
@@ -67,11 +65,14 @@ def create_api_event(
     if token:
         event["headers"] = {"Authorization": f"Bearer {token}"}
 
-    if len(query_params) > 0:
+    if query_params and len(query_params) > 0:
         event["queryStringParameters"] = query_params
 
     # if additional kwargs are provided, add them to the event as body
     if kwargs:
+        headers = event.get("headers", {})
+        headers["content-type"] = "application/json"
+        event["headers"] = headers
         event.get("headers", {})["content-type"] = "application/json"
         event["body"] = json.dumps(kwargs)
 
@@ -88,11 +89,19 @@ app = typer.Typer()
 
 
 @app.command()
-def auth_user(email: str = None, password: str = None) -> None:
-    log.info("Walter CLI: Authenticating user...")
-    event = get_auth_user_event(email, password)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
+def login(email: str = None, password: str = None) -> None:
+    log.info("WalterCLI: Login")
+    event = create_api_event(email=email, password=password)
+    response = login_api.invoke(event).to_json()
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
+
+
+@app.command()
+def refresh(refresh_token: str = None) -> None:
+    log.info("WalterCLI: Refresh")
+    event = create_api_event(token=refresh_token)
+    response = refresh_api.invoke(event).to_json()
+    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 # USERS
@@ -362,40 +371,6 @@ def delete_transaction(
     event = create_api_event(token, date=date, transaction_id=transaction_id)
     response = delete_transaction_api.invoke(event).to_json()
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
-
-
-# PLAID
-
-
-@app.command()
-def create_link_token(token: str = None) -> None:
-    log.info("WalterCLI: CreateLinkToken")
-    event = get_create_link_token_event(token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
-
-
-@app.command()
-def exchange_public_token(
-    token: str = None,
-    public_token: str = None,
-    institution_id: str = None,
-    institution_name: str = None,
-) -> None:
-    log.info("WalterCLI: ExchangePublicToken")
-    event = get_exchange_public_token_event(
-        token, public_token, institution_id, institution_name, []
-    )
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: ExchangePublicToken Response:\n{parse_response(response)}")
-
-
-@app.command()
-def sync_transactions(access_token: str = None, webhook_code: str = None) -> None:
-    log.info("WalterCLI: SyncTransactions")
-    event = get_sync_transactions_event(access_token, webhook_code)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: SyncTransactions Response:\n{parse_response(response)}")
 
 
 ###################

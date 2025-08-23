@@ -8,19 +8,17 @@ from src.database.transactions.models import Transaction
 @dataclass(frozen=True)
 class CreateLinkTokenResponse:
 
+    request_id: str
+    user_id: str
     link_token: str
     expiration: dt.datetime
-    request_id: str
-    walter_user_id: str
-    plaid_user_id: str
 
     def to_dict(self) -> dict:
         return {
+            "request_id": self.request_id,
+            "user_id": self.user_id,
             "link_token": self.link_token,
             "expiration": self.expiration.isoformat(),
-            "request_id": self.request_id,
-            "walter_user_id": self.walter_user_id,
-            "plaid_user_id": self.plaid_user_id,
         }
 
 

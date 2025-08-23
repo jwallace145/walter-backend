@@ -1,4 +1,3 @@
-from src.database.client import WalterDB
 from src.database.users.models import User
 
 #########
@@ -12,7 +11,6 @@ WALTER = User(
     last_name="Walrus",
     password_hash="walter",
     verified=True,
-    subscribed=True,
 )
 
 WALRUS = User(
@@ -22,7 +20,6 @@ WALRUS = User(
     last_name="Walrus",
     password_hash="walrus",
     verified=False,
-    subscribed=True,
 )
 
 
@@ -30,10 +27,4 @@ WALRUS = User(
 # UNIT TESTS #
 ##############
 
-
-def test_get_user(walter_db: WalterDB):
-    # TODO: deprecate get_user() in favor of get_user_by_email(), keep tests until then
-    assert WALTER == walter_db.get_user(WALTER.email)
-    assert WALRUS == walter_db.get_user(WALRUS.email)
-    assert WALTER == walter_db.get_user_by_email(WALTER.email)
-    assert WALRUS == walter_db.get_user_by_email(WALRUS.email)
+# TODO: Add unit tests

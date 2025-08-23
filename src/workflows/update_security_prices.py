@@ -27,6 +27,8 @@ class UpdateSecurityPrices(Workflow):
         self.polygon = polygon
 
     def execute(self, event: dict) -> WorkflowResponse:
+        start_time = datetime.now(timezone.utc)
+
         log.info("Getting all securities from database")
         securities = self.walter_db.get_securities()
 
@@ -73,6 +75,9 @@ class UpdateSecurityPrices(Workflow):
             status=WorkflowStatus.SUCCESS,
             message="Security prices updated successfully",
             data={
+                "duration_seconds": (
+                    datetime.now(timezone.utc) - start_time
+                ).total_seconds(),
                 "num_securities": len(updated_securities),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "securities": [security.to_dict() for security in updated_securities],

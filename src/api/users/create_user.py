@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import Optional
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -14,6 +15,7 @@ from src.api.common.utils import is_valid_email, is_valid_name, is_valid_passwor
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.utils.log import Logger
 
@@ -38,8 +40,6 @@ class CreateUser(WalterAPIMethod):
         UserAlreadyExists,
     ]
 
-    walter_db: WalterDB
-
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
@@ -54,10 +54,10 @@ class CreateUser(WalterAPIMethod):
             CreateUser.EXCEPTIONS,
             walter_authenticator,
             walter_cw,
+            walter_db,
         )
-        self.walter_db = walter_db
 
-    def execute(self, event: dict, authenticated_email: str = None) -> Response:
+    def execute(self, event: dict, session: Optional[Session]) -> Response:
         user = self._create_new_user(event)
         return Response(
             api_name=CreateUser.API_NAME,
@@ -105,7 +105,7 @@ class CreateUser(WalterAPIMethod):
 
     def _verify_user(self, email: str) -> None:
         log.info(f"Validate user does not already exist with email: '{email}'")
-        user = self.walter_db.get_user_by_email(email)
+        user = self.db.get_user_by_email(email)
         if user is not None:
             raise UserAlreadyExists("User already exists!")
         log.info("Successfully validated that user does not already exist!")
@@ -119,7 +119,7 @@ class CreateUser(WalterAPIMethod):
         first_name = body["first_name"]
         last_name = body["last_name"]
         password = body["password"]
-        return self.walter_db.create_user(
+        return self.db.create_user(
             email=email,
             first_name=first_name,
             last_name=last_name,

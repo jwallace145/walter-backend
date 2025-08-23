@@ -38,6 +38,21 @@ class NotAuthenticated(Exception):
         super().__init__(message)
 
 
+class SessionDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class SessionExpired(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class SessionRevoked(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class EmailNotVerified(Exception):
     def __init__(self, message):
         super().__init__(message)
