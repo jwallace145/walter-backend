@@ -1,25 +1,22 @@
-import json
 from dataclasses import dataclass
 
-from src.api.common.models import HTTPStatus, Status
 from src.database.client import WalterDB
-from src.events.parser import WalterEventParser
 from src.plaid.client import PlaidClient
 from src.utils.log import Logger
+from src.workflows.common.models import Workflow, WorkflowResponse, WorkflowStatus
 
 log = Logger(__name__).get_logger()
 
 
 @dataclass
-class SyncUserTransactions:
+class SyncUserTransactions(Workflow):
 
     WORKFLOW_NAME = "SyncUserTransactions"
 
-    parser: WalterEventParser
     plaid: PlaidClient
     db: WalterDB
 
-    def invoke(self, event: dict) -> dict:
+    def execute(self, event: dict) -> WorkflowResponse:
         event = self.parser.parse_sync_user_transactions_event(event)
 
         # decompose event
@@ -39,13 +36,20 @@ class SyncUserTransactions:
         synced_at = response.synced_at
         added_transactions = response.added_transactions
         modified_transactions = response.modified_transactions
-        # removed_transactions = response.removed_transactions
+        removed_transactions = response.removed_transactions
 
         for transaction in added_transactions:
-            self.db.put_transaction(transaction)
+            self.db.add_transaction(transaction)
 
         for transaction in modified_transactions:
-            self.db.put_transaction(transaction)
+            self.db.edit_transaction(transaction)
+
+        for transaction in removed_transactions:
+            self.db.delete_transaction(
+                transaction.account_id,
+                transaction.transaction_id,
+                transaction.transaction_date,
+            )
 
         # TODO: Implement syncing the removed transactions as well
 
@@ -53,19 +57,14 @@ class SyncUserTransactions:
         plaid_item.synced_at = synced_at
         self.db.put_plaid_item(plaid_item)
 
-        return {
-            "statusCode": HTTPStatus.OK.value,
-            "body": json.dumps(
-                {
-                    "Workflow": SyncUserTransactions.WORKFLOW_NAME,
-                    "Status": Status.SUCCESS.value,
-                    "Message": "Successfully synced user transactions!",
-                    "Data": {
-                        "user_id": user_id,
-                        "plaid_item_id": plaid_item.item_id,
-                        "cursor": plaid_item.cursor,
-                        "synced_at": plaid_item.synced_at.isoformat(),
-                    },
-                }
-            ),
-        }
+        return WorkflowResponse(
+            name=SyncUserTransactions.WORKFLOW_NAME,
+            status=WorkflowStatus.SUCCESS,
+            message="Successfully synced user transactions!",
+            data={
+                "user_id": user_id,
+                "plaid_item_id": plaid_item.item_id,
+                "cursor": plaid_item.cursor,
+                "synced_at": plaid_item.synced_at.isoformat(),
+            },
+        )

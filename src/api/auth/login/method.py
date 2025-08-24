@@ -103,11 +103,9 @@ class Login(WalterAPIMethod):
         log.info("Verified password matches!")
 
     def _create_tokens(self, user: User) -> Tokens:
-        log.info(f"Creating refresh and access tokens for user '{user.user_id}'")
+        log.info(f"Generating tokens for user '{user.user_id}'")
         tokens = self.authenticator.generate_tokens(user.user_id)
-        log.info(
-            f"Created refresh and access tokens with shared token ID '{tokens.jti}'"
-        )
+        log.info(f"Created tokens with ID '{tokens.jti}'")
         return tokens
 
     def _update_last_active_date(self, user: User) -> None:
@@ -118,7 +116,7 @@ class Login(WalterAPIMethod):
 
     def _create_session(self, user: User, tokens: Tokens, event: dict) -> None:
         log.info(
-            f"Creating new session for user '{user.user_id}' with token ID '{tokens.jti}'"
+            f"Creating new session for user '{user.user_id}' with session ID '{tokens.jti}'"
         )
         client_ip = self._get_client_ip(event)
         client_device = self._get_client_device(event)

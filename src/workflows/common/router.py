@@ -2,8 +2,12 @@ from dataclasses import dataclass
 
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow
+from src.workflows.sync_user_transactions import SyncUserTransactions
 from src.workflows.update_security_prices import UpdateSecurityPrices
-from src.workflows.workflows import update_security_prices_workflow
+from src.workflows.workflows import (
+    sync_user_transactions_workflow,
+    update_security_prices_workflow,
+)
 
 log = Logger(__name__).get_logger()
 
@@ -18,5 +22,7 @@ class WorkflowRouter:
         match workflow_name:
             case UpdateSecurityPrices.WORKFLOW_NAME:
                 return update_security_prices_workflow
+            case SyncUserTransactions.WORKFLOW_NAME:
+                return sync_user_transactions_workflow
             case _:
                 raise ValueError(f"Workflow '{workflow_name}' not found")

@@ -8,6 +8,7 @@ from src.canaries.routing.router import CanaryRouter
 from src.clients import (
     add_transaction_api,
     create_account_api,
+    create_link_token_api,
     create_user_api,
     delete_account_api,
     delete_transaction_api,
@@ -22,14 +23,6 @@ from src.clients import (
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
 from src.workflows.common.router import WorkflowRouter
-from tst.api.utils import (
-    get_add_stock_event,
-    get_delete_stock_event,
-    get_edit_transaction_event,
-    get_get_prices_event,
-    get_get_stock_event,
-    get_portfolio_event,
-)
 
 log = Logger(__name__).get_logger()
 
@@ -118,7 +111,7 @@ def logout(access_token: str = None) -> None:
 
 @app.command()
 def get_user(token: str = None) -> None:
-    log.info("Walter CLI: Getting user...")
+    log.info("WalterCLI: Getting user...")
     event = create_api_event(token)
     response = get_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
@@ -148,49 +141,6 @@ def create_user(
     )
     response = create_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-# STOCKS
-
-
-@app.command()
-def add_stock(token: str = None, stock: str = None, quantity: float = None) -> None:
-    log.info("Walter CLI: Adding stock...")
-    event = get_add_stock_event(stock, quantity, token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_stock(symbol: str = None) -> None:
-    log.info("WalterCLI: GetStock")
-    event = get_get_stock_event(symbol)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: GetStock Response:\n{parse_response(response)}")
-
-
-@app.command()
-def delete_stock(token: str = None, stock: str = None) -> None:
-    log.info("WalterCLI: DeleteStock")
-    event = get_delete_stock_event(stock, token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: DeleteStock Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_portfolio(token: str = None) -> None:
-    log.info("Walter CLI: Getting portfolio...")
-    event = get_portfolio_event(token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_prices(stock: str = None, start_date: str = None, end_date: str = None) -> None:
-    log.info("WalterCLI: GetPrices")
-    event = get_get_prices_event(stock, start_date, end_date)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 # ACCOUNTS
@@ -365,8 +315,15 @@ def edit_transaction(
     category: str = None,
 ) -> None:
     log.info("WalterCLI: EditTransaction")
-    event = get_edit_transaction_event(
-        token, transaction_date, transaction_id, date, vendor, amount, category
+    event = create_api_event(
+        token,
+        query_params={},
+        transaction_date=transaction_date,
+        transaction_id=transaction_id,
+        updated_date=date,
+        updated_vendor=vendor,
+        updated_amount=amount,
+        updated_category=category,
     )
     response = APIRouter.get_method(event).invoke(event).to_json()
     log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
@@ -380,6 +337,17 @@ def delete_transaction(
     event = create_api_event(token, date=date, transaction_id=transaction_id)
     response = delete_transaction_api.invoke(event).to_json()
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
+
+
+# PLAID
+
+
+@app.command()
+def create_link_token(token: str = None) -> None:
+    log.info("WalterCLI: CreateLinkToken")
+    event = create_api_event(token)
+    response = create_link_token_api.invoke(event).to_json()
+    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
 
 
 ###################
@@ -434,7 +402,7 @@ def get_prices_canary() -> None:
 #############
 
 
-def get_workflow_event(workflow_name: str, token: str = None) -> dict:
+def get_workflow_event(workflow_name: str) -> dict:
     return {
         "workflow_name": workflow_name,
     }
