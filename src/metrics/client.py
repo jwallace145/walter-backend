@@ -4,6 +4,7 @@ from typing import Dict, Union
 
 from datadog_lambda.metric import lambda_metric
 
+from src.environment import Domain
 from src.utils.log import Logger
 
 LOG = Logger(__name__).get_logger()
@@ -12,6 +13,8 @@ LOG = Logger(__name__).get_logger()
 @dataclass
 class DatadogMetricsClient:
     """Datadog Metrics Client"""
+
+    domain: Domain
 
     def __post_init__(self) -> None:
         LOG.debug("Creating Datadog metrics client")
@@ -36,12 +39,26 @@ class DatadogMetricsClient:
             metric_value_float = 1.0 if metric_value else 0.0
 
         LOG.debug(f"Emitting metric '{metric_name}' with value '{metric_value}'")
+        tags = self._merge_tags(tags)
+        LOG.debug(
+            f"Tagging metric with the following tags: {json.dumps(tags, indent=4)}"
+        )
+        lambda_metric(metric_name, metric_value_float, tags=tags)
 
-        # add tags if provided
+    def _merge_tags(self, tags: Dict[str, str] = None) -> Dict[str, str]:
+        merged_tags = {
+            "domain": self.domain.value,
+        }
+
         if tags:
-            LOG.debug(
-                f"Tagging metric with the following tags: {json.dumps(tags, indent=4)}"
-            )
-            lambda_metric(metric_name, metric_value_float, tags=tags)
-        else:
-            lambda_metric(metric_name, metric_value_float)
+            # do not let passed in tags update the domain of the metric
+            if "domain" in tags:
+                LOG.error(
+                    "Domain tag cannot be overridden! Deleting domain tag from tags..."
+                )
+                del tags["domain"]
+
+            # merge tags
+            merged_tags.update(tags)
+
+        return merged_tags

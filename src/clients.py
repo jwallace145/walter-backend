@@ -210,5 +210,5 @@ create_link_token_api = CreateLinkToken(
 # METRICS #
 ###########
 
-datadog = DatadogMetricsClient()
+datadog = DatadogMetricsClient(domain=DOMAIN)
 """(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""
