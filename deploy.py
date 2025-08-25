@@ -10,9 +10,12 @@ import boto3
 from jinja2 import Template
 from mypy_boto3_cloudformation import CloudFormationClient
 from mypy_boto3_ecr import ECRClient
+from mypy_boto3_events import EventBridgeClient
 from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_s3 import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
+
+from src.config import CONFIG
 
 ##########
 # MODELS #
@@ -112,6 +115,20 @@ def update_docs(s3_client: S3Client) -> None:
         Filename="./openapi.yml",
         ExtraArgs={"ContentType": "application/yaml"},
     )
+
+
+def update_configs(events_client: EventBridgeClient) -> None:
+    print("Updating WalterBackend configs...")
+
+    print(
+        f"Updating WalterBackend canaries cron schedule: '{CONFIG.canaries.schedule}'"
+    )
+    events_client.put_rule(
+        Name=f"WalterCanary-Trigger-{APP_ENVIRONMENT}",
+        ScheduleExpression=CONFIG.canaries.schedule,
+        State="ENABLED",
+    )
+    print(f"Updated WalterBackend canaries cron schedule: '{CONFIG.canaries.schedule}'")
 
 
 def build_and_upload_image(
@@ -327,6 +344,7 @@ def upload_cfn_template(client: S3Client) -> None:
 print("Creating Boto3 clients...")
 cloudformation_client = boto3.client("cloudformation", region_name=AWS_REGION)
 ecr_client = boto3.client("ecr", region_name=AWS_REGION)
+events_client = boto3.client("events", region_name=AWS_REGION)
 lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 s3_client = boto3.client("s3", region_name=AWS_REGION)
 secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
@@ -336,6 +354,7 @@ secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
 ##########
 
 update_docs(s3_client)
+update_configs(events_client)
 build_and_upload_image(ecr_client, secrets_client)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
 increment_versions(lambda_client, LAMBDA_FUNCTIONS)
