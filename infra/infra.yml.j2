@@ -13,6 +13,7 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
+      - preprod
       - prod
 
   WalterAPIImageURI:
@@ -702,6 +703,11 @@ Resources:
           DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
           LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterAPI
 
   WalterWorkflows:
     Type: AWS::Lambda::Function
@@ -725,6 +731,11 @@ Resources:
           DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
           LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterWorkflows
 
   WalterCanary:
     Type: AWS::Lambda::Function
@@ -748,6 +759,11 @@ Resources:
           DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
           LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterCanaries
 
   ################
   ### DYNAMODB ###
