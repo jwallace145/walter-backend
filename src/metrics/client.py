@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from datadog_lambda.metric import lambda_metric
 
@@ -45,20 +45,22 @@ class DatadogMetricsClient:
         )
         lambda_metric(metric_name, metric_value_float, tags=tags)
 
-    def _merge_tags(self, tags: Dict[str, str] = None) -> Dict[str, str]:
+    def _merge_tags(self, tags: Dict[str, str] = None) -> List[str]:
         merged_tags = {
             "domain": self.domain.value,
         }
 
         if tags:
-            # do not let passed in tags update the domain of the metric
-            if "domain" in tags:
-                LOG.error(
-                    "Domain tag cannot be overridden! Deleting domain tag from tags..."
+            # create copy to avoid modifying caller's dict
+            tags_copy = tags.copy()
+
+            if "domain" in tags_copy:
+                LOG.warning(
+                    "Domain tag cannot be overridden! Ignoring provided domain tag..."
                 )
-                del tags["domain"]
+                del tags_copy["domain"]
 
-            # merge tags
-            merged_tags.update(tags)
+            merged_tags.update(tags_copy)
 
-        return merged_tags
+        # convert tags dictionary to datadog expected list of key:value strings
+        return [f"{key}:{value}" for key, value in merged_tags.items()]
