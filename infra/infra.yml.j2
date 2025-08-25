@@ -25,6 +25,11 @@ Parameters:
     Description: The timeout in seconds of all WalterAPI endpoints
     Default: 30
 
+  WalterCanariesTimeoutSeconds:
+    Type: Number
+    Description: The timeout in seconds of all WalterAPI canaries
+    Default: 180
+
   WalterAPILambdaMemorySizeMegabytes:
     Type: Number
     Description: The memory in Megabytes (MB) allocated to the Lambda environments that serve the WalterAPI endpoints
@@ -733,7 +738,7 @@ Resources:
       ImageConfig:
         Command:
           - datadog_lambda.handler.handler
-      Timeout: !Ref WalterAPITimeoutSeconds
+      Timeout: !Ref WalterCanariesTimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - "arm64"
