@@ -38,7 +38,7 @@ class Login(BaseCanary):
             headers={"Content-Type": "application/json"},
             json={
                 "email": self.CANARY_USER_EMAIL,
-                "password": self.CANARY_USER_PASSWORD,
+                "password": self.CANARY_USER_PASSWORD + "INVALID",
             },
         )
 
