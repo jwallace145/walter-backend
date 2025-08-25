@@ -34,6 +34,7 @@ from src.environment import get_domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.media.bucket import PublicMediaBucket
+from src.metrics.client import DatadogMetricsClient
 from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
 from src.polygon.client import PolygonClient
@@ -204,3 +205,10 @@ update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
 create_link_token_api = CreateLinkToken(
     walter_authenticator, walter_cw, walter_db, plaid
 )
+
+###########
+# METRICS #
+###########
+
+datadog = DatadogMetricsClient()
+"""(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""

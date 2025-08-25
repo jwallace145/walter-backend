@@ -33,6 +33,7 @@ scikit-learn = "*"
 requests-toolbelt = "*"
 plaid-python = "*"
 user-agents = "*"
+datadog-lambda = "*"
 
 [dev-packages]
 black = "*"

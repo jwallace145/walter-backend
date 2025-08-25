@@ -1,41 +1,58 @@
 from dataclasses import dataclass
+from typing import Optional
 
 import requests
 from requests import Response
 
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
+from src.auth.models import Tokens
 from src.canaries.common.canary import BaseCanary
+from src.canaries.common.exceptions import CanaryFailure
+from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
-log = Logger(__name__).get_logger()
+LOG = Logger(__name__).get_logger()
 
 
 @dataclass
-class GetUserCanary(BaseCanary):
+class GetUser(BaseCanary):
     """
-    WalterCanary: GetUserCanary
+    WalterCanary: GetUser
 
     This canary calls the GetUser API and ensures
     that Walter can verify authenticated users
     identity successfully.
     """
 
-    CANARY_NAME = "GetUserCanary"
+    CANARY_NAME = "GetUser"
     API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/users"
-    USER_EMAIL = "canary@walterai.dev"
-
-    authenticator: WalterAuthenticator
 
     def __init__(
-        self, authenticator: WalterAuthenticator, metrics: WalterCloudWatchClient
+        self,
+        authenticator: WalterAuthenticator,
+        db: WalterDB,
+        metrics: DatadogMetricsClient,
     ) -> None:
-        super().__init__(GetUserCanary.CANARY_NAME, GetUserCanary.API_URL, metrics)
-        self.authenticator = authenticator
-
-    def call_api(self) -> Response:
-        token = self.authenticator.generate_user_token(email=GetUserCanary.USER_EMAIL)
-        return requests.get(
-            GetUserCanary.API_URL,
-            headers={"Authorization": f"Bearer {token}"},
+        super().__init__(
+            GetUser.CANARY_NAME, GetUser.API_URL, authenticator, db, metrics
         )
+
+    def is_authenticated(self) -> bool:
+        return True
+
+    def call_api(self, tokens: Optional[Tokens] = None) -> Response:
+        return requests.get(
+            GetUser.API_URL,
+            headers={"Authorization": f"Bearer {tokens.access_token}"},
+        )
+
+    def validate_data(self, response: dict) -> None:
+        LOG.debug("Validating user email in API response data...")
+        if response.get("Data", {}).get("email", None) is None:
+            raise CanaryFailure("Missing user email in API response")
+
+        email = response["Data"]["email"]
+        if email != self.CANARY_USER_EMAIL:
+            raise CanaryFailure(f"Unexpected user email in response: '{email}'")
+        LOG.debug("Validated user email in API response data!")

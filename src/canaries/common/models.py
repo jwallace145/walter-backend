@@ -10,7 +10,7 @@ class CanaryResponse:
     WalterCanary - Response
     """
 
-    canary_name: str
+    api_name: str
     status: Status
     response_time_millis: float
 
@@ -19,7 +19,7 @@ class CanaryResponse:
             "statusCode": HTTPStatus.OK.value,
             "body": json.dumps(
                 {
-                    "Canary": self.canary_name,
+                    "Canary": self.api_name,
                     "Status": self.status.value,
                     "ResponseTimeMillis": self.response_time_millis,
                 }

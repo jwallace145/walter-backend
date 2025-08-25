@@ -1,49 +1,58 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from src.canaries.auth_user import AuthUserCanary
+from src.canaries.auth.login import Login
+from src.canaries.auth.logout import Logout
+from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
-from src.canaries.get_portfolio import GetPortfolioCanary
-from src.canaries.get_prices import GetPricesCanary
-from src.canaries.get_stock import GetStockCanary
-from src.canaries.get_transactions import GetTransactionsCanary
-from src.canaries.get_user import GetUserCanary
-from src.clients import walter_authenticator, walter_cw
+from src.canaries.get_user import GetUser
+from src.clients import datadog, walter_authenticator, walter_db
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
 
 
 class CanaryType(Enum):
-    AUTH_USER = "auth_user"
-    GET_PORTFOLIO = "get_portfolio"
-    GET_PRICES = "get_prices"
-    GET_STOCK = "get_stock"
-    GET_USER = "get_user"
-    GET_TRANSACTIONS = "get_transactions"
+    """Supported Canary Types"""
+
+    ##################
+    # AUTHENTICATION #
+    ##################
+
+    LOGIN = "Login"
+    REFRESH = "Refresh"
+    LOGOUT = "Logout"
+
+    #########
+    # USERS #
+    #########
+
+    GET_USER = "GetUser"
+
+    @classmethod
+    def from_string(cls, canary_type_str: str):
+        for canary_type in CanaryType:
+            if canary_type.value.lower() == canary_type_str.lower():
+                return canary_type
+        raise ValueError(f"Invalid canary type '{canary_type_str}'!")
 
 
 @dataclass
 class CanaryRouter:
+    """Router for Canaries"""
 
     @staticmethod
-    def get_canary(event: dict) -> BaseCanary:
-        log.info(f"Received event: {event}")
-        canary = event["canary"]
-        log.info(f"Canary: {canary}")
+    def get_canary(canary_type: CanaryType) -> BaseCanary:
+        log.info(f"Getting '{canary_type.value}' canary'")
 
-        match canary:
-            case CanaryType.AUTH_USER.value:
-                return AuthUserCanary(walter_cw)
-            case CanaryType.GET_PORTFOLIO.value:
-                return GetPortfolioCanary(walter_authenticator, walter_cw)
-            case CanaryType.GET_PRICES.value:
-                return GetPricesCanary(walter_cw)
-            case CanaryType.GET_STOCK.value:
-                return GetStockCanary(walter_cw)
-            case CanaryType.GET_USER.value:
-                return GetUserCanary(walter_authenticator, walter_cw)
-            case CanaryType.GET_TRANSACTIONS.value:
-                return GetTransactionsCanary(walter_authenticator, walter_cw)
+        match canary_type:
+            case CanaryType.LOGIN:
+                return Login(walter_authenticator, walter_db, datadog)
+            case CanaryType.REFRESH:
+                return Refresh(walter_authenticator, walter_db, datadog)
+            case CanaryType.LOGOUT:
+                return Logout(walter_authenticator, walter_db, datadog)
+            case CanaryType.GET_USER:
+                return GetUser(walter_authenticator, walter_db, datadog)
             case _:
-                raise Exception(f"Canary {canary} not found.")
+                raise Exception(f"Canary type {canary_type} not found.")
