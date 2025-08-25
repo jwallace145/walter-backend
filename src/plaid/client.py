@@ -145,7 +145,7 @@ class PlaidClient:
                 access_token=access_token,
             )
         )
-        print(response.to_dict())
+        log.debug(f"Plaid TransactionsRefresh API response:\n{response}")
         log.info("Successfully refreshed user transactions!")
 
     def get_accounts(self, access_token: str) -> None:

@@ -34,6 +34,8 @@ class WalterSecretsManagerClient:
     PLAID_SANDBOX_CREDENTIALS_SECRET_NAME = "PlaidSandboxCredentials"
     PLAID_SANDBOX_CREDENTIALS_CLIENT_ID_KEY = "PLAID_SANDBOX_CREDENTIALS_CLIENT_ID"
     PLAID_SANDBOX_CREDENTIALS_SECRET_KEY = "PLAID_SANDBOX_CREDENTIALS_SECRET"
+    DATADOG_API_KEY_SECRET_ID = "DatadogAPIKey"
+    DATADOG_API_KEY_SECRET_NAME = "DATADOG_API_KEY"
 
     client: SecretsManagerClient
     domain: Domain
@@ -45,6 +47,7 @@ class WalterSecretsManagerClient:
     stripe_test_secret_key: str = None
     plaid_sandbox_credentials_client_id: str = None
     plaid_sandbox_credentials_secret_key: str = None
+    datadog_api_key: str = None
 
     def __post_init__(self) -> None:
         log.debug(
@@ -98,6 +101,14 @@ class WalterSecretsManagerClient:
                 WalterSecretsManagerClient.PLAID_SANDBOX_CREDENTIALS_SECRET_KEY,
             )
         return self.plaid_sandbox_credentials_secret_key
+
+    def get_datadog_api_key(self) -> str:
+        if self.datadog_api_key is None:
+            self.datadog_api_key = self._get_secret(
+                self.DATADOG_API_KEY_SECRET_ID,
+                self.DATADOG_API_KEY_SECRET_NAME,
+            )
+        return self.datadog_api_key
 
     def _get_secret(self, secret_id: str, secret_name: str) -> str:
         return json.loads(

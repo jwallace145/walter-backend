@@ -4,10 +4,11 @@ from typing import Optional
 import typer
 
 from src.api.routing.router import APIRouter
-from src.canaries.routing.router import CanaryRouter
+from src.canaries.routing.router import CanaryRouter, CanaryType
 from src.clients import (
     add_transaction_api,
     create_account_api,
+    create_link_token_api,
     create_user_api,
     delete_account_api,
     delete_transaction_api,
@@ -22,23 +23,8 @@ from src.clients import (
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
 from src.workflows.common.router import WorkflowRouter
-from tst.api.utils import (
-    get_add_stock_event,
-    get_delete_stock_event,
-    get_edit_transaction_event,
-    get_get_prices_event,
-    get_get_stock_event,
-    get_portfolio_event,
-)
 
 log = Logger(__name__).get_logger()
-
-CONTEXT = {}
-
-
-def parse_response(response: dict) -> str:
-    response["body"] = json.loads(response["body"])
-    return json.dumps(response, indent=4)
 
 
 def create_api_event(
@@ -80,6 +66,11 @@ def create_api_event(
     return event
 
 
+def parse_response(response: dict) -> str:
+    response["body"] = json.loads(response["body"])
+    return json.dumps(response, indent=4)
+
+
 ##############
 # WALTER CLI #
 ##############
@@ -90,7 +81,19 @@ app = typer.Typer()
 
 
 @app.command()
-def login(email: str = None, password: str = None) -> None:
+def login(
+    email: str = typer.Option(None, help="Email address for authentication"),
+    password: str = typer.Option(None, help="Account password"),
+) -> None:
+    """Login to generate authentication tokens.
+
+    Generates a valid long-lived refresh token and short-lived access token on successful
+    authentication. Starts a new user session which is persisted to the database.
+
+    Parameters:
+    - email: Valid email address associated with account (required)
+    - password: Account password (required)
+    """
     log.info("WalterCLI: Login")
     event = create_api_event(email=email, password=password)
     response = login_api.invoke(event).to_json()
@@ -98,7 +101,19 @@ def login(email: str = None, password: str = None) -> None:
 
 
 @app.command()
-def refresh(refresh_token: str = None) -> None:
+def refresh(
+    refresh_token: str = typer.Option(
+        None, help="Valid refresh token to get new access token"
+    )
+) -> None:
+    """Get new access token using refresh token.
+
+    Returns a new short-lived access token when provided with a valid refresh token.
+    This allows getting new access tokens without re-authenticating with credentials.
+
+    Parameters:
+    - refresh_token: Valid refresh token obtained from login (required)
+    """
     log.info("WalterCLI: Refresh")
     event = create_api_event(token=refresh_token)
     response = refresh_api.invoke(event).to_json()
@@ -106,7 +121,17 @@ def refresh(refresh_token: str = None) -> None:
 
 
 @app.command()
-def logout(access_token: str = None) -> None:
+def logout(
+    access_token: str = typer.Option(None, help="Access token to invalidate session")
+) -> None:
+    """Logout and revoke authentication tokens.
+
+    Logs out user by revoking both refresh and access tokens for the current session.
+    Any devices still using these tokens will be forced to reauthenticate.
+
+    Parameters:
+    - access_token: Valid access token for the session to end (required)
+    """
     log.info("WalterCLI: Logout")
     event = create_api_event(token=access_token)
     response = logout_api.invoke(event).to_json()
@@ -118,7 +143,7 @@ def logout(access_token: str = None) -> None:
 
 @app.command()
 def get_user(token: str = None) -> None:
-    log.info("Walter CLI: Getting user...")
+    log.info("WalterCLI: Getting user...")
     event = create_api_event(token)
     response = get_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
@@ -148,49 +173,6 @@ def create_user(
     )
     response = create_user_api.invoke(event).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-# STOCKS
-
-
-@app.command()
-def add_stock(token: str = None, stock: str = None, quantity: float = None) -> None:
-    log.info("Walter CLI: Adding stock...")
-    event = get_add_stock_event(stock, quantity, token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_stock(symbol: str = None) -> None:
-    log.info("WalterCLI: GetStock")
-    event = get_get_stock_event(symbol)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: GetStock Response:\n{parse_response(response)}")
-
-
-@app.command()
-def delete_stock(token: str = None, stock: str = None) -> None:
-    log.info("WalterCLI: DeleteStock")
-    event = get_delete_stock_event(stock, token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: DeleteStock Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_portfolio(token: str = None) -> None:
-    log.info("Walter CLI: Getting portfolio...")
-    event = get_portfolio_event(token)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"Walter CLI: Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_prices(stock: str = None, start_date: str = None, end_date: str = None) -> None:
-    log.info("WalterCLI: GetPrices")
-    event = get_get_prices_event(stock, start_date, end_date)
-    response = APIRouter.get_method(event).invoke(event).to_json()
-    log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
 # ACCOUNTS
@@ -365,8 +347,15 @@ def edit_transaction(
     category: str = None,
 ) -> None:
     log.info("WalterCLI: EditTransaction")
-    event = get_edit_transaction_event(
-        token, transaction_date, transaction_id, date, vendor, amount, category
+    event = create_api_event(
+        token,
+        query_params={},
+        transaction_date=transaction_date,
+        transaction_id=transaction_id,
+        updated_date=date,
+        updated_vendor=vendor,
+        updated_amount=amount,
+        updated_category=category,
     )
     response = APIRouter.get_method(event).invoke(event).to_json()
     log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
@@ -382,51 +371,45 @@ def delete_transaction(
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
 
 
-###################
-# WALTER CANARIES #
-###################
+# PLAID
 
 
 @app.command()
-def auth_user_canary() -> None:
-    log.info("WalterCLI: AuthUserCanary...")
-    response = CanaryRouter.get_canary(event={"canary": "auth_user"}).invoke()
-    log.info(f"WalterCLI: AuthUserCanary Response:\n{parse_response(response)}")
+def create_link_token(token: str = None) -> None:
+    log.info("WalterCLI: CreateLinkToken")
+    event = create_api_event(token)
+    response = create_link_token_api.invoke(event).to_json()
+    log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
+
+
+############
+# CANARIES #
+############
 
 
 @app.command()
-def get_transactions_canary() -> None:
-    log.info("WalterCLI: GetTransactionsCanary")
-    response = CanaryRouter.get_canary(event={"canary": "get_transactions"}).invoke()
-    log.info(f"WalterCLI: GetTransactionsCanary Response:\n{parse_response(response)}")
+def canary(
+    api: str = typer.Option(
+        None,
+        help=f"The name of the API the canary invokes. Defaults to None which invokes all canaries. Valid canary options: {[canary.value for canary in CanaryType]})",
+    )
+) -> None:
+    """
+    This CLI command invokes a canary to test API endpoints.
 
-
-@app.command()
-def get_user_canary() -> None:
-    log.info("WalterCLI: GetUserCanary...")
-    response = CanaryRouter.get_canary(event={"canary": "get_user"}).invoke()
-    log.info(f"WalterCLI: GetUserCanary Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_stock_canary() -> None:
-    log.info("WalterCLI: GetStockCanary...")
-    response = CanaryRouter.get_canary(event={"canary": "get_stock"}).invoke()
-    log.info(f"WalterCLI: GetStockCanary Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_portfolio_canary() -> None:
-    log.info("WalterCLI: GetPortfolioCanary...")
-    response = CanaryRouter.get_canary(event={"canary": "get_portfolio"}).invoke()
-    log.info(f"WalterCLI: GetPortfolioCanary Response:\n{parse_response(response)}")
-
-
-@app.command()
-def get_prices_canary() -> None:
-    log.info("WalterCLI: GetPricesCanary...")
-    response = CanaryRouter.get_canary(event={"canary": "get_prices"}).invoke()
-    log.info(f"WalterCLI: GetPricesCanary Response:\n{parse_response(response)}")
+    The canary is invoked using the specified API. If no API is specified, all canaries are invoked.
+    """
+    log.info("WalterCLI: Canary")
+    if api:
+        log.info(f"Invoking canary for '{api}'")
+        canary_type = CanaryType.from_string(api)
+        response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
+        log.info(f"WalterCLI: Canary Response:\n{parse_response(response)}")
+    else:
+        log.info("Invoking all canaries")
+        for canary_type in CanaryType:
+            response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
+            log.info(f"WalterCLI: {canary_type} Response:\n{parse_response(response)}")
 
 
 #############
@@ -434,7 +417,7 @@ def get_prices_canary() -> None:
 #############
 
 
-def get_workflow_event(workflow_name: str, token: str = None) -> dict:
+def get_workflow_event(workflow_name: str) -> dict:
     return {
         "workflow_name": workflow_name,
     }

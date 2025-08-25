@@ -12,6 +12,7 @@ from mypy_boto3_cloudformation import CloudFormationClient
 from mypy_boto3_ecr import ECRClient
 from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_secretsmanager import SecretsManagerClient
 
 ##########
 # MODELS #
@@ -54,6 +55,12 @@ LAMBDA_FUNCTIONS = [
     f"WalterWorkflows-{APP_ENVIRONMENT}",
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
+
+WALTER_BACKEND_DATADOG_API_KEY_SECRET = (
+    "WalterBackendDatadogAPIKey",
+    "DATADOG_API_KEY",
+)
+"""(str): The name of the secret and the secret key of the Datadog API key in Secrets Manager."""
 
 
 ###########
@@ -107,7 +114,9 @@ def update_docs(s3_client: S3Client) -> None:
     )
 
 
-def build_and_upload_image(ecr_client: ECRClient) -> None:
+def build_and_upload_image(
+    ecr_client: ECRClient, secrets_client: SecretsManagerClient
+) -> None:
     """
     Builds and uploads the WalterAPI Docker image to an Amazon ECR repository.
 
@@ -129,6 +138,13 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
     endpoint = auth_data["proxyEndpoint"]
     username, password = base64.b64decode(token).decode("utf-8").split(":")
 
+    print("Getting Datadog API key from Secrets Manager")
+    dd_api_key = json.loads(
+        secrets_client.get_secret_value(
+            SecretId=WALTER_BACKEND_DATADOG_API_KEY_SECRET[0]
+        )["SecretString"]
+    )[WALTER_BACKEND_DATADOG_API_KEY_SECRET[1]]
+
     # build and tag the latest image
     run_cmd(
         [
@@ -147,6 +163,8 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
             "buildx",
             "build",
             "--platform=linux/arm64",
+            "--build-arg",
+            f"DD_API_KEY={dd_api_key}",
             "-t",
             "walter/api",
             "--load",
@@ -311,13 +329,14 @@ cloudformation_client = boto3.client("cloudformation", region_name=AWS_REGION)
 ecr_client = boto3.client("ecr", region_name=AWS_REGION)
 lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 s3_client = boto3.client("s3", region_name=AWS_REGION)
+secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
 
 ##########
 # SCRIPT #
 ##########
 
 update_docs(s3_client)
-build_and_upload_image(ecr_client)
+build_and_upload_image(ecr_client, secrets_client)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
 increment_versions(lambda_client, LAMBDA_FUNCTIONS)
 latest_versions = get_latest_versions(lambda_client, LAMBDA_FUNCTIONS)

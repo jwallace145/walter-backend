@@ -13,6 +13,7 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
+      - preprod
       - prod
 
   WalterAPIImageURI:
@@ -25,6 +26,11 @@ Parameters:
     Description: The timeout in seconds of all WalterAPI endpoints
     Default: 30
 
+  WalterCanariesTimeoutSeconds:
+    Type: Number
+    Description: The timeout in seconds of all WalterAPI canaries
+    Default: 180
+
   WalterAPILambdaMemorySizeMegabytes:
     Type: Number
     Description: The memory in Megabytes (MB) allocated to the Lambda environments that serve the WalterAPI endpoints
@@ -35,9 +41,9 @@ Parameters:
     Description: The number of Lambdas to keep warm for provisioned concurrency to improve WalterAPI latency with respect to cold starts
     Default: 2
 
-  WalterAPILogLevel:
+  WalterBackendLogLevel:
     Type: String
-    Description: The logging level of WalterAPI.
+    Description: The logging level of WalterBackend.
     Default: INFO
     AllowedValues:
       - DEBUG
@@ -686,15 +692,22 @@ Resources:
         ImageUri: !Ref WalterAPIImageURI
       ImageConfig:
         Command:
-          - walter.walter_api_entrypoint
+          - datadog_lambda.handler.handler
       Timeout: !Ref WalterAPITimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - "arm64"
       Environment:
         Variables:
+          DD_LAMBDA_HANDLER: walter.api_entrypoint
+          DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
+          LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterAPI
 
   WalterWorkflows:
     Type: AWS::Lambda::Function
@@ -707,15 +720,22 @@ Resources:
         ImageUri: !Ref WalterAPIImageURI
       ImageConfig:
         Command:
-          - walter.walter_workflows_entrypoint
+          - datadog_lambda.handler.handler
       Timeout: 60
       MemorySize: 512
       Architectures:
         - "arm64"
       Environment:
         Variables:
+          DD_LAMBDA_HANDLER: walter.workflows_entrypoint
+          DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
+          LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterWorkflows
 
   WalterCanary:
     Type: AWS::Lambda::Function
@@ -728,15 +748,22 @@ Resources:
         ImageUri: !Sub "${WalterAPIImageURI}"
       ImageConfig:
         Command:
-          - walter.walter_canaries_entrypoint
-      Timeout: !Ref WalterAPITimeoutSeconds
+          - datadog_lambda.handler.handler
+      Timeout: !Ref WalterCanariesTimeoutSeconds
       MemorySize: !Ref WalterAPILambdaMemorySizeMegabytes
       Architectures:
         - "arm64"
       Environment:
         Variables:
+          DD_LAMBDA_HANDLER: walter.canaries_entrypoint
+          DD_LOG_LEVEL: !Ref WalterBackendLogLevel
           DOMAIN: DEVELOPMENT
-          LOG_LEVEL: !Ref WalterAPILogLevel
+          LOG_LEVEL: !Ref WalterBackendLogLevel
+      Tags:
+        - Key: env
+          Value: !Ref AppEnvironment
+        - Key: service
+          Value: WalterCanaries
 
   ################
   ### DYNAMODB ###
@@ -983,36 +1010,6 @@ Resources:
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
-                - ":secret:JWTSecretKey-E5va6r"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":secret:JWTVerifyEmailSecretAccessKey-9KhIYG"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":secret:JWTChangePasswordSecretKey-f0RsUz"
-          - Effect: Allow
-            Action:
-              - "secretsmanager:GetSecretValue"
-            Resource: !Join
-              - ""
-              - - "arn:aws:secretsmanager:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
                 - ":secret:StripeTestSecretKey-8vIZfy"
           - Effect: Allow
             Action:
@@ -1034,6 +1031,17 @@ Resources:
                 - ":"
                 - !Ref "AWS::AccountId"
                 - ":secret:WalterAuthSecrets-dev-sums6H"
+          - Effect: Allow
+            Action:
+              - "secretsmanager:GetSecretValue"
+            Resource: !Join
+              - ""
+              - - "arn:aws:secretsmanager:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":secret:"
+                - "WalterBackendDatadogAPIKey-cqq1ea"
       Roles:
         - !Ref WalterAPIRole
 

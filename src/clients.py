@@ -12,6 +12,7 @@ from src.api.accounts.update_account import UpdateAccount
 from src.api.auth.login.method import Login
 from src.api.auth.logout.method import Logout
 from src.api.auth.refresh.method import Refresh
+from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction
@@ -30,10 +31,10 @@ from src.aws.sqs.client import WalterSQSClient
 from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import get_domain
-from src.events.parser import WalterEventParser
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.media.bucket import PublicMediaBucket
+from src.metrics.client import DatadogMetricsClient
 from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
 from src.polygon.client import PolygonClient
@@ -55,12 +56,6 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
 DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 """(str): The domain of the WalterBackend service environment."""
-
-#######################
-# WALTER EVENT PARSER #
-#######################
-
-walter_event_parser = WalterEventParser()
 
 
 ########################
@@ -155,9 +150,9 @@ walter_payments = WalterStripeClient(walter_sm=walter_sm)
 #########
 
 plaid = PlaidClient(
-    client_id=walter_sm.get_plaid_sandbox_credentials_client_id(),
-    secret=walter_sm.get_plaid_sandbox_credentials_secret_key(),
-    environment=Environment.Sandbox,
+    client_id=walter_sm.get_plaid_sandbox_credentials_client_id(),  # TODO: Replace with production client ID
+    secret=walter_sm.get_plaid_sandbox_credentials_secret_key(),  # TODO: Replace with production secret key
+    environment=Environment.Sandbox,  # TODO: Replace with production environment
 )
 
 sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
@@ -205,3 +200,15 @@ delete_transaction_api = DeleteTransaction(
 get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
 create_user_api = CreateUser(walter_authenticator, walter_cw, walter_db)
 update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
+
+# PLAID
+create_link_token_api = CreateLinkToken(
+    walter_authenticator, walter_cw, walter_db, plaid
+)
+
+###########
+# METRICS #
+###########
+
+datadog = DatadogMetricsClient(domain=DOMAIN)
+"""(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""

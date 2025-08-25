@@ -19,7 +19,6 @@ from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
 from src.environment import Domain
-from src.events.parser import WalterEventParser
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.templates.bucket import TemplatesBucket
@@ -141,11 +140,6 @@ def templates_bucket(walter_s3: WalterS3Client) -> TemplatesBucket:
 @pytest.fixture
 def template_engine(templates_bucket: TemplatesBucket) -> None:
     return TemplatesEngine(templates_bucket)
-
-
-@pytest.fixture
-def walter_event_parser() -> WalterEventParser:
-    return WalterEventParser()
 
 
 @pytest.fixture
