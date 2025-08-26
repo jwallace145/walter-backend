@@ -194,14 +194,15 @@ class BaseCanary(ABC):
         """Send success, failure, and response time metrics to Datadog."""
         log.info(f"Emitting metrics for '{self.api_name}' canary...")
         self.metrics.emit_metric(
-            f"Canary.{self.api_name}.{METRICS_SUCCESS_COUNT}", success
+            f"canary.{METRICS_SUCCESS_COUNT}", success, tags={"api": self.api_name}
         )
         self.metrics.emit_metric(
-            f"Canary.{self.api_name}.{METRICS_FAILURE_COUNT}", not success
+            f"canary.{METRICS_FAILURE_COUNT}", not success, tags={"api": self.api_name}
         )
         self.metrics.emit_metric(
-            f"Canary.{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}",
+            f"canary.{METRICS_RESPONSE_TIME_MILLISECONDS}",
             response_time_millis,
+            tags={"api": self.api_name},
         )
 
     @abstractmethod
