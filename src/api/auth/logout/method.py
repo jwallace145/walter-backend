@@ -1,4 +1,5 @@
 import datetime as dt
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -26,6 +27,8 @@ class Logout(WalterAPIMethod):
     Authenticated API that revokes the current session so that associated
     access and refresh tokens are no longer valid.
     """
+
+    SESSION_HISTORY_TTL_SECONDS = 60 * 60 * 24 * 7  # one week
 
     API_NAME = "Logout"
     REQUIRED_QUERY_FIELDS = []
@@ -80,6 +83,7 @@ class Logout(WalterAPIMethod):
         if not session.revoked:
             session.revoked = True
         session.session_end = now
+        session.ttl = int(time.time()) + Logout.SESSION_HISTORY_TTL_SECONDS
         self.db.update_session(session)
 
         log.info(

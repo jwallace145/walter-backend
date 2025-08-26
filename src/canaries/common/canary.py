@@ -1,10 +1,12 @@
 import datetime as dt
 import json
+import time
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from requests import Response
 
+from src.api.common.exceptions import SessionDoesNotExist
 from src.api.common.models import Status
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
@@ -68,6 +70,7 @@ class BaseCanary(ABC):
         try:
 
             # get tokens if api is authenticated
+            user = None
             tokens = None
             if self.is_authenticated():
                 log.info(f"'{self.api_name}' canary requires authentication!")
@@ -84,6 +87,12 @@ class BaseCanary(ABC):
             )
             log.debug(f"API Response - JSON: {json.dumps(api_response_json, indent=4)}")
             self.validate(api_response_json)
+
+            # end session if api is authenticated
+            if self.is_authenticated():
+                log.info(f"'{self.api_name}' canary ending authenticated session!")
+                self._end_session(user, tokens)
+
         except Exception:
             log.error(
                 f"Unexpected exception occurred invoking '{self.api_name}'!",
@@ -132,6 +141,26 @@ class BaseCanary(ABC):
         )
 
         return session
+
+    def _end_session(self, user: User, tokens: Tokens) -> None:
+        log.info(
+            f"Ending authenticated session for '{self.api_name}' canary for session '{tokens.jti}'"
+        )
+        session = self.db.get_session(user.user_id, tokens.jti)
+        if not session:
+            raise SessionDoesNotExist(
+                f"Session '{tokens.jti}' does not exist for user '{user.user_id}'!"
+            )
+        now = dt.datetime.now(dt.UTC)
+        session.revoked = True
+        session.session_end = now
+        session.ttl = int(
+            time.time()
+        )  # immediately expire canary session to reduce num db entries
+        self.db.update_session(session)
+        log.info(
+            f"Ended authenticated session for '{self.api_name}' canary for session '{tokens.jti}'"
+        )
 
     def validate(self, response: dict) -> None:
         """Validate the API response."""

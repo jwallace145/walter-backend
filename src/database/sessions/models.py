@@ -15,6 +15,7 @@ class Session:
     session_expiration: datetime
     revoked: bool
     session_end: Optional[datetime] = None
+    ttl: Optional[int] = None
 
     def to_ddb_item(self) -> dict:
         ddb_item = {
@@ -30,6 +31,9 @@ class Session:
         # add optional fields to return item
         if self.session_end:
             ddb_item["session_end"] = {"S": self.session_end.isoformat()}
+
+        if self.ttl:
+            ddb_item["ttl"] = {"N": str(self.ttl)}
 
         return ddb_item
 
@@ -68,4 +72,5 @@ class Session:
             ),
             revoked=ddb_item["revoked"]["BOOL"],
             session_end=ddb_item.get("session_end", {}).get("S"),
+            ttl=ddb_item.get("ttl", {}).get("N"),
         )
