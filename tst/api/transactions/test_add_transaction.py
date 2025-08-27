@@ -7,7 +7,6 @@ from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.add_transaction import AddTransaction
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.transactions.models import (
     BankingTransactionSubType,
@@ -18,13 +17,14 @@ from src.database.transactions.models import (
 )
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
+from src.metrics.client import DatadogMetricsClient
 from tst.polygon.mock import MockPolygonClient
 
 
 @pytest.fixture()
 def add_transaction_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
     transactions_categorizer: ExpenseCategorizerMLP,
     polygon_client: MockPolygonClient,
@@ -33,7 +33,7 @@ def add_transaction_api(
 ):
     return AddTransaction(
         walter_authenticator,
-        walter_cw,
+        datadog_metrics,
         walter_db,
         transactions_categorizer,
         polygon_client,

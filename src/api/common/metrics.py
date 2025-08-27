@@ -4,14 +4,11 @@
 
 # Metrics included in this file are emitted for all APIs
 
-METRICS_SUCCESS_COUNT = "SuccessCount"
+METRICS_SUCCESS = "success"
 """(str): The number of successful API invocations."""
 
-METRICS_FAILURE_COUNT = "FailureCount"
+METRICS_FAILURE = "failure"
 """(str): The number of failed API invocations."""
 
-METRICS_TOTAL_COUNT = "TotalCount"
-"""(str): The total number of API invocations."""
-
-METRICS_RESPONSE_TIME_MILLISECONDS = "ResponseTimeMilliseconds"
+METRICS_RESPONSE_TIME_MILLISECONDS = "latency_ms"
 """(str): The response time for the API invocation in milliseconds."""

@@ -5,18 +5,18 @@ import pytest
 from src.api.accounts.delete_account import DeleteAccount
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
 def delete_account_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> DeleteAccount:
-    return DeleteAccount(walter_authenticator, walter_cw, walter_db)
+    return DeleteAccount(walter_authenticator, datadog_metrics, walter_db)
 
 
 def create_delete_account_event(token: str, account_id: str) -> dict:

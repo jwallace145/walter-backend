@@ -6,11 +6,11 @@ from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -42,7 +42,7 @@ class GetUser(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
         walter_s3: WalterS3Client,
@@ -54,7 +54,7 @@ class GetUser(WalterAPIMethod):
             GetUser.REQUIRED_FIELDS,
             GetUser.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
         self.walter_sm = walter_sm

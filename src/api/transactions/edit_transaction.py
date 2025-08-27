@@ -12,7 +12,6 @@ from src.api.common.exceptions import (
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.securities.models import SecurityType
 from src.database.sessions.models import Session
@@ -28,6 +27,7 @@ from src.database.transactions.models import (
 from src.database.users.models import User
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
+from src.metrics.client import DatadogMetricsClient
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -70,7 +70,7 @@ class EditTransaction(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         polygon: PolygonClient,
         holding_updater: HoldingUpdater,
@@ -83,7 +83,7 @@ class EditTransaction(WalterAPIMethod):
             EditTransaction.REQUIRED_FIELDS,
             EditTransaction.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
         self.polygon = polygon

@@ -5,21 +5,21 @@ import pytest
 from src.api.auth.login.method import Login
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
 def login_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
     walter_sm: WalterSecretsManagerClient,
 ) -> Login:
-    return Login(walter_authenticator, walter_cw, walter_db, walter_sm)
+    return Login(walter_authenticator, datadog_metrics, walter_db, walter_sm)
 
 
 def _event_with_body(body: dict) -> dict:

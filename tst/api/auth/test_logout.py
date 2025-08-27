@@ -5,18 +5,18 @@ import pytest
 from src.api.auth.logout.method import Logout
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
 def logout_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> Logout:
-    return Logout(walter_authenticator, walter_cw, walter_db)
+    return Logout(walter_authenticator, datadog_metrics, walter_db)
 
 
 def _event_with_auth(token: str) -> dict:

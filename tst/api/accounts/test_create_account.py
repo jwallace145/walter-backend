@@ -5,17 +5,17 @@ import pytest
 from src.api.accounts.create_account import CreateAccount
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 
 
 @pytest.fixture
 def create_account_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> CreateAccount:
-    return CreateAccount(walter_authenticator, walter_cw, walter_db)
+    return CreateAccount(walter_authenticator, datadog_metrics, walter_db)
 
 
 def _event_with_auth_and_body(token: str, body: dict) -> dict:

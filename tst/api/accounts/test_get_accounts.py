@@ -4,18 +4,18 @@ from freezegun import freeze_time
 from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
 def get_accounts_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> GetAccounts:
-    return GetAccounts(walter_authenticator, walter_cw, walter_db)
+    return GetAccounts(walter_authenticator, datadog_metrics, walter_db)
 
 
 def create_get_accounts_event(token: str) -> dict:

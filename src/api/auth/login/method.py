@@ -17,11 +17,11 @@ from src.api.common.models import Response
 from src.api.common.utils import is_valid_email
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -44,7 +44,7 @@ class Login(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
     ) -> None:
@@ -55,7 +55,7 @@ class Login(WalterAPIMethod):
             Login.REQUIRED_FIELDS,
             Login.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
         self.walter_sm = walter_sm

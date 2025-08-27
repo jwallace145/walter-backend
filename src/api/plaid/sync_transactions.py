@@ -10,10 +10,10 @@ from src.api.common.exceptions import (
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.transactions.queue import (
     SyncUserTransactionsQueue,
     SyncUserTransactionsSQSEvent,
@@ -46,13 +46,12 @@ class SyncTransactions(WalterAPIMethod):
     REQUIRED_FIELDS = ["item_id", "webhook_code"]
     EXCEPTIONS = [NotAuthenticated, PlaidItemDoesNotExist, UserDoesNotExist, BadRequest]
 
-    db: WalterDB
     queue: SyncUserTransactionsQueue
 
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         db: WalterDB,
         queue: SyncUserTransactionsQueue,
     ) -> None:
@@ -63,9 +62,9 @@ class SyncTransactions(WalterAPIMethod):
             SyncTransactions.REQUIRED_FIELDS,
             SyncTransactions.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
+            db,
         )
-        self.db = db
         self.queue = queue
 
     def execute(self, event: dict, authenticated_email: str) -> Response:

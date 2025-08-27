@@ -96,7 +96,7 @@ def login(
     """
     log.info("WalterCLI: Login")
     event = create_api_event(email=email, password=password)
-    response = login_api.invoke(event).to_json()
+    response = login_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -116,7 +116,7 @@ def refresh(
     """
     log.info("WalterCLI: Refresh")
     event = create_api_event(token=refresh_token)
-    response = refresh_api.invoke(event).to_json()
+    response = refresh_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -134,7 +134,7 @@ def logout(
     """
     log.info("WalterCLI: Logout")
     event = create_api_event(token=access_token)
-    response = logout_api.invoke(event).to_json()
+    response = logout_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -145,7 +145,7 @@ def logout(
 def get_user(token: str = None) -> None:
     log.info("WalterCLI: Getting user...")
     event = create_api_event(token)
-    response = get_user_api.invoke(event).to_json()
+    response = get_user_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -171,7 +171,7 @@ def create_user(
     event = create_api_event(
         email=email, first_name=first_name, last_name=last_name, password=password
     )
-    response = create_user_api.invoke(event).to_json()
+    response = create_user_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -189,7 +189,7 @@ def get_accounts(
     """
     log.info("WalterCLI: GetAccounts")
     event = create_api_event(token)
-    response = get_accounts_api.invoke(event).to_json()
+    response = get_accounts_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: GetAccounts Response:\n{parse_response(response)}")
 
 
@@ -222,7 +222,7 @@ def create_account(
         account_mask=account_mask,
         balance=balance,
     )
-    response = create_account_api.invoke(event).to_json()
+    response = create_account_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: CreateAccount Response:\n{parse_response(response)}")
 
 
@@ -255,7 +255,7 @@ def update_account(
         balance=balance,
         logo_url=logo_url,
     )
-    response = update_account_api.invoke(event).to_json()
+    response = update_account_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: UpdateAccount Response:\n{parse_response(response)}")
 
 
@@ -267,7 +267,7 @@ def delete_account(
     """Delete an account (and its transactions) for the authenticated user."""
     log.info("WalterCLI: DeleteAccount")
     event = create_api_event(token, account_id=account_id)
-    response = delete_account_api.invoke(event).to_json()
+    response = delete_account_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: DeleteAccount Response:\n{parse_response(response)}")
 
 
@@ -288,7 +288,7 @@ def get_transactions(
     )
     if account_id:
         event["queryStringParameters"]["account_id"] = account_id
-    response = get_transactions_api.invoke(event).to_json()
+    response = get_transactions_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: GetTransactions Response:\n{parse_response(response)}")
 
 
@@ -332,7 +332,7 @@ def add_transaction(
         query_params={},
         **kwargs,
     )
-    response = add_transaction_api.invoke(event).to_json()
+    response = add_transaction_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: AddTransaction Response:\n{parse_response(response)}")
 
 
@@ -357,7 +357,7 @@ def edit_transaction(
         updated_amount=amount,
         updated_category=category,
     )
-    response = APIRouter.get_method(event).invoke(event).to_json()
+    response = APIRouter.get_method(event, emit_metrics=False).invoke(event).to_json()
     log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
 
 
@@ -367,7 +367,7 @@ def delete_transaction(
 ) -> None:
     log.info("WalterCLI: DeleteTransaction")
     event = create_api_event(token, date=date, transaction_id=transaction_id)
-    response = delete_transaction_api.invoke(event).to_json()
+    response = delete_transaction_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
 
 
@@ -378,7 +378,7 @@ def delete_transaction(
 def create_link_token(token: str = None) -> None:
     log.info("WalterCLI: CreateLinkToken")
     event = create_api_event(token)
-    response = create_link_token_api.invoke(event).to_json()
+    response = create_link_token_api.invoke(event, emit_metrics=False).to_json()
     log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
 
 
