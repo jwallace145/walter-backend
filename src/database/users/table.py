@@ -53,6 +53,12 @@ class UsersTable:
         items = self.ddb.query_index(
             self.table, self.email_index_name, expression, attributes
         )
+
+        # return None if no items found
+        if not items:
+            return None
+
+        # return first item if multiple items found
         return None if len(items) == 0 else UsersTable._get_user_from_ddb_item(items[0])
 
     def update_user(self, user: User) -> None:

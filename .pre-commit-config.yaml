@@ -17,6 +17,13 @@ repos:
         entry: pipenv run isort --check-only --diff --profile black
         language: python
         types: [ python ]
+
+      - id: terraform-fmt
+        name: terraform-fmt
+        description: "Terraform fmt: Formats terraform files"
+        entry: terraform fmt -check -recursive
+        language: system
+        files: \.tf$
   
       - id: codespell # devs cant spell
         name: codespell

@@ -11,7 +11,7 @@ class User:
     Walter User Model
     """
 
-    user_id: str
+    user_id: Optional[str]  # create new user_id if not set
     email: str
     first_name: str
     last_name: str
