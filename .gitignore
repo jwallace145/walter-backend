@@ -9,3 +9,6 @@ tmp
 *.pyc
 coverage.xml
 infra/infra.yml
+.terraform*
+terraform.tfstate
+terraform.tfstate.backup

@@ -115,6 +115,11 @@ class BaseCanary(ABC):
             ).to_json()
 
     def _start_session(self, user: User) -> Tokens:
+        # ensure canary user exists before starting session for authenticated api
+        if user is None:
+            log.error(f"User with email '{self.CANARY_USER_EMAIL}' does not exist!")
+            raise Exception("Canary user does not exist!")
+
         log.info(
             f"Starting authenticated session for '{self.api_name}' canary for user '{user.user_id}'..."
         )

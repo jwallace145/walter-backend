@@ -58,6 +58,7 @@ class WalterDB:
         # generate salt and hash the given password to store in users table
         salt, password_hash = self.authenticator.hash_secret(password)
         user = User(
+            user_id=None,
             email=email,
             first_name=first_name,
             last_name=last_name,
