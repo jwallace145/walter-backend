@@ -55,30 +55,6 @@ jobs:
           terraform plan -var="domain=dev" -no-color -out=tfplan
         continue-on-error: true
 
-      - name: 'Comment PR'
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const output = `## Terraform Results
-            
-            | Check | Status |
-            |-------|--------|
-            | Format | ${{ steps.fmt.outcome == 'success' ? '✅' : '❌' }} |
-            | Init | ${{ steps.init.outcome == 'success' ? '✅' : '❌' }} |
-            | Plan | ${{ steps.plan.outcome == 'success' ? '✅' : '❌' }} |
-            
-            ### 🔗 Links
-            - [Walter Backend Canaries Dashboard](https://us5.datadoghq.com/dashboard/ncn-c5j-vh8/walterbackend-canaries)
-            - [Walter Frontend Repository](https://github.com/jwallace145/walter-frontend-v2)`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
-
       - name: 'Fail if any step failed'
         if: |
           steps.fmt.outcome == 'failure' ||
