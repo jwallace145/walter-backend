@@ -5,17 +5,16 @@ from typing import Dict, List, Optional
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.metrics import (
-    METRICS_FAILURE_COUNT,
+    METRICS_FAILURE,
     METRICS_RESPONSE_TIME_MILLISECONDS,
-    METRICS_SUCCESS_COUNT,
-    METRICS_TOTAL_COUNT,
+    METRICS_SUCCESS,
 )
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -36,7 +35,7 @@ class WalterAPIMethod(ABC):
         required_fields: List[str],
         exceptions: List[Exception],
         authenticator: WalterAuthenticator,
-        metrics: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         db: WalterDB,
     ) -> None:
         self.api_name = api_name
@@ -48,7 +47,7 @@ class WalterAPIMethod(ABC):
         self.metrics = metrics
         self.db = db
 
-    def invoke(self, event: dict) -> Response:
+    def invoke(self, event: dict, emit_metrics: bool = True) -> Response:
         """
         Invoke the API.
 
@@ -56,6 +55,7 @@ class WalterAPIMethod(ABC):
 
         Args:
             event: The request event of the API invocation.
+            emit_metrics: Emit metrics for the API invocation.
 
         Returns:
             The API response.
@@ -85,7 +85,10 @@ class WalterAPIMethod(ABC):
             response.response_time_millis = (end - start).total_seconds() * 1000
 
             # emit api metrics after adding elapsed time to response obj
-            self.emit_metrics(response)
+            if emit_metrics:
+                self._emit_metrics(response)
+            else:
+                log.info(f"Not emitting metrics for '{self.api_name}' API!")
 
         return response
 
@@ -256,7 +259,7 @@ class WalterAPIMethod(ABC):
             message=str(exception),
         )
 
-    def emit_metrics(self, response: Response) -> None:
+    def _emit_metrics(self, response: Response) -> None:
         """
         Emit the common metrics for the API.
 
@@ -266,16 +269,16 @@ class WalterAPIMethod(ABC):
         log.info(f"Emitting metrics for '{self.api_name}' API")
         success = response.http_status == HTTPStatus.OK
         self.metrics.emit_metric(
-            f"{self.api_name}.{METRICS_SUCCESS_COUNT}", 1 if success else 0
+            f"api.{METRICS_SUCCESS}", success, tags={"api": self.api_name}
         )
         self.metrics.emit_metric(
-            f"{self.api_name}.{METRICS_FAILURE_COUNT}", 0 if success else 1
+            f"api.{METRICS_FAILURE}", not success, tags={"api": self.api_name}
         )
-        self.metrics.emit_metric(f"{self.api_name}.{METRICS_TOTAL_COUNT}", 1)
         response_time_millis = response.response_time_millis
         self.metrics.emit_metric(
-            f"{self.api_name}.{METRICS_RESPONSE_TIME_MILLISECONDS}",
+            f"api.{METRICS_RESPONSE_TIME_MILLISECONDS}",
             response_time_millis,
+            tags={"api": self.api_name},
         )
 
     def _verify_user_exists(self, user_id: str) -> User:

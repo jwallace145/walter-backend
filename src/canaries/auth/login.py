@@ -1,9 +1,12 @@
+import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Optional
 
 import requests
 from requests import Response
 
+from src.api.common.exceptions import SessionDoesNotExist
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
 from src.canaries.common.canary import BaseCanary
@@ -33,7 +36,7 @@ class Login(BaseCanary):
         return False
 
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
-        return requests.post(
+        api_response = requests.post(
             Login.API_URL,
             headers={"Content-Type": "application/json"},
             json={
@@ -41,6 +44,31 @@ class Login(BaseCanary):
                 "password": self.CANARY_USER_PASSWORD,
             },
         )
+
+        LOG.info("Logging out canary after successful Login API call...")
+        response = api_response.json()
+        access_token = response["Data"]["access_token"]
+        user_id, session_id = self.authenticator.decode_access_token(access_token)
+
+        LOG.info(
+            f"Getting session for user '{user_id}' with session ID '{session_id}'..."
+        )
+        session = self.db.get_session(user_id, session_id)
+        if not session:
+            LOG.error(f"Session '{session_id}' not found for user '{user_id}'!")
+            raise SessionDoesNotExist("Session does not exist!")
+
+        LOG.info(
+            f"Revoking session for user '{user_id}' with session ID '{session_id}'..."
+        )
+        session.revoked = True
+        session.session_end = datetime.now(timezone.utc)
+        session.ttl = int(
+            time.time()
+        )  # immediately expire canary session to reduce num db entries
+        self.db.update_session(session)
+
+        return api_response
 
     def validate_data(self, response: dict) -> None:
         # validate required fields in response data

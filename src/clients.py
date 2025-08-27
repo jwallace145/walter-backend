@@ -22,7 +22,6 @@ from src.api.users.get_user import GetUser
 from src.api.users.update_user import UpdateUser
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.bedrock.client import WalterBedrockClient
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -58,13 +57,17 @@ DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
 """(str): The domain of the WalterBackend service environment."""
 
 
-########################
-# WALTER BOTO3 CLIENTS #
-########################
+###########
+# METRICS #
+###########
 
-walter_cw = WalterCloudWatchClient(
-    client=boto3.client("cloudwatch", region_name=AWS_REGION), domain=DOMAIN
-)
+datadog = DatadogMetricsClient(domain=DOMAIN)
+"""(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""
+
+#################
+# BOTO3 CLIENTS #
+#################
+
 walter_ses = WalterSESClient(
     client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN
 )
@@ -162,22 +165,22 @@ sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
 ###############
 
 # AUTHENTICATION
-login_api = Login(walter_authenticator, walter_cw, walter_db, walter_sm)
-refresh_api = Refresh(walter_authenticator, walter_cw, walter_db)
-logout_api = Logout(walter_authenticator, walter_cw, walter_db)
+login_api = Login(walter_authenticator, datadog, walter_db, walter_sm)
+refresh_api = Refresh(walter_authenticator, datadog, walter_db)
+logout_api = Logout(walter_authenticator, datadog, walter_db)
 
 # ACCOUNTS =
-get_accounts_api = GetAccounts(walter_authenticator, walter_cw, walter_db)
-create_account_api = CreateAccount(walter_authenticator, walter_cw, walter_db)
-update_account_api = UpdateAccount(walter_authenticator, walter_cw, walter_db)
-delete_account_api = DeleteAccount(walter_authenticator, walter_cw, walter_db)
+get_accounts_api = GetAccounts(walter_authenticator, datadog, walter_db)
+create_account_api = CreateAccount(walter_authenticator, datadog, walter_db)
+update_account_api = UpdateAccount(walter_authenticator, datadog, walter_db)
+delete_account_api = DeleteAccount(walter_authenticator, datadog, walter_db)
 
 
 # TRANSACTIONS
-get_transactions_api = GetTransactions(walter_authenticator, walter_cw, walter_db)
+get_transactions_api = GetTransactions(walter_authenticator, datadog, walter_db)
 add_transaction_api = AddTransaction(
     walter_authenticator,
-    walter_cw,
+    datadog,
     walter_db,
     expense_categorizer,
     polygon_client,
@@ -186,29 +189,20 @@ add_transaction_api = AddTransaction(
 )
 edit_transaction_api = EditTransaction(
     walter_authenticator,
-    walter_cw,
+    datadog,
     walter_db,
     polygon_client,
     holding_updater,
     security_updater,
 )
 delete_transaction_api = DeleteTransaction(
-    walter_authenticator, walter_cw, walter_db, holding_updater
+    walter_authenticator, datadog, walter_db, holding_updater
 )
 
 # USERS
-get_user_api = GetUser(walter_authenticator, walter_cw, walter_db, walter_sm, s3)
-create_user_api = CreateUser(walter_authenticator, walter_cw, walter_db)
-update_user_api = UpdateUser(walter_authenticator, walter_cw, walter_db, s3)
+get_user_api = GetUser(walter_authenticator, datadog, walter_db, walter_sm, s3)
+create_user_api = CreateUser(walter_authenticator, datadog, walter_db)
+update_user_api = UpdateUser(walter_authenticator, datadog, walter_db, s3)
 
 # PLAID
-create_link_token_api = CreateLinkToken(
-    walter_authenticator, walter_cw, walter_db, plaid
-)
-
-###########
-# METRICS #
-###########
-
-datadog = DatadogMetricsClient(domain=DOMAIN)
-"""(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""
+create_link_token_api = CreateLinkToken(walter_authenticator, datadog, walter_db, plaid)

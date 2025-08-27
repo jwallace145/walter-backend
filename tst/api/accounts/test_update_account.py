@@ -5,18 +5,18 @@ import pytest
 from src.api.accounts.update_account import UpdateAccount
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
 def update_account_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> UpdateAccount:
-    return UpdateAccount(walter_authenticator, walter_cw, walter_db)
+    return UpdateAccount(walter_authenticator, datadog_metrics, walter_db)
 
 
 def _event_with_auth_and_body(token: str, body) -> dict:

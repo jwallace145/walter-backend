@@ -3,17 +3,17 @@ import pytest
 from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.get_transactions import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 
 
 @pytest.fixture()
 def get_transactions_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ):
-    return GetTransactions(walter_authenticator, walter_cw, walter_db)
+    return GetTransactions(walter_authenticator, datadog_metrics, walter_db)
 
 
 def create_get_transactions_event(token: str, query: dict) -> dict:

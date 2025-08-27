@@ -8,9 +8,9 @@ from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotE
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.s3.client import WalterS3Client
 from src.database.client import WalterDB
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -33,7 +33,7 @@ class UpdateUser(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         walter_s3: WalterS3Client,
     ) -> None:
@@ -44,7 +44,7 @@ class UpdateUser(WalterAPIMethod):
             UpdateUser.REQUIRED_FIELDS,
             UpdateUser.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
         self.walter_s3 = walter_s3

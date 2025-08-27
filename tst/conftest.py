@@ -3,7 +3,6 @@ import os
 import boto3
 import pytest
 from moto import mock_aws
-from mypy_boto3_cloudwatch import CloudWatchClient
 from mypy_boto3_dynamodb import DynamoDBClient
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_secretsmanager import SecretsManagerClient
@@ -12,7 +11,6 @@ from mypy_boto3_sqs import SQSClient
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
@@ -21,6 +19,7 @@ from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
+from src.metrics.client import DatadogMetricsClient
 from src.templates.bucket import TemplatesBucket
 from src.templates.engine import TemplatesEngine
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
@@ -48,13 +47,6 @@ def secrets_manager_client() -> SecretsManagerClient:
         mock_secrets_manager = boto3.client("secretsmanager", region_name=AWS_REGION)
         MockSecretsManager(mock_secrets_manager).initialize()
         yield mock_secrets_manager
-
-
-@pytest.fixture
-def cloud_watch_client() -> CloudWatchClient:
-    with mock_aws():
-        mock_cloudwatch = boto3.client("cloudwatch", region_name=AWS_REGION)
-        yield mock_cloudwatch
 
 
 @pytest.fixture
@@ -126,10 +118,18 @@ def walter_db(ddb_client, walter_authenticator: WalterAuthenticator) -> WalterDB
 
 
 @pytest.fixture
-def walter_cw(
-    cloud_watch_client: CloudWatchClient,
-) -> WalterCloudWatchClient:
-    return WalterCloudWatchClient(client=cloud_watch_client, domain=Domain.TESTING)
+def datadog_metrics() -> DatadogMetricsClient:
+    # Lightweight mock of DatadogMetricsClient that swallows metric emissions
+    class MockDatadogMetrics(DatadogMetricsClient):
+        def __init__(self):
+            super().__init__(domain=Domain.TESTING)
+            self.emitted = []
+
+        def emit_metric(self, metric_name, metric_value, tags=None):
+            # record but do not emit externally
+            self.emitted.append((metric_name, metric_value, tags))
+
+    return MockDatadogMetrics()
 
 
 @pytest.fixture

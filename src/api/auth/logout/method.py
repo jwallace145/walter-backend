@@ -1,4 +1,5 @@
 import datetime as dt
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -10,9 +11,9 @@ from src.api.common.exceptions import (
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -27,6 +28,8 @@ class Logout(WalterAPIMethod):
     access and refresh tokens are no longer valid.
     """
 
+    SESSION_HISTORY_TTL_SECONDS = 60 * 60 * 24 * 7  # one week
+
     API_NAME = "Logout"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"authorization": "Bearer"}
@@ -36,7 +39,7 @@ class Logout(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
@@ -46,7 +49,7 @@ class Logout(WalterAPIMethod):
             Logout.REQUIRED_FIELDS,
             Logout.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
 
@@ -80,6 +83,7 @@ class Logout(WalterAPIMethod):
         if not session.revoked:
             session.revoked = True
         session.session_end = now
+        session.ttl = int(time.time()) + Logout.SESSION_HISTORY_TTL_SECONDS
         self.db.update_session(session)
 
         log.info(

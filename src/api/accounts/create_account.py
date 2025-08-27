@@ -6,10 +6,10 @@ from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotE
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -39,7 +39,7 @@ class CreateAccount(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
@@ -49,7 +49,7 @@ class CreateAccount(WalterAPIMethod):
             CreateAccount.REQUIRED_FIELDS,
             CreateAccount.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
 

@@ -10,11 +10,11 @@ from src.api.common.exceptions import (
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.plaid_items.model import PlaidItem
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.utils.log import Logger
 
@@ -40,13 +40,12 @@ class RefreshTransactions(WalterAPIMethod):
     REQUIRED_FIELDS = []
     EXCEPTIONS = [NotAuthenticated, PlaidItemDoesNotExist, UserDoesNotExist, BadRequest]
 
-    db: WalterDB
     plaid: PlaidClient
 
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         db: WalterDB,
         plaid: PlaidClient,
     ) -> None:
@@ -57,9 +56,9 @@ class RefreshTransactions(WalterAPIMethod):
             RefreshTransactions.REQUIRED_FIELDS,
             RefreshTransactions.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
+            db,
         )
-        self.db = db
         self.plaid = plaid
 
     def execute(self, event: dict, session: Optional[Session]) -> Response:

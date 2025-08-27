@@ -6,21 +6,21 @@ import pytest
 from src.api.common.models import HTTPStatus, Status
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.client import WalterDB
 from src.database.transactions.models import InvestmentTransaction
 from src.investments.holdings.updater import HoldingUpdater
+from src.metrics.client import DatadogMetricsClient
 
 
 @pytest.fixture
 def delete_transaction_api(
     walter_authenticator: WalterAuthenticator,
-    walter_cw: WalterCloudWatchClient,
+    datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
     holding_updater: HoldingUpdater,
 ) -> DeleteTransaction:
     return DeleteTransaction(
-        walter_authenticator, walter_cw, walter_db, holding_updater
+        walter_authenticator, datadog_metrics, walter_db, holding_updater
     )
 
 

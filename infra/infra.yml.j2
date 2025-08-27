@@ -805,6 +805,9 @@ Resources:
           KeyType: HASH
         - AttributeName: token_id
           KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
 
   AccountsTable:
     Type: AWS::DynamoDB::Table
