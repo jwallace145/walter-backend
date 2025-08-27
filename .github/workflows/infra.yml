@@ -2,8 +2,11 @@ name: Validate WalterBackend Infrastructure
 
 on:
   pull_request:
-    branches: [main]
-    paths: ['terraform/**']
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
