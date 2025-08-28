@@ -29,7 +29,7 @@ from src.aws.ses.client import WalterSESClient
 from src.aws.sqs.client import WalterSQSClient
 from src.config import CONFIG
 from src.database.client import WalterDB
-from src.environment import get_domain
+from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.media.bucket import PublicMediaBucket
@@ -53,7 +53,7 @@ log.debug("Initializing clients...")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 """(str): The AWS region the WalterBackend service is deployed."""
 
-DOMAIN = get_domain(os.getenv("DOMAIN", "DEVELOPMENT"))
+DOMAIN = Domain.from_string(os.getenv("DOMAIN", "dev"))
 """(str): The domain of the WalterBackend service environment."""
 
 

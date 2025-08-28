@@ -23,7 +23,7 @@ variable "log_level" {
 variable "image_uri" {
   description = "The ECR image URI of WalterBackend."
   type        = string
-  default     = "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest"
+  default     = "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:latest"
 }
 
 variable "api_timeout_seconds" {
