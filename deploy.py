@@ -4,11 +4,9 @@ import subprocess
 import sys
 from enum import Enum
 from time import sleep
-from typing import Dict, List
+from typing import List
 
 import boto3
-from jinja2 import Template
-from mypy_boto3_cloudformation import CloudFormationClient
 from mypy_boto3_ecr import ECRClient
 from mypy_boto3_events import EventBridgeClient
 from mypy_boto3_lambda import LambdaClient
@@ -38,24 +36,15 @@ AWS_REGION = "us-east-1"
 APP_ENVIRONMENT = AppEnvironment.DEVELOPMENT.value
 """(str): The application environment of the WalterAPI to deploy."""
 
-WALTER_API_IMAGE_URI = "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter/api:latest"
-"""(str): The URI of the Walter API image to deploy."""
-
-WALTER_API_SOURCE_CODE = "s3://walter-backend-src/walter-backend.zip"
-"""(str): The source code of the Walter API to deploy."""
-
-WALTER_API_CFN_STACK_NAME = "WalterBackend-dev"
-"""(str): The name of the CloudFormation stack to deploy the Walter API to."""
-
-WALTER_API_CFN_TEMPLATE_URL = (
-    "https://walter-backend-src.s3.us-east-1.amazonaws.com/infra.yml"
+WALTER_BACKEND_IMAGE_URI = (
+    "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:latest"
 )
-"""(str): The template url of the CloudFormation YAML file to use for infrastructure updates."""
+"""(str): The URI of the WalterBackend image to deploy."""
 
 LAMBDA_FUNCTIONS = [
-    f"WalterAPI-{APP_ENVIRONMENT}",
-    f"WalterCanary-{APP_ENVIRONMENT}",
-    f"WalterWorkflows-{APP_ENVIRONMENT}",
+    f"WalterBackend-API-{APP_ENVIRONMENT}",
+    f"WalterBackend-Canary-{APP_ENVIRONMENT}",
+    f"WalterBackend-Workflow-{APP_ENVIRONMENT}",
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
 
@@ -183,7 +172,7 @@ def build_and_upload_image(
             "--build-arg",
             f"DD_API_KEY={dd_api_key}",
             "-t",
-            "walter/api",
+            "walter-backend",
             "--load",
             ".",
         ]
@@ -192,8 +181,8 @@ def build_and_upload_image(
         [
             "docker",
             "tag",
-            "walter/api:latest",
-            WALTER_API_IMAGE_URI,
+            "walter-backend:latest",
+            WALTER_BACKEND_IMAGE_URI,
         ]
     )
 
@@ -202,11 +191,11 @@ def build_and_upload_image(
         [
             "docker",
             "push",
-            WALTER_API_IMAGE_URI,
+            WALTER_BACKEND_IMAGE_URI,
         ]
     )
 
-    print("WalterAPI image built and uploaded successfully!")
+    print("WalterBackend API image built and uploaded successfully!")
 
 
 def update_source_code(lambda_client: LambdaClient, functions) -> None:
@@ -214,127 +203,9 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
     for func in functions:
         lambda_client.update_function_code(
             FunctionName=func,
-            ImageUri=WALTER_API_IMAGE_URI,
+            ImageUri=WALTER_BACKEND_IMAGE_URI,
         )
     sleep(30)
-
-
-def increment_versions(lambda_client: LambdaClient, functions) -> None:
-    print("Increment Lambda function versions...")
-    for func in functions:
-        print(f"Incrementing version of {func}...")
-        lambda_client.publish_version(FunctionName=func)
-    sleep(30)
-
-
-def get_latest_versions(lambda_client: LambdaClient, functions) -> Dict[str, str]:
-    print("Getting latest version of Lambda functions...")
-    paginator = lambda_client.get_paginator("list_versions_by_function")
-
-    latest_versions = {}
-    for func in functions:
-        versions = []
-        for page in paginator.paginate(FunctionName=func):
-            versions.extend(page["Versions"])
-
-        latest_version = sorted(
-            versions,
-            key=lambda v: int(v["Version"]) if v["Version"] != "$LATEST" else -1,
-        )[-1]["Version"]
-
-        if func == f"WalterAPI-{APP_ENVIRONMENT}":
-            latest_versions["walter_api_version"] = latest_version
-        if func == f"WalterCanary-{APP_ENVIRONMENT}":
-            latest_versions["walter_canary_version"] = latest_version
-        if func == f"WalterWorkflows-{APP_ENVIRONMENT}":
-            latest_versions["walter_workflows_version"] = latest_version
-
-    return latest_versions
-
-
-def create_cfn_template_with_latest_api_versions(
-    latest_api_versions: Dict[str, str],
-    cfn_template_path: str = "./infra/infra.yml.j2",
-    cfn_output_file: str = "./infra/infra.yml",
-) -> None:
-    print("Creating CFN template with latest API versions...")
-    with open(cfn_template_path) as f:
-        template = Template(f.read())
-
-    rendered = template.render(**latest_api_versions)
-    with open(cfn_output_file, "w") as f:
-        f.write(rendered)
-
-
-def get_stacks(client: CloudFormationClient) -> List[str]:
-    stacks = client.list_stacks()
-
-    # get not deleted stacks
-    return [
-        summary["StackName"]
-        for summary in stacks["StackSummaries"]
-        if "DELETE" not in summary["StackStatus"]
-    ]
-
-
-def stack_exists(client: CloudFormationClient) -> bool:
-    print(f"Checking if stack '{WALTER_API_CFN_STACK_NAME}' exists...")
-    return WALTER_API_CFN_STACK_NAME in get_stacks(client)
-
-
-def create_stack(client: CloudFormationClient) -> None:
-    client.create_stack(
-        StackName=WALTER_API_CFN_STACK_NAME,
-        TemplateURL=WALTER_API_CFN_TEMPLATE_URL,
-        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": "dev"}],
-        Capabilities=["CAPABILITY_NAMED_IAM"],
-    )
-    sleep(120)
-
-
-def create_change_set(client: CloudFormationClient) -> None:
-    print(f"Stack '{WALTER_API_CFN_STACK_NAME}' exists! Creating change set...")
-    client.create_change_set(
-        StackName=WALTER_API_CFN_STACK_NAME,
-        TemplateURL=WALTER_API_CFN_TEMPLATE_URL,
-        Parameters=[{"ParameterKey": "AppEnvironment", "ParameterValue": "dev"}],
-        Capabilities=["CAPABILITY_NAMED_IAM"],
-        ChangeSetType="UPDATE",
-        ChangeSetName="WalterBackend-dev-ChangeSet",
-        Description=f"This change set tests updates for {WALTER_API_CFN_STACK_NAME}.",
-    )
-    sleep(30)
-
-
-def describe_change_set(client: CloudFormationClient) -> str:
-    return client.describe_change_set(
-        StackName=WALTER_API_CFN_STACK_NAME,
-        ChangeSetName="WalterBackend-dev-ChangeSet",
-    )["Status"]
-
-
-def change_set_contains_changes(status: str) -> bool:
-    return status in ["CREATE_PENDING", "CREATE_IN_PROGRESS", "CREATE_COMPLETE"]
-
-
-def execute_change_set(client: CloudFormationClient) -> None:
-    sleep(60)
-    client.execute_change_set(
-        StackName=WALTER_API_CFN_STACK_NAME, ChangeSetName="WalterBackend-dev-ChangeSet"
-    )
-
-
-def delete_change_set(client: CloudFormationClient) -> None:
-    client.delete_change_set(
-        StackName=WALTER_API_CFN_STACK_NAME, ChangeSetName="WalterBackend-dev-ChangeSet"
-    )
-
-
-def upload_cfn_template(client: S3Client) -> None:
-    print("Uploading CloudFormation template to S3...")
-    client.upload_file(
-        Bucket="walter-backend-src", Key="infra.yml", Filename="./infra/infra.yml"
-    )
 
 
 ###########
@@ -342,7 +213,6 @@ def upload_cfn_template(client: S3Client) -> None:
 ###########
 
 print("Creating Boto3 clients...")
-cloudformation_client = boto3.client("cloudformation", region_name=AWS_REGION)
 ecr_client = boto3.client("ecr", region_name=AWS_REGION)
 events_client = boto3.client("events", region_name=AWS_REGION)
 lambda_client = boto3.client("lambda", region_name=AWS_REGION)
@@ -357,23 +227,3 @@ update_docs(s3_client)
 update_configs(events_client)
 build_and_upload_image(ecr_client, secrets_client)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
-increment_versions(lambda_client, LAMBDA_FUNCTIONS)
-latest_versions = get_latest_versions(lambda_client, LAMBDA_FUNCTIONS)
-print(f"The latest API versions:\n{json.dumps(latest_versions, indent=4)}")
-create_cfn_template_with_latest_api_versions(latest_versions)
-upload_cfn_template(s3_client)
-
-if stack_exists(cloudformation_client):
-    create_change_set(cloudformation_client)
-    status = describe_change_set(cloudformation_client)
-    print(f"Change set status: {status}")
-
-    if change_set_contains_changes(status):
-        print("Change set contains changes! Executing change set...")
-        execute_change_set(cloudformation_client)
-
-    print("Deleting change set...")
-    delete_change_set(cloudformation_client)
-else:
-    print(f"Stack '{WALTER_API_CFN_STACK_NAME}' does not exist! Creating stack...")
-    create_stack(cloudformation_client)
