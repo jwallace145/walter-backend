@@ -8,7 +8,6 @@ from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 from src.environment import Domain
-from src.templates.models import TemplateAssets
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -38,7 +37,7 @@ class WalterSESClient:
         )
 
     def send_email(
-        self, recipient: str, body: str, subject: str, assets: TemplateAssets
+        self, recipient: str, body: str, subject: str, assets
     ) -> None:
         """Send email to given recipient.
 
@@ -74,7 +73,7 @@ class WalterSESClient:
 
     @staticmethod
     def _create_email(
-        recipient: str, subject: str, body: str, assets: TemplateAssets
+        recipient: str, subject: str, body: str, assets
     ) -> str:
         """Create an email to the given recipient.
 

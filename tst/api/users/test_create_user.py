@@ -6,8 +6,6 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.ses.client import WalterSESClient
 from src.database.client import WalterDB
 from src.metrics.client import DatadogMetricsClient
-from src.templates.bucket import TemplatesBucket
-from src.templates.engine import TemplatesEngine
 from tst.api.utils import get_create_user_event, get_expected_response
 
 
@@ -17,8 +15,6 @@ def create_user_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
     walter_ses: WalterSESClient,
-    template_engine: TemplatesEngine,
-    templates_bucket: TemplatesBucket,
 ) -> CreateUser:
     return CreateUser(walter_authenticator, datadog_metrics, walter_db)
 

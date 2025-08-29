@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import yaml
 
 from src.ai.models import WalterModel
-from src.templates.models import SupportedTemplate, get_supported_template
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -87,14 +86,13 @@ class NewsSummaryConfig:
 class NewsletterConfig:
     """Newsletter Configurations"""
 
-    template: SupportedTemplate = SupportedTemplate.DEFAULT
     cents_per_month: int = 100
     free_trial_length_days: int = 30
     schedule: str = "cron(0 11 ? * MON-FRI *)"  # every business day at 6am EDT
 
     def to_dict(self) -> dict:
         return {
-            "template": self.template.value,
+            "template": "REMOVE_ME",
             "cents_per_month": self.cents_per_month,
             "schedule": self.schedule,
         }
@@ -194,7 +192,6 @@ def get_walter_config() -> WalterConfig:
                 schedule=config_yaml["news_summary"]["schedule"],
             ),
             newsletter=NewsletterConfig(
-                template=get_supported_template(config_yaml["newsletter"]["template"]),
                 cents_per_month=config_yaml["newsletter"]["cents_per_month"],
                 free_trial_length_days=config_yaml["newsletter"][
                     "free_trial_length_days"

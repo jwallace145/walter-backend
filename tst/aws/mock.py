@@ -8,9 +8,7 @@ from mypy_boto3_sqs import SQSClient
 from tst.constants import (
     NEWS_SUMMARIES_QUEUE_NAME,
     NEWSLETTERS_QUEUE_NAME,
-    OBJECTS_TEST_FILE,
     SECRETS_TEST_FILE,
-    TEMPLATES_BUCKET_NAME,
 )
 
 
@@ -59,23 +57,7 @@ class MockS3:
     s3: S3Client
 
     def initialize(self) -> None:
-        objects = self._get_objects(OBJECTS_TEST_FILE)
-        self._create_templates_bucket(objects)
-
-    def _get_objects(self, file: str) -> dict:
-        return json.load(open(file))
-
-    def _create_templates_bucket(self, objects: dict) -> None:
-        self.s3.create_bucket(Bucket=TEMPLATES_BUCKET_NAME)
-        for object in objects:
-            if object["bucket"] == TEMPLATES_BUCKET_NAME:
-                templates = object["objects"]
-                for template in templates:
-                    self.s3.put_object(
-                        Bucket=TEMPLATES_BUCKET_NAME,
-                        Key=template["key"],
-                        Body=open(template["file"], "rb").read(),
-                    )
+        pass
 
 
 @dataclass

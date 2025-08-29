@@ -37,8 +37,6 @@ from src.metrics.client import DatadogMetricsClient
 from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
 from src.polygon.client import PolygonClient
-from src.templates.bucket import TemplatesBucket
-from src.templates.engine import TemplatesEngine
 from src.transactions.queue import SyncUserTransactionsQueue
 from src.utils.log import Logger
 
@@ -82,7 +80,6 @@ walter_sqs = WalterSQSClient(
 s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
 
 public_media_bucket = PublicMediaBucket(s3, DOMAIN)
-templates_bucket = TemplatesBucket(s3, DOMAIN)
 
 ###########
 # SECRETS #
@@ -120,12 +117,6 @@ holding_updater = HoldingUpdater(walter_db)
 polygon_client = PolygonClient(api_key=POLYGON_API_KEY)
 
 security_updater = SecurityUpdater(polygon_client, walter_db)
-
-#########################
-# JINJA TEMPLATE ENGINE #
-#########################
-
-template_engine = TemplatesEngine(templates_bucket=templates_bucket)
 
 #############
 # WALTER AI #
