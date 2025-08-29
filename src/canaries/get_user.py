@@ -26,7 +26,7 @@ class GetUser(BaseCanary):
     """
 
     CANARY_NAME = "GetUser"
-    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/users"
+    API_URL = "https://bbqloe3xc2.execute-api.us-east-1.amazonaws.com/dev/users"
 
     def __init__(
         self,

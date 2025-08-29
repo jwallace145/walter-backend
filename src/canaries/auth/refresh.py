@@ -19,7 +19,7 @@ class Refresh(BaseCanary):
     """Refresh API Canary"""
 
     API_NAME = "Refresh"
-    API_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/auth/refresh"
+    API_URL = "https://bbqloe3xc2.execute-api.us-east-1.amazonaws.com/dev/auth/refresh"
 
     def __init__(
         self,

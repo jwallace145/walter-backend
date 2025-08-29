@@ -12,13 +12,13 @@ from src.api.common.exceptions import (
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.cloudwatch.client import WalterCloudWatchClient
 from src.database.accounts.models import Account, AccountType, InvestmentAccount
 from src.database.client import WalterDB
 from src.database.holdings.models import Holding
 from src.database.securities.models import Security
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -42,7 +42,7 @@ class GetAccounts(WalterAPIMethod):
     def __init__(
         self,
         walter_authenticator: WalterAuthenticator,
-        walter_cw: WalterCloudWatchClient,
+        metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
@@ -52,7 +52,7 @@ class GetAccounts(WalterAPIMethod):
             GetAccounts.REQUIRED_FIELDS,
             GetAccounts.EXCEPTIONS,
             walter_authenticator,
-            walter_cw,
+            metrics,
             walter_db,
         )
 
