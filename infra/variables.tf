@@ -35,7 +35,7 @@ variable "api_timeout_seconds" {
 variable "api_lambda_memory_mb" {
   description = "The memory in Megabytes (MB) allocated to the Lambda environments that serve the API endpoints."
   type        = number
-  default     = 256
+  default     = 512
 }
 
 variable "workflow_timeout_seconds" {
@@ -47,17 +47,17 @@ variable "workflow_timeout_seconds" {
 variable "workflow_lambda_memory_mb" {
   description = "The memory in Megabytes (MB) allocated to the Lambda environments that serve the workflows."
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "canary_timeout_seconds" {
   description = "The timeout in seconds of all API canaries."
   type        = number
-  default     = 15
+  default     = 30
 }
 
 variable "canary_lambda_memory_mb" {
   description = "The memory in Megabytes (MB) allocated to the Lambda environments that serve the API canaries."
   type        = number
-  default     = 128
+  default     = 512
 }

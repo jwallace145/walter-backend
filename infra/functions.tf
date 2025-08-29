@@ -25,6 +25,25 @@ locals {
       lambda_handler = "walter.workflows_entrypoint"
     }
   }
+
+  SCHEDULES = {
+    canary = {
+      name                = "WalterBackend-Canary-Schedule-${var.domain}"
+      description         = "The schedule to invoke the WalterBackend canary (${var.domain})."
+      function_arn        = module.functions["canary"].function_arn
+      schedule_expression = "rate(5 minutes)"
+      input               = null
+    },
+    update_prices = {
+      name                = "WalterBackend-UpdatePrices-${var.domain}"
+      description         = "The schedule to invoke the UpdatePrices workflow (${var.domain})."
+      function_arn        = module.functions["workflow"].function_arn
+      schedule_expression = "rate(15 minutes)"
+      input = jsonencode({
+        workflow_name = "UpdateSecurityPrices"
+      })
+    }
+  }
 }
 
 /***************************
@@ -44,4 +63,14 @@ module "functions" {
   log_level      = var.log_level
   domain         = var.domain
   publish        = true
+}
+
+module "schedules" {
+  for_each            = local.SCHEDULES
+  source              = "./modules/lambda_schedule"
+  name                = each.value.name
+  description         = each.value.description
+  lambda_function_arn = each.value.function_arn
+  schedule_expression = each.value.schedule_expression
+  input               = each.value.input
 }
