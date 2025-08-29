@@ -36,9 +36,7 @@ class WalterSESClient:
             f"Creating {self.domain.value} SES client in region '{self.client.meta.region_name}'"
         )
 
-    def send_email(
-        self, recipient: str, body: str, subject: str, assets
-    ) -> None:
+    def send_email(self, recipient: str, body: str, subject: str, assets) -> None:
         """Send email to given recipient.
 
         This method creates an email to send via Amazon SES given the subect,
@@ -72,9 +70,7 @@ class WalterSESClient:
             )
 
     @staticmethod
-    def _create_email(
-        recipient: str, subject: str, body: str, assets
-    ) -> str:
+    def _create_email(recipient: str, subject: str, body: str, assets) -> str:
         """Create an email to the given recipient.
 
         This method creates a MIME email to send to the given recipient.
