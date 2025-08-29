@@ -8,7 +8,6 @@ from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 from src.environment import Domain
-from src.templates.models import TemplateAssets
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -37,9 +36,7 @@ class WalterSESClient:
             f"Creating {self.domain.value} SES client in region '{self.client.meta.region_name}'"
         )
 
-    def send_email(
-        self, recipient: str, body: str, subject: str, assets: TemplateAssets
-    ) -> None:
+    def send_email(self, recipient: str, body: str, subject: str, assets) -> None:
         """Send email to given recipient.
 
         This method creates an email to send via Amazon SES given the subect,
@@ -73,9 +70,7 @@ class WalterSESClient:
             )
 
     @staticmethod
-    def _create_email(
-        recipient: str, subject: str, body: str, assets: TemplateAssets
-    ) -> str:
+    def _create_email(recipient: str, subject: str, body: str, assets) -> str:
         """Create an email to the given recipient.
 
         This method creates a MIME email to send to the given recipient.

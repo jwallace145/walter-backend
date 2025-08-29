@@ -55,6 +55,8 @@ module "canary_role" {
   }
 }
 
+# canary requires access to users and sessions tables to create
+# sessions for the canary user to test authenticated APIs
 module "canary_role_db_access" {
   source      = "./modules/iam_dynamodb_access_policy"
   policy_name = "canary-db-access-policy"
@@ -63,6 +65,8 @@ module "canary_role_db_access" {
     local.SESSIONS_TABLE,
   ]
 }
+
+# TODO: Canary shouldn't have access to all these secrets... Need to lazily load secrets in app code first
 
 module "canary_role_secrets_access" {
   source      = "./modules/iam_secrets_manager_access_policy"
@@ -86,6 +90,32 @@ module "workflow_role" {
   source      = "./modules/iam_lambda_execution_role"
   name        = "workflow-role-${var.domain}"
   description = "The IAM role used by the WalterBackend-Workflow-${var.domain} Lambda function to process asynchronous workflows."
-  policies    = {}
+  policies = {
+    worklow_db_access       = module.workflow_role_db_access.policy_arn
+    workflow_secrets_access = module.workflow_role_secrets_access.policy_arn
+  }
 }
 
+# UpdatePrices workflow requires access to Securities table
+
+module "workflow_role_db_access" {
+  source      = "./modules/iam_dynamodb_access_policy"
+  policy_name = "workflow-db-access-policy"
+  table_names = [
+    local.SECURITIES_TABLE,
+  ]
+}
+
+# TODO: Workflow shouldn't have access to all these secrets... Need to lazily load secrets in app code first
+
+module "workflow_role_secrets_access" {
+  source      = "./modules/iam_secrets_manager_access_policy"
+  policy_name = "workflow-secrets-access-policy"
+  secret_names = [
+    local.AUTH_SECRETS,
+    local.DATADOG_SECRET,
+    local.POLYGON_SECRET,
+    local.PLAID_SECRET,
+    local.STRIPE_SECRET
+  ]
+}

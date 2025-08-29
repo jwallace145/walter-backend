@@ -20,8 +20,6 @@ from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
-from src.templates.bucket import TemplatesBucket
-from src.templates.engine import TemplatesEngine
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
 from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
@@ -130,16 +128,6 @@ def datadog_metrics() -> DatadogMetricsClient:
             self.emitted.append((metric_name, metric_value, tags))
 
     return MockDatadogMetrics()
-
-
-@pytest.fixture
-def templates_bucket(walter_s3: WalterS3Client) -> TemplatesBucket:
-    return TemplatesBucket(client=walter_s3, domain=Domain.TESTING)
-
-
-@pytest.fixture
-def template_engine(templates_bucket: TemplatesBucket) -> None:
-    return TemplatesEngine(templates_bucket)
 
 
 @pytest.fixture
