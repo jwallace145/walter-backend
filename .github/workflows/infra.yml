@@ -41,7 +41,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: 'Make script executable'
-        run: chmod +x scripts/plan.sh
+        run: chmod +x ./infra/scripts/plan.sh
 
       - name: 'Terraform Format'
         id: fmt
