@@ -28,6 +28,7 @@ class PolygonClient:
     ) -> TickerDetails:
         log.info(f"Getting ticker info for {security_ticker} ({security_type.value})")
         ticker = PolygonClient._get_ticker(security_ticker, security_type)
+        log.debug(f"Ticker: {ticker}")
 
         details = self.client.get_ticker_details(
             ticker,

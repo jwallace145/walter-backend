@@ -424,11 +424,13 @@ def get_workflow_event(workflow_name: str) -> dict:
 
 
 @app.command()
-def update_security_prices() -> None:
+def update_prices() -> None:
     workflow_name = "UpdateSecurityPrices"
     log.info(f"WalterCLI: {workflow_name}")
     event = get_workflow_event(workflow_name)
-    response = WorkflowRouter.get_workflow(event).invoke(event).to_json()
+    response = (
+        WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
 
 
