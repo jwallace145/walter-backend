@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from polygon import RESTClient
 from polygon.rest.models import TickerDetails
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.securities.models import SecurityType
 from src.environment import Domain
 from src.utils.log import Logger
@@ -16,16 +17,17 @@ class PolygonClient:
     Polygon Client (https://polygon.io/)
     """
 
-    api_key: str
+    walter_sm: WalterSecretsManagerClient
     client: RESTClient = None  # lazy init
 
     def __post_init__(self) -> None:
         log.debug(f"Creating {Domain.PRODUCTION.value} Polygon client")
-        self.client = RESTClient(api_key=self.api_key)
 
     def get_ticker_info(
         self, security_ticker: str, security_type: SecurityType
     ) -> TickerDetails:
+        self._lazily_load_client()
+
         log.info(f"Getting ticker info for {security_ticker} ({security_type.value})")
         ticker = PolygonClient._get_ticker(security_ticker, security_type)
         log.debug(f"Ticker: {ticker}")
@@ -43,6 +45,8 @@ class PolygonClient:
         start_date: datetime = datetime.now(timezone.utc) - timedelta(days=7),
         end_date: datetime = datetime.now(timezone.utc),
     ) -> float:
+        self._lazily_load_client()
+
         ticker = PolygonClient._get_ticker(security_ticker, security_type)
 
         aggs = []
@@ -61,6 +65,11 @@ class PolygonClient:
 
         # return the latest open price as surrogate for latest price
         return aggs[-1].open
+
+    def _lazily_load_client(self) -> None:
+        if self.client is None:
+            polygon_api_key = self.walter_sm.get_polygon_api_key()
+            self.client = RESTClient(api_key=polygon_api_key)
 
     @staticmethod
     def _get_ticker(security_ticker: str, security_type: SecurityType) -> str:

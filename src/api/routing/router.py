@@ -2,8 +2,7 @@ import json
 from dataclasses import dataclass
 
 from src.api.common.methods import WalterAPIMethod
-from src.api.routing.methods import HTTPMethod
-from src.clients import (
+from src.api.methods import (
     add_transaction_api,
     create_account_api,
     create_user_api,
@@ -19,6 +18,7 @@ from src.clients import (
     update_account_api,
     update_user_api,
 )
+from src.api.routing.methods import HTTPMethod
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()

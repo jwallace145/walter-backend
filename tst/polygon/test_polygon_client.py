@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import pytest
 
 from polygon.exceptions import BadResponse
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.securities.models import SecurityType
 from src.polygon.client import PolygonClient
 
@@ -20,8 +21,10 @@ def mock_rest_client(monkeypatch):
 
 
 @pytest.fixture
-def polygon_client() -> PolygonClient:
-    return PolygonClient(api_key="test_key")
+def polygon_client(
+    walter_sm: WalterSecretsManagerClient,
+) -> PolygonClient:
+    return PolygonClient(walter_sm)
 
 
 def test_get_stock_ticker_info_success(mock_rest_client, polygon_client) -> None:
@@ -35,7 +38,7 @@ def test_get_stock_ticker_info_success(mock_rest_client, polygon_client) -> None
 
     result = polygon_client.get_ticker_info("AAPL", SecurityType.STOCK)
 
-    mock_rest_client_class.assert_called_once_with(api_key="test_key")
+    mock_rest_client_class.assert_called_once_with(api_key="test-polygon-api-key")
     mock_client_instance.get_ticker_details.assert_called_once_with("AAPL")
     assert result.ticker == "AAPL"
     assert result.name == "Apple Inc."
@@ -52,7 +55,7 @@ def test_get_crypto_ticker_info_success(mock_rest_client, polygon_client) -> Non
 
     result = polygon_client.get_ticker_info("BTC", SecurityType.CRYPTO)
 
-    mock_rest_client_class.assert_called_once_with(api_key="test_key")
+    mock_rest_client_class.assert_called_once_with(api_key="test-polygon-api-key")
     mock_client_instance.get_ticker_details.assert_called_once_with("X:BTCUSD")
     assert result.ticker == "BTC"
     assert result.name == "Bitcoin"
@@ -75,7 +78,7 @@ def test_get_latest_price_stock_success(mock_rest_client, polygon_client) -> Non
         "AAPL", SecurityType.STOCK, start_date=start_date, end_date=end_date
     )
 
-    mock_rest_client_class.assert_called_once_with(api_key="test_key")
+    mock_rest_client_class.assert_called_once_with(api_key="test-polygon-api-key")
     mock_client_instance.list_aggs.assert_called_once_with(
         "AAPL", 1, "hour", start_date, end_date, adjusted="true", sort="asc"
     )
@@ -101,7 +104,7 @@ def test_get_latest_price_crypto_success(mock_rest_client, polygon_client) -> No
         "BTC", SecurityType.CRYPTO, start_date=start_date, end_date=end_date
     )
 
-    mock_rest_client_class.assert_called_once_with(api_key="test_key")
+    mock_rest_client_class.assert_called_once_with(api_key="test-polygon-api-key")
     mock_client_instance.list_aggs.assert_called_once_with(
         "X:BTCUSD", 1, "hour", start_date, end_date, adjusted="true", sort="asc"
     )
@@ -119,7 +122,7 @@ def test_get_ticker_info_nonexistent_security(mock_rest_client, polygon_client) 
     with pytest.raises(BadResponse):
         polygon_client.get_ticker_info("NONEXISTENT", SecurityType.STOCK)
 
-    mock_rest_client_class.assert_called_once_with(api_key="test_key")
+    mock_rest_client_class.assert_called_once_with(api_key="test-polygon-api-key")
     mock_client_instance.get_ticker_details.assert_called_once_with("NONEXISTENT")
 
 

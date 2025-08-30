@@ -66,17 +66,12 @@ module "canary_role_db_access" {
   ]
 }
 
-# TODO: Canary shouldn't have access to all these secrets... Need to lazily load secrets in app code first
-
+# canary requires access to auth secrets to create authenticated sessions
 module "canary_role_secrets_access" {
   source      = "./modules/iam_secrets_manager_access_policy"
   policy_name = "canary-secrets-access-policy"
   secret_names = [
     local.AUTH_SECRETS,
-    local.DATADOG_SECRET,
-    local.POLYGON_SECRET,
-    local.PLAID_SECRET,
-    local.STRIPE_SECRET
   ]
 }
 
@@ -91,8 +86,8 @@ module "workflow_role" {
   name        = "workflow-role-${var.domain}"
   description = "The IAM role used by the WalterBackend-Workflow-${var.domain} Lambda function to process asynchronous workflows."
   policies = {
-    worklow_db_access       = module.workflow_role_db_access.policy_arn
-    workflow_secrets_access = module.workflow_role_secrets_access.policy_arn
+    worklow_db_access      = module.workflow_role_db_access.policy_arn
+    workflow_secret_access = module.workflow_role_secrets_access.policy_arn
   }
 }
 
@@ -106,16 +101,13 @@ module "workflow_role_db_access" {
   ]
 }
 
-# TODO: Workflow shouldn't have access to all these secrets... Need to lazily load secrets in app code first
+# UpdatePrices workflow requires access to the Polygon API key to
+# get the latest pricing data
 
 module "workflow_role_secrets_access" {
   source      = "./modules/iam_secrets_manager_access_policy"
   policy_name = "workflow-secrets-access-policy"
   secret_names = [
-    local.AUTH_SECRETS,
-    local.DATADOG_SECRET,
     local.POLYGON_SECRET,
-    local.PLAID_SECRET,
-    local.STRIPE_SECRET
   ]
 }

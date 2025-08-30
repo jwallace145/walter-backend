@@ -14,6 +14,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from plaid.model.products import Products
 from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
+from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.transactions.models import Transaction
 from src.plaid.models import (
     CreateLinkTokenResponse,
@@ -35,24 +36,18 @@ class PlaidClient:
     REDIRECT_URI = "http://localhost:3000/"  # TODO: Fix me!
     WEBHOOK_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/plaid/sync-transactions"  # TODO: Fix me! this is hardcoded to point at WalterAPI-dev!
 
-    client_id: str
-    secret: str
+    walter_sm: WalterSecretsManagerClient
     environment: str
 
     # all the default none fields set during post-int
+    client_id: str = None
+    secret: str = None
     configuration: Configuration = None
     api_client: ApiClient = None
     client: PlaidApi = None
 
-    def __post_init__(self) -> None:
-        log.debug(
-            f"Initializing '{self.environment}' Plaid client with client ID: '{self.client_id}'"
-        )
-        self.configuration = self._get_configuration()
-        self.api_client = ApiClient(self.configuration)
-        self.client = PlaidApi(self.api_client)
-
     def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
+        self._lazily_load_client()
         log.info(
             f"Creating link token for user '{user_id}' with webhook '{PlaidClient.WEBHOOK_URL}'"
         )
@@ -81,6 +76,7 @@ class PlaidClient:
         )
 
     def exchange_public_token(self, public_token: str) -> ExchangePublicTokenResponse:
+        self._lazily_load_client()
         log.info("Exchanging Plaid public token for user access token")
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = self.client.item_public_token_exchange(request)
@@ -95,6 +91,7 @@ class PlaidClient:
     def sync_transactions(
         self, user_id: str, access_token: str, cursor: Optional[str]
     ) -> SyncTransactionsResponse:
+        self._lazily_load_client()
         log.info(f"Syncing transactions for user '{user_id}'")
 
         added, modified, removed = [], [], []
@@ -139,6 +136,7 @@ class PlaidClient:
         )
 
     def refresh_transactions(self, access_token: str) -> None:
+        self._lazily_load_client()
         log.info("Refreshing user transactions for given access token...")
         response = self.client.transactions_refresh(
             TransactionsRefreshRequest(
@@ -149,10 +147,19 @@ class PlaidClient:
         log.info("Successfully refreshed user transactions!")
 
     def get_accounts(self, access_token: str) -> None:
+        self._lazily_load_client()
         log.info("Getting accounts for user...")
         request = AccountsGetRequest(access_token=access_token)
         accounts_response = self.client.accounts_get(request)
         return accounts_response
+
+    def _lazily_load_client(self) -> None:
+        if self.client_id is None or self.secret is None:
+            self.client_id = self.walter_sm.get_plaid_sandbox_credentials_client_id()
+            self.secret = self.walter_sm.get_plaid_sandbox_credentials_secret_key()
+            self.configuration = self._get_configuration()
+            self.api_client = ApiClient(self.configuration)
+            self.client = PlaidApi(self.api_client)
 
     def _get_configuration(self) -> Configuration:
         return Configuration(
