@@ -3,3 +3,4 @@
 {"user_id": "user-004", "token_id": "session-003", "ip_address": "127.0.0.1", "device": "Other / Other / Other", "session_start": "2025-07-01T01:00:00+00:00", "session_expiration": "2030-07-01T01:00:00+00:00", "revoked": false}
 {"user_id": "user-002", "token_id": "session-004", "ip_address": "127.0.0.1", "device": "Other / Other / Other", "session_start": "2025-07-01T01:00:00+00:00", "session_expiration": "2030-07-01T01:00:00+00:00", "revoked": false}
 {"user_id": "user-005", "token_id": "session-005", "ip_address": "127.0.0.1", "device": "Other / Other / Other", "session_start": "2025-07-01T01:00:00+00:00", "session_expiration": "2030-07-01T01:00:00+00:00", "revoked": false}
+{"user_id": "user-006", "token_id": "session-006", "ip_address": "127.0.0.1", "device": "Other / Other / Other", "session_start": "2025-07-01T01:00:00+00:00", "session_expiration": "2030-07-01T01:00:00+00:00", "revoked": false}

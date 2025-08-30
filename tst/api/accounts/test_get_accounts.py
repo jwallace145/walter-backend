@@ -159,3 +159,29 @@ def test_get_accounts_success_update_balances(
 
     # assert that balance and balance last update timestamp were updated
     assert actual_response.data["accounts"][0]["balance"] == 50.00
+
+
+@freeze_time("2025-07-01")
+def test_get_accounts_success_investment_account_has_no_holdings(
+    get_accounts_api: GetAccounts,
+    walter_db: WalterDB,
+    walter_authenticator: WalterAuthenticator,
+) -> None:
+    user_id = "user-006"
+    session_id = "session-006"
+    account_id = "acct-009"
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
+    event = create_get_accounts_event(token)
+
+    # invoke api
+    response = get_accounts_api.invoke(event)
+
+    # assert investment account with no holdings is returned successfully
+    assert response.http_status == HTTPStatus.OK
+    assert response.status == Status.SUCCESS
+    assert response.data["accounts"][0]["account_id"] == account_id
+    assert response.data["accounts"][0]["account_type"] == "investment"
+    assert response.data["accounts"][0]["balance"] == 0.0
+    assert len(response.data["accounts"][0]["holdings"]) == 0

@@ -148,6 +148,10 @@ class GetAccountsResponseData:
     def _get_holdings(
         self, account: InvestmentAccount
     ) -> List[GetAccountsResponseHoldingDict]:
+        # check if the account has holdings
+        if account.account_id not in self.account_to_holdings:
+            return []
+
         # get the holdings for the account
         account_holdings: List[Holding] = self.account_to_holdings[account.account_id]
 
