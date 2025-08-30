@@ -8,13 +8,8 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket         = "walter-backend-dev-terraform-state-12dd1836"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "walter-backend-dev-terraform-locks"
-    encrypt        = true
-  }
+  # Backend configuration will be provided via -backend-config
+  backend "s3" {}
 }
 
 provider "aws" {

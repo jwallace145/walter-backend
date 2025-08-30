@@ -23,10 +23,12 @@ class WalterStripeClient:
 
     walter_sm: WalterSecretsManagerClient
 
+    # lazy init
+    stripe_api_key: str = None
+
     def __post_init__(self):
         log.debug("Initializing WalterStripeClient")
         # TODO: Add config to switch between test Stripe key and prod Stripe key
-        stripe.api_key = self.walter_sm.get_stripe_test_secret_key()
 
     def create_checkout_session(self, success_url: str, cancel_url: str) -> Session:
         log.info("Creating checkout session...")
@@ -51,6 +53,11 @@ class WalterStripeClient:
         session = stripe.checkout.Session.retrieve(session_id)
         log.info("Successfully retrieved checkout session!")
         return session
+
+    def _lazily_load_client(self) -> None:
+        if self.stripe_api_key is None:
+            # TODO: Don't use the test key
+            self.stripe_api_key = self.walter_sm.get_stripe_test_secret_key()
 
     @staticmethod
     def get_newsletter_subscription_offering(

@@ -89,8 +89,6 @@ walter_sm = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 
-POLYGON_API_KEY = walter_sm.get_polygon_api_key()
-
 ########################
 # WALTER AUTHENTICATOR #
 ########################
@@ -114,7 +112,7 @@ holding_updater = HoldingUpdater(walter_db)
 # WALTER STOCKS API #
 #####################
 
-polygon_client = PolygonClient(api_key=POLYGON_API_KEY)
+polygon_client = PolygonClient(walter_sm)
 
 security_updater = SecurityUpdater(polygon_client, walter_db)
 
@@ -143,11 +141,7 @@ walter_payments = WalterStripeClient(walter_sm=walter_sm)
 # PLAID #
 #########
 
-plaid = PlaidClient(
-    client_id=walter_sm.get_plaid_sandbox_credentials_client_id(),  # TODO: Replace with production client ID
-    secret=walter_sm.get_plaid_sandbox_credentials_secret_key(),  # TODO: Replace with production secret key
-    environment=Environment.Sandbox,  # TODO: Replace with production environment
-)
+plaid = PlaidClient(walter_sm, Environment.Sandbox)
 
 sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
 
