@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: infra/environments/dev
+        working-directory: infra/
 
     steps:
       - name: 'Checkout'
@@ -40,24 +40,22 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: 'Make script executable'
+        run: chmod +x scripts/plan.sh
+
       - name: 'Terraform Format'
         id: fmt
         run: terraform fmt -check -recursive -diff
         continue-on-error: true
 
-      - name: 'Terraform Init'
-        id: init
-        run: terraform init
-
-      - name: 'Terraform Plan'
+      - name: 'Terraform Plan (Dev)'
         id: plan
         run: |
-          terraform plan -var="domain=dev" -no-color -out=tfplan
+          ./scripts/plan.sh dev
         continue-on-error: true
 
       - name: 'Fail if any step failed'
         if: |
           steps.fmt.outcome == 'failure' ||
-          steps.init.outcome == 'failure' ||
           steps.plan.outcome == 'failure'
         run: exit 1
