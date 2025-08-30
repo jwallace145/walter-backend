@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: The API that serves the Walter AI financial assistant.
 servers:
-  - url: https://084slq55lk.execute-api.us-east-1.amazonaws.com/{environment}
+  - url: https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/{environment}
     description: The API Gateway endpoint for the Walter API.
     variables:
       environment:

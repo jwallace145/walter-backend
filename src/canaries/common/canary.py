@@ -17,6 +17,7 @@ from src.canaries.common.metrics import (
     METRICS_SUCCESS_COUNT,
 )
 from src.canaries.common.models import CanaryResponse
+from src.config import CONFIG
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
@@ -41,8 +42,9 @@ class BaseCanary(ABC):
     - Return standardized canary execution results
     """
 
-    CANARY_USER_EMAIL = "canary@walterai.dev"
-    CANARY_USER_PASSWORD = "CanaryPassword1234&"
+    CANARY_ENDPOINT = CONFIG.canaries.endpoint
+    CANARY_USER_EMAIL = CONFIG.canaries.user_email
+    CANARY_USER_PASSWORD = CONFIG.canaries.user_password
 
     def __init__(
         self,
@@ -172,6 +174,7 @@ class BaseCanary(ABC):
         log.info(f"Validating '{self.api_name}' API response status...")
 
         if response.get("Status") != "Success":
+            log.error(f"API call failure! Response: {json.dumps(response, indent=4)}")
             raise CanaryFailure("API call failure!")
 
         log.info(f"Validated '{self.api_name}' API response status!")

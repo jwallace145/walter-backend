@@ -102,11 +102,15 @@ class NewsletterConfig:
 class CanariesConfig:
     """Canaries Configurations"""
 
-    schedule: str = "cron(0/5 * * * ? *)"  # once every five minutes
+    endpoint: str
+    user_email: str
+    user_password: str
 
     def to_dict(self) -> dict:
         return {
-            "schedule": self.schedule,
+            "endpoint": self.endpoint,
+            "user_email": self.user_email,
+            "user_password": self.user_password,
         }
 
 
@@ -119,14 +123,12 @@ class WalterConfig:
     config file.
     """
 
-    user_portfolio: UserPortfolioConfig = UserPortfolioConfig()
-    artificial_intelligence: ArtificialIntelligenceConfig = (
-        ArtificialIntelligenceConfig()
-    )
-    expense_categorization: ExpenseCategorizationConfig = ExpenseCategorizationConfig()
-    news_summary: NewsSummaryConfig = NewsSummaryConfig()
-    newsletter: NewsletterConfig = NewsletterConfig()
-    canaries: CanariesConfig = CanariesConfig()
+    user_portfolio: UserPortfolioConfig
+    artificial_intelligence: ArtificialIntelligenceConfig
+    expense_categorization: ExpenseCategorizationConfig
+    news_summary: NewsSummaryConfig
+    newsletter: NewsletterConfig
+    canaries: CanariesConfig
 
     def to_dict(self) -> dict:
         return {
@@ -162,7 +164,6 @@ def get_walter_config() -> WalterConfig:
     """
     log.debug(f"Getting configuration file: '{CONFIG_FILE}'")
 
-    config = WalterConfig()  # assume default configs
     try:
         config_yaml = yaml.safe_load(open(CONFIG_FILE).read())["walter_config"]
         config = WalterConfig(
@@ -198,12 +199,17 @@ def get_walter_config() -> WalterConfig:
                 ],
                 schedule=config_yaml["newsletter"]["schedule"],
             ),
-            canaries=CanariesConfig(schedule=config_yaml["canaries"]["schedule"]),
+            canaries=CanariesConfig(
+                endpoint=config_yaml["canaries"]["endpoint"],
+                user_email=config_yaml["canaries"]["user_email"],
+                user_password=config_yaml["canaries"]["user_password"],
+            ),
         )
     except Exception as exception:
         log.error(
             "Unexpected error occurred attempting to get configurations!", exception
         )
+        raise ValueError("Unexpected error occurred attempting to get configurations!")
 
     log.debug(f"Configurations:\n{json.dumps(config.to_dict(), indent=4)}")
 

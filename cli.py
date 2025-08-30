@@ -3,9 +3,7 @@ from typing import Optional
 
 import typer
 
-from src.api.routing.router import APIRouter
-from src.canaries.routing.router import CanaryRouter, CanaryType
-from src.clients import (
+from src.api.methods import (
     add_transaction_api,
     create_account_api,
     create_link_token_api,
@@ -20,6 +18,8 @@ from src.clients import (
     refresh_api,
     update_account_api,
 )
+from src.api.routing.router import APIRouter
+from src.canaries.routing.router import CanaryRouter, CanaryType
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
 from src.workflows.common.router import WorkflowRouter

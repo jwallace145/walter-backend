@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from src.canaries.accounts.get_accounts import GetAccounts
 from src.canaries.auth.login import Login
 from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
 from src.canaries.get_user import GetUser
-from src.clients import datadog, walter_authenticator, walter_db
+from src.clients import AUTHENTICATOR, DATABASE, DATADOG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -29,6 +30,12 @@ class CanaryType(Enum):
 
     GET_USER = "GetUser"
 
+    ############
+    # ACCOUNTS #
+    ############
+
+    GET_ACCOUNTS = "GetAccounts"
+
     @classmethod
     def from_string(cls, canary_type_str: str):
         for canary_type in CanaryType:
@@ -47,12 +54,14 @@ class CanaryRouter:
 
         match canary_type:
             case CanaryType.LOGIN:
-                return Login(walter_authenticator, walter_db, datadog)
+                return Login(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.REFRESH:
-                return Refresh(walter_authenticator, walter_db, datadog)
+                return Refresh(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.LOGOUT:
-                return Logout(walter_authenticator, walter_db, datadog)
+                return Logout(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_USER:
-                return GetUser(walter_authenticator, walter_db, datadog)
+                return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
+            case CanaryType.GET_ACCOUNTS:
+                return GetAccounts(AUTHENTICATOR, DATABASE, DATADOG)
             case _:
                 raise Exception(f"Canary type {canary_type} not found.")
