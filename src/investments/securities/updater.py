@@ -58,7 +58,7 @@ class SecurityUpdater:
                     )
                 case SecurityType.CRYPTO:
                     price = self.polygon_client.get_latest_price(
-                        security_details.ticker.upper(), SecurityType.CRYPTO
+                        security_ticker, SecurityType.CRYPTO
                     )
                     new_security = Crypto.create(
                         name=security_details.name,

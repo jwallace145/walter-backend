@@ -2,6 +2,8 @@ import pytest
 
 from src.database.client import WalterDB
 from src.database.securities.models import Crypto, Stock
+from src.environment import Domain
+from src.metrics.client import DatadogMetricsClient
 from src.workflows.update_security_prices import UpdateSecurityPrices
 from tst.polygon.mock import MockPolygonClient
 
@@ -10,8 +12,11 @@ from tst.polygon.mock import MockPolygonClient
 def update_security_prices_workflow(
     walter_db: WalterDB,
     polygon_client: MockPolygonClient,
+    datadog_metrics: DatadogMetricsClient,
 ) -> UpdateSecurityPrices:
-    return UpdateSecurityPrices(walter_db, polygon_client)
+    return UpdateSecurityPrices(
+        Domain.TESTING, walter_db, polygon_client, datadog_metrics
+    )
 
 
 def test_update_security_prices_workflow_success(

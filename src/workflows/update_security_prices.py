@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 
 from src.database.client import WalterDB
 from src.database.securities.models import Crypto, SecurityType, Stock
+from src.environment import Domain
+from src.metrics.client import DatadogMetricsClient
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow, WorkflowResponse, WorkflowStatus
@@ -17,16 +19,24 @@ class UpdateSecurityPrices(Workflow):
     """
 
     WORKFLOW_NAME = "UpdateSecurityPrices"
+    METRICS_NUM_SECURITIES_METRIC = "workflow.num_securities"
+    METRICS_NUM_UPDATED_SECURITIES_METRIC = "workflow.num_updated_securities"
 
     walter_db: WalterDB
     polygon: PolygonClient
 
-    def __init__(self, walter_db: WalterDB, polygon: PolygonClient) -> None:
-        super().__init__(UpdateSecurityPrices.WORKFLOW_NAME)
+    def __init__(
+        self,
+        domain: Domain,
+        walter_db: WalterDB,
+        polygon: PolygonClient,
+        metrics: DatadogMetricsClient,
+    ) -> None:
+        super().__init__(UpdateSecurityPrices.WORKFLOW_NAME, domain, metrics)
         self.walter_db = walter_db
         self.polygon = polygon
 
-    def execute(self, event: dict) -> WorkflowResponse:
+    def execute(self, event: dict, emit_metrics: bool = True) -> WorkflowResponse:
         start_time = datetime.now(timezone.utc)
 
         log.info("Getting all securities from database")
@@ -70,6 +80,21 @@ class UpdateSecurityPrices(Workflow):
             log.info(f"Updating security '{security.security_id}'")
             self.walter_db.update_security(security)
 
+        # emit update prices specific metrics
+        if emit_metrics:
+            log.info(f"Emitting '{self.name}' workflow additional metrics")
+            tags = self._get_metric_tags()
+            self.metrics.emit_metric(
+                self.METRICS_NUM_SECURITIES_METRIC, len(securities), tags
+            )
+            self.metrics.emit_metric(
+                self.METRICS_NUM_UPDATED_SECURITIES_METRIC,
+                len(updated_securities),
+                tags,
+            )
+        else:
+            log.info(f"Not emitting additional metrics for '{self.name}' workflow!")
+
         return WorkflowResponse(
             name=UpdateSecurityPrices.WORKFLOW_NAME,
             status=WorkflowStatus.SUCCESS,
@@ -78,7 +103,8 @@ class UpdateSecurityPrices(Workflow):
                 "duration_seconds": (
                     datetime.now(timezone.utc) - start_time
                 ).total_seconds(),
-                "num_securities": len(updated_securities),
+                "total_num_securities": len(securities),
+                "updated_num_securities": len(updated_securities),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "securities": [security.to_dict() for security in updated_securities],
             },

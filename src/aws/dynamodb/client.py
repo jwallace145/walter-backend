@@ -26,6 +26,9 @@ class WalterDDBClient:
             f"Creating Walter DDB client in region '{self.client.meta.region_name}'"
         )
 
+        # create paginators
+        self.scan_paginator = self.client.get_paginator("scan")
+
     def put_item(self, table: str, item: dict) -> None:
         """
         Put an item into the DDB table.
@@ -131,7 +134,11 @@ class WalterDDBClient:
         """
         log.debug(f"Scanning table '{table}'")
         try:
-            return self.client.scan(TableName=table)["Items"]
+            items = []
+            for index, page in enumerate(self.scan_paginator.paginate(TableName=table)):
+                log.debug(f"Scanned page {index + 1} of table '{table}'")
+                items.extend(page["Items"])
+            return items
         except ClientError as error:
             log.error(
                 f"Unexpected error occurred attempting to scan table '{table}'!\n"
