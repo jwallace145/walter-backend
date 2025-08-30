@@ -1,8 +1,8 @@
-from src.clients import DOMAIN, datadog, plaid, polygon_client, walter_db
+from src.clients import DATABASE, DATADOG, DOMAIN, PLAID, POLYGON
 from src.workflows.sync_user_transactions import SyncUserTransactions
 from src.workflows.update_security_prices import UpdateSecurityPrices
 
 update_security_prices_workflow = UpdateSecurityPrices(
-    DOMAIN, walter_db, polygon_client, datadog
+    DOMAIN, DATABASE, POLYGON, DATADOG
 )
-sync_user_transactions_workflow = SyncUserTransactions(plaid, walter_db)
+sync_user_transactions_workflow = SyncUserTransactions(PLAID, DATABASE)

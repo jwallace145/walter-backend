@@ -6,7 +6,7 @@ from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
 from src.canaries.get_user import GetUser
-from src.clients import datadog, walter_authenticator, walter_db
+from src.clients import AUTHENTICATOR, DATABASE, DATADOG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -47,12 +47,12 @@ class CanaryRouter:
 
         match canary_type:
             case CanaryType.LOGIN:
-                return Login(walter_authenticator, walter_db, datadog)
+                return Login(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.REFRESH:
-                return Refresh(walter_authenticator, walter_db, datadog)
+                return Refresh(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.LOGOUT:
-                return Logout(walter_authenticator, walter_db, datadog)
+                return Logout(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_USER:
-                return GetUser(walter_authenticator, walter_db, datadog)
+                return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
             case _:
                 raise Exception(f"Canary type {canary_type} not found.")

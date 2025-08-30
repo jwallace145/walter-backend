@@ -19,7 +19,7 @@ class Logout(BaseCanary):
     """Login API Canary"""
 
     API_NAME = "Logout"
-    API_URL = "https://bbqloe3xc2.execute-api.us-east-1.amazonaws.com/dev/auth/logout"
+    API_URL = f"{BaseCanary.CANARY_ENDPOINT}/auth/logout"
 
     def __init__(
         self,

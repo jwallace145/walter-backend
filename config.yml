@@ -20,4 +20,6 @@ walter_config:
     free_trial_length_days: 31 # 31-day free trial before needing a subscription
     schedule: cron(0 11 ? * MON-FRI *) # the cron schedule to invoke the create newsletter and send workflow
   canaries:
-    schedule: cron(0/5 * * * ? *) # canary cron schedule to ensure WalterAPI health
+    endpoint: "https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/dev"
+    user_email: "canary@walterai.dev"
+    user_password: "CanaryPassword1234&"

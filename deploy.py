@@ -94,7 +94,14 @@ def update_docs(s3_client: S3Client) -> None:
     Returns:
         None
     """
-    print("Updating WalterAPI documentation...")
+    print("\n" + "=" * 60)
+    print(
+        f"║ UPDATE WALTER BACKEND API DOCUMENTATION ({APP_ENVIRONMENT})".ljust(58)
+        + " ║"
+    )
+    print("=" * 60 + "\n")
+
+    print("Uploading OpenAPI specification file to S3 bucket...")
     s3_client.upload_file(
         Bucket="walterapi-docs",
         Key="openapi.yml",
@@ -119,7 +126,11 @@ def build_and_upload_image(
     Returns:
         None
     """
-    print("Building and uploading WalterAPI image...")
+    print("\n" + "=" * 60)
+    print(
+        f"║ BUILD AND UPLOAD WALTER BACKEND IMAGE ({APP_ENVIRONMENT})".ljust(58) + " ║"
+    )
+    print("=" * 60 + "\n")
 
     # get an authorization token from ecr and extract username, password, and endpoint for docker login
     auth_data = ecr_client.get_authorization_token()["authorizationData"][0]
@@ -182,7 +193,13 @@ def build_and_upload_image(
 
 
 def update_source_code(lambda_client: LambdaClient, functions) -> None:
-    print("Updating WalterAPI function code...")
+    print("\n" + "=" * 60)
+    print(f"║ UPDATE WALTER BACKEND FUNCTIONS ({APP_ENVIRONMENT})".ljust(58) + " ║")
+    print("=" * 60 + "\n")
+
+    print(
+        f"Updating WalterBackend-{APP_ENVIRONMENT} functions:\n{json.dumps(functions, indent=4)}"
+    )
     for func in functions:
         lambda_client.update_function_code(
             FunctionName=func,
