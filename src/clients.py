@@ -3,41 +3,18 @@ import os
 import boto3
 
 from plaid import Environment
-from src.ai.client import WalterAI
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
-from src.api.accounts.create_account import CreateAccount
-from src.api.accounts.delete_account import DeleteAccount
-from src.api.accounts.get_accounts.method import GetAccounts
-from src.api.accounts.update_account import UpdateAccount
-from src.api.auth.login.method import Login
-from src.api.auth.logout.method import Logout
-from src.api.auth.refresh.method import Refresh
-from src.api.plaid.create_link_token import CreateLinkToken
-from src.api.transactions.add_transaction import AddTransaction
-from src.api.transactions.delete_transaction import DeleteTransaction
-from src.api.transactions.edit_transaction import EditTransaction
-from src.api.transactions.get_transactions import GetTransactions
-from src.api.users.create_user import CreateUser
-from src.api.users.get_user import GetUser
-from src.api.users.update_user import UpdateUser
 from src.auth.authenticator import WalterAuthenticator
-from src.aws.bedrock.client import WalterBedrockClient
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
-from src.aws.ses.client import WalterSESClient
-from src.aws.sqs.client import WalterSQSClient
-from src.config import CONFIG
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
-from src.media.bucket import PublicMediaBucket
 from src.metrics.client import DatadogMetricsClient
-from src.payments.stripe.client import WalterStripeClient
 from src.plaid.client import PlaidClient
 from src.polygon.client import PolygonClient
-from src.transactions.queue import SyncUserTransactionsQueue
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -59,135 +36,74 @@ DOMAIN = Domain.from_string(os.getenv("DOMAIN", "dev"))
 # METRICS #
 ###########
 
-datadog = DatadogMetricsClient(domain=DOMAIN)
+log.debug("Creating Datadog metrics client...")
+
+DATADOG = DatadogMetricsClient(domain=DOMAIN)
 """(DatadogMetricsClient): The Datadog metrics client used to emit metrics to Datadog."""
 
 #################
 # BOTO3 CLIENTS #
 #################
 
-walter_ses = WalterSESClient(
-    client=boto3.client("ses", region_name=AWS_REGION), domain=DOMAIN
-)
-walter_sqs = WalterSQSClient(
-    client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN
-)
+log.debug("Creating Boto3 clients...")
 
-###########
-# BUCKETS #
-###########
+S3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
+"""(WalterS3Client): The S3 client used to interact with the WalterBackend S3 buckets."""
 
-s3 = WalterS3Client(client=boto3.client("s3", region_name=AWS_REGION), domain=DOMAIN)
+DYNAMODB = WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION))
+"""(WalterDDBClient): The DynamoDB client used to interact with the WalterBackend database."""
 
-public_media_bucket = PublicMediaBucket(s3, DOMAIN)
-
-###########
-# SECRETS #
-###########
-
-walter_sm = WalterSecretsManagerClient(
+SECRETS = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
+"""(WalterSecretsManagerClient): The Secrets Manager client used to interact with the WalterBackend secrets."""
 
-########################
-# WALTER AUTHENTICATOR #
-########################
 
-walter_authenticator = WalterAuthenticator(walter_sm=walter_sm)
+#################
+# AUTHENTICATOR #
+#################
 
-#############
-# WALTER DB #
-#############
+log.debug("Creating authenticator client...")
 
-walter_db = WalterDB(
-    ddb=WalterDDBClient(client=boto3.client("dynamodb", region_name=AWS_REGION)),
-    authenticator=walter_authenticator,
+AUTHENTICATOR = WalterAuthenticator(SECRETS)
+"""(WalterAuthenticator): The Walter Authenticator client used to authenticate users."""
+
+
+############
+# DATABASE #
+############
+
+log.debug("Creating database client...")
+
+DATABASE = WalterDB(
+    ddb=DYNAMODB,
+    authenticator=AUTHENTICATOR,
     domain=DOMAIN,
 )
+"""(WalterDB): The Walter Database client used to interact with all tables included in the DynamoDB database."""
 
-holding_updater = HoldingUpdater(walter_db)
+HOLDING_UPDATER = HoldingUpdater(DATABASE)
+"""(HoldingUpdater): The Walter Holding Updater client used to update holdings in the DynamoDB database."""
 
 
-#####################
-# WALTER STOCKS API #
-#####################
+######################
+# POLYGON & SECURITY #
+######################
 
-polygon_client = PolygonClient(walter_sm)
+POLYGON = PolygonClient(SECRETS)
+"""(PolygonClient): The client used to interact with the Polygon API and get the latest pricing data."""
 
-security_updater = SecurityUpdater(polygon_client, walter_db)
+SECURITY_UPDATER = SecurityUpdater(POLYGON, DATABASE)
+"""(SecurityUpdater): The client used to update new security prices in the DynamoDB database."""
 
-#############
-# WALTER AI #
-#############
 
-walter_ai = WalterAI(
-    model_name=CONFIG.artificial_intelligence.model_name,
-    client=WalterBedrockClient(
-        bedrock=boto3.client("bedrock", region_name=AWS_REGION),
-        bedrock_runtime=boto3.client("bedrock-runtime", region_name=AWS_REGION),
-    ),
-)
-
-expense_categorizer = ExpenseCategorizerMLP()
-
-###################
-# WALTER PAYMENTS #
-###################
-
-walter_payments = WalterStripeClient(walter_sm=walter_sm)
+EXPENSE_CATEGORIZER = ExpenseCategorizerMLP()
+"""(ExpenseCategorizerMLP): The client used to categorize user expenses."""
 
 
 #########
 # PLAID #
 #########
 
-plaid = PlaidClient(walter_sm, Environment.Sandbox)
-
-sync_user_transactions_queue = SyncUserTransactionsQueue(client=walter_sqs)
-
-###############
-# API METHODS #
-###############
-
-# AUTHENTICATION
-login_api = Login(walter_authenticator, datadog, walter_db, walter_sm)
-refresh_api = Refresh(walter_authenticator, datadog, walter_db)
-logout_api = Logout(walter_authenticator, datadog, walter_db)
-
-# ACCOUNTS =
-get_accounts_api = GetAccounts(walter_authenticator, datadog, walter_db)
-create_account_api = CreateAccount(walter_authenticator, datadog, walter_db)
-update_account_api = UpdateAccount(walter_authenticator, datadog, walter_db)
-delete_account_api = DeleteAccount(walter_authenticator, datadog, walter_db)
-
-
-# TRANSACTIONS
-get_transactions_api = GetTransactions(walter_authenticator, datadog, walter_db)
-add_transaction_api = AddTransaction(
-    walter_authenticator,
-    datadog,
-    walter_db,
-    expense_categorizer,
-    polygon_client,
-    holding_updater,
-    security_updater,
-)
-edit_transaction_api = EditTransaction(
-    walter_authenticator,
-    datadog,
-    walter_db,
-    polygon_client,
-    holding_updater,
-    security_updater,
-)
-delete_transaction_api = DeleteTransaction(
-    walter_authenticator, datadog, walter_db, holding_updater
-)
-
-# USERS
-get_user_api = GetUser(walter_authenticator, datadog, walter_db, walter_sm, s3)
-create_user_api = CreateUser(walter_authenticator, datadog, walter_db)
-update_user_api = UpdateUser(walter_authenticator, datadog, walter_db, s3)
-
-# PLAID
-create_link_token_api = CreateLinkToken(walter_authenticator, datadog, walter_db, plaid)
+PLAID = PlaidClient(SECRETS, Environment.Sandbox)
+"""(PlaidClient): The client used to interact with the Plaid API."""
