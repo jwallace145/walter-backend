@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from src.canaries.accounts.get_accounts import GetAccounts
 from src.canaries.auth.login import Login
 from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
@@ -29,6 +30,12 @@ class CanaryType(Enum):
 
     GET_USER = "GetUser"
 
+    ############
+    # ACCOUNTS #
+    ############
+
+    GET_ACCOUNTS = "GetAccounts"
+
     @classmethod
     def from_string(cls, canary_type_str: str):
         for canary_type in CanaryType:
@@ -54,5 +61,7 @@ class CanaryRouter:
                 return Logout(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_USER:
                 return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
+            case CanaryType.GET_ACCOUNTS:
+                return GetAccounts(AUTHENTICATOR, DATABASE, DATADOG)
             case _:
                 raise Exception(f"Canary type {canary_type} not found.")

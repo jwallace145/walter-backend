@@ -8,6 +8,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
 from src.canaries.common.canary import BaseCanary
 from src.canaries.common.exceptions import CanaryFailure
+from src.database.accounts.models import AccountType
 from src.database.client import WalterDB
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
@@ -21,8 +22,8 @@ class GetAccounts(BaseCanary):
     WalterCanary: GetAccounts
     """
 
-    CANARY_NAME = "GetUser"
-    API_URL = f"{BaseCanary.CANARY_ENDPOINT}/users"
+    CANARY_NAME = "GetAccounts"
+    API_URL = f"{BaseCanary.CANARY_ENDPOINT}/accounts"
 
     def __init__(
         self,
@@ -45,10 +46,46 @@ class GetAccounts(BaseCanary):
 
     def validate_data(self, response: dict) -> None:
         LOG.debug("Validating user email in API response data...")
-        if response.get("Data", {}).get("email", None) is None:
-            raise CanaryFailure("Missing user email in API response")
+        if response.get("Data", {}).get("user_id", None) is None:
+            raise CanaryFailure("Missing user_id in API response")
 
-        email = response["Data"]["email"]
-        if email != self.CANARY_USER_EMAIL:
-            raise CanaryFailure(f"Unexpected user email in response: '{email}'")
-        LOG.debug("Validated user email in API response data!")
+        LOG.debug("Validating number of accounts in API response data...")
+        if response.get("Data", {}).get("total_num_accounts", None) is None:
+            raise CanaryFailure("Missing total_num_accounts in API response")
+
+        LOG.debug("Validating total_balance in API response data...")
+        if response.get("Data", {}).get("total_balance", None) is None:
+            raise CanaryFailure("Missing total_balance in API response")
+
+        LOG.debug("Validating accounts in API response data...")
+        if response.get("Data", {}).get("accounts", None) is None:
+            raise CanaryFailure("Missing accounts in API response")
+
+        for account in response["Data"]["accounts"]:
+            LOG.debug("Validating account")
+
+            if account.get("account_id", None) is None:
+                raise CanaryFailure("Missing account_id in API response")
+
+            if account.get("institution_name", None) is None:
+                raise CanaryFailure("Missing institution_name in API response")
+
+            if account.get("account_name", None) is None:
+                raise CanaryFailure("Missing account_name in API response")
+
+            if account.get("account_type", None) is None:
+                raise CanaryFailure("Missing account_type in API response")
+
+            if (
+                account["account_type"] == AccountType.INVESTMENT.value
+                and account.get("holdings", None) is None
+            ):
+                raise CanaryFailure("Missing holdings in API response")
+
+            if account.get("account_subtype", None) is None:
+                raise CanaryFailure("Missing account_subtype in API response")
+
+            if account.get("balance", None) is None:
+                raise CanaryFailure("Missing balance in API response")
+
+            LOG.debug("Validated account")
