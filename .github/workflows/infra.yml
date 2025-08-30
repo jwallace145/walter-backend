@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: infra/
+        working-directory: ./
 
     steps:
       - name: 'Checkout'
@@ -51,7 +51,7 @@ jobs:
       - name: 'Terraform Plan (Dev)'
         id: plan
         run: |
-          ./scripts/plan.sh dev
+          ./infra/scripts/plan.sh dev
         continue-on-error: true
 
       - name: 'Fail if any step failed'
