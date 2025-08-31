@@ -86,3 +86,11 @@ module "memory_monitors" {
   function_memory_mb = each.value.memory_size
   function_name      = each.value.name
 }
+
+module "failure_monitors" {
+  for_each       = local.FUNCTIONS
+  source         = "./modules/lambda_function_failure_monitor"
+  component_name = each.value.component
+  domain         = var.domain
+  function_name  = each.value.name
+}
