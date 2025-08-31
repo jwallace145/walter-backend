@@ -21,6 +21,8 @@ class AppEnvironment(Enum):
     """The application environment."""
 
     DEVELOPMENT = "dev"
+    STAGING = "stg"
+    PRODUCTION = "prod"
 
 
 #############
@@ -82,6 +84,12 @@ def run_cmd(cmd: str | List[str], input_data=None) -> None:
         sys.exit(1)
 
 
+def print_build_step_header(step_name: str, environment: str) -> None:
+    print("\n" + "=" * 60)
+    print(f"║ {step_name} ({environment})".ljust(58) + " ║")
+    print("=" * 60 + "\n")
+
+
 def update_docs(s3_client: S3Client) -> None:
     """
     This function uploads the OpenAPI specification file to the WalterAPI documentation S3 bucket.
@@ -94,13 +102,7 @@ def update_docs(s3_client: S3Client) -> None:
     Returns:
         None
     """
-    print("\n" + "=" * 60)
-    print(
-        f"║ UPDATE WALTER BACKEND API DOCUMENTATION ({APP_ENVIRONMENT})".ljust(58)
-        + " ║"
-    )
-    print("=" * 60 + "\n")
-
+    print_build_step_header("UPDATE WALTER BACKEND API DOCUMENTATION", APP_ENVIRONMENT)
     print("Uploading OpenAPI specification file to S3 bucket...")
     s3_client.upload_file(
         Bucket="walterapi-docs",
@@ -126,11 +128,7 @@ def build_and_upload_image(
     Returns:
         None
     """
-    print("\n" + "=" * 60)
-    print(
-        f"║ BUILD AND UPLOAD WALTER BACKEND IMAGE ({APP_ENVIRONMENT})".ljust(58) + " ║"
-    )
-    print("=" * 60 + "\n")
+    print_build_step_header("BUILD AND UPLOAD WALTER BACKEND IMAGE", APP_ENVIRONMENT)
 
     # get an authorization token from ecr and extract username, password, and endpoint for docker login
     auth_data = ecr_client.get_authorization_token()["authorizationData"][0]
@@ -193,9 +191,7 @@ def build_and_upload_image(
 
 
 def update_source_code(lambda_client: LambdaClient, functions) -> None:
-    print("\n" + "=" * 60)
-    print(f"║ UPDATE WALTER BACKEND FUNCTIONS ({APP_ENVIRONMENT})".ljust(58) + " ║")
-    print("=" * 60 + "\n")
+    print_build_step_header("UPDATE WALTER BACKEND FUNCTIONS", APP_ENVIRONMENT)
 
     print(
         f"Updating WalterBackend-{APP_ENVIRONMENT} functions:\n{json.dumps(functions, indent=4)}"
@@ -223,6 +219,11 @@ secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
 # SCRIPT #
 ##########
 
+# TODO: Move this logic to Terraform, update S3 bucket when OpenAPI specifications change
 update_docs(s3_client)
+
+# Not sure if Terraform can automate this yet, so we'll do it manually for now
 build_and_upload_image(ecr_client, secrets_client)
+
+# TODO: Move this logic to Terraform, update functions when image digest hash changes (i.e. new changes)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
