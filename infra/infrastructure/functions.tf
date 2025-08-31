@@ -2,6 +2,7 @@ locals {
   FUNCTIONS = {
     api = {
       name           = "WalterBackend-API-${var.domain}"
+      component      = "API"
       description    = "The entrypoint function for all APIs included in WalterBackend (${var.domain})."
       role_arn       = module.api_role.arn
       timeout        = var.api_timeout_seconds
@@ -10,6 +11,7 @@ locals {
     },
     canary = {
       name           = "WalterBackend-Canary-${var.domain}"
+      component      = "Canary"
       description    = "The single entrypoint for all API canaries in WalterBackend (${var.domain})."
       role_arn       = module.canary_role.arn
       timeout        = var.canary_timeout_seconds
@@ -18,6 +20,7 @@ locals {
     },
     workflow = {
       name           = "WalterBackend-Workflow-${var.domain}"
+      component      = "Workflow"
       description    = "The entrypoint function for all asynchronous workflows in WalterBackend (${var.domain})."
       role_arn       = module.workflow_role.arn
       timeout        = var.workflow_timeout_seconds
@@ -73,4 +76,13 @@ module "schedules" {
   lambda_function_arn = each.value.function_arn
   schedule_expression = each.value.schedule_expression
   input               = each.value.input
+}
+
+module "memory_monitors" {
+  for_each           = local.FUNCTIONS
+  source             = "./modules/lambda_function_memory_monitor"
+  component_name     = each.value.component
+  domain             = var.domain
+  function_memory_mb = each.value.memory_size
+  function_name      = each.value.name
 }

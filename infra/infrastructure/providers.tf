@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    datadog = {
+      source  = "datadog/datadog"
+      version = "~> 3.0"
+    }
   }
 
   # Backend configuration will be provided via -backend-config
@@ -22,3 +26,5 @@ provider "aws" {
     }
   }
 }
+
+provider "datadog" {}
