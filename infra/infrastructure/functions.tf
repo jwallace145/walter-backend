@@ -41,7 +41,7 @@ locals {
       name                = "WalterBackend-UpdatePrices-${var.domain}"
       description         = "The schedule to invoke the UpdatePrices workflow (${var.domain})."
       function_arn        = module.functions["workflow"].function_arn
-      schedule_expression = "rate(15 minutes)"
+      schedule_expression = "rate(5 minutes)"
       input = jsonencode({
         workflow_name = "UpdateSecurityPrices"
       })
@@ -68,6 +68,10 @@ module "functions" {
   publish        = true
 }
 
+/************************************
+ * WalterBackend Function Schedules *
+ ************************************/
+
 module "schedules" {
   for_each            = local.SCHEDULES
   source              = "./modules/lambda_schedule"
@@ -78,14 +82,9 @@ module "schedules" {
   input               = each.value.input
 }
 
-module "memory_monitors" {
-  for_each           = local.FUNCTIONS
-  source             = "./modules/lambda_function_memory_monitor"
-  component_name     = each.value.component
-  domain             = var.domain
-  function_memory_mb = each.value.memory_size
-  function_name      = each.value.name
-}
+/*************************************
+ * WalterBackend Function Monitoring *
+ *************************************/
 
 module "failure_monitors" {
   for_each       = local.FUNCTIONS
@@ -93,4 +92,22 @@ module "failure_monitors" {
   component_name = each.value.component
   domain         = var.domain
   function_name  = each.value.name
+}
+
+module "timeout_monitors" {
+  for_each       = local.FUNCTIONS
+  source         = "./modules/lambda_function_timeout_monitor"
+  component_name = each.value.component
+  domain         = var.domain
+  function_name  = each.value.name
+  timeout        = each.value.timeout
+}
+
+module "memory_monitors" {
+  for_each           = local.FUNCTIONS
+  source             = "./modules/lambda_function_memory_monitor"
+  component_name     = each.value.component
+  domain             = var.domain
+  function_memory_mb = each.value.memory_size
+  function_name      = each.value.name
 }

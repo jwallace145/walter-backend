@@ -23,5 +23,5 @@ EOT
   on_missing_data     = "show_and_notify_no_data"
   require_full_window = false # Datadog strongly recommends not requiring the full window for sparse metrics
   include_tags        = false
-  tags                = ["team:walteraidevelopers"]
+  tags                = ["team:walteraidevelopers", "domain:${var.domain}", "component:${lower(var.component_name)}"]
 }
