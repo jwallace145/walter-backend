@@ -41,7 +41,7 @@ locals {
       name                = "WalterBackend-UpdatePrices-${var.domain}"
       description         = "The schedule to invoke the UpdatePrices workflow (${var.domain})."
       function_arn        = module.functions["workflow"].function_arn
-      schedule_expression = "rate(15 minutes)"
+      schedule_expression = "rate(5 minutes)"
       input = jsonencode({
         workflow_name = "UpdateSecurityPrices"
       })
@@ -68,6 +68,10 @@ module "functions" {
   publish        = true
 }
 
+/************************************
+ * WalterBackend Function Schedules *
+ ************************************/
+
 module "schedules" {
   for_each            = local.SCHEDULES
   source              = "./modules/lambda_schedule"
@@ -76,6 +80,27 @@ module "schedules" {
   lambda_function_arn = each.value.function_arn
   schedule_expression = each.value.schedule_expression
   input               = each.value.input
+}
+
+/*************************************
+ * WalterBackend Function Monitoring *
+ *************************************/
+
+module "failure_monitors" {
+  for_each       = local.FUNCTIONS
+  source         = "./modules/lambda_function_failure_monitor"
+  component_name = each.value.component
+  domain         = var.domain
+  function_name  = each.value.name
+}
+
+module "timeout_monitors" {
+  for_each       = local.FUNCTIONS
+  source         = "./modules/lambda_function_timeout_monitor"
+  component_name = each.value.component
+  domain         = var.domain
+  function_name  = each.value.name
+  timeout        = each.value.timeout
 }
 
 module "memory_monitors" {

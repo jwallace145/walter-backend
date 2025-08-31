@@ -8,7 +8,7 @@ resource "datadog_monitor" "lambda_function_memory_monitor" {
   priority = 1
   type     = "query alert"
 
-  query = "avg(last_15m):avg:aws.lambda.enhanced.max_memory_used{functionname:${lower(var.function_name)}} >= ${local.CRITICAL_THRESHOLD}"
+  query = "max(last_15m):max:aws.lambda.enhanced.max_memory_used{functionname:${lower(var.function_name)}} >= ${local.CRITICAL_THRESHOLD}"
 
   monitor_thresholds {
     warning  = local.WARNING_THRESHOLD
@@ -31,5 +31,5 @@ EOT
   on_missing_data     = "show_no_data"
   require_full_window = false # Datadog strongly recommends not requiring the full window for sparse metrics
   include_tags        = false
-  tags                = ["team:walteraidevelopers"]
+  tags                = ["team:walteraidevelopers", "domain:${var.domain}", "component:${lower(var.component_name)}"]
 }
