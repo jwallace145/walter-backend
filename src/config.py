@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import yaml
 
-from src.ai.models import WalterModel
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -21,34 +20,6 @@ CONFIG_FILE = "./config.yml"
 
 
 @dataclass(frozen=True)
-class UserPortfolioConfig:
-    """User Portfolio Configurations"""
-
-    maximum_number_of_stocks: int = 10
-
-    def to_dict(self) -> dict:
-        return {
-            "maximum_number_of_stocks": self.maximum_number_of_stocks,
-        }
-
-
-@dataclass(frozen=True)
-class ArtificialIntelligenceConfig:
-    """Artificial Intelligence Configurations"""
-
-    model_name: str = WalterModel.AMAZON_NOVA_MICRO.value
-    temperature: float = 0.5
-    top_p: float = 0.9
-
-    def to_dict(self) -> dict:
-        return {
-            "model_name": self.model_name,
-            "temperature": self.temperature,
-            "top_p": self.top_p,
-        }
-
-
-@dataclass(frozen=True)
 class ExpenseCategorizationConfig:
     """Expense Categorization Configurations"""
 
@@ -61,40 +32,16 @@ class ExpenseCategorizationConfig:
 
 
 @dataclass(frozen=True)
-class NewsSummaryConfig:
-    """News Summary Configurations"""
+class AuthConfig:
+    """Auth Configurations"""
 
-    number_of_articles: int = 10
-    lookback_window_days: int = 90
-    context: str = "You are an AI investment advisor."
-    prompt: str = "Summarize the following '{stock}' news articles:\n{news}"
-    max_length: int = 5000
-    schedule: str = "cron(0 5 * * ? *)"  # every day at midnight EDT
+    access_token_expiration_minutes: int
+    refresh_token_expiration_days: int
 
     def to_dict(self) -> dict:
         return {
-            "number_of_articles": self.number_of_articles,
-            "lookback_window_days": self.lookback_window_days,
-            "context": self.context,
-            "prompt": self.prompt,
-            "max_length": self.max_length,
-            "schedule": self.schedule,
-        }
-
-
-@dataclass(frozen=True)
-class NewsletterConfig:
-    """Newsletter Configurations"""
-
-    cents_per_month: int = 100
-    free_trial_length_days: int = 30
-    schedule: str = "cron(0 11 ? * MON-FRI *)"  # every business day at 6am EDT
-
-    def to_dict(self) -> dict:
-        return {
-            "template": "REMOVE_ME",
-            "cents_per_month": self.cents_per_month,
-            "schedule": self.schedule,
+            "access_token_expiration_minutes": self.access_token_expiration_minutes,
+            "refresh_token_expiration_days": self.refresh_token_expiration_days,
         }
 
 
@@ -123,21 +70,15 @@ class WalterConfig:
     config file.
     """
 
-    user_portfolio: UserPortfolioConfig
-    artificial_intelligence: ArtificialIntelligenceConfig
     expense_categorization: ExpenseCategorizationConfig
-    news_summary: NewsSummaryConfig
-    newsletter: NewsletterConfig
+    auth: AuthConfig
     canaries: CanariesConfig
 
     def to_dict(self) -> dict:
         return {
             "walter_config": {
-                "user_portfolio": self.user_portfolio.to_dict(),
-                "artificial_intelligence": self.artificial_intelligence.to_dict(),
                 "expense_categorization": self.expense_categorization.to_dict(),
-                "news_summary": self.news_summary.to_dict(),
-                "newsletter": self.newsletter.to_dict(),
+                "auth": self.auth.to_dict(),
                 "canaries": self.canaries.to_dict(),
             }
         }
@@ -167,37 +108,18 @@ def get_walter_config() -> WalterConfig:
     try:
         config_yaml = yaml.safe_load(open(CONFIG_FILE).read())["walter_config"]
         config = WalterConfig(
-            user_portfolio=UserPortfolioConfig(
-                maximum_number_of_stocks=config_yaml["user_portfolio"][
-                    "maximum_number_of_stocks"
-                ]
-            ),
-            artificial_intelligence=ArtificialIntelligenceConfig(
-                model_name=config_yaml["artificial_intelligence"]["model_name"],
-                temperature=config_yaml["artificial_intelligence"]["temperature"],
-                top_p=config_yaml["artificial_intelligence"]["top_p"],
-            ),
             expense_categorization=ExpenseCategorizationConfig(
                 num_hidden_layers=config_yaml["expense_categorization"][
                     "num_hidden_layers"
                 ]
             ),
-            news_summary=NewsSummaryConfig(
-                number_of_articles=config_yaml["news_summary"]["number_of_articles"],
-                lookback_window_days=config_yaml["news_summary"][
-                    "lookback_window_days"
+            auth=AuthConfig(
+                access_token_expiration_minutes=config_yaml["auth"][
+                    "access_token_expiration_minutes"
                 ],
-                context=config_yaml["news_summary"]["context"],
-                prompt=config_yaml["news_summary"]["prompt"],
-                max_length=config_yaml["news_summary"]["max_length"],
-                schedule=config_yaml["news_summary"]["schedule"],
-            ),
-            newsletter=NewsletterConfig(
-                cents_per_month=config_yaml["newsletter"]["cents_per_month"],
-                free_trial_length_days=config_yaml["newsletter"][
-                    "free_trial_length_days"
+                refresh_token_expiration_days=config_yaml["auth"][
+                    "refresh_token_expiration_days"
                 ],
-                schedule=config_yaml["newsletter"]["schedule"],
             ),
             canaries=CanariesConfig(
                 endpoint=config_yaml["canaries"]["endpoint"],

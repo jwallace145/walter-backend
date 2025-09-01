@@ -30,10 +30,10 @@ class CreateLinkToken(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        SessionDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (SessionDoesNotExist, HTTPStatus.UNAUTHORIZED),
     ]
 
     plaid: PlaidClient

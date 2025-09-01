@@ -55,7 +55,7 @@ def test_create_user_failure_invalid_email(create_user_api: CreateUser) -> None:
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Invalid email!",
     )
@@ -71,7 +71,7 @@ def test_create_user_failure_user_already_exists(create_user_api: CreateUser) ->
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.CONFLICT,
         status=Status.FAILURE,
         message="User already exists!",
     )
@@ -84,7 +84,7 @@ def test_create_user_failure_invalid_password(create_user_api: CreateUser) -> No
     )
     expected_response = get_expected_response(
         api_name=create_user_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Invalid password!",
     )

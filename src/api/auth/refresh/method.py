@@ -35,11 +35,11 @@ class Refresh(WalterAPIMethod):
     REQUIRED_HEADERS = {"authorization": "Bearer "}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        SessionDoesNotExist,
-        SessionRevoked,
-        SessionExpired,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (SessionDoesNotExist, HTTPStatus.UNAUTHORIZED),
+        (SessionRevoked, HTTPStatus.UNAUTHORIZED),
+        (SessionExpired, HTTPStatus.UNAUTHORIZED),
     ]
 
     def __init__(
@@ -78,7 +78,9 @@ class Refresh(WalterAPIMethod):
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Access token refreshed!",
-            data=RefreshResponseData(access_token, access_token_expiry).to_dict(),
+            data=RefreshResponseData(
+                user_id, access_token, access_token_expiry
+            ).to_dict(),
         )
 
     def _get_refresh_token(self, event: dict) -> str:

@@ -40,10 +40,10 @@ class UpdateAccount(WalterAPIMethod):
         "logo_url",
     ]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        AccountDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (AccountDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     def __init__(

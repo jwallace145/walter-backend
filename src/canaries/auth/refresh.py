@@ -38,6 +38,9 @@ class Refresh(BaseCanary):
         )
 
     def validate_data(self, response: dict) -> None:
+        # validate response data exists
+        data = BaseCanary.validate_response_data(response)
+
         # validate required fields in response data
-        required_fields = ["access_token", "access_token_expiration"]
-        self._validate_required_response_data_fields(response, required_fields)
+        for field in ["user_id", "access_token", "access_token_expires_at"]:
+            BaseCanary.validate_required_field(data, field)

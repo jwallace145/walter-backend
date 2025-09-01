@@ -41,10 +41,10 @@ class GetTransactions(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        AccountDoesNotExist,
-        UserDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (AccountDoesNotExist, HTTPStatus.NOT_FOUND),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     def __init__(

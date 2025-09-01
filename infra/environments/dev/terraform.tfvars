@@ -16,10 +16,10 @@ api_timeout_seconds  = 15
 api_lambda_memory_mb = 512
 
 # WalterBackend Canary settings
-canary_timeout_seconds  = 30
+canary_timeout_seconds  = 15
 canary_lambda_memory_mb = 512
 
 # WalterBackend Workflow Settings
-workflow_timeout_seconds  = 30
+workflow_timeout_seconds  = 15
 workflow_lambda_memory_mb = 1024
 

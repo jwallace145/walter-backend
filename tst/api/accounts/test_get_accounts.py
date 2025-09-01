@@ -110,7 +110,7 @@ def test_get_accounts_failure_not_authenticated(
     event = create_get_accounts_event("invalid-token")
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Token is expired or invalid.",
     )
@@ -128,7 +128,7 @@ def test_get_accounts_failure_session_does_not_exist(
     event = create_get_accounts_event(token)
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Session does not exist.",
     )

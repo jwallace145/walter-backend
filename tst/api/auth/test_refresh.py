@@ -55,8 +55,9 @@ def test_refresh_success(
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.SUCCESS
     assert response.message == "Access token refreshed!"
+    assert "user_id" in response.data
     assert "access_token" in response.data
-    assert "access_token_expiration" in response.data
+    assert "access_token_expires_at" in response.data
 
 
 def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:
@@ -68,7 +69,7 @@ def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Client bad request! Missing required header: 'authorization : Bearer '",
     )
@@ -81,7 +82,7 @@ def test_refresh_failure_invalid_token(refresh_api: Refresh) -> None:
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Refresh token is invalid or expired.",
     )
@@ -99,7 +100,7 @@ def test_refresh_failure_session_does_not_exist(
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Session does not exist!",
     )
@@ -125,7 +126,7 @@ def test_refresh_failure_session_expired(
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Session has expired!",
     )
@@ -149,7 +150,7 @@ def test_refresh_failure_session_revoked(
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Session has been revoked!",
     )

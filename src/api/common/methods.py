@@ -1,7 +1,7 @@
 import datetime as dt
 import json
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.metrics import (
@@ -33,7 +33,7 @@ class WalterAPIMethod(ABC):
         required_query_fields: List[str],
         required_headers: Dict[str, str],
         required_fields: List[str],
-        exceptions: List[Exception],
+        exceptions: List[Tuple[Exception, HTTPStatus]],
         authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         db: WalterDB,
@@ -246,9 +246,9 @@ class WalterAPIMethod(ABC):
         status = HTTPStatus.INTERNAL_SERVER_ERROR
 
         # if exception is an expected exception, change http status to ok
-        for e in self.exceptions:
+        for e, status_code in self.exceptions:
             if isinstance(exception, e):
-                status = HTTPStatus.OK
+                status = status_code
                 break
 
         # return failure response

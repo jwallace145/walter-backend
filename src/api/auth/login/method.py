@@ -37,7 +37,12 @@ class Login(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "password"]
-    EXCEPTIONS = [BadRequest, UserDoesNotExist, InvalidPassword, InvalidEmail]
+    EXCEPTIONS = [
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (InvalidPassword, HTTPStatus.UNAUTHORIZED),
+        (InvalidEmail, HTTPStatus.UNAUTHORIZED),
+    ]
 
     walter_sm: WalterSecretsManagerClient
 

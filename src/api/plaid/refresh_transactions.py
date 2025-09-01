@@ -38,7 +38,12 @@ class RefreshTransactions(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, PlaidItemDoesNotExist, UserDoesNotExist, BadRequest]
+    EXCEPTIONS = [
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (PlaidItemDoesNotExist, HTTPStatus.NOT_FOUND),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+    ]
 
     plaid: PlaidClient
 

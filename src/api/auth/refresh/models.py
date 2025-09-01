@@ -6,11 +6,13 @@ from datetime import datetime
 class RefreshResponseData:
     """Refresh Response"""
 
+    user_id: str
     access_token: str
     access_token_expiration: datetime
 
     def to_dict(self) -> dict:
         return {
+            "user_id": self.user_id,
             "access_token": self.access_token,
-            "access_token_expiration": self.access_token_expiration.isoformat(),
+            "access_token_expires_at": self.access_token_expiration.isoformat(),
         }

@@ -85,7 +85,7 @@ def test_delete_account_failure_missing_required_field(
     event = create_delete_account_event(token, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Client bad request! Missing required field: 'account_id'",
     )
@@ -98,7 +98,7 @@ def test_delete_account_failure_not_authenticated(
     event = create_delete_account_event("invalid-token", "acct-123")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Token is expired or invalid.",
     )
@@ -116,7 +116,7 @@ def test_delete_account_failure_session_does_not_exist(
     event = create_delete_account_event(token, "acct-ghost")
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Session does not exist.",
     )
@@ -135,7 +135,7 @@ def test_delete_account_failure_account_does_not_exist(
     event = create_delete_account_event(token, account_id)
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.NOT_FOUND,
         status=Status.FAILURE,
         message="Account does not exist!",
     )

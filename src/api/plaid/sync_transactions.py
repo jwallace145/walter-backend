@@ -44,7 +44,12 @@ class SyncTransactions(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {}
     REQUIRED_FIELDS = ["item_id", "webhook_code"]
-    EXCEPTIONS = [NotAuthenticated, PlaidItemDoesNotExist, UserDoesNotExist, BadRequest]
+    EXCEPTIONS = [
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (PlaidItemDoesNotExist, HTTPStatus.NOT_FOUND),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+    ]
 
     queue: SyncUserTransactionsQueue
 

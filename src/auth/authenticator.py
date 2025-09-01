@@ -9,6 +9,7 @@ import jwt
 
 from src.auth.models import Tokens, TokenType
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.config import CONFIG
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -22,8 +23,8 @@ class WalterAuthenticator:
 
     walter_sm: WalterSecretsManagerClient
 
-    ACCESS_TOKEN_EXPIRY_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRY_DAYS: int = 7
+    ACCESS_TOKEN_EXPIRY_MINUTES: int = CONFIG.auth.access_token_expiration_minutes
+    REFRESH_TOKEN_EXPIRY_DAYS: int = CONFIG.auth.refresh_token_expiration_days
 
     def generate_tokens(self, user_id: str) -> Tokens:
         """

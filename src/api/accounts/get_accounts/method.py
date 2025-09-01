@@ -33,10 +33,10 @@ class GetAccounts(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        SessionDoesNotExist,
-        UserDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (SessionDoesNotExist, HTTPStatus.NOT_FOUND),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     def __init__(

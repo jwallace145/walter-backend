@@ -99,7 +99,7 @@ def test_update_account_failure_invalid_account_type(
     )
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Invalid account type 'invalid-type'!",
     )
@@ -129,7 +129,7 @@ def test_update_account_failure_account_does_not_exist(
     )
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.NOT_FOUND,
         status=Status.FAILURE,
         message="Account does not exist!",
     )
@@ -154,7 +154,7 @@ def test_update_account_failure_not_authenticated(
     )
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Token is expired or invalid.",
     )
