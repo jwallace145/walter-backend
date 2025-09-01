@@ -17,9 +17,3 @@ variable "lambda_invoke_arn" {
   description = "The Lambda function invoke ARN"
   type        = string
 }
-
-variable "enable_cors" {
-  description = "Whether to enable CORS for this endpoint"
-  type        = bool
-  default     = false
-}

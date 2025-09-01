@@ -6,7 +6,8 @@ from src.canaries.auth.login import Login
 from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
-from src.canaries.get_user import GetUser
+from src.canaries.transactions.get_transactions import GetTransactions
+from src.canaries.users.get_user import GetUser
 from src.clients import AUTHENTICATOR, DATABASE, DATADOG
 from src.utils.log import Logger
 
@@ -36,6 +37,12 @@ class CanaryType(Enum):
 
     GET_ACCOUNTS = "GetAccounts"
 
+    ################
+    # TRANSACTIONS #
+    ################
+
+    GET_TRANSACTIONS = "GetTransactions"
+
     @classmethod
     def from_string(cls, canary_type_str: str):
         for canary_type in CanaryType:
@@ -63,5 +70,7 @@ class CanaryRouter:
                 return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_ACCOUNTS:
                 return GetAccounts(AUTHENTICATOR, DATABASE, DATADOG)
+            case CanaryType.GET_TRANSACTIONS:
+                return GetTransactions(AUTHENTICATOR, DATABASE, DATADOG)
             case _:
                 raise Exception(f"Canary type {canary_type} not found.")

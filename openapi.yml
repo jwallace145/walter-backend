@@ -324,7 +324,7 @@ paths:
       parameters:
         - name: start_date
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: date
@@ -332,7 +332,7 @@ paths:
           example: "2025-08-01"
         - name: end_date
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: date

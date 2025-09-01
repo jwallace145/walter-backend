@@ -4,31 +4,38 @@ locals {
 
   # all api resources for walter backend api defined here
   RESOURCES = {
-    login    = { parent = "auth", path = "login", cors = true },
-    refresh  = { parent = "auth", path = "refresh", cors = true },
-    logout   = { parent = "auth", path = "logout", cors = true },
-    users    = { parent = "root", path = "users", cors = true },
-    accounts = { parent = "root", path = "accounts", cors = true }
+    login        = { parent = "auth", path = "login", cors = true },
+    refresh      = { parent = "auth", path = "refresh", cors = true },
+    logout       = { parent = "auth", path = "logout", cors = true },
+    users        = { parent = "root", path = "users", cors = true },
+    accounts     = { parent = "root", path = "accounts", cors = true }
+    transactions = { parent = "root", path = "transactions", cors = true }
   }
 
   # all endpoints served by walter backend are defined here
   ENDPOINTS = {
 
     # authentication endpoints
-    login   = { parent = "auth", path = "login", method = "POST", cors = true },
-    refresh = { parent = "auth", path = "refresh", method = "POST", cors = true },
-    logout  = { parent = "auth", path = "logout", method = "POST", cors = true },
+    login   = { parent = "auth", path = "login", method = "POST" },
+    refresh = { parent = "auth", path = "refresh", method = "POST" },
+    logout  = { parent = "auth", path = "logout", method = "POST" },
 
     # user endpoints
-    get_user    = { parent = "root", path = "users", method = "GET", cors = true },
-    create_user = { parent = "root", path = "users", method = "POST", cors = true },
-    update_user = { parent = "root", path = "users", method = "PUT", cors = true },
+    get_user    = { parent = "root", path = "users", method = "GET" },
+    create_user = { parent = "root", path = "users", method = "POST" },
+    update_user = { parent = "root", path = "users", method = "PUT" },
 
     # account endpoints
-    get_accounts   = { parent = "root", path = "accounts", method = "GET", cors = true },
-    create_account = { parent = "root", path = "accounts", method = "POST", cors = true },
-    update_account = { parent = "root", path = "accounts", method = "PUT", cors = true },
-    delete_account = { parent = "root", path = "accounts", method = "DELETE", cors = true }
+    get_accounts   = { parent = "root", path = "accounts", method = "GET" },
+    create_account = { parent = "root", path = "accounts", method = "POST" },
+    update_account = { parent = "root", path = "accounts", method = "PUT" },
+    delete_account = { parent = "root", path = "accounts", method = "DELETE" },
+
+    # transaction endpoints
+    get_transactions   = { parent = "root", path = "transactions", method = "GET" },
+    add_transaction    = { parent = "root", path = "transactions", method = "POST" },
+    edit_transaction   = { parent = "root", path = "transactions", method = "PUT" },
+    delete_transaction = { parent = "root", path = "transactions", method = "DELETE" },
   }
 
   # used as a helper to get api gateway resource id from parent name
@@ -73,7 +80,6 @@ module "endpoints" {
   resource_id       = module.resources[each.value.path].resource_id
   http_method       = each.value.method
   lambda_invoke_arn = module.functions["api"].invoke_arn
-  enable_cors       = each.value.cors
 }
 
 

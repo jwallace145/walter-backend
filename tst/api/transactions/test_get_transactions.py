@@ -1,7 +1,7 @@
 import pytest
 
 from src.api.common.models import HTTPStatus, Status
-from src.api.transactions.get_transactions import GetTransactions
+from src.api.transactions.get_transactions.method import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.metrics.client import DatadogMetricsClient

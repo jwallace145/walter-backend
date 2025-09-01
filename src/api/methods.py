@@ -9,7 +9,7 @@ from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction
-from src.api.transactions.get_transactions import GetTransactions
+from src.api.transactions.get_transactions.method import GetTransactions
 from src.api.users.create_user import CreateUser
 from src.api.users.get_user import GetUser
 from src.api.users.update_user import UpdateUser

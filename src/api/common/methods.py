@@ -336,5 +336,11 @@ class WalterAPIMethod(ABC):
         pass
 
     @staticmethod
-    def get_query_field(event: dict, field: str) -> str:
+    def get_query_field(event: dict, field: str) -> Optional[str]:
+        if (
+            event.get("queryStringParameters") is None
+            or field not in event["queryStringParameters"]
+            or event["queryStringParameters"][field] is None
+        ):
+            return None
         return event["queryStringParameters"][field]

@@ -2,7 +2,7 @@ import datetime as dt
 import json
 import time
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from requests import Response
 
@@ -248,3 +248,27 @@ class BaseCanary(ABC):
             CanaryFailure: If the response data is invalid.
         """
         pass
+
+    @staticmethod
+    def validate_response_data(response: dict) -> dict:
+        log.debug("Validating data in response...")
+        if response.get("Data", None) is None:
+            raise CanaryFailure("Missing data in response!")
+        log.debug("Validated data in response!")
+        return response["Data"]
+
+    @staticmethod
+    def validate_required_field(
+        fields: dict,
+        field_name: str,
+        field_value: Optional[Union[str, int, float]] = None,
+    ) -> None:
+        log.debug(f"Validating required field '{field_name}' in dictionary...")
+        if fields.get(field_name, None) is None:
+            raise CanaryFailure(f"Missing required field '{field_name}' in dictionary!")
+        if field_value is not None:
+            if fields[field_name] != field_value:
+                raise CanaryFailure(
+                    f"Unexpected value for field '{field_name}' in dictionary: '{fields[field_name]}'"
+                )
+        log.debug(f"Validated required field '{field_name}' in dictionary!")
