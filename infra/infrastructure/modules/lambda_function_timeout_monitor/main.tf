@@ -1,5 +1,5 @@
 locals {
-  WARNING_THRESHOLD  = floor(0.8 * var.timeout)
+  WARNING_THRESHOLD  = floor(0.7 * var.timeout)
   CRITICAL_THRESHOLD = floor(0.9 * var.timeout)
 }
 

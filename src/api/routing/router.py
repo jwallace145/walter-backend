@@ -31,15 +31,12 @@ class APIRouter:
     LOGIN_RESOURCE = "/auth/login"
     REFRESH_RESOURCE = "/auth/refresh"
     LOGOUT_RESOURCE = "/auth/logout"
+    USER_RESOURCE = "/users"
     ACCOUNTS_RESOURCE = "/accounts"
+    TRANSACTIONS_RESOURCE = "/transactions"
     PLAID_CREATE_LINK_TOKEN_RESOURCE = "/plaid/create-link-token"
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
-    PORTFOLIOS_RESOURCE = "/portfolios"
-    PRICES_RESOURCE = "/prices"
-    STOCKS_RESOURCE = "/stocks"
-    TRANSACTIONS_RESOURCE = "/transactions"
-    USER_RESOURCE = "/users"
 
     @staticmethod
     def get_method(event: dict) -> WalterAPIMethod:

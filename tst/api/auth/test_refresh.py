@@ -55,8 +55,9 @@ def test_refresh_success(
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.SUCCESS
     assert response.message == "Access token refreshed!"
+    assert "user_id" in response.data
     assert "access_token" in response.data
-    assert "access_token_expiration" in response.data
+    assert "access_token_expires_at" in response.data
 
 
 def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:

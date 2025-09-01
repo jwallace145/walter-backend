@@ -78,7 +78,9 @@ class Refresh(WalterAPIMethod):
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Access token refreshed!",
-            data=RefreshResponseData(access_token, access_token_expiry).to_dict(),
+            data=RefreshResponseData(
+                user_id, access_token, access_token_expiry
+            ).to_dict(),
         )
 
     def _get_refresh_token(self, event: dict) -> str:
