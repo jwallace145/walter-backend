@@ -31,9 +31,9 @@ class CreateAccount(WalterAPIMethod):
         "balance",
     ]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     def __init__(

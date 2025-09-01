@@ -59,12 +59,12 @@ class AddTransaction(WalterAPIMethod):
         "transaction_category",
     ]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        AccountDoesNotExist,
-        SecurityDoesNotExist,
-        InvalidHoldingUpdate,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (AccountDoesNotExist, HTTPStatus.NOT_FOUND),
+        (SecurityDoesNotExist, HTTPStatus.NOT_FOUND),
+        (InvalidHoldingUpdate, HTTPStatus.BAD_REQUEST),
     ]
 
     transaction_categorizer: ExpenseCategorizerMLP

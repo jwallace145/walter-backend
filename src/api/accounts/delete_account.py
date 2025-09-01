@@ -29,10 +29,10 @@ class DeleteAccount(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["account_id"]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        AccountDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (AccountDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     def __init__(

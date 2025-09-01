@@ -34,7 +34,11 @@ class Logout(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"authorization": "Bearer"}
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [BadRequest, NotAuthenticated, SessionDoesNotExist]
+    EXCEPTIONS = [
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (SessionDoesNotExist, HTTPStatus.NOT_FOUND),
+    ]
 
     def __init__(
         self,

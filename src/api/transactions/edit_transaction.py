@@ -57,10 +57,10 @@ class EditTransaction(WalterAPIMethod):
         "updated_transaction_category",
     ]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        TransactionDoesNotExist,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (TransactionDoesNotExist, HTTPStatus.NOT_FOUND),
     ]
 
     polygon: PolygonClient

@@ -33,11 +33,11 @@ class CreateUser(WalterAPIMethod):
     REQUIRED_HEADERS = {"content-type": "application/json"}
     REQUIRED_FIELDS = ["email", "first_name", "last_name", "password"]
     EXCEPTIONS = [
-        BadRequest,
-        InvalidEmail,
-        InvalidName,
-        InvalidPassword,
-        UserAlreadyExists,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (InvalidEmail, HTTPStatus.BAD_REQUEST),
+        (InvalidName, HTTPStatus.BAD_REQUEST),
+        (InvalidPassword, HTTPStatus.BAD_REQUEST),
+        (UserAlreadyExists, HTTPStatus.CONFLICT),
     ]
 
     def __init__(

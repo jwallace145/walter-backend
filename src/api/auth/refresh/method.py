@@ -35,11 +35,11 @@ class Refresh(WalterAPIMethod):
     REQUIRED_HEADERS = {"authorization": "Bearer "}
     REQUIRED_FIELDS = []
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        SessionDoesNotExist,
-        SessionRevoked,
-        SessionExpired,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (SessionDoesNotExist, HTTPStatus.UNAUTHORIZED),
+        (SessionRevoked, HTTPStatus.UNAUTHORIZED),
+        (SessionExpired, HTTPStatus.UNAUTHORIZED),
     ]
 
     def __init__(

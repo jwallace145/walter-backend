@@ -150,6 +150,6 @@ def test_get_account_transactions_failure_account_does_not_exist(
         },
     )
     response = get_transactions_api.invoke(event)
-    assert response.http_status == HTTPStatus.OK
+    assert response.http_status == HTTPStatus.NOT_FOUND
     assert response.status == Status.FAILURE
     assert "Account does not exist" in response.message

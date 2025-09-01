@@ -26,7 +26,10 @@ class UpdateUser(WalterAPIMethod):
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {"Authorization": "Bearer"}
     REQUIRED_FIELDS = []
-    EXCEPTIONS = [NotAuthenticated, UserDoesNotExist]
+    EXCEPTIONS = [
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+    ]
 
     walter_s3: WalterS3Client
 

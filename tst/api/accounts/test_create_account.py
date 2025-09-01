@@ -74,10 +74,12 @@ def test_create_account_failure_missing_required_field(
 ) -> None:
     user_id = "user-001"
     session_id = "session-001"
-    jwt_walter = walter_authenticator.generate_access_token(user_id, session_id)
+    token, token_expiry = walter_authenticator.generate_access_token(
+        user_id, session_id
+    )
     # omit account_type
     event = _event_with_auth_and_body(
-        jwt_walter,
+        token,
         {
             "account_subtype": "credit card",
             "institution_name": "Capital One",
@@ -89,7 +91,7 @@ def test_create_account_failure_missing_required_field(
     # Base class returns BadRequest as handled exception => HTTPStatus.OK, Failure
     expected_message = "Client bad request! Missing required field: 'account_type'"
     response = create_account_api.invoke(event)
-    assert response.http_status == HTTPStatus.OK
+    assert response.http_status == HTTPStatus.BAD_REQUEST
     assert response.status == Status.FAILURE
     assert response.message == expected_message
 
@@ -109,7 +111,7 @@ def test_create_account_failure_not_authenticated(
         },
     )
     response = create_account_api.invoke(event)
-    assert response.http_status == HTTPStatus.OK
+    assert response.http_status == HTTPStatus.UNAUTHORIZED
     assert response.status == Status.FAILURE
     assert response.message == "Not authenticated! Token is expired or invalid."
 
@@ -134,6 +136,6 @@ def test_create_account_failure_session_does_not_exist(
         },
     )
     response = create_account_api.invoke(event)
-    assert response.http_status == HTTPStatus.OK
+    assert response.http_status == HTTPStatus.UNAUTHORIZED
     assert response.status == Status.FAILURE
     assert response.message == "Not authenticated! Session does not exist."

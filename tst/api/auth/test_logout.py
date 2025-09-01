@@ -63,7 +63,7 @@ def test_logout_failure_missing_token(logout_api: Logout) -> None:
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
         message="Client bad request! Missing required header: 'authorization : Bearer'",
     )
@@ -78,7 +78,7 @@ def test_logout_failure_invalid_token(
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Token is expired or invalid.",
     )
@@ -98,7 +98,7 @@ def test_logout_failure_session_does_not_exist(
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Not authenticated! Session does not exist.",
     )

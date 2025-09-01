@@ -78,7 +78,7 @@ def test_login_failure_user_does_not_exist(login_api: Login) -> None:
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.NOT_FOUND,
         status=Status.FAILURE,
         message="User with email 'nouser@example.com' does not exist!",
     )
@@ -92,7 +92,7 @@ def test_login_failure_invalid_email_format(login_api: Login) -> None:
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Invalid email!",
     )
@@ -108,8 +108,6 @@ def test_login_failure_incorrect_password(
     real_password = "CorrectHorseBatteryStaple"
     _, password_hash = walter_authenticator.hash_secret(real_password)
 
-    from src.database.users.models import User
-
     user = User(
         user_id=None,
         email=email,
@@ -124,7 +122,7 @@ def test_login_failure_incorrect_password(
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
-        status_code=HTTPStatus.OK,
+        status_code=HTTPStatus.UNAUTHORIZED,
         status=Status.FAILURE,
         message="Password incorrect!",
     )

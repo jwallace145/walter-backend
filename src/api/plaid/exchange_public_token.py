@@ -60,10 +60,10 @@ class ExchangePublicToken(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["public_token", "institution_id", "institution_name", "accounts"]
     EXCEPTIONS = [
-        NotAuthenticated,
-        BadRequest,
-        UserDoesNotExist,
-        PlaidItemAlreadyExists,
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (PlaidItemAlreadyExists, HTTPStatus.UNAUTHORIZED),
     ]
 
     walter_db: WalterDB

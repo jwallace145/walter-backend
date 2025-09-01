@@ -43,12 +43,12 @@ class DeleteTransaction(WalterAPIMethod):
     REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
     REQUIRED_FIELDS = ["transaction_id", "date"]
     EXCEPTIONS = [
-        BadRequest,
-        NotAuthenticated,
-        UserDoesNotExist,
-        TransactionDoesNotExist,
-        HoldingDoesNotExist,
-        InvalidHoldingUpdate,
+        (BadRequest, HTTPStatus.BAD_REQUEST),
+        (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (UserDoesNotExist, HTTPStatus.NOT_FOUND),
+        (TransactionDoesNotExist, HTTPStatus.NOT_FOUND),
+        (HoldingDoesNotExist, HTTPStatus.NOT_FOUND),
+        (InvalidHoldingUpdate, HTTPStatus.BAD_REQUEST),
     ]
 
     holding_updater: HoldingUpdater
