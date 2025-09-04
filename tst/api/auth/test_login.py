@@ -79,7 +79,7 @@ def test_login_failure_user_does_not_exist(login_api: Login) -> None:
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
         status_code=HTTPStatus.NOT_FOUND,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="User with email 'nouser@example.com' does not exist!",
     )
 
@@ -93,7 +93,7 @@ def test_login_failure_invalid_email_format(login_api: Login) -> None:
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Invalid email!",
     )
 
@@ -123,7 +123,7 @@ def test_login_failure_incorrect_password(
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Password incorrect!",
     )
 

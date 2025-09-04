@@ -100,7 +100,7 @@ def test_update_account_failure_invalid_account_type(
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
         status_code=HTTPStatus.BAD_REQUEST,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Invalid account type 'invalid-type'!",
     )
     assert expected_response == update_account_api.invoke(event)
@@ -130,7 +130,7 @@ def test_update_account_failure_account_does_not_exist(
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
         status_code=HTTPStatus.NOT_FOUND,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Account does not exist!",
     )
     assert expected_response == update_account_api.invoke(event)
@@ -155,7 +155,7 @@ def test_update_account_failure_not_authenticated(
     expected_response = get_expected_response(
         api_name=update_account_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == update_account_api.invoke(event)

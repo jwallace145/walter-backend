@@ -242,20 +242,22 @@ class WalterAPIMethod(ABC):
         Returns:
             The API response for the exception.
         """
-        # assume server internal error
-        status = HTTPStatus.INTERNAL_SERVER_ERROR
+        # assume server internal error and failure status
+        http_status = HTTPStatus.INTERNAL_SERVER_ERROR
+        status = Status.FAILURE
 
         # if exception is an expected exception, change http status to ok
-        for e, status_code in self.exceptions:
+        for e, expected_exception_http_status in self.exceptions:
             if isinstance(exception, e):
-                status = status_code
+                http_status = expected_exception_http_status
+                status = Status.SUCCESS
                 break
 
         # return failure response
         return Response(
             api_name=self.api_name,
-            http_status=status,
-            status=Status.FAILURE,
+            http_status=http_status,
+            status=status,
             message=str(exception),
         )
 

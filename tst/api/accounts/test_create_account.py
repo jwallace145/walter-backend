@@ -92,7 +92,7 @@ def test_create_account_failure_missing_required_field(
     expected_message = "Client bad request! Missing required field: 'account_type'"
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert response.message == expected_message
 
 
@@ -112,7 +112,7 @@ def test_create_account_failure_not_authenticated(
     )
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.UNAUTHORIZED
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert response.message == "Not authenticated! Token is expired or invalid."
 
 
@@ -137,5 +137,5 @@ def test_create_account_failure_session_does_not_exist(
     )
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.UNAUTHORIZED
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert response.message == "Not authenticated! Session does not exist."
