@@ -8,7 +8,7 @@ resource "datadog_monitor" "lambda_function_timeout_monitor" {
   priority = 1
   type     = "query alert"
 
-  query = "max(last_15m):max:aws.lambda.enhanced.duration{functionname:${lower(var.function_name)}} == ${local.CRITICAL_THRESHOLD}"
+  query = "max(last_15m):max:aws.lambda.enhanced.duration{functionname:${lower(var.function_name)}} >= ${local.CRITICAL_THRESHOLD}"
 
   monitor_thresholds {
     warning  = local.WARNING_THRESHOLD
