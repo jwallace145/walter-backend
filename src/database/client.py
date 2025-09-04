@@ -71,7 +71,7 @@ class WalterDB:
     def get_user_by_id(self, user_id: str) -> User:
         return self.users_table.get_user_by_id(user_id)
 
-    def get_user_by_email(self, email: str) -> User:
+    def get_user_by_email(self, email: str) -> Optional[User]:
         return self.users_table.get_user_by_email(email)
 
     def get_users(self) -> List[User]:

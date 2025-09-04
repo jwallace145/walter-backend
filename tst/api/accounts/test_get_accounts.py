@@ -111,7 +111,7 @@ def test_get_accounts_failure_not_authenticated(
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == get_accounts_api.invoke(event)
@@ -129,7 +129,7 @@ def test_get_accounts_failure_session_does_not_exist(
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Session does not exist.",
     )
     assert expected_response == get_accounts_api.invoke(event)

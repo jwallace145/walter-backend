@@ -50,3 +50,6 @@ class GetUser(BaseCanary):
         data = BaseCanary.validate_response_data(response)
         BaseCanary.validate_required_field(data, "user_id")
         BaseCanary.validate_required_field(data, "email", self.CANARY_USER_EMAIL)
+
+    def clean_up(self) -> None:
+        LOG.info(f"No resources to clean up after '{self.CANARY_NAME}' canary!")

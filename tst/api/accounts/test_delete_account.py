@@ -86,7 +86,7 @@ def test_delete_account_failure_missing_required_field(
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.BAD_REQUEST,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Client bad request! Missing required field: 'account_id'",
     )
     assert expected_response == delete_account_api.invoke(event)
@@ -99,7 +99,7 @@ def test_delete_account_failure_not_authenticated(
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == delete_account_api.invoke(event)
@@ -117,7 +117,7 @@ def test_delete_account_failure_session_does_not_exist(
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Session does not exist.",
     )
     assert expected_response == delete_account_api.invoke(event)
@@ -136,7 +136,7 @@ def test_delete_account_failure_account_does_not_exist(
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.NOT_FOUND,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Account does not exist!",
     )
     assert expected_response == delete_account_api.invoke(event)

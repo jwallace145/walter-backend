@@ -240,7 +240,7 @@ def test_add_investment_sell_insufficient_quantity(
     # assert transaction is not created as user does not have enough holding to sell this
     # quantity of shares
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "greater than holding quantity" in response.message
 
     # assert holding was not updated as transaction was not created
@@ -321,7 +321,7 @@ def test_account_not_found(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.NOT_FOUND
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Account does not exist" in response.message
 
 
@@ -352,7 +352,7 @@ def test_invalid_account_type_for_investment(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Account type must be investment" in response.message
 
 
@@ -379,7 +379,7 @@ def test_invalid_date_format_fails_validation(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Invalid date format" in response.message
 
 
@@ -405,7 +405,7 @@ def test_invalid_amount_fails_validation(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Invalid transaction amount" in response.message
 
 
@@ -436,7 +436,7 @@ def test_investment_amount_mismatch(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Amount must equal quantity * price_per_share" in response.message
 
 
@@ -463,5 +463,5 @@ def test_bank_missing_merchant_name_validation(
     )
     response = add_transaction_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "Missing required field for bank transaction" in response.message

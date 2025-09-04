@@ -80,3 +80,6 @@ class Login(BaseCanary):
             "access_token_expires_at",
         ]
         self._validate_required_response_data_fields(response, required_fields)
+
+    def clean_up(self) -> None:
+        LOG.info(f"No resources to clean up after '{self.API_NAME}' canary!")

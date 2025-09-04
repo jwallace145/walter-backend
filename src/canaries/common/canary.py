@@ -105,11 +105,19 @@ class BaseCanary(ABC):
             # get api response time
             end = dt.datetime.now(dt.UTC)
             response_time_millis = (end - start).total_seconds() * 1000
+
+            # check api status
             success = api_status == Status.SUCCESS
+
+            # emit canary metrics if enabled
             if emit_metrics:
                 self._emit_metrics(success, response_time_millis)
             else:
                 log.info(f"Emitting metrics for '{self.api_name}' canary is disabled!")
+
+            # perform any clean up actions to ensure no dangling resources
+            self.clean_up()
+
             return CanaryResponse(
                 api_name=self.api_name,
                 status=Status.SUCCESS if success else Status.FAILURE,
@@ -246,6 +254,13 @@ class BaseCanary(ABC):
 
         Raises:
             CanaryFailure: If the response data is invalid.
+        """
+        pass
+
+    @abstractmethod
+    def clean_up(self) -> None:
+        """
+        Perform any clean up actions to ensure no dangling resources.
         """
         pass
 

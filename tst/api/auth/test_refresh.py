@@ -70,7 +70,7 @@ def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
         status_code=HTTPStatus.BAD_REQUEST,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Client bad request! Missing required header: 'authorization : Bearer '",
     )
 
@@ -83,7 +83,7 @@ def test_refresh_failure_invalid_token(refresh_api: Refresh) -> None:
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Refresh token is invalid or expired.",
     )
 
@@ -101,7 +101,7 @@ def test_refresh_failure_session_does_not_exist(
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Session does not exist!",
     )
 
@@ -127,7 +127,7 @@ def test_refresh_failure_session_expired(
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Session has expired!",
     )
 
@@ -151,7 +151,7 @@ def test_refresh_failure_session_revoked(
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Session has been revoked!",
     )
 

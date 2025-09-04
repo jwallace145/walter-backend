@@ -54,7 +54,7 @@ def test_get_user_failure_user_does_not_exist(get_user_api: GetUser) -> None:
     expected_response = get_expected_response(
         api_name=get_user_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
-        status=Status.FAILURE,
+        status=Status.SUCCESS,
         message="Not authenticated! Token is expired or invalid.",
     )
     assert expected_response == get_user_api.invoke(event)

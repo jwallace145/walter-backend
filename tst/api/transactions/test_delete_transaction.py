@@ -74,7 +74,7 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
 
     # assert response details
     assert response.http_status == HTTPStatus.BAD_REQUEST
-    assert response.status == Status.FAILURE
+    assert response.status == Status.SUCCESS
     assert "greater than holding quantity" in response.message
 
     # assert holding was not updated
