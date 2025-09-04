@@ -64,9 +64,7 @@ class CreateUser(WalterAPIMethod):
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
             message="User created!",
-            data={
-                "user": user.to_dict(),
-            },
+            data=user.to_dict(),
         )
 
     def validate_fields(self, event: dict) -> None:
@@ -100,7 +98,9 @@ class CreateUser(WalterAPIMethod):
     def _verify_password(self, password: str) -> None:
         log.info("Validating password...")
         if not is_valid_password(password):
-            raise InvalidPassword("Invalid password!")
+            raise InvalidPassword(
+                "Password is invalid! Must be at least 8 characters long and include 3/4 of the following: uppercase letters, lowercase letters, numbers, and special characters."
+            )
         log.info("Successfully validated password!")
 
     def _verify_user(self, email: str) -> None:

@@ -40,3 +40,6 @@ class Logout(BaseCanary):
 
     def validate_data(self, response: dict) -> None:
         pass
+
+    def clean_up(self) -> None:
+        LOG.info(f"No resources to clean up after '{self.API_NAME}' canary!")

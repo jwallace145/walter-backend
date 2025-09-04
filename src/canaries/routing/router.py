@@ -7,6 +7,7 @@ from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
 from src.canaries.transactions.get_transactions import GetTransactions
+from src.canaries.users.create_user import CreateUser
 from src.canaries.users.get_user import GetUser
 from src.clients import AUTHENTICATOR, DATABASE, DATADOG
 from src.utils.log import Logger
@@ -30,6 +31,7 @@ class CanaryType(Enum):
     #########
 
     GET_USER = "GetUser"
+    CREATE_USER = "CreateUser"
 
     ############
     # ACCOUNTS #
@@ -68,6 +70,8 @@ class CanaryRouter:
                 return Logout(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_USER:
                 return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
+            case CanaryType.CREATE_USER:
+                return CreateUser(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_ACCOUNTS:
                 return GetAccounts(AUTHENTICATOR, DATABASE, DATADOG)
             case CanaryType.GET_TRANSACTIONS:

@@ -86,6 +86,6 @@ def test_create_user_failure_invalid_password(create_user_api: CreateUser) -> No
         api_name=create_user_api.API_NAME,
         status_code=HTTPStatus.BAD_REQUEST,
         status=Status.FAILURE,
-        message="Invalid password!",
+        message="Password is invalid! Must be at least 8 characters long and include 3/4 of the following: uppercase letters, lowercase letters, numbers, and special characters.",
     )
     assert expected_response == create_user_api.invoke(event)

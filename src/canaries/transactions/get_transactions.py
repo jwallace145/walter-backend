@@ -88,3 +88,6 @@ class GetTransactions(BaseCanary):
                 "transaction_amount",
             ]:
                 BaseCanary.validate_required_field(transaction, field)
+
+    def clean_up(self) -> None:
+        LOG.info(f"No resources to clean up after '{self.CANARY_NAME}' canary!")

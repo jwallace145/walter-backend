@@ -89,3 +89,6 @@ class GetAccounts(BaseCanary):
                 raise CanaryFailure("Missing balance in API response")
 
             LOG.debug("Validated account")
+
+    def clean_up(self) -> None:
+        LOG.info(f"No resources to clean up after '{self.CANARY_NAME}' canary!")
