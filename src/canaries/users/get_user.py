@@ -47,6 +47,6 @@ class GetUser(BaseCanary):
         )
 
     def validate_data(self, response: dict) -> None:
-        self.validate_response_data(response)
-        self.validate_required_field(response, "user_id")
-        self.validate_required_field(response, "email", self.CANARY_USER_EMAIL)
+        data = BaseCanary.validate_response_data(response)
+        BaseCanary.validate_required_field(data, "user_id")
+        BaseCanary.validate_required_field(data, "email", self.CANARY_USER_EMAIL)
