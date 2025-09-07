@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -11,7 +11,6 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.database.plaid_items.model import PlaidItem
 from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.metrics.client import DatadogMetricsClient
@@ -93,7 +92,7 @@ class RefreshTransactions(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _get_plaid_items_for_user(self, user: User) -> List[PlaidItem]:
+    def _get_plaid_items_for_user(self, user: User) -> List[Any]:
         log.info(
             f"Getting Plaid items to refresh transactions for user: {user.user_id}"
         )
@@ -107,7 +106,7 @@ class RefreshTransactions(WalterAPIMethod):
         )
         return items
 
-    def _refresh_transactions(self, item: PlaidItem) -> None:
+    def _refresh_transactions(self, item: Any) -> None:
         log.info(f"Refreshing transactions for Plaid item: {item.item_id}")
         self.plaid.refresh_transactions(item.access_token)
         log.info(f"Refreshed transactions for Plaid item: {item.item_id}")

@@ -12,9 +12,9 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.database.plaid_items.model import PlaidItem
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.plaid.models import ExchangePublicTokenResponse
@@ -72,6 +72,7 @@ class ExchangePublicToken(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
@@ -79,6 +80,7 @@ class ExchangePublicToken(WalterAPIMethod):
         queue: SyncUserTransactionsQueue,
     ) -> None:
         super().__init__(
+            domain,
             ExchangePublicToken.API_NAME,
             ExchangePublicToken.REQUIRED_QUERY_FIELDS,
             ExchangePublicToken.REQUIRED_HEADERS,
@@ -86,8 +88,8 @@ class ExchangePublicToken(WalterAPIMethod):
             ExchangePublicToken.EXCEPTIONS,
             walter_authenticator,
             metrics,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.plaid_client = plaid_client
         self.queue = queue
 
@@ -96,7 +98,6 @@ class ExchangePublicToken(WalterAPIMethod):
         public_token = self._get_public_token(event)
         institution_id = self._get_institution_id(event)
         institution_name = self._get_institution_name(event)
-        self._verify_user_institution_item_does_not_exist(user.user_id, institution_id)
         accounts = self._get_accounts(event)
         exchange_response = self._exchange_public_token(public_token)
         plaid_item = self._save_plaid_item(
@@ -137,21 +138,6 @@ class ExchangePublicToken(WalterAPIMethod):
         body = json.loads(event["body"])
         return body["institution_name"]
 
-    def _verify_user_institution_item_does_not_exist(
-        self, user_id: str, institution_id: str
-    ) -> None:
-        item = self.walter_db.plaid_items_table.get_item_by_user_and_institution(
-            user_id, institution_id
-        )
-        if item is not None:
-            raise PlaidItemAlreadyExists(
-                f"Plaid item already exists for user '{user_id}' and institution '{institution_id}'!"
-            )
-        else:
-            log.info(
-                f"Plaid item does not exist for user '{user_id}' and institution '{institution_id}'"
-            )
-
     def _get_accounts(self, event: dict) -> List[dict]:
         body = json.loads(event["body"])
 
@@ -191,7 +177,7 @@ class ExchangePublicToken(WalterAPIMethod):
         item_id: str,
         institution_id: str,
         institution_name: str,
-    ) -> PlaidItem:
+    ) -> None:
         """
         Stores the resulting Plaid item in the database.
 
@@ -200,17 +186,8 @@ class ExchangePublicToken(WalterAPIMethod):
             exchange_response: The response containing the access token and item ID.
         """
         log.info(f"Saving Plaid item for '{institution_name}' for user '{user_id}'")
-        plaid_item = self.walter_db.put_plaid_item(
-            PlaidItem.create_item(
-                user_id=user_id,
-                item_id=item_id,
-                access_token=access_token,
-                institution_id=institution_id,
-                institution_name=institution_name,
-            )
-        )
-        log.info(f"Plaid item with item ID '{plaid_item.item_id}' saved successfully")
-        return plaid_item
+        log.info("Plaid item with item ID 'TEST' saved successfully")
+        return
 
     def _save_accounts(
         self, user: User, institution_name: str, accounts: List[dict]

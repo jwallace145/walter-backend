@@ -54,18 +54,19 @@ locals {
  ***************************/
 
 module "functions" {
-  for_each       = local.FUNCTIONS
-  source         = "./modules/lamdba_function"
-  function_name  = each.value.name
-  description    = each.value.description
-  image_uri      = var.image_uri
-  role_arn       = each.value.role_arn
-  timeout        = each.value.timeout
-  memory_size    = each.value.memory_size
-  lambda_handler = each.value.lambda_handler
-  log_level      = var.log_level
-  domain         = var.domain
-  publish        = true
+  for_each              = local.FUNCTIONS
+  source                = "./modules/lamdba_function"
+  function_name         = each.value.name
+  description           = each.value.description
+  image_uri             = var.image_uri
+  role_arn              = each.value.role_arn
+  timeout               = each.value.timeout
+  memory_size           = each.value.memory_size
+  lambda_handler        = each.value.lambda_handler
+  log_level             = var.log_level
+  domain                = var.domain
+  publish               = true
+  log_retention_in_days = var.log_retention_in_days
 }
 
 /************************************

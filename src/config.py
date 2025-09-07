@@ -62,6 +62,22 @@ class CanariesConfig:
 
 
 @dataclass(frozen=True)
+class PlaidConfig:
+    """Plaid Configurations"""
+
+    client_name: str
+    redirect_uri: str
+    sync_transactions_webhook_url: str
+
+    def to_dict(self) -> dict:
+        return {
+            "client_name": self.client_name,
+            "redirect_uri": self.redirect_uri,
+            "sync_transactions_webhook_url": self.sync_transactions_webhook_url,
+        }
+
+
+@dataclass(frozen=True)
 class WalterConfig:
     """
     WalterConfig
@@ -73,6 +89,7 @@ class WalterConfig:
     expense_categorization: ExpenseCategorizationConfig
     auth: AuthConfig
     canaries: CanariesConfig
+    plaid: PlaidConfig = PlaidConfig
 
     def to_dict(self) -> dict:
         return {
@@ -80,6 +97,7 @@ class WalterConfig:
                 "expense_categorization": self.expense_categorization.to_dict(),
                 "auth": self.auth.to_dict(),
                 "canaries": self.canaries.to_dict(),
+                "plaid": self.plaid.to_dict(),
             }
         }
 
@@ -125,6 +143,13 @@ def get_walter_config() -> WalterConfig:
                 endpoint=config_yaml["canaries"]["endpoint"],
                 user_email=config_yaml["canaries"]["user_email"],
                 user_password=config_yaml["canaries"]["user_password"],
+            ),
+            plaid=PlaidConfig(
+                client_name=config_yaml["plaid"]["client_name"],
+                redirect_uri=config_yaml["plaid"]["redirect_uri"],
+                sync_transactions_webhook_url=config_yaml["plaid"][
+                    "sync_transactions_webhook_url"
+                ],
             ),
         )
     except Exception as exception:

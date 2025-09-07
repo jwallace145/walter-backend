@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import Any
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -11,7 +12,6 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.database.plaid_items.model import PlaidItem
 from src.database.users.models import User
 from src.metrics.client import DatadogMetricsClient
 from src.transactions.queue import (
@@ -135,7 +135,7 @@ class SyncTransactions(WalterAPIMethod):
         body = json.loads(event["body"])
         return body["webhook_code"]
 
-    def _get_plaid_item(self, item_id: str) -> PlaidItem:
+    def _get_plaid_item(self, item_id: str) -> Any:
         log.info("Getting Plaid item from WalterDB")
         plaid_item = self.db.get_plaid_item_by_item_id(item_id)
         if plaid_item is None:
