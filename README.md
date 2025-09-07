@@ -26,6 +26,7 @@ Walter combines automation and intelligence to help you spend smarter, save fast
 * [Architecture](#architecture)
 * [API Documentation](#documentation)
 * [Deployments](#deployments)
+* [Monitoring & Observability](#monitoring--observability)
 * [Contributions](#contributions)
 
 ### Architecture
@@ -74,7 +75,6 @@ make docs
 
 
 ## Deployments
-
 `WalterBackend` is deployed to AWS using an automated deployment pipeline powered by the `deploy.py` script. The deploy script is called by the `deploy.yml` [GitHub action](https://github.com/features/actions) on merges to `main` to ensure the production environment stays up to date with the latest changes. This ensures consistent, reliable deployments with zero-downtime updates.
 
 ### Automated Deployment Workflow
@@ -115,6 +115,50 @@ Properties:
 The `deploy.py` script dynamically updates these version parameters after each successful build, enabling:
 - **Rollback capability** to previous versions
 - **Infrastructure as Code (IaC)** with version tracking
+
+## Monitoring & Observability
+
+`WalterBackend` emits operational and business metrics to [Datadog](https://www.datadoghq.com/) and uses dashboards and monitors for proactive alerting.
+
+### Dashboards
+
+Quick access to essential monitoring views:
+
+- **[API Performance Dashboard](https://us5.datadoghq.com/dashboard/ur3-khx-pkr?fromUser=false&refresh_mode=sliding&from_ts=1756662756699&to_ts=1757267556699&live=true)** - API response times, error rates, and throughput metrics
+- **[Canaries Dashboard](https://us5.datadoghq.com/dashboard/ncn-c5j-vh8/walterbackend-canaries?fromUser=false&refresh_mode=sliding&from_ts=1757263972166&to_ts=1757267572166&live=true)** - Canary deployment health and rollback triggers
+- **[Workflow Dashboard](https://us5.datadoghq.com/dashboard/sbk-32v-n3z/walterbackend-updateprices?fromUser=false&refresh_mode=sliding&from_ts=1757263980088&to_ts=1757267580088&live=true)** - Price update workflows and batch processing jobs
+- **[Dev Environment Monitors](https://us5.datadoghq.com/monitors/manage?q=tag%3A%22domain%3Adev%22&saved-view-id=28179)** - Active monitoring alerts for development environment
+
+### Technical Implementation
+
+**Metrics Emission**: Lambda functions are wrapped with the [Datadog Lambda handler/wrapper](https://docs.datadoghq.com/serverless/aws_lambda/instrumentation/python/?tab=containerimage), which forwards custom business metrics and AWS Lambda enhanced metrics to Datadog for dashboarding and alerting.
+
+**Alerting Model**: Datadog monitors are configured with warning and critical thresholds to surface early signals vs. actionable incidents.
+
+### What We Monitor
+
+Key metrics and their thresholds:
+
+- **Lambda Memory Usage** - Using `aws.lambda.enhanced.max_memory_used` with warning at ~80% and critical at ~90% of the function's configured memory
+- **Lambda Duration/Timeouts** - Using `aws.lambda.enhanced.duration` with warning at ~70% and critical at ~90% of the function's configured timeout  
+- **Business Logic Success/Failure** - Via custom metric `${component}.failure` that triggers on failure conditions within handlers
+
+### Infrastructure as Code
+
+**Source of Truth**: All monitors are defined as code in Terraform:
+
+```
+infra/infrastructure/modules/lambda_function_memory_monitor/main.tf
+infra/infrastructure/modules/lambda_function_timeout_monitor/main.tf
+infra/infrastructure/modules/lambda_function_failure_monitor/main.tf
+```
+
+### Alert Response
+
+When a monitor breaches thresholds, Datadog sends notifications with links for investigation:
+
+- **Warning alerts** indicate potential degradation
+- **Critical alerts** indicate user-impacting or imminent failures requiring immediate action
 
 ## Contributing to Walter
 

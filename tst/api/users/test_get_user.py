@@ -1,13 +1,21 @@
 import pytest
 
 from src.api.common.methods import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.api.users.get_user import GetUser
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response, get_get_user_event
+from tst.api.utils import get_api_event, get_expected_response
+
+GET_USER_API_PATH = "/users"
+"""(str): Path to the get user API endpoint."""
+
+GET_USER_API_METHOD = HTTPMethod.GET
+"""(HTTPMethod): HTTP method for the get user API endpoint."""
 
 
 @pytest.fixture
@@ -19,7 +27,12 @@ def get_user_api(
     walter_s3: WalterS3Client,
 ) -> GetUser:
     return GetUser(
-        walter_authenticator, datadog_metrics, walter_db, walter_sm, walter_s3
+        Domain.TESTING,
+        walter_authenticator,
+        datadog_metrics,
+        walter_db,
+        walter_sm,
+        walter_s3,
     )
 
 
@@ -50,7 +63,9 @@ def get_user_api(
 
 
 def test_get_user_failure_user_does_not_exist(get_user_api: GetUser) -> None:
-    event = get_get_user_event(token="invalid-token")
+    event = get_api_event(
+        GET_USER_API_PATH, GET_USER_API_METHOD, token="invalid-token", body=None
+    )
     expected_response = get_expected_response(
         api_name=get_user_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,

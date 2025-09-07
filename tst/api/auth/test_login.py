@@ -1,15 +1,21 @@
-import json
-
 import pytest
 
 from src.api.auth.login.method import Login
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response
+from tst.api.utils import get_api_event, get_expected_response
+
+LOGIN_API_PATH = "/auth/login"
+"""(str): Path to the login API endpoint."""
+
+LOGIN_API_METHOD = HTTPMethod.POST
+"""(HTTPMethod): HTTP method for the login API endpoint."""
 
 
 @pytest.fixture
@@ -19,23 +25,9 @@ def login_api(
     walter_db: WalterDB,
     walter_sm: WalterSecretsManagerClient,
 ) -> Login:
-    return Login(walter_authenticator, datadog_metrics, walter_db, walter_sm)
-
-
-def _event_with_body(body: dict) -> dict:
-    return {
-        "headers": {
-            "content-type": "application/json",
-            "User-Agent": "pytest/1.0",
-        },
-        "queryStringParameters": None,
-        "body": json.dumps(body) if not isinstance(body, str) else body,
-        "requestContext": {
-            "identity": {
-                "sourceIp": "127.0.0.1",
-            }
-        },
-    }
+    return Login(
+        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db, walter_sm
+    )
 
 
 def test_login_success(
@@ -57,12 +49,14 @@ def test_login_success(
     )
     walter_db.users_table.create_user(user)
 
-    event = _event_with_body({"email": email, "password": password})
+    event = get_api_event(
+        LOGIN_API_PATH,
+        LOGIN_API_METHOD,
+        body={"email": email, "password": password},
+    )
 
-    # Act
     response = login_api.invoke(event)
 
-    # Assert
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.SUCCESS
     assert response.message == "User logged in successfully!"
@@ -74,7 +68,11 @@ def test_login_success(
 
 
 def test_login_failure_user_does_not_exist(login_api: Login) -> None:
-    event = _event_with_body({"email": "nouser@example.com", "password": "pw"})
+    event = get_api_event(
+        LOGIN_API_PATH,
+        LOGIN_API_METHOD,
+        body={"email": "nouser@example.com", "password": "pw"},
+    )
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
@@ -87,8 +85,11 @@ def test_login_failure_user_does_not_exist(login_api: Login) -> None:
 
 
 def test_login_failure_invalid_email_format(login_api: Login) -> None:
-    # invalid email should be caught by validate_fields
-    event = _event_with_body({"email": "invalid-email", "password": "pw"})
+    event = get_api_event(
+        LOGIN_API_PATH,
+        LOGIN_API_METHOD,
+        body={"email": "invalid-email", "password": "pw"},
+    )
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
@@ -103,7 +104,6 @@ def test_login_failure_invalid_email_format(login_api: Login) -> None:
 def test_login_failure_incorrect_password(
     login_api: Login, walter_db: WalterDB, walter_authenticator: WalterAuthenticator
 ) -> None:
-    # Arrange - create user with a known password
     email = "someone@example.com"
     real_password = "CorrectHorseBatteryStaple"
     _, password_hash = walter_authenticator.hash_secret(real_password)
@@ -117,8 +117,11 @@ def test_login_failure_incorrect_password(
     )
     walter_db.users_table.create_user(user)
 
-    # Act - wrong password
-    event = _event_with_body({"email": email, "password": "wrong"})
+    event = get_api_event(
+        LOGIN_API_PATH,
+        LOGIN_API_METHOD,
+        body={"email": email, "password": "wrong"},
+    )
 
     expected_response = get_expected_response(
         api_name=login_api.API_NAME,
@@ -127,5 +130,4 @@ def test_login_failure_incorrect_password(
         message="Password incorrect!",
     )
 
-    # Assert
     assert expected_response == login_api.invoke(event)

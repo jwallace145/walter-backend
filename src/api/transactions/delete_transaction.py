@@ -21,6 +21,7 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.database.users.models import User
+from src.environment import Domain
 from src.investments.holdings.exceptions import InvalidHoldingUpdate
 from src.investments.holdings.updater import HoldingUpdater
 from src.metrics.client import DatadogMetricsClient
@@ -55,12 +56,14 @@ class DeleteTransaction(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         holding_updater: HoldingUpdater,
     ) -> None:
         super().__init__(
+            domain,
             DeleteTransaction.API_NAME,
             DeleteTransaction.REQUIRED_QUERY_FIELDS,
             DeleteTransaction.REQUIRED_HEADERS,
@@ -77,6 +80,7 @@ class DeleteTransaction(WalterAPIMethod):
         transaction = self._verify_transaction_exists(user, event)
         self._delete_transaction(transaction)
         return Response(
+            domain=self.domain,
             api_name=DeleteTransaction.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

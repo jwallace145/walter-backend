@@ -1,12 +1,19 @@
-import json
-
 import pytest
 
 from src.api.accounts.create_account import CreateAccount
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
+from tst.api.utils import get_api_event
+
+CREATE_ACCOUNT_API_PATH = "/accounts"
+"""(str): Path to the create account API endpoint."""
+
+CREATE_ACCOUNT_API_METHOD = HTTPMethod.POST
+"""(HTTPMethod): HTTP method for the create account API endpoint."""
 
 
 @pytest.fixture
@@ -15,17 +22,9 @@ def create_account_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> CreateAccount:
-    return CreateAccount(walter_authenticator, datadog_metrics, walter_db)
-
-
-def _event_with_auth_and_body(token: str, body: dict) -> dict:
-    return {
-        "path": "/accounts",
-        "httpMethod": "POST",
-        "headers": {"Authorization": f"Bearer {token}"},
-        "queryStringParameters": None,
-        "body": json.dumps(body),
-    }
+    return CreateAccount(
+        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
+    )
 
 
 def test_create_account_success(
@@ -40,9 +39,11 @@ def test_create_account_success(
         user_id, session_id
     )
     user = walter_db.get_user_by_email(email)
-    event = _event_with_auth_and_body(
-        token,
-        {
+    event = get_api_event(
+        CREATE_ACCOUNT_API_PATH,
+        CREATE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
             "account_type": "credit",
             "account_subtype": "credit card",
             "institution_name": "Capital One",
@@ -78,9 +79,11 @@ def test_create_account_failure_missing_required_field(
         user_id, session_id
     )
     # omit account_type
-    event = _event_with_auth_and_body(
-        token,
-        {
+    event = get_api_event(
+        CREATE_ACCOUNT_API_PATH,
+        CREATE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
             "account_subtype": "credit card",
             "institution_name": "Capital One",
             "account_name": "Venture X",
@@ -88,20 +91,22 @@ def test_create_account_failure_missing_required_field(
             "balance": 100.0,
         },
     )
-    # Base class returns BadRequest as handled exception => HTTPStatus.OK, Failure
-    expected_message = "Client bad request! Missing required field: 'account_type'"
     response = create_account_api.invoke(event)
     assert response.http_status == HTTPStatus.BAD_REQUEST
     assert response.status == Status.SUCCESS
-    assert response.message == expected_message
+    assert (
+        response.message == "Client bad request! Missing required field: 'account_type'"
+    )
 
 
 def test_create_account_failure_not_authenticated(
     create_account_api: CreateAccount,
 ) -> None:
-    event = _event_with_auth_and_body(
-        "invalid-token",
-        {
+    event = get_api_event(
+        CREATE_ACCOUNT_API_PATH,
+        CREATE_ACCOUNT_API_METHOD,
+        token="invalid-token",
+        body={
             "account_type": "credit",
             "account_subtype": "credit card",
             "institution_name": "Capital One",
@@ -124,9 +129,11 @@ def test_create_account_failure_session_does_not_exist(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = _event_with_auth_and_body(
-        token,
-        {
+    event = get_api_event(
+        CREATE_ACCOUNT_API_PATH,
+        CREATE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
             "account_type": "depository",
             "account_subtype": "checking",
             "institution_name": "Chase",

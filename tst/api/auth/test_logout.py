@@ -1,13 +1,19 @@
-import json
-
 import pytest
 
 from src.api.auth.logout.method import Logout
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response
+from tst.api.utils import get_api_event, get_expected_response
+
+LOGOUT_API_PATH = "/auth/logout"
+"""(str): Path to the logout API endpoint."""
+
+LOGOUT_API_METHOD = HTTPMethod.POST
+"""(HTTPMethod): HTTP method for the logout API endpoint."""
 
 
 @pytest.fixture
@@ -16,17 +22,7 @@ def logout_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> Logout:
-    return Logout(walter_authenticator, datadog_metrics, walter_db)
-
-
-def _event_with_auth(token: str) -> dict:
-    return {
-        "headers": {
-            "Authorization": f"Bearer {token}",
-        },
-        "queryStringParameters": None,
-        "body": json.dumps({}),
-    }
+    return Logout(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
 
 
 def test_logout_success(
@@ -39,7 +35,11 @@ def test_logout_success(
     session_id = "session-001"
     access_token, _ = walter_authenticator.generate_access_token(user_id, session_id)
 
-    event = _event_with_auth(access_token)
+    event = get_api_event(
+        LOGOUT_API_PATH,
+        LOGOUT_API_METHOD,
+        token=access_token,
+    )
 
     response = logout_api.invoke(event)
 
@@ -55,11 +55,7 @@ def test_logout_success(
 
 def test_logout_failure_missing_token(logout_api: Logout) -> None:
     # Missing Authorization header should trigger BadRequest from header validation
-    event = {
-        "headers": {},
-        "queryStringParameters": None,
-        "body": json.dumps({}),
-    }
+    event = get_api_event(LOGOUT_API_PATH, LOGOUT_API_METHOD)
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,
@@ -74,7 +70,7 @@ def test_logout_failure_missing_token(logout_api: Logout) -> None:
 def test_logout_failure_invalid_token(
     logout_api: Logout,
 ) -> None:
-    event = _event_with_auth("invalid-token")
+    event = get_api_event(LOGOUT_API_PATH, LOGOUT_API_METHOD, token="invalid-token")
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,
@@ -94,7 +90,11 @@ def test_logout_failure_session_does_not_exist(
     session_id = "does-not-exist"
     access_token, _ = walter_authenticator.generate_access_token(user_id, session_id)
 
-    event = _event_with_auth(access_token)
+    event = get_api_event(
+        LOGOUT_API_PATH,
+        LOGOUT_API_METHOD,
+        token=access_token,
+    )
 
     expected_response = get_expected_response(
         api_name=logout_api.API_NAME,

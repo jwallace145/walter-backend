@@ -29,6 +29,7 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.database.users.models import User
+from src.environment import Domain
 from src.investments.holdings.exceptions import InvalidHoldingUpdate
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
@@ -74,6 +75,7 @@ class AddTransaction(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
@@ -83,6 +85,7 @@ class AddTransaction(WalterAPIMethod):
         security_updater: SecurityUpdater,
     ) -> None:
         super().__init__(
+            domain,
             AddTransaction.API_NAME,
             AddTransaction.REQUIRED_QUERY_FIELDS,
             AddTransaction.REQUIRED_HEADERS,
@@ -112,6 +115,7 @@ class AddTransaction(WalterAPIMethod):
         self.db.add_transaction(transaction)
 
         return Response(
+            domain=self.domain,
             api_name=AddTransaction.API_NAME,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,

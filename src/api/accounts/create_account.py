@@ -9,6 +9,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -38,11 +39,13 @@ class CreateAccount(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             CreateAccount.API_NAME,
             CreateAccount.REQUIRED_QUERY_FIELDS,
             CreateAccount.REQUIRED_HEADERS,
@@ -57,6 +60,7 @@ class CreateAccount(WalterAPIMethod):
         user = self._verify_user_exists(session.user_id)
         account = self._create_new_account(user, event)
         return Response(
+            domain=self.domain,
             api_name=CreateAccount.API_NAME,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,

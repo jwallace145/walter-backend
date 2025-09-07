@@ -1,13 +1,19 @@
-import json
-
 import pytest
 
 from src.api.auth.refresh.method import Refresh
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response
+from tst.api.utils import get_api_event, get_expected_response
+
+REFRESH_API_PATH = "/auth/refresh"
+"""(str): Path to the refresh API endpoint."""
+
+REFRESH_API_METHOD = HTTPMethod.POST
+"""(HTTPMethod): HTTP method for the refresh API endpoint."""
 
 
 @pytest.fixture
@@ -16,17 +22,7 @@ def refresh_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> Refresh:
-    return Refresh(walter_authenticator, datadog_metrics, walter_db)
-
-
-def _event_with_refresh(token: str) -> dict:
-    return {
-        "headers": {
-            "Authorization": f"Bearer {token}",
-        },
-        "queryStringParameters": None,
-        "body": json.dumps({}),
-    }
+    return Refresh(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
 
 
 def test_refresh_success(
@@ -46,7 +42,11 @@ def test_refresh_success(
         device="pytest/1.0",
     )
 
-    event = _event_with_refresh(tokens.refresh_token)
+    event = get_api_event(
+        REFRESH_API_PATH,
+        REFRESH_API_METHOD,
+        token=tokens.refresh_token,
+    )
 
     # Act
     response = refresh_api.invoke(event)
@@ -61,11 +61,7 @@ def test_refresh_success(
 
 
 def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:
-    event = {
-        "headers": {},
-        "queryStringParameters": None,
-        "body": json.dumps({}),
-    }
+    event = get_api_event(REFRESH_API_PATH, REFRESH_API_METHOD)
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
@@ -78,7 +74,7 @@ def test_refresh_failure_missing_token(refresh_api: Refresh) -> None:
 
 
 def test_refresh_failure_invalid_token(refresh_api: Refresh) -> None:
-    event = _event_with_refresh("invalid-token")
+    event = get_api_event(REFRESH_API_PATH, REFRESH_API_METHOD, token="invalid-token")
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
@@ -96,7 +92,9 @@ def test_refresh_failure_session_does_not_exist(
     tokens = walter_authenticator.generate_tokens("user-001")
 
     # Do NOT create the corresponding session
-    event = _event_with_refresh(tokens.refresh_token)
+    event = get_api_event(
+        REFRESH_API_PATH, REFRESH_API_METHOD, token=tokens.refresh_token
+    )
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
@@ -122,7 +120,9 @@ def test_refresh_failure_session_expired(
     session.session_expiration = session.session_start.replace(year=2000)
     walter_db.update_session(session)
 
-    event = _event_with_refresh(tokens.refresh_token)
+    event = get_api_event(
+        REFRESH_API_PATH, REFRESH_API_METHOD, token=tokens.refresh_token
+    )
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,
@@ -146,7 +146,9 @@ def test_refresh_failure_session_revoked(
     session.revoked = True
     walter_db.update_session(session)
 
-    event = _event_with_refresh(tokens.refresh_token)
+    event = get_api_event(
+        REFRESH_API_PATH, REFRESH_API_METHOD, token=tokens.refresh_token
+    )
 
     expected_response = get_expected_response(
         api_name=refresh_api.API_NAME,

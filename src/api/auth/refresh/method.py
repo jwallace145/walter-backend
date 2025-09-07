@@ -15,6 +15,7 @@ from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -44,11 +45,13 @@ class Refresh(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             Refresh.API_NAME,
             Refresh.REQUIRED_QUERY_FIELDS,
             Refresh.REQUIRED_HEADERS,
@@ -74,6 +77,7 @@ class Refresh(WalterAPIMethod):
         self._verify_valid_session(session)
         access_token, access_token_expiry = self._generate_new_access_token(session)
         return Response(
+            domain=self.domain,
             api_name=Refresh.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

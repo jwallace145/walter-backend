@@ -14,6 +14,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -37,11 +38,13 @@ class DeleteAccount(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             DeleteAccount.API_NAME,
             DeleteAccount.REQUIRED_QUERY_FIELDS,
             DeleteAccount.REQUIRED_HEADERS,
@@ -57,6 +60,7 @@ class DeleteAccount(WalterAPIMethod):
         self._verify_account_exists(user, event)
         self._delete_account(user, event)
         return Response(
+            domain=self.domain,
             api_name=DeleteAccount.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

@@ -21,6 +21,7 @@ from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -48,12 +49,14 @@ class Login(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         walter_sm: WalterSecretsManagerClient,
     ) -> None:
         super().__init__(
+            domain,
             Login.API_NAME,
             Login.REQUIRED_QUERY_FIELDS,
             Login.REQUIRED_HEADERS,
@@ -73,6 +76,7 @@ class Login(WalterAPIMethod):
         self._create_session(user, tokens, event)
         self._update_last_active_date(user)
         return Response(
+            domain=self.domain,
             api_name=Login.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

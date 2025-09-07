@@ -3,10 +3,18 @@ from freezegun import freeze_time
 
 from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response
+from tst.api.utils import get_api_event, get_expected_response
+
+GET_ACCOUNTS_API_PATH = "/accounts"
+"""(str): Path to the get accounts API endpoint."""
+
+GET_ACCOUNTS_API_METHOD = HTTPMethod.GET
+"""(HTTPMethod): HTTP method for the get accounts API endpoint."""
 
 
 @pytest.fixture
@@ -15,17 +23,7 @@ def get_accounts_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> GetAccounts:
-    return GetAccounts(walter_authenticator, datadog_metrics, walter_db)
-
-
-def create_get_accounts_event(token: str) -> dict:
-    return {
-        "path": "/accounts",
-        "httpMethod": "GET",
-        "headers": {"Authorization": f"Bearer {token}"},
-        "queryStringParameters": None,
-        "body": None,
-    }
+    return GetAccounts(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
 
 
 @freeze_time("2025-07-01")
@@ -41,7 +39,11 @@ def test_get_accounts_success(
     access_token, access_token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_get_accounts_event(access_token)
+    event = get_api_event(
+        GET_ACCOUNTS_API_PATH,
+        GET_ACCOUNTS_API_METHOD,
+        token=access_token,
+    )
 
     # invoke api
     response = get_accounts_api.invoke(event)
@@ -107,7 +109,11 @@ def test_get_accounts_success(
 def test_get_accounts_failure_not_authenticated(
     get_accounts_api: GetAccounts,
 ) -> None:
-    event = create_get_accounts_event("invalid-token")
+    event = get_api_event(
+        GET_ACCOUNTS_API_PATH,
+        GET_ACCOUNTS_API_METHOD,
+        token="invalid-token",
+    )
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
@@ -125,7 +131,11 @@ def test_get_accounts_failure_session_does_not_exist(
     token, token_expiry = walter_authenticator.generate_access_token(
         "user-ghost", "jti-ghost"
     )
-    event = create_get_accounts_event(token)
+    event = get_api_event(
+        GET_ACCOUNTS_API_PATH,
+        GET_ACCOUNTS_API_METHOD,
+        token=token,
+    )
     expected_response = get_expected_response(
         api_name=get_accounts_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
@@ -147,7 +157,14 @@ def test_get_accounts_success_update_balances(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_get_accounts_event(token)
+    event = get_api_event(
+        GET_ACCOUNTS_API_PATH,
+        GET_ACCOUNTS_API_METHOD,
+        token=token,
+        body={
+            "account_id": account_id,
+        },
+    )
 
     # assert balance and last updated timestamp prior to api invocation
     account = walter_db.get_account(user_id, account_id)
@@ -173,7 +190,11 @@ def test_get_accounts_success_investment_account_has_no_holdings(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_get_accounts_event(token)
+    event = get_api_event(
+        GET_ACCOUNTS_API_PATH,
+        GET_ACCOUNTS_API_METHOD,
+        token=token,
+    )
 
     # invoke api
     response = get_accounts_api.invoke(event)

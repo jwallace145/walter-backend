@@ -17,6 +17,7 @@ from src.clients import (
     AUTHENTICATOR,
     DATABASE,
     DATADOG,
+    DOMAIN,
     EXPENSE_CATEGORIZER,
     HOLDING_UPDATER,
     PLAID,
@@ -32,20 +33,21 @@ from src.clients import (
 
 
 # AUTHENTICATION
-login_api = Login(AUTHENTICATOR, DATADOG, DATABASE, SECRETS)
-refresh_api = Refresh(AUTHENTICATOR, DATADOG, DATABASE)
-logout_api = Logout(AUTHENTICATOR, DATADOG, DATABASE)
+login_api = Login(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, SECRETS)
+refresh_api = Refresh(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
+logout_api = Logout(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
 
 # ACCOUNTS =
-get_accounts_api = GetAccounts(AUTHENTICATOR, DATADOG, DATABASE)
-create_account_api = CreateAccount(AUTHENTICATOR, DATADOG, DATABASE)
-update_account_api = UpdateAccount(AUTHENTICATOR, DATADOG, DATABASE)
-delete_account_api = DeleteAccount(AUTHENTICATOR, DATADOG, DATABASE)
+get_accounts_api = GetAccounts(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
+create_account_api = CreateAccount(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
+update_account_api = UpdateAccount(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
+delete_account_api = DeleteAccount(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
 
 
 # TRANSACTIONS
-get_transactions_api = GetTransactions(AUTHENTICATOR, DATADOG, DATABASE)
+get_transactions_api = GetTransactions(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
 add_transaction_api = AddTransaction(
+    DOMAIN,
     AUTHENTICATOR,
     DATADOG,
     DATABASE,
@@ -55,6 +57,7 @@ add_transaction_api = AddTransaction(
     SECURITY_UPDATER,
 )
 edit_transaction_api = EditTransaction(
+    DOMAIN,
     AUTHENTICATOR,
     DATADOG,
     DATABASE,
@@ -63,13 +66,13 @@ edit_transaction_api = EditTransaction(
     SECURITY_UPDATER,
 )
 delete_transaction_api = DeleteTransaction(
-    AUTHENTICATOR, DATADOG, DATABASE, HOLDING_UPDATER
+    DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, HOLDING_UPDATER
 )
 
 # USERS
-get_user_api = GetUser(AUTHENTICATOR, DATADOG, DATABASE, SECRETS, S3)
-create_user_api = CreateUser(AUTHENTICATOR, DATADOG, DATABASE)
-update_user_api = UpdateUser(AUTHENTICATOR, DATADOG, DATABASE, S3)
+get_user_api = GetUser(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, SECRETS, S3)
+create_user_api = CreateUser(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE)
+update_user_api = UpdateUser(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, S3)
 
 # PLAID
-create_link_token_api = CreateLinkToken(AUTHENTICATOR, DATADOG, DATABASE, PLAID)
+create_link_token_api = CreateLinkToken(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, PLAID)

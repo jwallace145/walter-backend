@@ -12,6 +12,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.utils.log import Logger
@@ -40,12 +41,14 @@ class CreateLinkToken(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         plaid: PlaidClient,
     ) -> None:
         super().__init__(
+            domain,
             CreateLinkToken.API_NAME,
             CreateLinkToken.REQUIRED_QUERY_FIELDS,
             CreateLinkToken.REQUIRED_HEADERS,
@@ -61,6 +64,7 @@ class CreateLinkToken(WalterAPIMethod):
         user = self._verify_user_exists(session.user_id)
         response = self.plaid.create_link_token(user.user_id)
         return Response(
+            domain=self.domain,
             api_name=CreateLinkToken.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

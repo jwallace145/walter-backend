@@ -1,10 +1,13 @@
 import pytest
 
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.api.transactions.get_transactions.method import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
+from tst.api.utils import get_api_event
 
 
 @pytest.fixture()
@@ -13,20 +16,13 @@ def get_transactions_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ):
-    return GetTransactions(walter_authenticator, datadog_metrics, walter_db)
+    return GetTransactions(
+        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
+    )
 
 
-def create_get_transactions_event(token: str, query: dict) -> dict:
-    return {
-        "path": "/transactions",
-        "httpMethod": "GET",
-        "headers": {
-            "Authorization": f"Bearer {token}",
-            "content-type": "application/json",
-        },
-        "queryStringParameters": query,
-        "body": None,
-    }
+GET_TRANSACTIONS_API_PATH = "/transactions"
+GET_TRANSACTIONS_API_METHOD = HTTPMethod.GET
 
 
 def test_get_account_transactions_acct003_full_range_success(
@@ -35,7 +31,9 @@ def test_get_account_transactions_acct003_full_range_success(
     user = "user-002"
     session = "session-004"
     token, token_expiry = walter_authenticator.generate_access_token(user, session)
-    event = create_get_transactions_event(
+    event = get_api_event(
+        GET_TRANSACTIONS_API_PATH,
+        GET_TRANSACTIONS_API_METHOD,
         token=token,
         query={
             "start_date": "2025-08-01",
@@ -71,7 +69,9 @@ def test_get_account_transactions_success(
         user_id, session_id
     )
     # acct-003 has 3 banking transactions in the seed
-    event = create_get_transactions_event(
+    event = get_api_event(
+        GET_TRANSACTIONS_API_PATH,
+        GET_TRANSACTIONS_API_METHOD,
         token=token,
         query={
             "start_date": "2025-08-01",
@@ -112,7 +112,9 @@ def test_get_account_transactions_date_filter_single_day(
         user_id, session_id
     )
     # On 2025-08-06 there are two banking transactions for acct-003
-    event = create_get_transactions_event(
+    event = get_api_event(
+        GET_TRANSACTIONS_API_PATH,
+        GET_TRANSACTIONS_API_METHOD,
         token=token,
         query={
             "start_date": "2025-08-06",
@@ -141,7 +143,9 @@ def test_get_account_transactions_failure_account_does_not_exist(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_get_transactions_event(
+    event = get_api_event(
+        GET_TRANSACTIONS_API_PATH,
+        GET_TRANSACTIONS_API_METHOD,
         token=token,
         query={
             "start_date": "2025-08-01",
