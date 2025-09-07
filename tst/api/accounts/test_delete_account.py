@@ -1,13 +1,19 @@
-import json
-
 import pytest
 
 from src.api.accounts.delete_account import DeleteAccount
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
-from tst.api.utils import get_expected_response
+from tst.api.utils import get_api_event, get_expected_response
+
+DELETE_ACCOUNT_API_PATH = "/accounts"
+"""(str): Path to the delete account API endpoint."""
+
+DELETE_ACCOUNT_API_METHOD = HTTPMethod.DELETE
+"""(HTTPMethod): HTTP method for the delete account API endpoint."""
 
 
 @pytest.fixture
@@ -16,24 +22,9 @@ def delete_account_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> DeleteAccount:
-    return DeleteAccount(walter_authenticator, datadog_metrics, walter_db)
-
-
-def create_delete_account_event(token: str, account_id: str) -> dict:
-    return {
-        "path": "/accounts",
-        "httpMethod": "DELETE",
-        "headers": {
-            "Authorization": f"Bearer {token}",
-            "content-type": "application/json",
-        },
-        "queryStringParameters": None,
-        "body": json.dumps(
-            {
-                "account_id": account_id,
-            }
-        ),
-    }
+    return DeleteAccount(
+        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
+    )
 
 
 def test_delete_account_success(
@@ -55,7 +46,14 @@ def test_delete_account_success(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_delete_account_event(token, account_id)
+    event = get_api_event(
+        DELETE_ACCOUNT_API_PATH,
+        DELETE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
+            "account_id": account_id,
+        },
+    )
 
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
@@ -82,7 +80,14 @@ def test_delete_account_failure_missing_required_field(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_delete_account_event(token, account_id)
+    event = get_api_event(
+        DELETE_ACCOUNT_API_PATH,
+        DELETE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
+            "account_id": account_id,
+        },
+    )
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.BAD_REQUEST,
@@ -95,7 +100,14 @@ def test_delete_account_failure_missing_required_field(
 def test_delete_account_failure_not_authenticated(
     delete_account_api: DeleteAccount,
 ) -> None:
-    event = create_delete_account_event("invalid-token", "acct-123")
+    event = get_api_event(
+        DELETE_ACCOUNT_API_PATH,
+        DELETE_ACCOUNT_API_METHOD,
+        token="invalid-token",
+        body={
+            "account_id": "acct-123",
+        },
+    )
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
@@ -113,7 +125,14 @@ def test_delete_account_failure_session_does_not_exist(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_delete_account_event(token, "acct-ghost")
+    event = get_api_event(
+        DELETE_ACCOUNT_API_PATH,
+        DELETE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
+            "account_id": "acct-ghost",
+        },
+    )
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.UNAUTHORIZED,
@@ -132,7 +151,14 @@ def test_delete_account_failure_account_does_not_exist(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_delete_account_event(token, account_id)
+    event = get_api_event(
+        DELETE_ACCOUNT_API_PATH,
+        DELETE_ACCOUNT_API_METHOD,
+        token=token,
+        body={
+            "account_id": account_id,
+        },
+    )
     expected_response = get_expected_response(
         api_name=delete_account_api.API_NAME,
         status_code=HTTPStatus.NOT_FOUND,

@@ -18,6 +18,7 @@ from src.database.holdings.models import Holding
 from src.database.securities.models import Security
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -41,11 +42,13 @@ class GetAccounts(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             GetAccounts.API_NAME,
             GetAccounts.REQUIRED_QUERY_FIELDS,
             GetAccounts.REQUIRED_HEADERS,
@@ -67,6 +70,7 @@ class GetAccounts(WalterAPIMethod):
         )
         self._update_investment_account_balances(user, data, accounts)
         return Response(
+            domain=self.domain,
             api_name=GetAccounts.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

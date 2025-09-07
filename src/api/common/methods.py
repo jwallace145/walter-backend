@@ -14,6 +14,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -29,6 +30,7 @@ class WalterAPIMethod(ABC):
 
     def __init__(
         self,
+        domain: Domain,
         api_name: str,
         required_query_fields: List[str],
         required_headers: Dict[str, str],
@@ -38,6 +40,7 @@ class WalterAPIMethod(ABC):
         metrics: DatadogMetricsClient,
         db: WalterDB,
     ) -> None:
+        self.domain = domain
         self.api_name = api_name
         self.required_query_fields = required_query_fields
         self.required_headers = required_headers
@@ -255,6 +258,7 @@ class WalterAPIMethod(ABC):
 
         # return failure response
         return Response(
+            domain=self.domain,
             api_name=self.api_name,
             http_status=http_status,
             status=status,

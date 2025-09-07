@@ -21,6 +21,7 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -49,11 +50,13 @@ class GetTransactions(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             GetTransactions.API_NAME,
             GetTransactions.REQUIRED_QUERY_FIELDS,
             GetTransactions.REQUIRED_HEADERS,
@@ -103,6 +106,7 @@ class GetTransactions(WalterAPIMethod):
             ]
         )
         return Response(
+            domain=self.domain,
             api_name=GetTransactions.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

@@ -6,6 +6,7 @@ from src.api.accounts.update_account import UpdateAccount
 from src.api.common.models import HTTPStatus, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
@@ -16,7 +17,9 @@ def update_account_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
 ) -> UpdateAccount:
-    return UpdateAccount(walter_authenticator, datadog_metrics, walter_db)
+    return UpdateAccount(
+        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
+    )
 
 
 def _event_with_auth_and_body(token: str, body) -> dict:

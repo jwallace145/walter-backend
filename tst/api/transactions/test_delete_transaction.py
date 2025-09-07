@@ -1,15 +1,23 @@
-import json
 from datetime import datetime
 
 import pytest
 
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.transactions.models import InvestmentTransaction
+from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.metrics.client import DatadogMetricsClient
+from tst.api.utils import get_api_event
+
+DELETE_TRANSACTION_API_PATH = "/transactions"
+"""(str): Path to the delete transaction API endpoint."""
+
+DELETE_TRANSACTION_API_METHOD = HTTPMethod.DELETE
+"""(HTTPMethod): HTTP method for the delete transaction API endpoint."""
 
 
 @pytest.fixture
@@ -20,29 +28,12 @@ def delete_transaction_api(
     holding_updater: HoldingUpdater,
 ) -> DeleteTransaction:
     return DeleteTransaction(
-        walter_authenticator, datadog_metrics, walter_db, holding_updater
+        Domain.TESTING,
+        walter_authenticator,
+        datadog_metrics,
+        walter_db,
+        holding_updater,
     )
-
-
-def create_delete_transaction_event(
-    token: str, transaction_id: str, transaction_date: str
-) -> dict:
-    return {
-        "path": "/transactions",
-        "httpMethod": "DELETE",
-        "headers": {
-            "Authorization": f"Bearer {token}",
-            "content-type": "application/json",
-        },
-        "queryStringParameters": None,
-        "pathParameters": {},
-        "body": json.dumps(
-            {
-                "date": transaction_date,
-                "transaction_id": transaction_id,
-            }
-        ),
-    }
 
 
 def test_delete_buy_investment_transaction_failure_invalid_holding_update(
@@ -60,7 +51,16 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_delete_transaction_event(token, transaction_id, transaction_date)
+    event = get_api_event(
+        DELETE_TRANSACTION_API_PATH,
+        DELETE_TRANSACTION_API_METHOD,
+        token=token,
+        body={
+            "account_id": account_id,
+            "date": transaction_date,
+            "transaction_id": transaction_id,
+        },
+    )
 
     # assert holding exists prior to api invocation
     holding = walter_db.get_holding(account_id, security_id)

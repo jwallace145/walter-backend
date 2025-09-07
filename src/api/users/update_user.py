@@ -10,6 +10,7 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.s3.client import WalterS3Client
 from src.database.client import WalterDB
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -35,12 +36,14 @@ class UpdateUser(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         walter_s3: WalterS3Client,
     ) -> None:
         super().__init__(
+            domain,
             UpdateUser.API_NAME,
             UpdateUser.REQUIRED_QUERY_FIELDS,
             UpdateUser.REQUIRED_HEADERS,
@@ -93,6 +96,7 @@ class UpdateUser(WalterAPIMethod):
         self.db.update_user(user)
 
         return Response(
+            domain=self.domain,
             api_name=UpdateUser.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

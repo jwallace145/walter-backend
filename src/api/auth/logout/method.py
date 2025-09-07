@@ -13,6 +13,7 @@ from src.api.common.models import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.utils.log import Logger
 
@@ -42,11 +43,13 @@ class Logout(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
     ) -> None:
         super().__init__(
+            domain,
             Logout.API_NAME,
             Logout.REQUIRED_QUERY_FIELDS,
             Logout.REQUIRED_HEADERS,
@@ -95,6 +98,7 @@ class Logout(WalterAPIMethod):
         )
 
         return Response(
+            domain=self.domain,
             api_name=Logout.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,

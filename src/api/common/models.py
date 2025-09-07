@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from src.environment import Domain
+
 
 class Status(Enum):
     """
@@ -52,6 +54,7 @@ class Response:
         "Access-Control-Allow-Methods": "GET,OPTIONS,POST,PUT,DELETE",
     }
 
+    domain: Domain
     api_name: str
     http_status: HTTPStatus
     status: Status
@@ -63,7 +66,8 @@ class Response:
 
     def to_json(self) -> dict:
         body = {
-            "Service": "WalterAPI",
+            "Service": "WalterBackend-API",
+            "Domain": self.domain.value,
             "API": self.api_name,
             "Status": self.status.value,
             "Message": self.message,

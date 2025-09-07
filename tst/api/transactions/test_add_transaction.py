@@ -1,10 +1,10 @@
 import datetime as dt
-import json
 
 import pytest
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.api.common.models import HTTPStatus, Status
+from src.api.routing.methods import HTTPMethod
 from src.api.transactions.add_transaction import AddTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
@@ -15,10 +15,15 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
+from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
+from tst.api.utils import get_api_event
 from tst.polygon.mock import MockPolygonClient
+
+ADD_TRANSACTION_API_PATH = "/transactions"
+ADD_TRANSACTION_API_METHOD = HTTPMethod.POST
 
 
 @pytest.fixture()
@@ -32,6 +37,7 @@ def add_transaction_api(
     security_updater: SecurityUpdater,
 ):
     return AddTransaction(
+        Domain.TESTING,
         walter_authenticator,
         datadog_metrics,
         walter_db,
@@ -40,20 +46,6 @@ def add_transaction_api(
         holding_updater,
         security_updater,
     )
-
-
-def create_add_transaction_event(token: str, body: dict) -> dict:
-    return {
-        "resource": "/transactions",
-        "path": "/transactions",
-        "httpMethod": "POST",
-        "headers": {
-            "Authorization": f"Bearer {token}",
-            "content-type": "application/json",
-        },
-        "queryStringParameters": None,
-        "body": json.dumps(body),
-    }
 
 
 def test_add_bank_debit_success(
@@ -67,7 +59,9 @@ def test_add_bank_debit_success(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-001",
@@ -111,7 +105,9 @@ def test_add_investment_buy_new_holding_success(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-002",
@@ -163,7 +159,9 @@ def test_add_investment_buy_updates_holding(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": account_id,
@@ -212,7 +210,9 @@ def test_add_investment_sell_insufficient_quantity(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": account_id,
@@ -262,7 +262,9 @@ def test_add_investment_sell_updates_holding(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": account_id,
@@ -307,7 +309,9 @@ def test_account_not_found(
         user_id, session_id
     )
     # account does not exist for acct-999
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-999",
@@ -335,7 +339,9 @@ def test_invalid_account_type_for_investment(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-001",
@@ -365,7 +371,9 @@ def test_invalid_date_format_fails_validation(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": account_id,
@@ -391,7 +399,9 @@ def test_invalid_amount_fails_validation(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-003",
@@ -418,7 +428,9 @@ def test_investment_amount_mismatch(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-002",
@@ -449,7 +461,9 @@ def test_bank_missing_merchant_name_validation(
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
-    event = create_add_transaction_event(
+    event = get_api_event(
+        ADD_TRANSACTION_API_PATH,
+        ADD_TRANSACTION_API_METHOD,
         token=token,
         body={
             "account_id": "acct-003",
