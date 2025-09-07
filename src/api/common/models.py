@@ -35,6 +35,9 @@ class HTTPStatus(Enum):
     CONFLICT = 409
     INTERNAL_SERVER_ERROR = 500
 
+    def is_success(self) -> bool:
+        return str(self.value).startswith("2")
+
 
 @dataclass
 class Response:

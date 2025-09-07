@@ -269,7 +269,7 @@ class WalterAPIMethod(ABC):
             response: The API response object.
         """
         log.info(f"Emitting metrics for '{self.api_name}' API")
-        success = response.http_status == HTTPStatus.OK
+        success = response.http_status.is_success()
         self.metrics.emit_metric(
             f"api.{METRICS_SUCCESS}", success, tags={"api": self.api_name}
         )
