@@ -98,3 +98,14 @@ variable "workflow_lambda_memory_mb" {
     error_message = "workflow_lambda_memory_mb must be between 0 and 10240 MB!"
   }
 }
+
+variable "sync_transactions_max_concurrency" {
+  description = "The maximum number of concurrent Lambdas allowed to process sync transaction events."
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.sync_transactions_max_concurrency >= 2 && var.sync_transactions_max_concurrency <= 1000
+    error_message = "sync_transactions_max_concurrency must be between 2 and 1000."
+  }
+}

@@ -1,5 +1,7 @@
 locals {
 
+  SERVICE_NAME = "WalterBackend"
+
   /**********************
    WalterBackend Secrets
    **********************/

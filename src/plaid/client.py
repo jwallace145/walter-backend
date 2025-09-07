@@ -48,6 +48,27 @@ class PlaidClient:
     client: PlaidApi = None
 
     def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
+        """
+        Creates a link token for the specified user to initiate the Plaid integration.
+
+        This method generates a new link token for a given user ID using the Plaid
+        API. The link token is required for embedding Plaid Link within your
+        application and allows you to specify various configurations like products,
+        webhook URL, and other details.
+
+        Args:
+            user_id (str): The unique identifier for the user for whom the link
+                token is being created.
+
+        Returns:
+            CreateLinkTokenResponse: An object containing the details of the created
+                link token, including the request ID, user ID, token value, and
+                expiration date.
+
+        Raises:
+            Any exceptions returned by the Plaid API client during token creation
+            (e.g., network errors, invalid configurations, or API failures).
+        """
         self._lazily_load_client()
         log.info(
             f"Creating link token for user '{user_id}' with webhook '{PlaidClient.WEBHOOK_URL}'"

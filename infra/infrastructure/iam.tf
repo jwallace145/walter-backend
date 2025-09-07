@@ -88,6 +88,7 @@ module "workflow_role" {
   policies = {
     worklow_db_access      = module.workflow_role_db_access.policy_arn
     workflow_secret_access = module.workflow_role_secrets_access.policy_arn
+    workflow_queue_access  = module.workflow_role_queue_access.policy_arn
   }
 }
 
@@ -109,5 +110,17 @@ module "workflow_role_secrets_access" {
   policy_name = "workflow-secrets-access-policy"
   secret_names = [
     local.POLYGON_SECRET,
+  ]
+}
+
+# SyncTransactions workflow requires queue access to process
+# webhook and adhoc sync transaction requests
+
+module "workflow_role_queue_access" {
+  source = "./modules/iam_sqs_queue_access_policy"
+  name   = "workflow-queue-access-policy"
+  queue_arns = [
+    module.queues["sync_transactions"].queue_arn,
+    module.queues["sync_transactions"].dead_letter_queue_arn
   ]
 }

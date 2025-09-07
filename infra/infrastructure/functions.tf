@@ -38,13 +38,21 @@ locals {
       input               = null
     },
     update_prices = {
-      name                = "WalterBackend-UpdatePrices-${var.domain}"
+      name                = "WalterBackend-UpdatePrices-Schedule-${var.domain}"
       description         = "The schedule to invoke the UpdatePrices workflow (${var.domain})."
       function_arn        = module.functions["workflow"].function_arn
       schedule_expression = "rate(5 minutes)"
       input = jsonencode({
         workflow_name = "UpdateSecurityPrices"
       })
+    }
+  }
+
+  FUNCTION_QUEUES = {
+    sync_transactions = {
+      function_name       = local.FUNCTIONS.workflow.name,
+      queue_arn           = module.queues["sync_transactions"].queue_arn,
+      maximum_concurrency = var.sync_transactions_max_concurrency
     }
   }
 }
@@ -81,6 +89,18 @@ module "schedules" {
   lambda_function_arn = each.value.function_arn
   schedule_expression = each.value.schedule_expression
   input               = each.value.input
+}
+
+/*********************************
+ * WalterBackend Function Queues *
+ *********************************/
+
+module "function_queues" {
+  source              = "./modules/lambda_function_queue"
+  for_each            = local.FUNCTION_QUEUES
+  function_name       = each.value.function_name
+  queue_arn           = each.value.queue_arn
+  maximum_concurrency = each.value.maximum_concurrency
 }
 
 /*************************************
