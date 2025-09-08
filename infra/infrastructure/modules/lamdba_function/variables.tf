@@ -49,3 +49,9 @@ variable "publish" {
   type        = bool
   default     = true
 }
+
+variable "log_retention_in_days" {
+  description = "Lambda function log retention in days"
+  type        = number
+  default     = 7
+}

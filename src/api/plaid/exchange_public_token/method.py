@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from src.api.common.exceptions import (
     BadRequest,
@@ -10,17 +10,17 @@ from src.api.common.exceptions import (
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
+from src.api.plaid.exchange_public_token.models import AccountDetails
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.database.plaid_items.model import PlaidItem
 from src.database.sessions.models import Session
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.plaid.models import ExchangePublicTokenResponse
 from src.transactions.queue import (
     SyncUserTransactionsQueue,
-    SyncUserTransactionsSQSEvent,
 )
 from src.utils.log import Logger
 
@@ -72,6 +72,7 @@ class ExchangePublicToken(WalterAPIMethod):
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
@@ -79,6 +80,7 @@ class ExchangePublicToken(WalterAPIMethod):
         queue: SyncUserTransactionsQueue,
     ) -> None:
         super().__init__(
+            domain,
             ExchangePublicToken.API_NAME,
             ExchangePublicToken.REQUIRED_QUERY_FIELDS,
             ExchangePublicToken.REQUIRED_HEADERS,
@@ -86,35 +88,49 @@ class ExchangePublicToken(WalterAPIMethod):
             ExchangePublicToken.EXCEPTIONS,
             walter_authenticator,
             metrics,
+            walter_db,
         )
-        self.walter_db = walter_db
         self.plaid_client = plaid_client
         self.queue = queue
 
     def execute(self, event: dict, session: Optional[Session]) -> Response:
-        user = self._verify_user_exists(session.user_id)
-        public_token = self._get_public_token(event)
-        institution_id = self._get_institution_id(event)
-        institution_name = self._get_institution_name(event)
-        self._verify_user_institution_item_does_not_exist(user.user_id, institution_id)
-        accounts = self._get_accounts(event)
-        exchange_response = self._exchange_public_token(public_token)
-        plaid_item = self._save_plaid_item(
-            user.user_id,
-            exchange_response.access_token,
-            exchange_response.item_id,
-            institution_id,
-            institution_name,
-        )
-        self._save_accounts(user, institution_name, accounts)
-        self._sync_user_transactions(user.user_id, plaid_item.get_item_id())
+        """
+        Executes the process of exchanging a public token for an access token and item ID,
+        saves related account details to the database, and returns a success response.
+
+        Args:
+            event (dict): The input event containing details required for token exchange
+                and account processing.
+            session (Optional[Session]): The current session containing user-related
+                authentication and context information.
+
+        Returns:
+            Response: A structured response indicating the result of the token exchange,
+                including institution name and account-related data.
+        """
+        # verify user does exist in database before proceeding
+        user: User = self._verify_user_exists(session.user_id)
+
+        # get relevant details from event
+        details: Tuple[str, List[AccountDetails]] = self._get_details_from_event(event)
+        token, accounts = details
+
+        # exchange the public token for an access token and item ID
+        # the access token and item ID are stored in the database for future use
+        response: ExchangePublicTokenResponse = self._exchange_token(token)
+
+        # save the Plaid item and accounts to the database
+        self._save_accounts(response, user, accounts)
+
+        # return a successful response
         return Response(
+            domain=self.domain,
             api_name=ExchangePublicToken.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Tokens exchanged successfully!",
             data={
-                "institution_name": institution_name,
+                "institution_name": "test",
                 "num_accounts": len(accounts),
             },
         )
@@ -125,53 +141,47 @@ class ExchangePublicToken(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _get_public_token(self, event: dict) -> str:
-        body = json.loads(event["body"])
-        return body["public_token"]
+    def _get_details_from_event(self, event: dict) -> Tuple[str, List[AccountDetails]]:
+        """
+        Extracts and marshals details from an event, including public token, institution
+        information, and account details, into structured formats for further processing.
 
-    def _get_institution_id(self, event: dict) -> str:
-        body = json.loads(event["body"])
-        return body["institution_id"]
+        Args:
+            event (dict): The input event containing the body with details such as
+                `public_token`, `institution_id`, `institution_name`, and a set of
+                account details.
 
-    def _get_institution_name(self, event: dict) -> str:
-        body = json.loads(event["body"])
-        return body["institution_name"]
-
-    def _verify_user_institution_item_does_not_exist(
-        self, user_id: str, institution_id: str
-    ) -> None:
-        item = self.walter_db.plaid_items_table.get_item_by_user_and_institution(
-            user_id, institution_id
-        )
-        if item is not None:
-            raise PlaidItemAlreadyExists(
-                f"Plaid item already exists for user '{user_id}' and institution '{institution_id}'!"
-            )
-        else:
-            log.info(
-                f"Plaid item does not exist for user '{user_id}' and institution '{institution_id}'"
-            )
-
-    def _get_accounts(self, event: dict) -> List[dict]:
+        Returns:
+            Tuple[str, List[AccountDetails]]: A tuple containing the public exchange token
+                and a list of accounts associated with the public token and institution.
+        """
+        # load the event body into a dict for easy access
         body = json.loads(event["body"])
 
-        accounts = []
+        public_token = body["public_token"]
+        institution_id = body["institution_id"]
+        institution_name = body["institution_name"]
+
+        # marshal the included accounts into a list of dicts
+        accounts: List[AccountDetails] = []
         for account in body["accounts"]:
+            log.info(f"Account: {account}")
             accounts.append(
-                {
-                    "account_id": account["account_id"],
-                    "account_name": account["account_name"],
-                    "account_type": account["account_type"],
-                    "account_subtype": account["account_subtype"],
-                    "account_last_four_numbers": account[
-                        "account_last_four_numbers"
-                    ],  # account last four numbers
-                }
+                AccountDetails(
+                    institution_id=institution_id,
+                    institution_name=institution_name,
+                    account_id=account["account_id"],
+                    account_name=account["account_name"],
+                    account_type=account["account_type"],
+                    account_subtype=account["account_subtype"],
+                    account_last_four_numbers=account["account_last_four_numbers"],
+                )
             )
 
-        return accounts
+        # return relevant details from event to caller
+        return public_token, accounts
 
-    def _exchange_public_token(self, public_token: str) -> ExchangePublicTokenResponse:
+    def _exchange_token(self, public_token: str) -> ExchangePublicTokenResponse:
         """
         Exchanges a public token for an access token and item ID using the Plaid client.
 
@@ -184,44 +194,29 @@ class ExchangePublicToken(WalterAPIMethod):
         log.info("Exchanging public token with the Plaid client")
         return self.plaid_client.exchange_public_token(public_token)
 
-    def _save_plaid_item(
-        self,
-        user_id: str,
-        access_token: str,
-        item_id: str,
-        institution_id: str,
-        institution_name: str,
-    ) -> PlaidItem:
-        """
-        Stores the resulting Plaid item in the database.
-
-        Args:
-            user: The authenticated user.
-            exchange_response: The response containing the access token and item ID.
-        """
-        log.info(f"Saving Plaid item for '{institution_name}' for user '{user_id}'")
-        plaid_item = self.walter_db.put_plaid_item(
-            PlaidItem.create_item(
-                user_id=user_id,
-                item_id=item_id,
-                access_token=access_token,
-                institution_id=institution_id,
-                institution_name=institution_name,
-            )
-        )
-        log.info(f"Plaid item with item ID '{plaid_item.item_id}' saved successfully")
-        return plaid_item
-
     def _save_accounts(
-        self, user: User, institution_name: str, accounts: List[dict]
+        self,
+        response: ExchangePublicTokenResponse,
+        user: User,
+        accounts: List[AccountDetails],
     ) -> None:
         log.info(f"Saving  {len(accounts)} Plaid accounts for user '{user.user_id}'")
         for account in accounts:
-            # TODO: fix me!
-            pass
-
-    def _sync_user_transactions(self, user_id: str, plaid_item_id: str) -> None:
-        log.info("Adding sync user transactions request to queue...")
-        self.queue.add_sync_user_transactions_event(
-            SyncUserTransactionsSQSEvent(user_id=user_id, plaid_item_id=plaid_item_id)
-        )
+            log.debug(
+                f"Saving account '{account.account_id}' for user '{user.user_id}'"
+            )
+            self.db.create_account(
+                user_id=user.user_id,
+                account_type=account.account_type,
+                account_subtype=account.account_subtype,
+                institution_name=account.institution_name,
+                account_name=account.account_name,
+                account_mask=account.account_last_four_numbers,
+                balance=0.0,
+                plaid_institution_id=account.institution_id,
+                plaid_account_id=account.account_id,
+                plaid_access_token=response.access_token,
+                plaid_item_id=response.item_id,
+                plaid_last_sync_at=None,
+            )
+            log.debug(f"Account '{account.account_id}' saved for user '{user.user_id}'")

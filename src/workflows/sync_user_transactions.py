@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 from src.database.client import WalterDB
+from src.environment import Domain
+from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow, WorkflowResponse, WorkflowStatus
@@ -16,7 +18,18 @@ class SyncUserTransactions(Workflow):
     plaid: PlaidClient
     db: WalterDB
 
-    def execute(self, event: dict) -> WorkflowResponse:
+    def __init__(
+        self,
+        domain: Domain,
+        plaid: PlaidClient,
+        db: WalterDB,
+        metrics: DatadogMetricsClient,
+    ) -> None:
+        super().__init__(SyncUserTransactions.WORKFLOW_NAME, domain, metrics)
+        self.plaid = plaid
+        self.db = db
+
+    def execute(self, event: dict, emit_metrics: bool = True) -> WorkflowResponse:
         event = self.parser.parse_sync_user_transactions_event(event)
 
         # decompose event

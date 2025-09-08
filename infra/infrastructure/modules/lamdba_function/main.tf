@@ -29,3 +29,10 @@ resource "aws_lambda_function" "this" {
 
   publish = var.publish
 }
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name              = "/aws/lambda/${aws_lambda_function.this.function_name}"
+  retention_in_days = var.log_retention_in_days
+
+  depends_on = [aws_lambda_function.this]
+}

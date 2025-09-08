@@ -5,4 +5,5 @@ from src.workflows.update_security_prices import UpdateSecurityPrices
 update_security_prices_workflow = UpdateSecurityPrices(
     DOMAIN, DATABASE, POLYGON, DATADOG
 )
-sync_user_transactions_workflow = SyncUserTransactions(PLAID, DATABASE)
+
+sync_user_transactions_workflow = SyncUserTransactions(DOMAIN, PLAID, DATABASE, DATADOG)

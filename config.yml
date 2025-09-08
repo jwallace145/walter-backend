@@ -8,3 +8,7 @@ walter_config:
     endpoint: "https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/dev"
     user_email: "canary@walterai.dev"
     user_password: "CanaryPassword1234&"
+  plaid:
+    client_name: "WalterAI"
+    redirect_uri: "http://localhost:3000/"
+    sync_transactions_webhook_url: "https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/dev/sync_transactions"

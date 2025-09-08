@@ -68,7 +68,14 @@ class CreateUser(WalterAPIMethod):
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
             message="User created!",
-            data=user.to_dict(),
+            data={
+                "user_id": user.user_id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "verified": user.verified,
+                "sign_up_date": user.sign_up_date.isoformat(),
+            },
         )
 
     def validate_fields(self, event: dict) -> None:

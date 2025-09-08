@@ -15,6 +15,7 @@ from plaid.model.products import Products
 from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.config import CONFIG
 from src.database.transactions.models import Transaction
 from src.plaid.models import (
     CreateLinkTokenResponse,
@@ -32,9 +33,9 @@ class PlaidClient:
     Plaid Client
     """
 
-    CLIENT_NAME = "WalterAI"
-    REDIRECT_URI = "http://localhost:3000/"  # TODO: Fix me!
-    WEBHOOK_URL = "https://084slq55lk.execute-api.us-east-1.amazonaws.com/dev/plaid/sync-transactions"  # TODO: Fix me! this is hardcoded to point at WalterAPI-dev!
+    CLIENT_NAME = CONFIG.plaid.client_name
+    REDIRECT_URI = CONFIG.plaid.redirect_uri
+    WEBHOOK_URL = CONFIG.plaid.sync_transactions_webhook_url
 
     walter_sm: WalterSecretsManagerClient
     environment: str
@@ -47,6 +48,27 @@ class PlaidClient:
     client: PlaidApi = None
 
     def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
+        """
+        Creates a link token for the specified user to initiate the Plaid integration.
+
+        This method generates a new link token for a given user ID using the Plaid
+        API. The link token is required for embedding Plaid Link within your
+        application and allows you to specify various configurations like products,
+        webhook URL, and other details.
+
+        Args:
+            user_id (str): The unique identifier for the user for whom the link
+                token is being created.
+
+        Returns:
+            CreateLinkTokenResponse: An object containing the details of the created
+                link token, including the request ID, user ID, token value, and
+                expiration date.
+
+        Raises:
+            Any exceptions returned by the Plaid API client during token creation
+            (e.g., network errors, invalid configurations, or API failures).
+        """
         self._lazily_load_client()
         log.info(
             f"Creating link token for user '{user_id}' with webhook '{PlaidClient.WEBHOOK_URL}'"
@@ -155,6 +177,7 @@ class PlaidClient:
 
     def _lazily_load_client(self) -> None:
         if self.client_id is None or self.secret is None:
+            # TODO: Update secrets manager to get the plaid credentials by environment, e.g.: dev -> sandbox, prod -> prod
             self.client_id = self.walter_sm.get_plaid_sandbox_credentials_client_id()
             self.secret = self.walter_sm.get_plaid_sandbox_credentials_secret_key()
             self.configuration = self._get_configuration()

@@ -5,10 +5,12 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.methods import (
     add_transaction_api,
     create_account_api,
+    create_link_token_api,
     create_user_api,
     delete_account_api,
     delete_transaction_api,
     edit_transaction_api,
+    exchange_public_token_api,
     get_accounts_api,
     get_transactions_api,
     get_user_api,
@@ -94,6 +96,15 @@ class APIRouter:
                 return create_user_api
             case (APIRouter.USER_RESOURCE, HTTPMethod.PUT):
                 return update_user_api
+
+            #########
+            # PLAID #
+            #########
+
+            case (APIRouter.PLAID_CREATE_LINK_TOKEN_RESOURCE, HTTPMethod.POST):
+                return create_link_token_api
+            case (APIRouter.PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE, HTTPMethod.POST):
+                return exchange_public_token_api
 
             # if none of the above cases match, raise an exception as the API method is not found
             case _:

@@ -68,7 +68,6 @@ class CreateUser(BaseCanary):
             ("first_name", self.NEW_USER_FIRST_NAME),
             ("last_name", self.NEW_USER_LAST_NAME),
             ("sign_up_date", None),
-            ("last_active_date", None),
             ("verified", False),
         ]
         for field in required_data_fields:
