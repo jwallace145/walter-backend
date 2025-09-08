@@ -10,6 +10,7 @@ from src.api.common.exceptions import (
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
+from src.api.plaid.exchange_public_token.models import AccountDetails
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
@@ -108,19 +109,18 @@ class ExchangePublicToken(WalterAPIMethod):
                 including institution name and account-related data.
         """
         # verify user does exist in database before proceeding
-        user = self._verify_user_exists(session.user_id)
+        user: User = self._verify_user_exists(session.user_id)
 
         # get relevant details from event
-        public_token, institution_id, institution_name, accounts = (
-            self._get_details_from_event(event)
-        )
+        details: Tuple[str, List[AccountDetails]] = self._get_details_from_event(event)
+        token, accounts = details
 
         # exchange the public token for an access token and item ID
         # the access token and item ID are stored in the database for future use
-        self._exchange_token(public_token)
+        response: ExchangePublicTokenResponse = self._exchange_token(token)
 
         # save the Plaid item and accounts to the database
-        self._save_accounts(user, institution_name, accounts)
+        self._save_accounts(response, user, accounts)
 
         # return a successful response
         return Response(
@@ -130,7 +130,7 @@ class ExchangePublicToken(WalterAPIMethod):
             status=Status.SUCCESS,
             message="Tokens exchanged successfully!",
             data={
-                "institution_name": institution_name,
+                "institution_name": "test",
                 "num_accounts": len(accounts),
             },
         )
@@ -141,7 +141,7 @@ class ExchangePublicToken(WalterAPIMethod):
     def is_authenticated_api(self) -> bool:
         return True
 
-    def _get_details_from_event(self, event: dict) -> Tuple[str, str, str, List[dict]]:
+    def _get_details_from_event(self, event: dict) -> Tuple[str, List[AccountDetails]]:
         """
         Extracts and marshals details from an event, including public token, institution
         information, and account details, into structured formats for further processing.
@@ -152,35 +152,34 @@ class ExchangePublicToken(WalterAPIMethod):
                 account details.
 
         Returns:
-            Tuple[str, str, str, List[dict]]: A tuple containing the public token,
-            institution ID, institution name, and a list of dictionaries
-            representing accounts with their respective details.
+            Tuple[str, List[AccountDetails]]: A tuple containing the public exchange token
+                and a list of accounts associated with the public token and institution.
         """
         # load the event body into a dict for easy access
         body = json.loads(event["body"])
 
+        public_token = body["public_token"]
+        institution_id = body["institution_id"]
+        institution_name = body["institution_name"]
+
         # marshal the included accounts into a list of dicts
-        accounts = []
+        accounts: List[AccountDetails] = []
         for account in body["accounts"]:
+            log.info(f"Account: {account}")
             accounts.append(
-                {
-                    "account_id": account["account_id"],
-                    "account_name": account["account_name"],
-                    "account_type": account["account_type"],
-                    "account_subtype": account["account_subtype"],
-                    "account_last_four_numbers": account[
-                        "account_last_four_numbers"
-                    ],  # account last four numbers
-                }
+                AccountDetails(
+                    institution_id=institution_id,
+                    institution_name=institution_name,
+                    account_id=account["account_id"],
+                    account_name=account["account_name"],
+                    account_type=account["account_type"],
+                    account_subtype=account["account_subtype"],
+                    account_last_four_numbers=account["account_last_four_numbers"],
+                )
             )
 
         # return relevant details from event to caller
-        return (
-            body["public_token"],
-            body["institution_id"],
-            body["institution_name"],
-            accounts,
-        )
+        return public_token, accounts
 
     def _exchange_token(self, public_token: str) -> ExchangePublicTokenResponse:
         """
@@ -196,9 +195,28 @@ class ExchangePublicToken(WalterAPIMethod):
         return self.plaid_client.exchange_public_token(public_token)
 
     def _save_accounts(
-        self, user: User, institution_name: str, accounts: List[dict]
+        self,
+        response: ExchangePublicTokenResponse,
+        user: User,
+        accounts: List[AccountDetails],
     ) -> None:
         log.info(f"Saving  {len(accounts)} Plaid accounts for user '{user.user_id}'")
         for account in accounts:
-            # TODO: fix me!
-            pass
+            log.debug(
+                f"Saving account '{account.account_id}' for user '{user.user_id}'"
+            )
+            self.db.create_account(
+                user_id=user.user_id,
+                account_type=account.account_type,
+                account_subtype=account.account_subtype,
+                institution_name=account.institution_name,
+                account_name=account.account_name,
+                account_mask=account.account_last_four_numbers,
+                balance=0.0,
+                plaid_institution_id=account.institution_id,
+                plaid_account_id=account.account_id,
+                plaid_access_token=response.access_token,
+                plaid_item_id=response.item_id,
+                plaid_last_sync_at=None,
+            )
+            log.debug(f"Account '{account.account_id}' saved for user '{user.user_id}'")

@@ -6,7 +6,7 @@
 domain = "dev"
 
 # The logging level, can set to debug for more verbose logs
-log_level = "INFO"
+log_level = "DEBUG"
 
 # The number of days to retain application logs before deletion
 log_retention_in_days = 7

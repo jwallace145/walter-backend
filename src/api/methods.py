@@ -6,7 +6,7 @@ from src.api.auth.login.method import Login
 from src.api.auth.logout.method import Logout
 from src.api.auth.refresh.method import Refresh
 from src.api.plaid.create_link_token import CreateLinkToken
-from src.api.plaid.exchange_public_token import ExchangePublicToken
+from src.api.plaid.exchange_public_token.method import ExchangePublicToken
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction

@@ -200,6 +200,11 @@ class WalterDB:
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[dt.datetime] = None,
     ) -> Account:
         return self.accounts_table.create_account(
             user_id,
@@ -209,6 +214,11 @@ class WalterDB:
             account_name,
             account_mask,
             balance,
+            plaid_institution_id,
+            plaid_account_id,
+            plaid_access_token,
+            plaid_item_id,
+            plaid_last_sync_at,
         )
 
     def get_account(self, user_id: str, account_id: str) -> Optional[Account]:

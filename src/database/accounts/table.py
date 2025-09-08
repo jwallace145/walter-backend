@@ -35,7 +35,35 @@ class AccountsTable:
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
     ) -> Account:
+        """
+        Creates a new account for a specified user with provided details. Optionally integrates
+        Plaid account information if related details are supplied. Logs the creation process
+        and stores the account details in the database.
+
+        Args:
+            user_id (str): The identifier of the user owning the account.
+            account_type (str): The type of the account (e.g., checking, savings).
+            account_subtype (str): The subtype of the account (e.g., personal, business).
+            institution_name (str): Name of the financial institution associated with the account.
+            account_name (str): Custom name provided for the account.
+            account_mask (str): Masked account number for security purposes.
+            balance (float): Initial balance of the account.
+            plaid_institution_id (Optional[str]): ID of the institution provided by Plaid, if available.
+            plaid_account_id (Optional[str]): Plaid-specific account identifier, if available.
+            plaid_access_token (Optional[str]): Access token for the Plaid account, if available.
+            plaid_item_id (Optional[str]): Plaid item ID associated with the user's account, if available.
+            plaid_last_sync_at (Optional[datetime]): Timestamp indicating the last sync time with Plaid,
+                if applicable.
+
+        Returns:
+            Account: The newly created account object.
+        """
         args = {
             "user_id": user_id,
             "account_type": account_type,
@@ -46,18 +74,26 @@ class AccountsTable:
             "balance": balance,
         }
         log.info(f"Creating new {account_type.lower()} account for user '{user_id}'")
+
+        # add optional plaid account institution/account/token args
+        if plaid_institution_id:
+            args["plaid_institution_id"] = plaid_institution_id
+        if plaid_account_id:
+            args["plaid_account_id"] = plaid_account_id
+        if plaid_access_token:
+            args["plaid_access_token"] = plaid_access_token
+        if plaid_item_id:
+            args["plaid_item_id"] = plaid_item_id
+        if plaid_last_sync_at:
+            args["plaid_last_sync_at"] = plaid_last_sync_at
+
         log.debug(f"Account args:\n{json.dumps(args, indent=4)}")
-        account = Account.create(
-            user_id=user_id,
-            account_type=account_type,
-            account_subtype=account_subtype,
-            institution_name=institution_name,
-            account_name=account_name,
-            account_mask=account_mask,
-            balance=balance,
-        )
+
+        account = Account.create(**args)
         self.ddb.put_item(self.table_name, account.to_ddb_item())
+
         log.info("Account created successfully!")
+
         return account
 
     def get_account(self, user_id: str, account_id: str) -> Optional[Account]:

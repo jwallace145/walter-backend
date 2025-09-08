@@ -39,7 +39,9 @@ class Account(ABC):
         balance_last_updated_at: datetime,
         created_at: datetime,
         updated_at: datetime,
+        plaid_institution_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = DEFAULT_LOGO_URL,
@@ -55,7 +57,9 @@ class Account(ABC):
         self.balance_last_updated_at = balance_last_updated_at
         self.created_at = created_at
         self.updated_at = updated_at
+        self.plaid_institution_id = plaid_institution_id
         self.plaid_account_id = plaid_account_id
+        self.plaid_access_token = plaid_access_token
         self.plaid_item_id = plaid_item_id
         self.plaid_last_sync_at = plaid_last_sync_at
         self.logo_url = logo_url
@@ -73,7 +77,9 @@ class Account(ABC):
             "balance_last_updated_at": self.balance_last_updated_at.isoformat(),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "plaid_institution_id": self.plaid_institution_id,
             "plaid_account_id": self.plaid_account_id,
+            "plaid_access_token": self.plaid_access_token,
             "plaid_item_id": self.plaid_item_id,
             "plaid_last_sync_at": (
                 self.plaid_last_sync_at.isoformat() if self.plaid_last_sync_at else None
@@ -122,14 +128,26 @@ class Account(ABC):
         }
 
         # add optional fields to return item
+        if self.plaid_institution_id:
+            ddb_item["plaid_institution_id"] = {
+                "S": self.plaid_institution_id,
+            }
+
         if self.plaid_account_id:
             ddb_item["plaid_account_id"] = {
                 "S": self.plaid_account_id,
             }
+
+        if self.plaid_access_token:
+            ddb_item["plaid_access_token"] = {
+                "S": self.plaid_access_token,
+            }
+
         if self.plaid_item_id:
             ddb_item["plaid_item_id"] = {
                 "S": self.plaid_item_id,
             }
+
         if self.plaid_last_sync_at:
             ddb_item["plaid_last_sync_at"] = {"S": self.plaid_last_sync_at.isoformat()}
 
@@ -159,9 +177,13 @@ class Account(ABC):
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
     ):
         account_type = AccountType.from_string(account_type)
-
         match account_type:
             case AccountType.DEPOSITORY:
                 return DepositoryAccount.create(
@@ -171,6 +193,11 @@ class Account(ABC):
                     account_name=account_name,
                     account_mask=account_mask,
                     balance=balance,
+                    plaid_institution_id=plaid_institution_id,
+                    plaid_account_id=plaid_account_id,
+                    plaid_access_token=plaid_access_token,
+                    plaid_item_id=plaid_item_id,
+                    plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.CREDIT:
                 return CreditAccount.create(
@@ -180,6 +207,11 @@ class Account(ABC):
                     account_name=account_name,
                     account_mask=account_mask,
                     balance=balance,
+                    plaid_institution_id=plaid_institution_id,
+                    plaid_account_id=plaid_account_id,
+                    plaid_access_token=plaid_access_token,
+                    plaid_item_id=plaid_item_id,
+                    plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.INVESTMENT:
                 return InvestmentAccount.create(
@@ -189,6 +221,11 @@ class Account(ABC):
                     account_name=account_name,
                     account_mask=account_mask,
                     balance=balance,
+                    plaid_institution_id=plaid_institution_id,
+                    plaid_account_id=plaid_account_id,
+                    plaid_access_token=plaid_access_token,
+                    plaid_item_id=plaid_item_id,
+                    plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.LOAN:
                 return LoanAccount.create(
@@ -198,6 +235,11 @@ class Account(ABC):
                     account_name=account_name,
                     account_mask=account_mask,
                     balance=balance,
+                    plaid_institution_id=plaid_institution_id,
+                    plaid_account_id=plaid_account_id,
+                    plaid_access_token=plaid_access_token,
+                    plaid_item_id=plaid_item_id,
+                    plaid_last_sync_at=plaid_last_sync_at,
                 )
             case _:
                 raise ValueError(f"Unknown account type: {account_type}")
@@ -205,7 +247,6 @@ class Account(ABC):
     @classmethod
     def from_ddb_item(cls, ddb_item: dict):
         account_type = AccountType.from_string(ddb_item["account_type"]["S"])
-
         match account_type:
             case AccountType.DEPOSITORY:
                 return DepositoryAccount.from_ddb_item(ddb_item)
@@ -234,7 +275,9 @@ class DepositoryAccount(Account):
         balance_last_updated_at: datetime,
         created_at: datetime,
         updated_at: datetime,
+        plaid_institution_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
@@ -251,7 +294,9 @@ class DepositoryAccount(Account):
             balance_last_updated_at=balance_last_updated_at,
             created_at=created_at,
             updated_at=updated_at,
+            plaid_institution_id=plaid_institution_id,
             plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
@@ -272,6 +317,11 @@ class DepositoryAccount(Account):
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
         return DepositoryAccount(
@@ -286,6 +336,11 @@ class DepositoryAccount(Account):
             balance_last_updated_at=now,
             created_at=now,
             updated_at=now,
+            plaid_institution_id=plaid_institution_id,
+            plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
         )
 
     @classmethod
@@ -295,6 +350,7 @@ class DepositoryAccount(Account):
             plaid_last_sync_at = datetime.fromisoformat(
                 ddb_item["plaid_last_sync_at"]["S"]
             )
+
         return DepositoryAccount(
             user_id=ddb_item["user_id"]["S"],
             account_id=ddb_item["account_id"]["S"],
@@ -309,8 +365,10 @@ class DepositoryAccount(Account):
             ),
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
-            logo_url=ddb_item["logo_url"]["S"],
+            plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            logo_url=ddb_item["logo_url"]["S"],
+            plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
@@ -331,7 +389,9 @@ class CreditAccount(Account):
         balance_last_updated_at: datetime,
         created_at: datetime,
         updated_at: datetime,
+        plaid_institution_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
@@ -348,7 +408,9 @@ class CreditAccount(Account):
             balance_last_updated_at=balance_last_updated_at,
             created_at=created_at,
             updated_at=updated_at,
+            plaid_institution_id=plaid_institution_id,
             plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
@@ -369,6 +431,11 @@ class CreditAccount(Account):
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
         return CreditAccount(
@@ -383,6 +450,11 @@ class CreditAccount(Account):
             balance_last_updated_at=now,
             created_at=now,
             updated_at=now,
+            plaid_institution_id=plaid_institution_id,
+            plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
         )
 
     @classmethod
@@ -406,8 +478,10 @@ class CreditAccount(Account):
             ),
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
-            logo_url=ddb_item["logo_url"]["S"],
+            plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            logo_url=ddb_item["logo_url"]["S"],
+            plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
@@ -428,7 +502,9 @@ class InvestmentAccount(Account):
         balance_last_updated_at: datetime,
         created_at: datetime,
         updated_at: datetime,
+        plaid_institution_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
@@ -445,7 +521,9 @@ class InvestmentAccount(Account):
             balance_last_updated_at=balance_last_updated_at,
             created_at=created_at,
             updated_at=updated_at,
+            plaid_institution_id=plaid_institution_id,
             plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
@@ -466,6 +544,11 @@ class InvestmentAccount(Account):
         account_name: str,
         account_mask: str,
         balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
         return InvestmentAccount(
@@ -480,6 +563,11 @@ class InvestmentAccount(Account):
             balance_last_updated_at=now,
             created_at=now,
             updated_at=now,
+            plaid_institution_id=plaid_institution_id,
+            plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
+            plaid_item_id=plaid_item_id,
+            plaid_last_sync_at=plaid_last_sync_at,
         )
 
     @classmethod
@@ -504,7 +592,9 @@ class InvestmentAccount(Account):
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
             logo_url=ddb_item["logo_url"]["S"],
+            plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
@@ -525,7 +615,9 @@ class LoanAccount(Account):
         balance_last_updated_at: datetime,
         created_at: datetime,
         updated_at: datetime,
+        plaid_institution_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
@@ -542,7 +634,9 @@ class LoanAccount(Account):
             balance_last_updated_at=balance_last_updated_at,
             created_at=created_at,
             updated_at=updated_at,
+            plaid_institution_id=plaid_institution_id,
             plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
@@ -576,7 +670,44 @@ class LoanAccount(Account):
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
             logo_url=ddb_item["logo_url"]["S"],
+            plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
+            plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_last_sync_at=plaid_last_sync_at,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        user_id: str,
+        account_subtype: str,
+        institution_name: str,
+        account_name: str,
+        account_mask: str,
+        balance: float,
+        plaid_institution_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
+        plaid_access_token: Optional[str] = None,
+        plaid_item_id: Optional[str] = None,
+        plaid_last_sync_at: Optional[datetime] = None,
+    ):
+        now = datetime.now(timezone.utc)
+        return LoanAccount(
+            account_id=Account.generate_account_id(),
+            user_id=user_id,
+            account_type=AccountType.LOAN,
+            account_subtype=account_subtype,
+            institution_name=institution_name,
+            account_name=account_name,
+            account_mask=account_mask,
+            balance=balance,
+            balance_last_updated_at=now,
+            created_at=now,
+            updated_at=now,
+            plaid_institution_id=plaid_institution_id,
+            plaid_account_id=plaid_account_id,
+            plaid_access_token=plaid_access_token,
+            plaid_item_id=plaid_item_id,
             plaid_last_sync_at=plaid_last_sync_at,
         )
