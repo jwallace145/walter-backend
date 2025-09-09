@@ -106,6 +106,23 @@ class AccountsTable:
             return None
         return Account.from_ddb_item(account)
 
+    def get_account_by_plaid_account_id(
+        self, plaid_account_id: str
+    ) -> Optional[Account]:
+        log.info(f"Getting account by Plaid account ID '{plaid_account_id}'")
+        items = self.ddb.query(
+            self.table_name,
+            AccountsTable._get_account_by_plaid_account_id(plaid_account_id),
+        )
+        if not items:
+            log.info(f"Account with Plaid account ID '{plaid_account_id}' not found!")
+            return None
+        if len(items) > 1:
+            log.warning(
+                f"Multiple accounts found with Plaid account ID '{plaid_account_id}'!"
+            )
+        return Account.from_ddb_item(items[0])
+
     def get_accounts(self, user_id: str) -> List[Account]:
         log.info(f"Getting all accounts for user '{user_id}'")
         accounts = self.ddb.query(
@@ -143,6 +160,15 @@ class AccountsTable:
         return {
             "user_id": {
                 "AttributeValueList": [{"S": user_id}],
+                "ComparisonOperator": "EQ",
+            }
+        }
+
+    @staticmethod
+    def _get_account_by_plaid_account_id(plaid_account_id: str) -> dict:
+        return {
+            "plaid_account_id": {
+                "AttributeValueList": [{"S": plaid_account_id}],
                 "ComparisonOperator": "EQ",
             }
         }

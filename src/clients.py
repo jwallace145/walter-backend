@@ -105,5 +105,5 @@ EXPENSE_CATEGORIZER = ExpenseCategorizerMLP()
 # PLAID #
 #########
 
-PLAID = PlaidClient(SECRETS, Environment.Sandbox)
+PLAID = PlaidClient(SECRETS, DATABASE, Environment.Sandbox)
 """(PlaidClient): The client used to interact with the Plaid API."""

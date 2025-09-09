@@ -16,12 +16,20 @@ from plaid.model.transactions_refresh_request import TransactionsRefreshRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.config import CONFIG
-from src.database.transactions.models import Transaction
+from src.database.accounts.models import Account
+from src.database.client import WalterDB
+from src.database.transactions.models import (
+    BankTransaction,
+    InvestmentTransaction,
+    Transaction,
+    TransactionType,
+)
 from src.plaid.models import (
     CreateLinkTokenResponse,
     ExchangePublicTokenResponse,
     SyncTransactionsResponse,
 )
+from src.plaid.utils import get_transaction_type_from_plaid_category
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -38,6 +46,7 @@ class PlaidClient:
     WEBHOOK_URL = CONFIG.plaid.sync_transactions_webhook_url
 
     walter_sm: WalterSecretsManagerClient
+    walter_db: WalterDB
     environment: str
 
     # all the default none fields set during post-int
@@ -129,6 +138,14 @@ class PlaidClient:
 
             response = self.client.transactions_sync(TransactionsSyncRequest(**kwargs))
 
+            added_transactions = []
+            for transaction in response["added"]:
+                log.info(f"added transaction: {transaction}")
+                input("press enter to continue...")
+                added_transactions.append(
+                    self._create_transaction_from_sync_event(transaction)
+                )
+
             added_transactions = [
                 Transaction.from_plaid_transaction(user_id, transaction)
                 for transaction in response["added"]
@@ -174,6 +191,43 @@ class PlaidClient:
         request = AccountsGetRequest(access_token=access_token)
         accounts_response = self.client.accounts_get(request)
         return accounts_response
+
+    def _create_transaction_from_sync_event(self, transaction: dict) -> Transaction:
+        # get relevant fields from plaid transaction
+        plaid_account_id = transaction["account_id"]
+        plaid_category = transaction["personal_finance_category"]["primary"]
+
+        # get walter account id from database based on plaid account id
+        account: Optional[Account] = self.walter_db.get_account_by_plaid_account_id(
+            plaid_account_id
+        )
+
+        # throw exception if account not found
+        if not account:
+            raise ValueError(
+                f"Account with Plaid account ID '{plaid_account_id}' not found!"
+            )
+
+        # get transaction type from personal finance category
+        transaction_type = get_transaction_type_from_plaid_category(plaid_category)
+
+        # create transaction based on transaction type
+        match transaction_type:
+            case TransactionType.BANKING:
+                BankTransaction.create(
+                    account_id=account.account_id,
+                    user_id=account.user_id,
+                    transaction_type=transaction_type,
+                    transaction_subtype=None,
+                    transaction_category=None,
+                    transaction_date=dt.datetime.fromisoformat(transaction["date"]),
+                    transaction_amount=transaction["amount"],
+                    merchant_name=transaction["name"],
+                )
+            case TransactionType.INVESTMENT:
+                InvestmentTransaction.create()
+            case _:
+                raise ValueError(f"Unknown transaction type: {transaction_type}")
 
     def _lazily_load_client(self) -> None:
         if self.client_id is None or self.secret is None:

@@ -2,7 +2,7 @@ import random
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Union
+from typing import Optional, Union
 
 
 class TransactionType(Enum):
@@ -101,6 +101,8 @@ class Transaction(ABC):
         transaction_category: TransactionCategory,
         transaction_date: datetime,
         transaction_amount: float,
+        plaid_transaction_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
     ) -> None:
         self.transaction_id = transaction_id
         self.account_id = account_id
@@ -112,12 +114,14 @@ class Transaction(ABC):
             f"{transaction_date.strftime('%Y-%m-%d')}#{transaction_id}"
         )
         self.transaction_amount = transaction_amount
+        self.plaid_transaction_id = plaid_transaction_id
+        self.plaid_account_id = plaid_account_id
 
     def get_transaction_date(self) -> datetime:
         return datetime.strptime(self.transaction_date.split("#")[0], "%Y-%m-%d")
 
     def _get_common_attributes_dict(self) -> dict:
-        return {
+        attributes = {
             "transaction_id": self.transaction_id,
             "account_id": self.account_id,
             "user_id": self.user_id,
@@ -128,8 +132,16 @@ class Transaction(ABC):
             "transaction_amount": self.transaction_amount,
         }
 
+        # add optional fields to return item
+        if self.plaid_transaction_id:
+            attributes["plaid_transaction_id"] = self.plaid_transaction_id
+        if self.plaid_account_id:
+            attributes["plaid_account_id"] = self.plaid_account_id
+
+        return attributes
+
     def _get_common_attributes_ddb_item(self) -> dict:
-        return {
+        ddb_item = {
             "transaction_id": {"S": self.transaction_id},
             "account_id": {"S": self.account_id},
             "user_id": {"S": self.user_id},
@@ -139,6 +151,14 @@ class Transaction(ABC):
             "transaction_date": {"S": self.transaction_date},
             "transaction_amount": {"N": str(self.transaction_amount)},
         }
+
+        # add optional fields to return item
+        if self.plaid_transaction_id:
+            ddb_item["plaid_transaction_id"] = {"S": self.plaid_transaction_id}
+        if self.plaid_account_id:
+            ddb_item["plaid_account_id"] = {"S": self.plaid_account_id}
+
+        return ddb_item
 
     def is_income(self) -> bool:
         if self.transaction_type == TransactionType.BANKING:
@@ -184,6 +204,8 @@ class InvestmentTransaction(Transaction):
         security_id: str,
         quantity: float,
         price_per_share: float,
+        plaid_transaction_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
     ) -> None:
         super().__init__(
             transaction_id,
@@ -194,6 +216,8 @@ class InvestmentTransaction(Transaction):
             transaction_category,
             transaction_date,
             transaction_amount,
+            plaid_transaction_id,
+            plaid_account_id,
         )
         self.security_id = security_id
         self.quantity = quantity
@@ -234,6 +258,8 @@ class InvestmentTransaction(Transaction):
         transaction_category: TransactionCategory,
         quantity: float,
         price_per_share: float,
+        plaid_transaction_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
     ):
         return InvestmentTransaction(
             transaction_id=Transaction._generate_id("investment"),
@@ -247,6 +273,8 @@ class InvestmentTransaction(Transaction):
             security_id=f"sec-{exchange.lower()}-{ticker.lower()}",
             quantity=quantity,
             price_per_share=price_per_share,
+            plaid_transaction_id=plaid_transaction_id,
+            plaid_account_id=plaid_account_id,
         )
 
     @classmethod
@@ -271,6 +299,8 @@ class InvestmentTransaction(Transaction):
             security_id=ddb_item["security_id"]["S"],
             quantity=float(ddb_item["quantity"]["N"]),
             price_per_share=float(ddb_item["price_per_share"]["N"]),
+            plaid_transaction_id=ddb_item.get("plaid_transaction_id", {}).get("S"),
+            plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
         )
 
 
@@ -288,6 +318,8 @@ class BankTransaction(Transaction):
         transaction_date: datetime,
         transaction_amount: float,
         merchant_name: str,
+        plaid_transaction_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
     ) -> None:
         super().__init__(
             transaction_id,
@@ -298,6 +330,8 @@ class BankTransaction(Transaction):
             transaction_category,
             transaction_date,
             transaction_amount,
+            plaid_transaction_id,
+            plaid_account_id,
         )
         self.merchant_name = merchant_name
 
@@ -324,6 +358,8 @@ class BankTransaction(Transaction):
         transaction_date: datetime,
         transaction_amount: float,
         merchant_name: str,
+        plaid_transaction_id: Optional[str] = None,
+        plaid_account_id: Optional[str] = None,
     ):
         return BankTransaction(
             transaction_id=Transaction._generate_id("bank"),
@@ -335,6 +371,8 @@ class BankTransaction(Transaction):
             transaction_date=transaction_date,
             transaction_amount=transaction_amount,
             merchant_name=merchant_name,
+            plaid_transaction_id=plaid_transaction_id,
+            plaid_account_id=plaid_account_id,
         )
 
     @classmethod
@@ -357,4 +395,6 @@ class BankTransaction(Transaction):
             ),
             transaction_amount=float(ddb_item["transaction_amount"]["N"]),
             merchant_name=ddb_item["merchant_name"]["S"],
+            plaid_transaction_id=ddb_item.get("plaid_transaction_id", {}).get("S"),
+            plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
         )

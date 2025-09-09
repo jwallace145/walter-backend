@@ -29,7 +29,7 @@ class SyncUserTransactionsSQSEvent:
 @dataclass
 class SyncUserTransactionsQueue:
 
-    QUEUE_URL_FORMAT = "https://sqs.{region}.amazonaws.com/{account_id}/SyncUserTransactionsQueue-{domain}"
+    QUEUE_URL_FORMAT = "https://sqs.{region}.amazonaws.com/{account_id}/WalterBackend-SyncTransactions-Queue-{domain}"
 
     client: WalterSQSClient
     queue_url: str = None
