@@ -16,6 +16,7 @@ class AccountsTable:
     """Accounts Table"""
 
     TABLE_NAME_FORMAT = "Accounts-{domain}"
+    PLAID_ACCOUNT_ID_INDEX_NAME_FORMAT = "Accounts-PlaidAccountIdIndex-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
@@ -110,9 +111,11 @@ class AccountsTable:
         self, plaid_account_id: str
     ) -> Optional[Account]:
         log.info(f"Getting account by Plaid account ID '{plaid_account_id}'")
-        items = self.ddb.query(
+        items = self.ddb.query_index(
             self.table_name,
-            AccountsTable._get_account_by_plaid_account_id(plaid_account_id),
+            self.PLAID_ACCOUNT_ID_INDEX_NAME_FORMAT.format(domain=self.domain.value),
+            "plaid_account_id = :plaid_account_id",
+            {":plaid_account_id": {"S": plaid_account_id}},
         )
         if not items:
             log.info(f"Account with Plaid account ID '{plaid_account_id}' not found!")

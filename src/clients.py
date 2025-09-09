@@ -14,6 +14,7 @@ from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
+from src.plaid.transaction_converter import TransactionConverter
 from src.polygon.client import PolygonClient
 from src.utils.log import Logger
 
@@ -105,5 +106,8 @@ EXPENSE_CATEGORIZER = ExpenseCategorizerMLP()
 # PLAID #
 #########
 
-PLAID = PlaidClient(SECRETS, DATABASE, Environment.Sandbox)
+TXN_CONVERTER = TransactionConverter(DATABASE)
+"""(TransactionConverter): The client used to convert Plaid transactions to WalterDB transactions."""
+
+PLAID = PlaidClient(SECRETS, DATABASE, Environment.Sandbox, TXN_CONVERTER)
 """(PlaidClient): The client used to interact with the Plaid API."""
