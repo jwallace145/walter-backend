@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Tuple
 
@@ -90,8 +91,10 @@ class SyncUserTransactions(Workflow):
         LOG.info("Getting task args from event")
         LOG.debug(f"Event: {event}")
         try:
-            user_id = event["user_id"]
-            account_id = event["account_id"]
+            # parse sqs message body to get user id and account id
+            body = json.loads(event["Records"][0]["body"])
+            user_id = body["user_id"]
+            account_id = body["account_id"]
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")
         except Exception as e:
