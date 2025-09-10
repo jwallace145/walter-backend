@@ -112,12 +112,15 @@ module "workflow_role" {
 }
 
 # UpdatePrices workflow requires access to Securities table
+# SyncTransactions workflow requires access to Users and Accounts tables
 
 module "workflow_role_db_access" {
   source      = "./modules/iam_dynamodb_access_policy"
   policy_name = "workflow-db-access-policy"
   table_names = [
     local.SECURITIES_TABLE,
+    local.USERS_TABLE,
+    local.ACCOUNTS_TABLE
   ]
 }
 

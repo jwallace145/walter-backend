@@ -57,7 +57,7 @@ class SyncUserTransactions(Workflow):
 
         # sync transactions for account with plaid
         response: SyncTransactionsResponse = self.plaid.sync_transactions(
-            user_id, account.plaid_access_token
+            user_id, account.plaid_access_token, cursor=None
         )
 
         # decompose plaid sync transactions response
