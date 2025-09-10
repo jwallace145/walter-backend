@@ -109,3 +109,14 @@ variable "sync_transactions_max_concurrency" {
     error_message = "sync_transactions_max_concurrency must be between 2 and 1000."
   }
 }
+
+variable "sync_transactions_max_retry_attempts" {
+  description = "The maximum number of times to retry sync transaction tasks before delivering them to the dead-letter queue."
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.sync_transactions_max_retry_attempts >= 1 && var.sync_transactions_max_retry_attempts <= 10
+    error_message = "sync_transaction_max_retry_attempts must be between 1 and 10."
+  }
+}

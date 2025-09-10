@@ -12,6 +12,7 @@ from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.api.plaid.exchange_public_token.models import AccountDetails
 from src.auth.authenticator import WalterAuthenticator
+from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
@@ -20,11 +21,12 @@ from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.plaid.models import ExchangePublicTokenResponse
 from src.transactions.queue import (
-    SyncUserTransactionsQueue,
+    SyncUserTransactionsTask,
+    SyncUserTransactionsTaskQueue,
 )
 from src.utils.log import Logger
 
-log = Logger(__name__).get_logger()
+LOG = Logger(__name__).get_logger()
 
 
 @dataclass
@@ -68,7 +70,7 @@ class ExchangePublicToken(WalterAPIMethod):
 
     walter_db: WalterDB
     plaid_client: PlaidClient
-    queue: SyncUserTransactionsQueue
+    queue: SyncUserTransactionsTaskQueue
 
     def __init__(
         self,
@@ -77,7 +79,7 @@ class ExchangePublicToken(WalterAPIMethod):
         metrics: DatadogMetricsClient,
         walter_db: WalterDB,
         plaid_client: PlaidClient,
-        queue: SyncUserTransactionsQueue,
+        queue: SyncUserTransactionsTaskQueue,
     ) -> None:
         super().__init__(
             domain,
@@ -120,9 +122,13 @@ class ExchangePublicToken(WalterAPIMethod):
         response: ExchangePublicTokenResponse = self._exchange_token(token)
 
         # save the Plaid item and accounts to the database
-        self._save_accounts(response, user, accounts)
+        saved_accounts: List[Account] = self._save_accounts(response, user, accounts)
 
-        # return a successful response
+        # add sync transactions tasks for each saved account on initial
+        # public token exchange with Plaid to populate transactions data
+        self._add_sync_transactions_tasks(saved_accounts)
+
+        # return successful exchange public token response
         return Response(
             domain=self.domain,
             api_name=ExchangePublicToken.API_NAME,
@@ -165,7 +171,7 @@ class ExchangePublicToken(WalterAPIMethod):
         # marshal the included accounts into a list of dicts
         accounts: List[AccountDetails] = []
         for account in body["accounts"]:
-            log.info(f"Account: {account}")
+            LOG.info(f"Account: {account}")
             accounts.append(
                 AccountDetails(
                     institution_id=institution_id,
@@ -191,7 +197,7 @@ class ExchangePublicToken(WalterAPIMethod):
         Returns:
             The response from the Plaid client containing the access token and item ID.
         """
-        log.info("Exchanging public token with the Plaid client")
+        LOG.info("Exchanging public token with the Plaid client")
         return self.plaid_client.exchange_public_token(public_token)
 
     def _save_accounts(
@@ -199,24 +205,74 @@ class ExchangePublicToken(WalterAPIMethod):
         response: ExchangePublicTokenResponse,
         user: User,
         accounts: List[AccountDetails],
-    ) -> None:
-        log.info(f"Saving  {len(accounts)} Plaid accounts for user '{user.user_id}'")
+    ) -> List[Account]:
+        """
+        Saves multiple Plaid accounts for a given user in the database.
+
+        Processes the provided list of Plaid accounts, associates them with the
+        specified user, and stores them in the database. Each account is linked
+        to the user via their user ID, and includes relevant details such as
+        account type, subtype, institution information, and Plaid-specific
+        identifiers. The method ensures all accounts are saved and tracked
+        appropriately.
+
+        Args:
+            response: Response containing Plaid access token and item ID
+                needed for interaction with the Plaid API.
+            user: User object representing the account owner for whom the
+                Plaid accounts are being saved.
+            accounts: List of account details consisting of account
+                information retrieved from Plaid.
+
+        Returns:
+            List[Account]: A list of account objects corresponding to the
+            saved accounts in the database.
+        """
+        LOG.info(f"Saving  {len(accounts)} Plaid accounts for user '{user.user_id}'")
+        saved_accounts = []
         for account in accounts:
-            log.debug(
+            LOG.debug(
                 f"Saving account '{account.account_id}' for user '{user.user_id}'"
             )
-            self.db.create_account(
-                user_id=user.user_id,
-                account_type=account.account_type,
-                account_subtype=account.account_subtype,
-                institution_name=account.institution_name,
-                account_name=account.account_name,
-                account_mask=account.account_last_four_numbers,
-                balance=0.0,
-                plaid_institution_id=account.institution_id,
-                plaid_account_id=account.account_id,
-                plaid_access_token=response.access_token,
-                plaid_item_id=response.item_id,
-                plaid_last_sync_at=None,
+            saved_accounts.append(
+                self.db.create_account(
+                    user_id=user.user_id,
+                    account_type=account.account_type,
+                    account_subtype=account.account_subtype,
+                    institution_name=account.institution_name,
+                    account_name=account.account_name,
+                    account_mask=account.account_last_four_numbers,
+                    balance=0.0,
+                    plaid_institution_id=account.institution_id,
+                    plaid_account_id=account.account_id,
+                    plaid_access_token=response.access_token,
+                    plaid_item_id=response.item_id,
+                    plaid_last_sync_at=None,
+                )
             )
-            log.debug(f"Account '{account.account_id}' saved for user '{user.user_id}'")
+            LOG.debug(f"Account '{account.account_id}' saved for user '{user.user_id}'")
+        return saved_accounts
+
+    def _add_sync_transactions_tasks(self, accounts: List[Account]) -> None:
+        """
+        Adds synchronization tasks for account transactions to the task queue.
+
+        This method iterates through a list of saved accounts and creates
+        synchronization tasks for each account's transactions. These tasks are
+        then added to the task queue to be processed asynchronously by the
+        sync transactions workflow.
+
+        Args:
+            accounts (List[Account]): A list of saved accounts to initially
+                sync transactions with Plaid.
+
+        """
+        LOG.info(f"Adding sync transactions tasks for {len(accounts)} accounts")
+        for account in accounts:
+            LOG.debug(
+                f"Adding sync transactions task for account '{account.account_id}'"
+            )
+            task = SyncUserTransactionsTask(account.user_id, account.account_id)
+            task_id = self.queue.add_task(task)
+            LOG.debug(f"Sync transactions task added to queue with ID '{task_id}'")
+        LOG.info(f"Sync transactions tasks added for {len(accounts)} accounts")

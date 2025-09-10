@@ -11,8 +11,11 @@ module "api_role" {
   policies = {
     api_secrets_access = module.api_role_secrets_access.policy_arn,
     api_db_access      = module.api_role_db_access.policy_arn
+    api_queue_access   = module.api_role_queue_access.policy_arn
   }
 }
+
+# APIs require access to all DynamoDB tables for CRUD operations
 
 module "api_role_db_access" {
   source      = "./modules/iam_dynamodb_access_policy"
@@ -26,6 +29,22 @@ module "api_role_db_access" {
     local.HOLDINGS_TABLE
   ]
 }
+
+# SyncTransactions API requires queue access to submit tasks
+# for users on-demand
+
+module "api_role_queue_access" {
+  source      = "./modules/iam_sqs_queue_access_policy"
+  name        = "api-queue-access-policy"
+  access_type = "producer"
+  queue_arns = [
+    module.queues["sync_transactions"].queue_arn,
+    module.queues["sync_transactions"].dead_letter_queue_arn
+  ]
+}
+
+# API requires access to all secrets primarily for authentication purposes and api
+# keys for external software
 
 module "api_role_secrets_access" {
   source      = "./modules/iam_secrets_manager_access_policy"
@@ -93,12 +112,16 @@ module "workflow_role" {
 }
 
 # UpdatePrices workflow requires access to Securities table
+# SyncTransactions workflow requires access to Users, Accounts, and Transactions tables
 
 module "workflow_role_db_access" {
   source      = "./modules/iam_dynamodb_access_policy"
   policy_name = "workflow-db-access-policy"
   table_names = [
     local.SECURITIES_TABLE,
+    local.USERS_TABLE,
+    local.ACCOUNTS_TABLE,
+    local.TRANSACTIONS_TABLE
   ]
 }
 
@@ -110,6 +133,7 @@ module "workflow_role_secrets_access" {
   policy_name = "workflow-secrets-access-policy"
   secret_names = [
     local.POLYGON_SECRET,
+    local.PLAID_SECRET
   ]
 }
 
@@ -117,8 +141,9 @@ module "workflow_role_secrets_access" {
 # webhook and adhoc sync transaction requests
 
 module "workflow_role_queue_access" {
-  source = "./modules/iam_sqs_queue_access_policy"
-  name   = "workflow-queue-access-policy"
+  source      = "./modules/iam_sqs_queue_access_policy"
+  name        = "workflow-queue-access-policy"
+  access_type = "consumer"
   queue_arns = [
     module.queues["sync_transactions"].queue_arn,
     module.queues["sync_transactions"].dead_letter_queue_arn

@@ -103,6 +103,11 @@ class TransactionDoesNotExist(Exception):
         super().__init__(message)
 
 
+class PlaidAccessTokenDoesNotExist(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class PlaidItemDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)

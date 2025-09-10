@@ -1,26 +1,30 @@
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Tuple
 
 from src.api.common.exceptions import (
+    AccountDoesNotExist,
     BadRequest,
     NotAuthenticated,
+    PlaidAccessTokenDoesNotExist,
     PlaidItemDoesNotExist,
     UserDoesNotExist,
 )
 from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
+from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.users.models import User
+from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.transactions.queue import (
-    SyncUserTransactionsQueue,
-    SyncUserTransactionsSQSEvent,
+    SyncUserTransactionsTask,
+    SyncUserTransactionsTaskQueue,
 )
 from src.utils.log import Logger
 
-log = Logger(__name__).get_logger()
+LOG = Logger(__name__).get_logger()
 
 
 @dataclass
@@ -43,24 +47,28 @@ class SyncTransactions(WalterAPIMethod):
     API_NAME = "SyncTransactions"
     REQUIRED_QUERY_FIELDS = []
     REQUIRED_HEADERS = {}
-    REQUIRED_FIELDS = ["item_id", "webhook_code"]
+    REQUIRED_FIELDS = ["user_id", "account_id"]
     EXCEPTIONS = [
         (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
+        (AccountDoesNotExist, HTTPStatus.NOT_FOUND),
+        (PlaidAccessTokenDoesNotExist, HTTPStatus.NOT_FOUND),
         (PlaidItemDoesNotExist, HTTPStatus.NOT_FOUND),
         (UserDoesNotExist, HTTPStatus.NOT_FOUND),
         (BadRequest, HTTPStatus.BAD_REQUEST),
     ]
 
-    queue: SyncUserTransactionsQueue
+    queue: SyncUserTransactionsTaskQueue
 
     def __init__(
         self,
+        domain: Domain,
         walter_authenticator: WalterAuthenticator,
         metrics: DatadogMetricsClient,
         db: WalterDB,
-        queue: SyncUserTransactionsQueue,
+        queue: SyncUserTransactionsTaskQueue,
     ) -> None:
         super().__init__(
+            domain,
             SyncTransactions.API_NAME,
             SyncTransactions.REQUIRED_QUERY_FIELDS,
             SyncTransactions.REQUIRED_HEADERS,
@@ -73,74 +81,116 @@ class SyncTransactions(WalterAPIMethod):
         self.queue = queue
 
     def execute(self, event: dict, authenticated_email: str) -> Response:
-        item_id = self._get_item_id(event)
-        webhook_code = self._get_webhook_code(event)
-        log.info(f"webhook code: {webhook_code}")
-        item = self._get_plaid_item(item_id)
-        self._add_sync_transactions_request_to_queue(
-            user_id=item.get_user_id(), plaid_item_id=item.get_item_id()
-        )
+        args: Tuple[str, str] = self._get_request_args(event)
+        user_id, account_id = args
+        user: User = self._verify_user_exists(user_id)
+        account: Account = self._verify_account_exists(user_id, account_id)
+        self._add_task_to_queue(user_id, account_id)
         return Response(
+            domain=self.domain,
             api_name=SyncTransactions.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
-            message="Syncing user transactions!",
+            message="Added task to queue!",
             data={
-                "user_id": item.get_user_id(),
-                "institution_id": item.institution_id,
-                "institution_name": item.institution_name,
+                "user_id": user.user_id,
+                "account_id": account.account_id,
+                "institution_name": account.institution_name,
+                "account_name": account.account_name,
             },
         )
 
-    def _add_sync_transactions_request_to_queue(
-        self, user_id: str, plaid_item_id: str
-    ) -> None:
+    def _get_request_args(self, event: dict) -> Tuple[str, str]:
         """
-        Handles the request to sync user transactions.
+        Extracts 'user_id' and 'account_id' from the body of an event payload. Logs
+        the process and raises specific errors when the necessary fields are missing
+        or invalid.
 
         Args:
-            access_token (str): The access token associated with the user.
-            webhook_code (str): The webhook event code from Plaid.
+            event (dict): The event dictionary containing the 'body' key from which
+                the 'user_id' and 'account_id' are extracted.
+
+        Raises:
+            BadRequest: If 'user_id' or 'account_id' is missing from the request body.
+            BadRequest: If the 'user_id' or 'account_id' in the request body is invalid.
 
         Returns:
-            dict: Response object indicating success or error details.
+            Tuple[str, str]: A tuple containing the 'user_id' and 'account_id', both
+            represented as strings.
         """
-        log.info(
-            f"Adding request to sync user transactions for user '{user_id}' to queue..."
+        LOG.info("Getting 'user_id' and 'account_id' from request body")
+        try:
+            body = json.loads(event["body"])
+            user_id = body["user_id"]
+            account_id = body["account_id"]
+            return user_id, account_id
+        except KeyError:
+            raise BadRequest("Missing 'user_id' or 'account_id' in request body!")
+        except Exception:
+            raise BadRequest("Invalid 'user_id' or 'account_id' in request body!")
+
+    def _verify_account_exists(self, user_id: str, account_id: str) -> Account:
+        """
+        Verifies that an account exists for a given user ID and account ID.
+
+        This method retrieves an account from the database for the given user ID and
+        account ID. It ensures that the account exists and has valid Plaid credentials,
+        including a Plaid access token and a Plaid item ID. If the account does not
+        exist or its Plaid credentials are missing, exceptions are raised.
+
+        Args:
+            user_id: The ID of the user associated with the account.
+            account_id: The ID of the account to verify.
+
+        Returns:
+            The retrieved account if it exists and has valid Plaid credentials.
+
+        Raises:
+            AccountDoesNotExist: If the account with the specified ID does not exist.
+            PlaidAccessTokenDoesNotExist: If the account does not have a Plaid
+                access token.
+            PlaidItemDoesNotExist: If the account does not have a Plaid item ID.
+        """
+        LOG.info(f"Getting account '{account_id}' for user '{user_id}'")
+        account = self.db.get_account(user_id, account_id)
+        if account is None:
+            raise AccountDoesNotExist(f"Account '{account_id}' does not exist!")
+        LOG.info(f"Account '{account_id}' successfully retrieved from database!")
+
+        LOG.info(
+            f"Verifying plaid access token and plaid item id for account '{account_id}'"
         )
-        self.queue.add_sync_user_transactions_event(
-            SyncUserTransactionsSQSEvent(user_id=user_id, plaid_item_id=plaid_item_id)
+        if account.plaid_access_token is None:
+            LOG.error(f"Account '{account_id}' does not have a Plaid access token!")
+            raise PlaidAccessTokenDoesNotExist(
+                f"Account '{account_id}' does not have a Plaid access token!"
+            )
+
+        if account.plaid_item_id is None:
+            LOG.error(f"Account '{account_id}' does not have a Plaid item ID!")
+            raise PlaidItemDoesNotExist(
+                f"Account '{account_id}' does not have a Plaid item ID!"
+            )
+
+        return account
+
+    def _add_task_to_queue(self, user_id: str, account_id: str) -> None:
+        """
+        Adds a synchronize user transactions task to the queue for processing.
+
+        Args:
+            user_id: The unique identifier of the user for whom the task is being added.
+            account_id: The unique identifier of the account associated with the task.
+        """
+        LOG.info(
+            f"Adding sync transactions task to queue for user '{user_id}' and account '{account_id}'"
         )
-        log.info("Sync user transactions event successfully added to queue!")
+        task = SyncUserTransactionsTask(user_id, account_id)
+        self.queue.add_task(task)
+        LOG.info("Sync user transactions event successfully added to queue!")
 
     def validate_fields(self, event: dict) -> None:
         pass
 
     def is_authenticated_api(self) -> bool:
         return False
-
-    def _verify_user_exists(self, email: str) -> User:
-        log.info(f"Verifying user exists with email '{email}'")
-        user = self.db.get_user_by_email(email)
-        if user is None:
-            raise UserDoesNotExist(f"User with email '{email}' does not exist!")
-        log.info("Verified user exists!")
-        return user
-
-    def _get_item_id(self, event: dict) -> str:
-        body = json.loads(event["body"])
-        return body["item_id"]
-
-    def _get_webhook_code(self, event: dict) -> str:
-        body = json.loads(event["body"])
-        return body["webhook_code"]
-
-    def _get_plaid_item(self, item_id: str) -> Any:
-        log.info("Getting Plaid item from WalterDB")
-        plaid_item = self.db.get_plaid_item_by_item_id(item_id)
-        if plaid_item is None:
-            raise PlaidItemDoesNotExist("Plaid item does not exist!")
-        log.info(
-            f"Plaid item with item ID '{plaid_item.item_id}' successfully retrieved from WalterDB!"
-        )
-        return plaid_item

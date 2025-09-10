@@ -1,13 +1,20 @@
+locals {
+  is_consumer = lower(var.access_type) == "consumer"
+}
+
 data "aws_iam_policy_document" "this" {
   statement {
-    sid    = "SQSConsumePermissions"
+    sid    = local.is_consumer ? "SQSConsumePermissions" : "SQSProducePermissions"
     effect = "Allow"
 
-    actions = [
+    actions = local.is_consumer ? [
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:ChangeMessageVisibility",
       "sqs:GetQueueAttributes",
+      "sqs:GetQueueUrl"
+      ] : [
+      "sqs:SendMessage",
       "sqs:GetQueueUrl"
     ]
 

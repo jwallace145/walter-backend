@@ -590,8 +590,8 @@ paths:
     post:
       summary: Sync transactions from Plaid
       description: >
-        Syncs transactions from Plaid for a specific item.
-        This endpoint is called by Plaid webhooks when new transactions are available.
+        Queues a background task to sync transactions for a specific user account.
+        This endpoint is used by scheduled jobs and can also be called manually.
       operationId: syncTransactions
       requestBody:
         required: true
@@ -600,11 +600,11 @@ paths:
             schema:
               $ref: '#/components/schemas/SyncTransactionsRequest'
             example:
-              item_id: item-sandbox-12345-abcde
-              webhook_code: TRANSACTIONS_UPDATE
+              user_id: user-12345
+              account_id: account-67890
       responses:
         '200':
-          description: Transaction sync initiated successfully
+          description: Transaction sync task added successfully
           content:
             application/json:
               schema:
@@ -613,12 +613,13 @@ paths:
                 Service: WalterAPI
                 API: SyncTransactions
                 Status: Success
-                Message: Syncing user transactions!
+                Message: Added task to queue!
                 ResponseTimeMillis: 500.000000
                 Data:
                   user_id: user-12345
-                  institution_id: ins_123456
+                  account_id: account-67890
                   institution_name: Test Bank
+                  account_name: Checking
 
 components:
   securitySchemes:
@@ -1119,17 +1120,17 @@ components:
     SyncTransactionsRequest:
       type: object
       required:
-        - item_id
-        - webhook_code
+        - user_id
+        - account_id
       properties:
-        item_id:
+        user_id:
           type: string
-          description: The Plaid item ID
-          example: item-sandbox-12345-abcde
-        webhook_code:
+          description: The Walter user ID
+          example: user-12345
+        account_id:
           type: string
-          description: The webhook code from Plaid
-          example: TRANSACTIONS_UPDATE
+          description: The Walter account ID to sync
+          example: account-67890
           
     SyncTransactionsResponse:
       type: object
@@ -1145,7 +1146,7 @@ components:
           example: Success
         Message:
           type: string
-          example: Syncing user transactions!
+          example: Added task to queue!
         ResponseTimeMillis:
           type: number
           format: double
@@ -1157,14 +1158,18 @@ components:
               type: string
               description: The user ID
               example: user-12345
-            institution_id:
+            account_id:
               type: string
-              description: The ID of the financial institution
-              example: ins_123456
+              description: The Walter account ID
+              example: account-67890
             institution_name:
               type: string
               description: The name of the financial institution
               example: Test Bank
+            account_name:
+              type: string
+              description: The name of the account
+              example: Checking
           
     # Transaction Schemas
     Transaction:

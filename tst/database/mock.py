@@ -143,8 +143,18 @@ class MockDDB:
             AttributeDefinitions=[
                 {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "plaid_account_id", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Accounts-PlaidAccountIdIndex-{Domain.TESTING.value}",
+                    "KeySchema": [
+                        {"AttributeName": "plaid_account_id", "KeyType": "HASH"}
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
         )
         with open(input_file_name) as accounts_f:
             for account in accounts_f:
@@ -188,6 +198,9 @@ class MockDDB:
                         },
                         "logo_url": {
                             "S": json_account["logo_url"],
+                        },
+                        "plaid_account_id": {
+                            "S": json_account["plaid_account_id"],
                         },
                     }
                 ).to_ddb_item()

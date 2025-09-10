@@ -6,9 +6,10 @@ locals {
   SECURITIES_TABLE   = "Securities-${var.domain}"
   HOLDINGS_TABLE     = "Holdings-${var.domain}"
 
-  USERS_EMAIL_INDEX       = "Users-EmailIndex-${var.domain}"
-  TRANSACTIONS_USER_INDEX = "Transactions-UserIndex-${var.domain}"
-  SECURITIES_TICKER_INDEX = "Securities-TickerIndex-${var.domain}"
+  USERS_EMAIL_INDEX               = "Users-EmailIndex-${var.domain}"
+  ACCOUNTS_PLAID_ACCOUNT_ID_INDEX = "Accounts-PlaidAccountIdIndex-${var.domain}"
+  TRANSACTIONS_USER_INDEX         = "Transactions-UserIndex-${var.domain}"
+  SECURITIES_TICKER_INDEX         = "Securities-TickerIndex-${var.domain}"
 }
 
 /*******************
@@ -60,9 +61,17 @@ module "accounts_table" {
   range_key = "account_id"
 
   attributes = {
-    user_id    = "S"
-    account_id = "S"
+    user_id          = "S"
+    account_id       = "S"
+    plaid_account_id = "S"
   }
+
+  global_secondary_indexes = [
+    {
+      name     = local.ACCOUNTS_PLAID_ACCOUNT_ID_INDEX
+      hash_key = "plaid_account_id"
+    }
+  ]
 }
 
 module "transactions_table" {

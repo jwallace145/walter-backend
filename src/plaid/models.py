@@ -1,5 +1,6 @@
 import datetime as dt
 from dataclasses import dataclass
+from enum import Enum
 from typing import List
 
 from src.database.transactions.models import Transaction
@@ -75,3 +76,24 @@ class SyncTransactionsResponse:
                 transaction.to_dict() for transaction in self.removed_transactions
             ],
         }
+
+
+class PersonalFinanceCategories(Enum):
+    """Plaid Personal Finance Categories"""
+
+    ENTERTAINMENT = "entertainment"
+    FOOD_AND_DRINK = "food_and_drink"
+    GENERAL_MERCHANDISE = "general_merchandise"
+    GENERAL_SERVICES = "general_services"
+    INCOME = "income"
+    LOAN_PAYMENTS = "loan_payments"
+    PERSONAL_CARE = "personal_care"
+    TRANSPORTATION = "transportation"
+    TRAVEL = "travel"
+
+    @classmethod
+    def from_string(cls, category_str: str):
+        for category in PersonalFinanceCategories:
+            if category.name.lower() == category_str.lower():
+                return category
+        raise ValueError(f"Invalid category '{category_str}'!")
