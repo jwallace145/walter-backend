@@ -12,6 +12,7 @@ locals {
     transactions          = { parent = "root", path = "transactions", cors = true },
     create-link-token     = { parent = "plaid", path = "create-link-token", cors = true }
     exchange-public-token = { parent = "plaid", path = "exchange-public-token", cors = true }
+    sync-transactions     = { parent = "plaid", path = "sync-transactions", cors = true }
   }
 
   # all endpoints served by walter backend are defined here
@@ -42,6 +43,7 @@ locals {
     # plaid endpoints
     create_link_token     = { parent = "plaid", path = "create-link-token", method = "POST" },
     exchange_public_token = { parent = "plaid", path = "exchange-public-token", method = "POST" },
+    sync_transactions     = { parent = "plaid", path = "sync-transactions", method = "POST" }
   }
 
   # used as a helper to get api gateway resource id from parent name

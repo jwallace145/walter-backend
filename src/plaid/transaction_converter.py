@@ -43,8 +43,11 @@ class TransactionConverter:
 
     db: WalterDB
 
+    plaid_account_cache: Dict[str, Account] = None
+
     def __post_init__(self) -> None:
         LOG.debug("Initializing Transaction Converter")
+        self.plaid_account_cache = {}
 
     def convert(self, plaid_transaction: dict) -> Transaction:
         # verify account exists before converting transaction, each transaction
@@ -66,6 +69,10 @@ class TransactionConverter:
                 raise ValueError(f"Unknown transaction type: {transaction_type}")
 
     def _verify_account_exists(self, plaid_account_id: str) -> Account:
+        # if account exists in cache, return it and don't query database again
+        if plaid_account_id in self.plaid_account_cache:
+            return self.plaid_account_cache[plaid_account_id]
+
         LOG.debug(
             f"Verifying account with Plaid account ID '{plaid_account_id}' exists"
         )
@@ -83,6 +90,9 @@ class TransactionConverter:
             )
 
         LOG.debug(f"Account with Plaid account ID '{plaid_account_id}' exists")
+
+        # write plaid_account_id to account_id mapping to cache
+        self.plaid_account_cache[plaid_account_id] = account
 
         return account
 

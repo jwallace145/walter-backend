@@ -17,6 +17,7 @@ from src.api.methods import (
     login_api,
     logout_api,
     refresh_api,
+    sync_transactions_api,
     update_account_api,
     update_user_api,
 )
@@ -105,6 +106,8 @@ class APIRouter:
                 return create_link_token_api
             case (APIRouter.PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE, HTTPMethod.POST):
                 return exchange_public_token_api
+            case (APIRouter.PLAID_SYNC_TRANSACTIONS_RESOURCE, HTTPMethod.POST):
+                return sync_transactions_api
 
             # if none of the above cases match, raise an exception as the API method is not found
             case _:

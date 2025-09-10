@@ -8,6 +8,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
+from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
@@ -16,6 +17,7 @@ from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.plaid.transaction_converter import TransactionConverter
 from src.polygon.client import PolygonClient
+from src.transactions.queue import SyncUserTransactionsTaskQueue
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -58,6 +60,9 @@ SECRETS = WalterSecretsManagerClient(
     client=boto3.client("secretsmanager", region_name=AWS_REGION), domain=DOMAIN
 )
 """(WalterSecretsManagerClient): The Secrets Manager client used to interact with the WalterBackend secrets."""
+
+SQS = WalterSQSClient(client=boto3.client("sqs", region_name=AWS_REGION), domain=DOMAIN)
+"""(WalterSQSClient): The SQS client used to interact with the WalterBackend SQS queues."""
 
 
 #################
@@ -111,3 +116,6 @@ TXN_CONVERTER = TransactionConverter(DATABASE)
 
 PLAID = PlaidClient(SECRETS, DATABASE, Environment.Sandbox, TXN_CONVERTER)
 """(PlaidClient): The client used to interact with the Plaid API."""
+
+SYNC_TRANSACTIONS_QUEUE = SyncUserTransactionsTaskQueue(SQS)
+"""(SyncUserTransactionsTaskQueue): The client used to interact with the Plaid API."""

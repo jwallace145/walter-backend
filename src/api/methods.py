@@ -7,6 +7,7 @@ from src.api.auth.logout.method import Logout
 from src.api.auth.refresh.method import Refresh
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.plaid.exchange_public_token.method import ExchangePublicToken
+from src.api.plaid.sync_transactions import SyncTransactions
 from src.api.transactions.add_transaction import AddTransaction
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.api.transactions.edit_transaction import EditTransaction
@@ -26,6 +27,7 @@ from src.clients import (
     S3,
     SECRETS,
     SECURITY_UPDATER,
+    SYNC_TRANSACTIONS_QUEUE,
 )
 
 ###############
@@ -79,4 +81,7 @@ update_user_api = UpdateUser(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, S3)
 create_link_token_api = CreateLinkToken(DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, PLAID)
 exchange_public_token_api = ExchangePublicToken(
     DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, PLAID, None
+)
+sync_transactions_api = SyncTransactions(
+    DOMAIN, AUTHENTICATOR, DATADOG, DATABASE, SYNC_TRANSACTIONS_QUEUE
 )
