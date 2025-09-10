@@ -132,6 +132,7 @@ module "workflow_role_secrets_access" {
   policy_name = "workflow-secrets-access-policy"
   secret_names = [
     local.POLYGON_SECRET,
+    local.PLAID_SECRET
   ]
 }
 
