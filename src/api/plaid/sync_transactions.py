@@ -87,6 +87,7 @@ class SyncTransactions(WalterAPIMethod):
         account: Account = self._verify_account_exists(user_id, account_id)
         self._add_task_to_queue(user_id, account_id)
         return Response(
+            domain=self.domain,
             api_name=SyncTransactions.API_NAME,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
