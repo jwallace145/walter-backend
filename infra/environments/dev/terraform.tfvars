@@ -23,7 +23,10 @@ canary_timeout_seconds  = 30
 canary_lambda_memory_mb = 1024
 
 # WalterBackend Workflow Settings
-workflow_timeout_seconds          = 15
-workflow_lambda_memory_mb         = 1024
-sync_transactions_max_concurrency = 2
+workflow_timeout_seconds  = 15
+workflow_lambda_memory_mb = 1024
+
+# SyncUserTransactions Workflow Settings
+sync_transactions_max_concurrency    = 2
+sync_transactions_max_retry_attempts = 1
 

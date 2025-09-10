@@ -53,6 +53,7 @@ locals {
       function_name       = local.FUNCTIONS.workflow.name,
       queue_arn           = module.queues["sync_transactions"].queue_arn,
       maximum_concurrency = var.sync_transactions_max_concurrency
+      max_retry_attempts  = var.sync_transactions_max_retry_attempts
     }
   }
 }

@@ -1,6 +1,6 @@
 locals {
   QUEUES = {
-    sync_transactions = { name = "SyncTransactions", max_retries = 3 }
+    sync_transactions = { name = "SyncTransactions", max_retries = var.sync_transactions_max_retry_attempts }
   }
 }
 
