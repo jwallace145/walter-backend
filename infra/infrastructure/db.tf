@@ -30,8 +30,9 @@ module "users_table" {
 
   global_secondary_indexes = [
     {
-      name     = local.USERS_EMAIL_INDEX
-      hash_key = "email"
+      name            = local.USERS_EMAIL_INDEX
+      hash_key        = "email"
+      projection_type = "ALL"
     }
   ]
 }
@@ -70,13 +71,15 @@ module "accounts_table" {
 
   global_secondary_indexes = [
     {
-      name     = local.ACCOUNTS_PLAID_ACCOUNT_ID_INDEX
-      hash_key = "plaid_account_id"
+      name            = local.ACCOUNTS_PLAID_ACCOUNT_ID_INDEX
+      hash_key        = "plaid_account_id"
+      projection_type = "ALL"
     },
     {
-      name      = local.ACCOUNTS_PLAID_ITEM_ID_INDEX,
-      hash_key  = "plaid_item_id",
-      range_key = "plaid_account_id"
+      name            = local.ACCOUNTS_PLAID_ITEM_ID_INDEX,
+      hash_key        = "plaid_item_id",
+      range_key       = "plaid_account_id"
+      projection_type = "ALL"
     }
   ]
 }
@@ -96,9 +99,10 @@ module "transactions_table" {
 
   global_secondary_indexes = [
     {
-      name      = local.TRANSACTIONS_USER_INDEX
-      hash_key  = "user_id"
-      range_key = "transaction_date"
+      name            = local.TRANSACTIONS_USER_INDEX
+      hash_key        = "user_id"
+      range_key       = "transaction_date"
+      projection_type = "ALL"
     }
   ]
 }
@@ -116,8 +120,9 @@ module "securities_table" {
 
   global_secondary_indexes = [
     {
-      name     = local.SECURITIES_TICKER_INDEX
-      hash_key = "ticker"
+      name            = local.SECURITIES_TICKER_INDEX
+      hash_key        = "ticker"
+      projection_type = "ALL"
     }
   ]
 }
