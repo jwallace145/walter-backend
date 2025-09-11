@@ -76,6 +76,8 @@ module "functions" {
   domain                = var.domain
   publish               = true
   log_retention_in_days = var.log_retention_in_days
+  datadog_api_key       = var.datadog_api_key
+  datadog_site          = var.datadog_site
 }
 
 /************************************

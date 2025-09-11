@@ -22,6 +22,8 @@ resource "aws_lambda_function" "this" {
     variables = {
       DD_LAMBDA_HANDLER = var.lambda_handler
       DD_LOG_LEVEL      = var.log_level
+      DD_API_KEY        = var.datadog_api_key
+      DD_SITE           = var.datadog_site
       DOMAIN            = var.domain
       LOG_LEVEL         = var.log_level
     }

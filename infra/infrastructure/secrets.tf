@@ -7,7 +7,7 @@ locals {
     Datadog = {
       DATADOG_API_KEY = var.datadog_api_key
       DATADOG_APP_KEY = var.datadog_app_key
-      DATADOG_API_URL = var.datadog_api_url
+      DATADOG_SITE    = var.datadog_site
     }
     Plaid = {
       PLAID_CLIENT_ID  = var.plaid_client_id

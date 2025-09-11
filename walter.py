@@ -25,13 +25,13 @@ This module defines the entry functions for three distinct Lambda functions:
 def api_entrypoint(event, context) -> dict:
     """Process API Gateway requests"""
     LOG.info("Invoking API!")
-    return APIRouter.get_method(event).invoke(event).to_json()
+    return APIRouter.get_method(event).invoke(event, emit_metrics=True).to_json()
 
 
 def workflows_entrypoint(event, context) -> dict:
     """Execute asynchronous workflows for data processing and updates"""
     LOG.info("Invoking workflow!")
-    return WorkflowRouter.get_workflow(event).invoke(event).to_json()
+    return WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=True).to_json()
 
 
 def canaries_entrypoint(event, context) -> dict:

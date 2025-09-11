@@ -22,16 +22,8 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 RUN pipenv requirements > requirements.txt && \
     pip install -r requirements.txt
 
-# require Datadog API key secret, required to emit metrics to Datadog
-# set by deploy build script
-ARG DD_API_KEY
-
-# install datadog lambda extension to forward metrics to datadog
+# install datadog lambda extension to forward metrics and logs to datadog
 COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
-
-# set necessary datadog env vars
-ENV DD_API_KEY=${DD_API_KEY}
-ENV DD_SITE=us5.datadoghq.com
 
 # copy application source code, entrypoints file, and configurations
 COPY src/ ${LAMBDA_TASK_ROOT}/src/
@@ -40,5 +32,5 @@ COPY config.yml ${LAMBDA_TASK_ROOT}/
 COPY expense_category_encoder.pkl ${LAMBDA_TASK_ROOT}/
 COPY expense_categorization_pipeline.pkl ${LAMBDA_TASK_ROOT}/
 
-# Override the command for each API to use the correct entrypoint
+# Override the command for each component to use the correct entrypoint, see walter.py
 CMD [ "OVERRIDE ME!" ]

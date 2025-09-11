@@ -1,6 +1,9 @@
 name: Deploy WalterBackend to Production
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -12,6 +15,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set environment secrets
+        run: |
+          SECRETS='${{ secrets.DEVELOPMENT }}'
+          
+          # export all secrets as environment variables
+          echo $SECRETS | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -41,5 +51,44 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Run deploy script
+      - name: Deploy Docker image to ECR
         run: python deploy.py
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+
+      - name: Make Terraform scripts executable
+        run: chmod +x ./infra/scripts/apply.sh
+
+      - name: Deploy Terraform infrastructure
+        id: terraform-apply
+        run: |
+          echo "Deploying Terraform infrastructure changes..."
+          if ./infra/scripts/apply.sh dev; then
+            echo "terraform-result=success" >> $GITHUB_OUTPUT
+            echo "✅ Terraform deployment completed successfully"
+          else
+            echo "terraform-result=failure" >> $GITHUB_OUTPUT
+            echo "❌ Terraform deployment failed"
+            exit 1
+          fi
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Image (ECR) | ✅ Deployed |" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.terraform-apply.outputs.terraform-result }}" == "success" ]]; then
+            echo "| Terraform Infrastructure | ✅ Applied Successfully |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Terraform Infrastructure | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** dev" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

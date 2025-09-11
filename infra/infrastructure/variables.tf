@@ -141,8 +141,8 @@ variable "datadog_app_key" {
   type        = string
 }
 
-variable "datadog_api_url" {
-  description = "The Datadog API URL used to send metrics to Datadog."
+variable "datadog_site" {
+  description = "The Datadog site used to send metrics and logs to Datadog."
   type        = string
 }
 

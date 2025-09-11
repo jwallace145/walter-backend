@@ -52,9 +52,9 @@ get_datadog_credentials() {
     log_info "Setting Datadog environment variables from TF_VAR values..."
 
     # Export as environment variables for Terraform
-    export DD_API_KEY="$TF_VAR_datadog_api_key"
-    export DD_APP_KEY="$TF_VAR_datadog_app_key"
-    export DD_HOST="$TF_VAR_datadog_api_url"
+    export DD_API_KEY="$DATADOG_API_KEY"
+    export DD_APP_KEY="$DATADOG_APP_KEY"
+    export DD_HOST="$DATADOG_SITE"
 
     log_success "Datadog credentials and site configuration set as environment variables"
 }
@@ -100,40 +100,82 @@ validate_inputs() {
 
 set_environment_variables() {
     # TODO: Support non "dev" environments
-    # Check if .env exists
-    if [ ! -f .dev ]; then
+
+    # Define required environment variables
+    required_vars=(
+        "DATADOG_API_KEY"
+        "DATADOG_APP_KEY"
+        "DATADOG_SITE"
+        "ACCESS_TOKEN_SECRET_KEY"
+        "REFRESH_TOKEN_SECRET_KEY"
+        "PLAID_CLIENT_ID"
+        "PLAID_SECRET"
+        "POLYGON_API_KEY"
+        "STRIPE_SECRET_KEY"
+    )
+
+    # Function to check if all required vars are set
+    check_required_vars() {
+        local missing_vars=()
+        for var in "${required_vars[@]}"; do
+            if [[ -z "${!var:-}" ]]; then
+                missing_vars+=("$var")
+            fi
+        done
+
+        if [[ ${#missing_vars[@]} -eq 0 ]]; then
+            return 0  # All vars are set
+        else
+            return 1  # Some vars are missing
+        fi
+    }
+
+    # First check: see if all required vars are already set
+    if check_required_vars; then
+        log_success "All required environment variables are already set!"
+        return 0
+    fi
+
+    log_info "Some required environment variables are missing. Attempting to load from .dev file..."
+
+    # Check if .dev file exists
+    if [[ ! -f .dev ]]; then
         log_error "Error: .dev file not found!"
         log_error "Please create a .dev file with the required environment variables"
         exit 1
     fi
 
-    # Load environment variables
-    log_info "Loading environment variables..."
+    # Load environment variables from .dev file
+    log_info "Loading environment variables from .dev file..."
     set -a
     source .dev
     set +a
 
-    # Validate required variables
-    required_vars=(
-        "TF_VAR_datadog_api_key"
-        "TF_VAR_datadog_app_key"
-        "TF_VAR_datadog_api_url"
-        "TF_VAR_access_token_secret_key"
-        "TF_VAR_refresh_token_secret_key"
-        "TF_VAR_plaid_client_id"
-        "TF_VAR_plaid_secret"
-        "TF_VAR_polygon_api_key"
-        "TF_VAR_stripe_secret_key"
-    )
+    # Second check: verify all required vars are now set after loading .dev
+    if check_required_vars; then
+        log_success "Loaded environment variables successfully!"
+        return 0
+    else
+        # Build helpful error message showing what's still missing
+        local still_missing=()
+        for var in "${required_vars[@]}"; do
+            if [[ -z "${!var:-}" ]]; then
+                still_missing+=("$var")
+            fi
+        done
 
-    for var in "${required_vars[@]}"; do
-        if [ -z "${!var}" ]; then
-            log_error "Error: Required variable $var is not set"
-            exit 1
-        fi
-    done
+        log_error "Error: The following required variables are still not set after loading .dev file:"
+        for var in "${still_missing[@]}"; do
+            log_error "  - $var"
+        done
+        log_error ""
+        log_error "Please add the missing variables to your .dev file in the format:"
+        for var in "${still_missing[@]}"; do
+            log_error "  $var=your_value_here"
+        done
 
-    log_success "Loaded environment variables successfully!"
+        exit 1
+    fi
 }
 
 # Function to run terraform
@@ -150,22 +192,39 @@ run_terraform() {
         exit 1
     fi
 
+    # Build common variable arguments, majority of Terraform variables are non-sensitive
+    # and can be directly included in the environment's terraform.tfvars file, for the
+    # sensitive variables, they are set as environment variables and passed in as command
+    # line arguments
+    var_args=(
+        -var-file="../environments/$ENVIRONMENT/terraform.tfvars"
+        -var="access_token_secret_key=$ACCESS_TOKEN_SECRET_KEY"
+        -var="refresh_token_secret_key=$REFRESH_TOKEN_SECRET_KEY"
+        -var="datadog_api_key=$DATADOG_API_KEY"
+        -var="datadog_app_key=$DATADOG_APP_KEY"
+        -var="datadog_site=$DATADOG_SITE"
+        -var="plaid_client_id=$PLAID_CLIENT_ID"
+        -var="plaid_secret=$PLAID_SECRET"
+        -var="polygon_api_key=$POLYGON_API_KEY"
+        -var="stripe_secret_key=$STRIPE_SECRET_KEY"
+    )
+
     # Run the specified action
     case $ACTION in
         plan)
             log_info "Running Terraform plan..."
-            terraform plan -var-file="../environments/$ENVIRONMENT/terraform.tfvars"
+            terraform plan "${var_args[@]}"
             ;;
         apply)
             log_info "Running Terraform apply..."
-            terraform apply -var-file="../environments/$ENVIRONMENT/terraform.tfvars"
+            terraform apply "${var_args[@]}"
             ;;
         destroy)
             log_warning "Running Terraform destroy..."
             log_warning "This will destroy resources in the $ENVIRONMENT environment!"
             read -p "Are you sure? (yes/no): " -r
             if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-                terraform destroy -var-file="../environments/$ENVIRONMENT/terraform.tfvars"
+                terraform destroy "${var_args[@]}"
             else
                 log_info "Destroy cancelled"
                 exit 0
@@ -177,7 +236,17 @@ run_terraform() {
 # Function to cleanup sensitive environment variables
 cleanup() {
     unset DD_API_KEY
-    unset DD_APP_KEY
+    unset DD_APP_KEY 
+    unset DD_HOST
+    unset DATADOG_API_KEY
+    unset DATADOG_APP_KEY
+    unset DATADOG_SITE
+    unset ACCESS_TOKEN_SECRET_KEY
+    unset REFRESH_TOKEN_SECRET_KEY
+    unset PLAID_CLIENT_ID
+    unset PLAID_SECRET
+    unset POLYGON_API_KEY
+    unset STRIPE_SECRET_KEY
     log_info "Cleaned up sensitive environment variables"
 }
 
