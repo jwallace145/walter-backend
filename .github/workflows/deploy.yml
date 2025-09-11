@@ -1,4 +1,4 @@
-name: Deploy WalterBackend to Production
+name: Deploy WalterBackend to Development
 
 on:
   pull_request:
@@ -11,17 +11,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: dev
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set environment secrets
-        run: |
-          SECRETS='${{ secrets.DEVELOPMENT }}'
-          
-          # export all secrets as environment variables
-          echo $SECRETS | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -64,8 +58,19 @@ jobs:
 
       - name: Deploy Terraform infrastructure
         id: terraform-apply
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+          DATADOG_SITE: ${{ secrets.DATADOG_SITE }}
+          ACCESS_TOKEN_SECRET_KEY: ${{ secrets.ACCESS_TOKEN_SECRET_KEY }}
+          REFRESH_TOKEN_SECRET_KEY: ${{ secrets.REFRESH_TOKEN_SECRET_KEY }}
+          PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
+          PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         run: |
           echo "Deploying Terraform infrastructure changes..."
+          
           if ./infra/scripts/apply.sh dev; then
             echo "terraform-result=success" >> $GITHUB_OUTPUT
             echo "✅ Terraform deployment completed successfully"
