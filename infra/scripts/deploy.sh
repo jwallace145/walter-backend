@@ -123,6 +123,11 @@ set_environment_variables() {
             fi
         done
 
+        # Print missing vars if any are found
+        if [[ ${#missing_vars[@]} -gt 0 ]]; then
+            log_info "Missing environment variables: ${missing_vars[*]}"
+        fi
+
         if [[ ${#missing_vars[@]} -eq 0 ]]; then
             return 0  # All vars are set
         else
@@ -136,12 +141,11 @@ set_environment_variables() {
         return 0
     fi
 
-    log_info "Some required environment variables are missing. Attempting to load from .dev file..."
+    log_info "Attempting to load from .dev file..."
 
     # Check if .dev file exists
     if [[ ! -f .dev ]]; then
         log_error "Error: .dev file not found!"
-        log_error "Missing required environment variables ${missing_vars}"
         log_error "Please create a .dev file with the required environment variables"
         exit 1
     fi
