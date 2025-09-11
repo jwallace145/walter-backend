@@ -26,30 +26,30 @@ jobs:
         working-directory: ./
 
     steps:
-      - name: 'Checkout'
+      - name: 'Checkout source code'
         uses: actions/checkout@v4
 
-      - name: 'Configure AWS Credentials'
+      - name: 'Configure AWS Credentials for WalterAI account access'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-      - name: 'Setup Terraform'
+      - name: 'Setup Terraform v1.13.0'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: 'Make script executable'
+      - name: 'Make Terraform plan script executable'
         run: chmod +x ./infra/scripts/plan.sh
 
-      - name: 'Terraform Format'
+      - name: 'Format Terraform source code'
         id: fmt
         run: terraform fmt -check -recursive -diff
         continue-on-error: true
 
-      - name: 'Terraform Plan (Dev)'
+      - name: 'Terraform plan (dev)'
         id: plan
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}

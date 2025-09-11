@@ -17,18 +17,18 @@ jobs:
     environment: dev
 
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker Buildx for cross-platform builds
         uses: docker/setup-buildx-action@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install pipenv
+      - name: Install pipenv for dependency management
         run: |
           python -m pip install --upgrade pip
           pip install pipenv
@@ -37,29 +37,29 @@ jobs:
         run: |
           pipenv requirements --dev > requirements.txt
 
-      - name: Install dependencies
+      - name: Install dependencies from requirements
         run: |
           pip install -r requirements.txt
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for WalterAI account access
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy Docker image to ECR
+      - name: Deploy new latest WalterBackend image to ECR
         run: python deploy.py
 
-      - name: Setup Terraform
+      - name: Setup Terraform v1.13.0
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Make Terraform scripts executable
+      - name: Make Terraform apply script executable
         run: chmod +x ./infra/scripts/apply.sh
 
-      - name: Deploy Terraform infrastructure
+      - name: Deploy Terraform infrastructure via apply script
         id: terraform-apply
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
