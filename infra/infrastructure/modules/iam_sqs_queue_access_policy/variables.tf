@@ -16,7 +16,7 @@ variable "access_type" {
 
   validation {
     condition     = contains(["consumer", "producer"], var.access_type)
-    error_message = "access_type must be either 'consumer' or 'producer'."
+    error_message = "The access_type must be either 'consumer' or 'producer'."
   }
 }
 

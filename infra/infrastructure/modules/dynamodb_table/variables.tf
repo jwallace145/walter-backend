@@ -25,7 +25,7 @@ variable "global_secondary_indexes" {
     name            = string
     hash_key        = string
     range_key       = optional(string)
-    projection_type = optional(string, "ALL")
+    projection_type = optional(string)
   }))
   default = []
 }
