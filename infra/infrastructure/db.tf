@@ -8,6 +8,7 @@ locals {
 
   USERS_EMAIL_INDEX               = "Users-EmailIndex-${var.domain}"
   ACCOUNTS_PLAID_ACCOUNT_ID_INDEX = "Accounts-PlaidAccountIdIndex-${var.domain}"
+  ACCOUNTS_PLAID_ITEM_ID_INDEX    = "Accounts-PlaidItemIdIndex-${var.domain}"
   TRANSACTIONS_USER_INDEX         = "Transactions-UserIndex-${var.domain}"
   SECURITIES_TICKER_INDEX         = "Securities-TickerIndex-${var.domain}"
 }
@@ -64,12 +65,18 @@ module "accounts_table" {
     user_id          = "S"
     account_id       = "S"
     plaid_account_id = "S"
+    plaid_item_id    = "S"
   }
 
   global_secondary_indexes = [
     {
       name     = local.ACCOUNTS_PLAID_ACCOUNT_ID_INDEX
       hash_key = "plaid_account_id"
+    },
+    {
+      name      = local.ACCOUNTS_PLAID_ITEM_ID_INDEX,
+      hash_key  = "plaid_item_id",
+      range_key = "plaid_account_id"
     }
   ]
 }

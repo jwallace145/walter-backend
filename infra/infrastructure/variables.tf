@@ -120,3 +120,50 @@ variable "sync_transactions_max_retry_attempts" {
     error_message = "sync_transaction_max_retry_attempts must be between 1 and 10."
   }
 }
+
+variable "access_token_secret_key" {
+  description = "The secret key used to create access tokens used for API authentication."
+  type        = string
+}
+
+variable "refresh_token_secret_key" {
+  description = "The secret key used to create refresh tokens used for API authentication."
+  type        = string
+}
+
+variable "datadog_api_key" {
+  description = "The Datadog API key used to send metrics to Datadog."
+  type        = string
+}
+
+variable "datadog_app_key" {
+  description = "The Datadog application key used to send metrics to Datadog."
+  type        = string
+}
+
+variable "datadog_api_url" {
+  description = "The Datadog API URL used to send metrics to Datadog."
+  type        = string
+}
+
+variable "plaid_client_id" {
+  description = "The Plaid client ID used to authenticate with Plaid."
+  type        = string
+}
+
+variable "plaid_secret" {
+  description = "The Plaid secret used to authenticate with Plaid."
+  type        = string
+}
+
+variable "polygon_api_key" {
+  description = "The Polygon API key used to make requests to Polygon for financial data."
+  type        = string
+}
+
+variable "stripe_secret_key" {
+  description = "The secret key used to interact with the WalterAI Stripe account for customer billing."
+  type        = string
+}
+
+

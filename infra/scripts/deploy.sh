@@ -46,69 +46,17 @@ check_aws_cli() {
     log_success "AWS CLI is configured"
 }
 
-# Function to retrieve Datadog credentials from Secrets Manager
+# Function to retrieve Datadog credentials from shell
+# used by Terraform to create Datadog resources like monitors
 get_datadog_credentials() {
-    log_info "Retrieving Datadog credentials from AWS Secrets Manager..."
-
-    # Get the secret value
-    local secret_json
-    if ! secret_json=$(aws secretsmanager get-secret-value \
-        --region "us-east-1" \
-        --secret-id "$SECRET_NAME" \
-        --query SecretString \
-        --output text 2>/dev/null); then
-        log_error "Failed to retrieve secret '$SECRET_NAME' from Secrets Manager"
-        log_error "Please ensure:"
-        log_error "  1. The secret exists in your current AWS region"
-        log_error "  2. You have permissions to access the secret"
-        log_error "  3. The secret name is correct: $SECRET_NAME"
-        exit 1
-    fi
-
-    # Parse the JSON and extract all three keys
-    local datadog_api_key datadog_app_key datadog_api_url
-    if ! datadog_api_key=$(echo "$secret_json" | jq -r '.DATADOG_API_KEY' 2>/dev/null); then
-        log_error "Failed to parse secret JSON or extract DATADOG_API_KEY"
-        log_error "Expected JSON format: {\"DATADOG_API_KEY\": \"your-api-key\", \"DATADOG_APP_KEY\": \"your-app-key\", \"DATADOG_API_URL\": \"us5.datadoghq.com\"}"
-        exit 1
-    fi
-
-    if ! datadog_app_key=$(echo "$secret_json" | jq -r '.DATADOG_APP_KEY' 2>/dev/null); then
-        log_error "Failed to extract DATADOG_APP_KEY from secret"
-        log_error "Expected JSON format: {\"DATADOG_API_KEY\": \"your-api-key\", \"DATADOG_APP_KEY\": \"your-app-key\", \"DATADOG_API_URL\": \"us5.datadoghq.com\"}"
-        exit 1
-    fi
-
-    if ! datadog_api_url=$(echo "$secret_json" | jq -r '.DATADOG_API_URL' 2>/dev/null); then
-        log_error "Failed to extract DATADOG_API_URL from secret"
-        log_error "Expected JSON format: {\"DATADOG_API_KEY\": \"your-api-key\", \"DATADOG_APP_KEY\": \"your-app-key\", \"DATADOG_API_URL\": \"us5.datadoghq.com\"}"
-        exit 1
-    fi
-
-    # Check if all keys were extracted successfully
-    if [ "$datadog_api_key" == "null" ] || [ -z "$datadog_api_key" ]; then
-        log_error "DATADOG_API_KEY not found in secret or is empty"
-        log_error "Please ensure the secret contains all required keys"
-        exit 1
-    fi
-
-    if [ "$datadog_app_key" == "null" ] || [ -z "$datadog_app_key" ]; then
-        log_error "DATADOG_APP_KEY not found in secret or is empty"
-        log_error "Please ensure the secret contains all required keys"
-        exit 1
-    fi
-
-    if [ "$datadog_api_url" == "null" ] || [ -z "$datadog_api_url" ]; then
-        log_error "DATADOG_API_URL not found in secret or is empty"
-        log_error "Please ensure the secret contains all required keys"
-        exit 1
-    fi
+    log_info "Setting Datadog environment variables from TF_VAR values..."
 
     # Export as environment variables for Terraform
-    export DD_API_KEY="$datadog_api_key"
-    export DD_APP_KEY="$datadog_app_key"
-    export DD_HOST="$datadog_api_url"
-    log_success "Datadog credentials and site configuration retrieved and set as environment variables"
+    export DD_API_KEY="$TF_VAR_datadog_api_key"
+    export DD_APP_KEY="$TF_VAR_datadog_app_key"
+    export DD_HOST="$TF_VAR_datadog_api_url"
+
+    log_success "Datadog credentials and site configuration set as environment variables"
 }
 
 # Function to check if jq is installed
@@ -148,6 +96,44 @@ validate_inputs() {
             exit 1
             ;;
     esac
+}
+
+set_environment_variables() {
+    # TODO: Support non "dev" environments
+    # Check if .env exists
+    if [ ! -f .dev ]; then
+        log_error "Error: .dev file not found!"
+        log_error "Please create a .dev file with the required environment variables"
+        exit 1
+    fi
+
+    # Load environment variables
+    log_info "Loading environment variables..."
+    set -a
+    source .dev
+    set +a
+
+    # Validate required variables
+    required_vars=(
+        "TF_VAR_datadog_api_key"
+        "TF_VAR_datadog_app_key"
+        "TF_VAR_datadog_api_url"
+        "TF_VAR_access_token_secret_key"
+        "TF_VAR_refresh_token_secret_key"
+        "TF_VAR_plaid_client_id"
+        "TF_VAR_plaid_secret"
+        "TF_VAR_polygon_api_key"
+        "TF_VAR_stripe_secret_key"
+    )
+
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            log_error "Error: Required variable $var is not set"
+            exit 1
+        fi
+    done
+
+    log_success "Loaded environment variables successfully!"
 }
 
 # Function to run terraform
@@ -198,6 +184,9 @@ cleanup() {
 # Main execution
 main() {
     log_info "🚀 Starting deployment process..."
+
+    # set environment variables from .env file
+    set_environment_variables
 
     # Validate inputs first
     validate_inputs

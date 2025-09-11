@@ -224,8 +224,13 @@ class WalterDB:
     def get_account(self, user_id: str, account_id: str) -> Optional[Account]:
         return self.accounts_table.get_account(user_id, account_id)
 
-    def get_account_by_plaid_account_id(self, plaid_account_id) -> Optional[Account]:
+    def get_account_by_plaid_account_id(
+        self, plaid_account_id: str
+    ) -> Optional[Account]:
         return self.accounts_table.get_account_by_plaid_account_id(plaid_account_id)
+
+    def get_accounts_by_plaid_item_id(self, plaid_item_id: str) -> List[Account]:
+        return self.accounts_table.get_accounts_by_plaid_item_id(plaid_item_id)
 
     def get_accounts(self, user_id: str) -> List[Account]:
         return self.accounts_table.get_accounts(user_id)

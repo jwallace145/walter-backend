@@ -17,13 +17,13 @@ class SyncUserTransactionsTask:
     WORKFLOW_NAME = "SyncUserTransactions"
 
     user_id: str
-    account_id: str
+    plaid_item_id: str
 
     def to_dict(self) -> dict:
         return {
             "workflow_name": self.WORKFLOW_NAME,
             "user_id": self.user_id,
-            "account_id": self.account_id,
+            "plaid_item_id": self.plaid_item_id,
         }
 
 
