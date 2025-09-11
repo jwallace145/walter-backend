@@ -141,6 +141,7 @@ set_environment_variables() {
     # Check if .dev file exists
     if [[ ! -f .dev ]]; then
         log_error "Error: .dev file not found!"
+        log_error "Missing required environment variables ${missing_vars}"
         log_error "Please create a .dev file with the required environment variables"
         exit 1
     fi
