@@ -212,6 +212,7 @@ run_terraform() {
         -var="plaid_secret=$PLAID_SECRET"
         -var="polygon_api_key=$POLYGON_API_KEY"
         -var="stripe_secret_key=$STRIPE_SECRET_KEY"
+        -auto-approve
     )
 
     # Run the specified action
