@@ -117,6 +117,10 @@ class ExchangePublicToken(WalterAPIMethod):
         details: Tuple[str, List[AccountDetails]] = self._get_details_from_event(event)
         token, accounts = details
 
+        # get institution details from set of accounts linked to institution
+        institution_details: Tuple[str, str] = self._get_institution_details(accounts)
+        institution_id, institution_name = institution_details
+
         # exchange the public token for an access token and item ID
         # the access token and item ID are stored in the database for future use
         response: ExchangePublicTokenResponse = self._exchange_token(token)
@@ -136,7 +140,8 @@ class ExchangePublicToken(WalterAPIMethod):
             status=Status.SUCCESS,
             message="Tokens exchanged successfully!",
             data={
-                "institution_name": "test",
+                "institution_id": institution_id,
+                "institution_name": institution_name,
                 "num_accounts": len(accounts),
             },
         )
@@ -186,6 +191,29 @@ class ExchangePublicToken(WalterAPIMethod):
 
         # return relevant details from event to caller
         return public_token, accounts
+
+    def _get_institution_details(
+        self, accounts: List[AccountDetails]
+    ) -> Tuple[str, str]:
+        institution_ids = set()
+        institution_names = set()
+
+        # add all accounts institution details to sets
+        for account in accounts:
+            institution_ids.add(account.institution_id)
+            institution_names.add(account.institution_name)
+
+        # ensure only one institution ID and name are returned
+        if len(institution_ids) == 0:
+            raise ValueError("No Plaid institution IDs found for account(s)")
+        if len(institution_names) == 0:
+            raise ValueError("No Plaid institution names found for account(s)")
+        if len(institution_ids) > 1:
+            raise ValueError("Multiple Plaid institution IDs found for account(s)")
+        if len(institution_names) > 1:
+            raise ValueError("Multiple Plaid institution names found for account(s)")
+
+        return institution_ids.pop(), institution_names.pop()
 
     def _exchange_token(self, public_token: str) -> ExchangePublicTokenResponse:
         """

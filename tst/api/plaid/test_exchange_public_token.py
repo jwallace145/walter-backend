@@ -1,7 +1,8 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import pytest
 
+from src.api.common.models import HTTPStatus, Response, Status
 from src.api.plaid.exchange_public_token.method import ExchangePublicToken
 from src.api.plaid.exchange_public_token.models import AccountDetails
 from src.api.routing.methods import HTTPMethod
@@ -9,6 +10,7 @@ from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
+from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
@@ -24,7 +26,7 @@ def exchange_public_token_api(
     datadog_metrics: DatadogMetricsClient,
     walter_db: WalterDB,
     plaid_client: MockPlaidClient,
-    sync_transactions_task_queue: SyncUserTransactionsTaskQueue = None,
+    sync_transactions_task_queue: SyncUserTransactionsTaskQueue,
 ) -> ExchangePublicToken:
     return ExchangePublicToken(
         Domain.TESTING,
@@ -117,3 +119,43 @@ def test_save_accounts_success(
     assert accounts[0].user_id == user_id
     assert accounts[0].plaid_account_id == "fake-account-id"
     assert walter_db.get_account_by_plaid_account_id("fake-account-id") is not None
+
+
+def test_exchange_public_token_success(
+    exchange_public_token_api: ExchangePublicToken,
+    walter_authenticator: WalterAuthenticator,
+    walter_db: WalterDB,
+) -> None:
+    user_id = "user-001"
+    session_id = "session-001"
+    token, expiry = walter_authenticator.generate_access_token(user_id, session_id)
+    event: dict = get_api_event(
+        path="/plaid/exchange_public_token",
+        http_method=HTTPMethod.POST,
+        token=token,
+        body={
+            "public_token": "fake-public-token",
+            "institution_id": "fake-institution-id",
+            "institution_name": "Fake Institution",
+            "accounts": [
+                {
+                    "account_id": "fake-account-id",
+                    "account_name": "Fake Account",
+                    "account_type": "credit",
+                    "account_subtype": "credit card",
+                    "account_last_four_numbers": "1234",
+                }
+            ],
+        },
+    )
+    session: Optional[Session] = walter_db.get_session(user_id, session_id)
+    assert session is not None
+    response: Response = exchange_public_token_api.execute(event, session)
+    assert response.api_name == ExchangePublicToken.API_NAME
+    assert response.http_status == HTTPStatus.OK
+    assert response.status == Status.SUCCESS
+    assert response.data is not None
+    data = response.data
+    assert data["institution_id"] == "fake-institution-id"
+    assert data["institution_name"] == "Fake Institution"
+    assert data["num_accounts"] == 1
