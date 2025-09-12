@@ -20,36 +20,47 @@ jobs:
   terraform:
     name: 'Terraform Format and Plan'
     runs-on: ubuntu-latest
+    environment: dev
     defaults:
       run:
         working-directory: ./
 
     steps:
-      - name: 'Checkout'
+      - name: 'Checkout source code'
         uses: actions/checkout@v4
 
-      - name: 'Configure AWS Credentials'
+      - name: 'Configure AWS Credentials for WalterAI account access'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-      - name: 'Setup Terraform'
+      - name: 'Setup Terraform v1.13.0'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: 'Make script executable'
+      - name: 'Make Terraform plan script executable'
         run: chmod +x ./infra/scripts/plan.sh
 
-      - name: 'Terraform Format'
+      - name: 'Format Terraform source code'
         id: fmt
         run: terraform fmt -check -recursive -diff
         continue-on-error: true
 
-      - name: 'Terraform Plan (Dev)'
+      - name: 'Terraform plan (dev)'
         id: plan
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+          DATADOG_SITE: ${{ secrets.DATADOG_SITE }}
+          ACCESS_TOKEN_SECRET_KEY: ${{ secrets.ACCESS_TOKEN_SECRET_KEY }}
+          REFRESH_TOKEN_SECRET_KEY: ${{ secrets.REFRESH_TOKEN_SECRET_KEY }}
+          PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
+          PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         run: |
           ./infra/scripts/plan.sh dev
         continue-on-error: true

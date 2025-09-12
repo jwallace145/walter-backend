@@ -10,7 +10,6 @@ import boto3
 from mypy_boto3_ecr import ECRClient
 from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_s3 import S3Client
-from mypy_boto3_secretsmanager import SecretsManagerClient
 
 ##########
 # MODELS #
@@ -33,7 +32,7 @@ AWS_REGION = "us-east-1"
 """(str): The AWS deployment region."""
 
 APP_ENVIRONMENT = AppEnvironment.DEVELOPMENT.value
-"""(str): The application environment of the WalterAPI to deploy."""
+"""(str): The application environment of WalterBackend to deploy."""
 
 WALTER_BACKEND_IMAGE_URI = (
     "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:latest"
@@ -46,12 +45,6 @@ LAMBDA_FUNCTIONS = [
     f"WalterBackend-Workflow-{APP_ENVIRONMENT}",
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
-
-WALTER_BACKEND_DATADOG_API_KEY_SECRET = (
-    "WalterBackendDatadogAPIKey",
-    "DATADOG_API_KEY",
-)
-"""(str): The name of the secret and the secret key of the Datadog API key in Secrets Manager."""
 
 
 ###########
@@ -90,6 +83,14 @@ def print_build_step_header(step_name: str, environment: str) -> None:
     print("=" * 60 + "\n")
 
 
+def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
+    print_build_step_header("INITIALIZING BOTO3 CLIENTS", APP_ENVIRONMENT)
+    ecr_client = boto3.client("ecr", region_name=AWS_REGION)
+    lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+    s3_client = boto3.client("s3", region_name=AWS_REGION)
+    return s3_client, ecr_client, lambda_client
+
+
 def update_docs(s3_client: S3Client) -> None:
     """
     This function uploads the OpenAPI specification file to the WalterAPI documentation S3 bucket.
@@ -112,9 +113,7 @@ def update_docs(s3_client: S3Client) -> None:
     )
 
 
-def build_and_upload_image(
-    ecr_client: ECRClient, secrets_client: SecretsManagerClient
-) -> None:
+def build_and_upload_image(ecr_client: ECRClient) -> None:
     """
     Builds and uploads the WalterAPI Docker image to an Amazon ECR repository.
 
@@ -136,13 +135,6 @@ def build_and_upload_image(
     endpoint = auth_data["proxyEndpoint"]
     username, password = base64.b64decode(token).decode("utf-8").split(":")
 
-    print("Getting Datadog API key from Secrets Manager")
-    dd_api_key = json.loads(
-        secrets_client.get_secret_value(
-            SecretId=WALTER_BACKEND_DATADOG_API_KEY_SECRET[0]
-        )["SecretString"]
-    )[WALTER_BACKEND_DATADOG_API_KEY_SECRET[1]]
-
     # build and tag the latest image
     run_cmd(
         [
@@ -161,8 +153,6 @@ def build_and_upload_image(
             "buildx",
             "build",
             "--platform=linux/arm64",
-            "--build-arg",
-            f"DD_API_KEY={dd_api_key}",
             "-t",
             "walter-backend",
             "--load",
@@ -204,26 +194,17 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
     sleep(30)
 
 
-###########
-# CLIENTS #
-###########
-
-print("Creating Boto3 clients...")
-ecr_client = boto3.client("ecr", region_name=AWS_REGION)
-events_client = boto3.client("events", region_name=AWS_REGION)
-lambda_client = boto3.client("lambda", region_name=AWS_REGION)
-s3_client = boto3.client("s3", region_name=AWS_REGION)
-secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
-
 ##########
 # SCRIPT #
 ##########
+
+s3_client, ecr_client, lambda_client = create_boto3_clients()
 
 # TODO: Move this logic to Terraform, update S3 bucket when OpenAPI specifications change
 update_docs(s3_client)
 
 # Not sure if Terraform can automate this yet, so we'll do it manually for now
-build_and_upload_image(ecr_client, secrets_client)
+build_and_upload_image(ecr_client)
 
 # TODO: Move this logic to Terraform, update functions when image digest hash changes (i.e. new changes)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)

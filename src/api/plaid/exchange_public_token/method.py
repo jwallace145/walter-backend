@@ -126,7 +126,7 @@ class ExchangePublicToken(WalterAPIMethod):
 
         # add sync transactions tasks for each saved account on initial
         # public token exchange with Plaid to populate transactions data
-        self._add_sync_transactions_tasks(saved_accounts)
+        self._add_sync_transactions_tasks(user.user_id, saved_accounts)
 
         # return successful exchange public token response
         return Response(
@@ -253,7 +253,9 @@ class ExchangePublicToken(WalterAPIMethod):
             LOG.debug(f"Account '{account.account_id}' saved for user '{user.user_id}'")
         return saved_accounts
 
-    def _add_sync_transactions_tasks(self, accounts: List[Account]) -> None:
+    def _add_sync_transactions_tasks(
+        self, user_id: str, accounts: List[Account]
+    ) -> None:
         """
         Adds synchronization tasks for account transactions to the task queue.
 
@@ -267,12 +269,15 @@ class ExchangePublicToken(WalterAPIMethod):
                 sync transactions with Plaid.
 
         """
-        LOG.info(f"Adding sync transactions tasks for {len(accounts)} accounts")
-        for account in accounts:
+        plaid_item_ids = set([account.plaid_item_id for account in accounts])
+        LOG.info(
+            f"Adding sync transactions tasks for {len(plaid_item_ids)} Plaid items"
+        )
+        for plaid_item_id in plaid_item_ids:
             LOG.debug(
-                f"Adding sync transactions task for account '{account.account_id}'"
+                f"Adding sync transactions task for Plaid item: '{plaid_item_id}'"
             )
-            task = SyncUserTransactionsTask(account.user_id, account.account_id)
+            task = SyncUserTransactionsTask(user_id, plaid_item_id)
             task_id = self.queue.add_task(task)
             LOG.debug(f"Sync transactions task added to queue with ID '{task_id}'")
         LOG.info(f"Sync transactions tasks added for {len(accounts)} accounts")

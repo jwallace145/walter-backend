@@ -17,6 +17,7 @@ class AccountsTable:
 
     TABLE_NAME_FORMAT = "Accounts-{domain}"
     PLAID_ACCOUNT_ID_INDEX_NAME_FORMAT = "Accounts-PlaidAccountIdIndex-{domain}"
+    PLAID_ITEM_ID_INDEX_NAME_FORMAT = "Accounts-PlaidItemIdIndex-{domain}"
 
     ddb: WalterDDBClient
     domain: Domain
@@ -132,6 +133,19 @@ class AccountsTable:
             self.table_name, AccountsTable._get_accounts_by_user_key(user_id)
         )
         log.info(f"Found {len(accounts)} account(s) for user!")
+        return [Account.from_ddb_item(account) for account in accounts]
+
+    def get_accounts_by_plaid_item_id(self, plaid_item_id: str) -> List[Account]:
+        log.info(f"Getting all accounts with Plaid item ID '{plaid_item_id}'")
+        accounts = self.ddb.query_index(
+            self.table_name,
+            self.PLAID_ITEM_ID_INDEX_NAME_FORMAT.format(domain=self.domain.value),
+            "plaid_item_id = :plaid_item_id",
+            {":plaid_item_id": {"S": plaid_item_id}},
+        )
+        log.info(
+            f"Found {len(accounts)} account(s) with Plaid item ID '{plaid_item_id}'!"
+        )
         return [Account.from_ddb_item(account) for account in accounts]
 
     def update_account(self, account: Account) -> Account:

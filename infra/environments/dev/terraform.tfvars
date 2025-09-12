@@ -29,4 +29,3 @@ workflow_lambda_memory_mb = 1024
 # SyncUserTransactions Workflow Settings
 sync_transactions_max_concurrency    = 2
 sync_transactions_max_retry_attempts = 1
-

@@ -1,14 +1,19 @@
-secrets.sh
 *.log
 .pytest_cache
 local.py
 tmp
 .coverage
 .idea
+
+# ignore any sensitive env vars
 .env
+.dev
+.stg
+.prod
+secrets.sh
+
 *.pyc
 coverage.xml
-infra/infra.yml
 .terraform/
 *.tfstate
 *.tfstate.backup

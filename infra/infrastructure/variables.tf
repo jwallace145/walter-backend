@@ -8,7 +8,7 @@ variable "domain" {
 
   validation {
     condition     = contains(["dev", "stg", "prod"], var.domain)
-    error_message = "Domain must be dev, stg, or prod!"
+    error_message = "The domain must be 'dev', 'stg', or 'prod'."
   }
 }
 
@@ -18,7 +18,7 @@ variable "log_level" {
 
   validation {
     condition     = contains(["DEBUG", "INFO"], var.log_level)
-    error_message = "log_level must be DEBUG or INFO!"
+    error_message = "The log_level must be 'DEBUG' or 'INFO'."
   }
 }
 
@@ -28,7 +28,7 @@ variable "log_retention_in_days" {
 
   validation {
     condition     = var.log_retention_in_days >= 0 && var.log_retention_in_days < 365
-    error_message = "log_retention_in_days must be between 1 day and 365 days! "
+    error_message = "The log_retention_in_days must be between 1 day and 365 days."
   }
 }
 
@@ -42,8 +42,8 @@ variable "api_timeout_seconds" {
   type        = number
 
   validation {
-    condition     = var.api_timeout_seconds >= 0 && var.api_timeout_seconds <= 900
-    error_message = "api_timeout_seconds must be between 0 and 900 seconds (15 minutes)!"
+    condition     = var.api_timeout_seconds >= 5 && var.api_timeout_seconds <= 60
+    error_message = "The api_timeout_seconds must be between 5 and 60 seconds (1 minute)."
   }
 }
 
@@ -52,8 +52,8 @@ variable "api_lambda_memory_mb" {
   type        = number
 
   validation {
-    condition     = var.api_lambda_memory_mb >= 0 && var.api_lambda_memory_mb <= 10240
-    error_message = "api_lambda_memory_mb must be between 0 and 10240 MB!"
+    condition     = var.api_lambda_memory_mb >= 128 && var.api_lambda_memory_mb <= 10240
+    error_message = "The api_lambda_memory_mb must be between 128 and 10240 MB (10 GB)."
   }
 }
 
@@ -62,8 +62,8 @@ variable "canary_timeout_seconds" {
   type        = number
 
   validation {
-    condition     = var.canary_timeout_seconds >= 0 && var.canary_timeout_seconds <= 900
-    error_message = "canary_timeout_seconds must be between 0 and 900 seconds (15 minutes)!"
+    condition     = var.canary_timeout_seconds >= 5 && var.canary_timeout_seconds <= 60
+    error_message = "The canary_timeout_seconds must be between 5 and 60 seconds (1 minute)."
   }
 }
 
@@ -72,8 +72,8 @@ variable "canary_lambda_memory_mb" {
   type        = number
 
   validation {
-    condition     = var.canary_lambda_memory_mb >= 0 && var.canary_lambda_memory_mb <= 10240
-    error_message = "canary_lambda_memory_mb must be between 0 and 10240 MB!"
+    condition     = var.canary_lambda_memory_mb >= 128 && var.canary_lambda_memory_mb <= 10240
+    error_message = "The canary_lambda_memory_mb must be between 128 and 10240 MB (10 GB)."
   }
 }
 
@@ -83,8 +83,8 @@ variable "workflow_timeout_seconds" {
   default     = 180
 
   validation {
-    condition     = var.workflow_timeout_seconds >= 0 && var.workflow_timeout_seconds <= 900
-    error_message = "workflow_timeout_seconds must be between 0 and 900 seconds (15 minutes)!"
+    condition     = var.workflow_timeout_seconds >= 5 && var.workflow_timeout_seconds <= 180
+    error_message = "The workflow_timeout_seconds must be between 5 and 180 seconds (3 minutes)."
   }
 }
 
@@ -94,8 +94,8 @@ variable "workflow_lambda_memory_mb" {
   default     = 1024
 
   validation {
-    condition     = var.workflow_lambda_memory_mb >= 0 && var.workflow_lambda_memory_mb <= 10240
-    error_message = "workflow_lambda_memory_mb must be between 0 and 10240 MB!"
+    condition     = var.workflow_lambda_memory_mb >= 128 && var.workflow_lambda_memory_mb <= 10240
+    error_message = "The workflow_lambda_memory_mb must be between 128 and 10240 MB (10 GB)."
   }
 }
 
@@ -106,7 +106,7 @@ variable "sync_transactions_max_concurrency" {
 
   validation {
     condition     = var.sync_transactions_max_concurrency >= 2 && var.sync_transactions_max_concurrency <= 1000
-    error_message = "sync_transactions_max_concurrency must be between 2 and 1000."
+    error_message = "The sync_transactions_max_concurrency must be between 2 and 1000."
   }
 }
 
@@ -117,6 +117,53 @@ variable "sync_transactions_max_retry_attempts" {
 
   validation {
     condition     = var.sync_transactions_max_retry_attempts >= 1 && var.sync_transactions_max_retry_attempts <= 10
-    error_message = "sync_transaction_max_retry_attempts must be between 1 and 10."
+    error_message = "The sync_transaction_max_retry_attempts must be between 1 and 10."
   }
 }
+
+variable "access_token_secret_key" {
+  description = "The secret key used to create access tokens used for API authentication."
+  type        = string
+}
+
+variable "refresh_token_secret_key" {
+  description = "The secret key used to create refresh tokens used for API authentication."
+  type        = string
+}
+
+variable "datadog_api_key" {
+  description = "The Datadog API key used to send metrics to Datadog."
+  type        = string
+}
+
+variable "datadog_app_key" {
+  description = "The Datadog application key used to send metrics to Datadog."
+  type        = string
+}
+
+variable "datadog_site" {
+  description = "The Datadog site used to send metrics and logs to Datadog."
+  type        = string
+}
+
+variable "plaid_client_id" {
+  description = "The Plaid client ID used to authenticate with Plaid."
+  type        = string
+}
+
+variable "plaid_secret" {
+  description = "The Plaid secret used to authenticate with Plaid."
+  type        = string
+}
+
+variable "polygon_api_key" {
+  description = "The Polygon API key used to make requests to Polygon for financial data."
+  type        = string
+}
+
+variable "stripe_secret_key" {
+  description = "The secret key used to interact with the WalterAI Stripe account for customer billing."
+  type        = string
+}
+
+

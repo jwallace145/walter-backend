@@ -54,7 +54,12 @@ module "api_role_secrets_access" {
     local.DATADOG_SECRET,
     local.POLYGON_SECRET,
     local.PLAID_SECRET,
-    local.STRIPE_SECRET
+    local.STRIPE_SECRET,
+    module.secrets["Auth"].secret_name,
+    module.secrets["Datadog"].secret_name,
+    module.secrets["Polygon"].secret_name,
+    module.secrets["Plaid"].secret_name,
+    module.secrets["Stripe"].secret_name
   ]
 }
 
@@ -91,6 +96,7 @@ module "canary_role_secrets_access" {
   policy_name = "canary-secrets-access-policy"
   secret_names = [
     local.AUTH_SECRETS,
+    module.secrets["Auth"].secret_name
   ]
 }
 
@@ -133,7 +139,9 @@ module "workflow_role_secrets_access" {
   policy_name = "workflow-secrets-access-policy"
   secret_names = [
     local.POLYGON_SECRET,
-    local.PLAID_SECRET
+    local.PLAID_SECRET,
+    module.secrets["Polygon"].secret_name,
+    module.secrets["Plaid"].secret_name
   ]
 }
 

@@ -19,7 +19,7 @@ def test_get_polygon_api_key(
     assert walter_sm.get_polygon_api_key() == "test-polygon-api-key"
 
 
-def test_get_stripe_test_secret_key(
+def test_get_stripe_secret_key(
     walter_sm: WalterSecretsManagerClient,
 ) -> None:
-    assert walter_sm.get_stripe_test_secret_key() == "test-stripe-test-secret-key"
+    assert walter_sm.get_stripe_secret_key() == "test-stripe-secret-key"

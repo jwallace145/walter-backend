@@ -85,7 +85,7 @@ class SyncTransactions(WalterAPIMethod):
         user_id, account_id = args
         user: User = self._verify_user_exists(user_id)
         account: Account = self._verify_account_exists(user_id, account_id)
-        self._add_task_to_queue(user_id, account_id)
+        self._add_task_to_queue(user_id, account.plaid_item_id)
         return Response(
             domain=self.domain,
             api_name=SyncTransactions.API_NAME,
@@ -174,18 +174,18 @@ class SyncTransactions(WalterAPIMethod):
 
         return account
 
-    def _add_task_to_queue(self, user_id: str, account_id: str) -> None:
+    def _add_task_to_queue(self, user_id: str, account: Account) -> None:
         """
         Adds a synchronize user transactions task to the queue for processing.
 
         Args:
             user_id: The unique identifier of the user for whom the task is being added.
-            account_id: The unique identifier of the account associated with the task.
+            account: The account object that contains the Plaid item ID.
         """
         LOG.info(
-            f"Adding sync transactions task to queue for user '{user_id}' and account '{account_id}'"
+            f"Adding sync transactions task to queue for account '{account.account_id}' and Plaid item ID '{account.plaid_item_id}'"
         )
-        task = SyncUserTransactionsTask(user_id, account_id)
+        task = SyncUserTransactionsTask(user_id, account.plaid_item_id)
         self.queue.add_task(task)
         LOG.info("Sync user transactions event successfully added to queue!")
 

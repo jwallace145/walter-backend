@@ -223,8 +223,8 @@ class PlaidClient:
         """
         # TODO: Get Plaid credentials from secrets manager by environment (e.g. sandbox, production)
         if self.client_id is None or self.secret is None:
-            self.client_id = self.walter_sm.get_plaid_sandbox_credentials_client_id()
-            self.secret = self.walter_sm.get_plaid_sandbox_credentials_secret_key()
+            self.client_id = self.walter_sm.get_plaid_client_id()
+            self.secret = self.walter_sm.get_plaid_secret_key()
             self.client = PlaidApi(
                 ApiClient(
                     Configuration(

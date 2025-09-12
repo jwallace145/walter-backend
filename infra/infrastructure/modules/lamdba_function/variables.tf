@@ -55,3 +55,13 @@ variable "log_retention_in_days" {
   type        = number
   default     = 7
 }
+
+variable "datadog_api_key" {
+  description = "The Datadog API key used to emit metrics and forward logs to Datadog"
+  type        = string
+}
+
+variable "datadog_site" {
+  description = "The Datadog site used send application data to Datadog"
+  type        = string
+}

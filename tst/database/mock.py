@@ -143,17 +143,25 @@ class MockDDB:
             AttributeDefinitions=[
                 {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "plaid_item_id", "AttributeType": "S"},
                 {"AttributeName": "plaid_account_id", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
             GlobalSecondaryIndexes=[
+                {
+                    "IndexName": f"Accounts-PlaidItemIdIndex-{Domain.TESTING.value}",
+                    "KeySchema": [
+                        {"AttributeName": "plaid_item_id", "KeyType": "HASH"}
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
                 {
                     "IndexName": f"Accounts-PlaidAccountIdIndex-{Domain.TESTING.value}",
                     "KeySchema": [
                         {"AttributeName": "plaid_account_id", "KeyType": "HASH"}
                     ],
                     "Projection": {"ProjectionType": "ALL"},
-                }
+                },
             ],
         )
         with open(input_file_name) as accounts_f:
@@ -201,6 +209,12 @@ class MockDDB:
                         },
                         "plaid_account_id": {
                             "S": json_account["plaid_account_id"],
+                        },
+                        "plaid_item_id": {
+                            "S": json_account["plaid_item_id"],
+                        },
+                        "plaid_access_token": {
+                            "S": json_account["plaid_access_token"],
                         },
                     }
                 ).to_ddb_item()
