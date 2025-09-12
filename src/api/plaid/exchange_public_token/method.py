@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 
 from src.api.common.exceptions import (
     BadRequest,
+    InvalidPlaidInstitution,
     NotAuthenticated,
     PlaidItemAlreadyExists,
     UserDoesNotExist,
@@ -66,6 +67,7 @@ class ExchangePublicToken(WalterAPIMethod):
         (BadRequest, HTTPStatus.BAD_REQUEST),
         (UserDoesNotExist, HTTPStatus.NOT_FOUND),
         (PlaidItemAlreadyExists, HTTPStatus.UNAUTHORIZED),
+        (InvalidPlaidInstitution, HTTPStatus.BAD_REQUEST),
     ]
 
     walter_db: WalterDB
@@ -205,13 +207,21 @@ class ExchangePublicToken(WalterAPIMethod):
 
         # ensure only one institution ID and name are returned
         if len(institution_ids) == 0:
-            raise ValueError("No Plaid institution IDs found for account(s)")
+            raise InvalidPlaidInstitution(
+                "No Plaid institution IDs found for account(s)"
+            )
         if len(institution_names) == 0:
-            raise ValueError("No Plaid institution names found for account(s)")
+            raise InvalidPlaidInstitution(
+                "No Plaid institution names found for account(s)"
+            )
         if len(institution_ids) > 1:
-            raise ValueError("Multiple Plaid institution IDs found for account(s)")
+            raise InvalidPlaidInstitution(
+                "Multiple Plaid institution IDs found for account(s)"
+            )
         if len(institution_names) > 1:
-            raise ValueError("Multiple Plaid institution names found for account(s)")
+            raise InvalidPlaidInstitution(
+                "Multiple Plaid institution names found for account(s)"
+            )
 
         return institution_ids.pop(), institution_names.pop()
 

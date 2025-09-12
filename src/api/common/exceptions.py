@@ -118,6 +118,11 @@ class PlaidItemAlreadyExists(Exception):
         super().__init__(message)
 
 
+class InvalidPlaidInstitution(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class AccountDoesNotExist(Exception):
     def __init__(self, message):
         super().__init__(message)

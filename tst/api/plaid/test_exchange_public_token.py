@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 import pytest
 
+from src.api.common.exceptions import InvalidPlaidInstitution
 from src.api.common.models import HTTPStatus, Response, Status
 from src.api.plaid.exchange_public_token.method import ExchangePublicToken
 from src.api.plaid.exchange_public_token.models import AccountDetails
@@ -159,3 +160,32 @@ def test_exchange_public_token_success(
     assert data["institution_id"] == "fake-institution-id"
     assert data["institution_name"] == "Fake Institution"
     assert data["num_accounts"] == 1
+
+
+def test_get_institution_details_too_many_institutions_failure(
+    exchange_public_token_api: ExchangePublicToken,
+    walter_authenticator: WalterAuthenticator,
+    walter_db: WalterDB,
+) -> None:
+    account_details: List[AccountDetails] = [
+        AccountDetails(
+            institution_id="fake-institution-id-1",
+            institution_name="Fake Institution 1",
+            account_id="fake-account-id",
+            account_name="Fake Account",
+            account_type="credit",
+            account_subtype="credit card",
+            account_last_four_numbers="1234",
+        ),
+        AccountDetails(
+            institution_id="fake-institution-id-2",
+            institution_name="Fake Institution 1",
+            account_id="fake-account-id",
+            account_name="Fake Account",
+            account_type="credit",
+            account_subtype="credit card",
+            account_last_four_numbers="1234",
+        ),
+    ]
+    with pytest.raises(InvalidPlaidInstitution):
+        exchange_public_token_api._get_institution_details(account_details)
