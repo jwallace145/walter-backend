@@ -58,11 +58,10 @@ TRANSACTIONS_TEST_FILE = "tst/database/data/transactions.jsonl"
 # TEST SQS QUEUES #
 ###################
 
-NEWSLETTERS_QUEUE_NAME = f"NewslettersQueue-{Domain.TESTING.value}"
-"""(str): The name of the Newsletter queue that queues CreateAndSendNewsletter events."""
-
-NEWS_SUMMARIES_QUEUE_NAME = f"NewsSummariesQueue-{Domain.TESTING.value}"
-"""(str): The name of the NewsSummaries queue that queues CreateAndArchiveSummary events."""
+SYNC_TRANSACTIONS_TASK_QUEUE_NAME = (
+    f"WalterBackend-SyncTransactions-Queue-{Domain.TESTING.value}"
+)
+"""(str): The name of the SyncTransactions task queue."""
 
 
 ####################

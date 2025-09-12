@@ -13,11 +13,13 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
+from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
+from src.transactions.queue import SyncUserTransactionsTaskQueue
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
 from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
@@ -102,6 +104,11 @@ def walter_ses(ses_client: SESClient) -> WalterSESClient:
     return WalterSESClient(client=ses_client, domain=Domain.TESTING)
 
 
+@pytest.fixture
+def walter_sqs(sqs_client: SQSClient) -> WalterSQSClient:
+    return WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
+
+
 ##################
 # AUTHENTICATION #
 ##################
@@ -150,6 +157,13 @@ def datadog_metrics() -> DatadogMetricsClient:
             self.emitted.append((metric_name, metric_value, tags))
 
     return MockDatadogMetrics()
+
+
+@pytest.fixture
+def sync_transactions_task_queue(
+    walter_sqs: WalterSQSClient,
+) -> SyncUserTransactionsTaskQueue:
+    return SyncUserTransactionsTaskQueue(walter_sqs)
 
 
 @pytest.fixture
