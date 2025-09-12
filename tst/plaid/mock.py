@@ -7,7 +7,7 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
-from src.plaid.models import SyncTransactionsResponse
+from src.plaid.models import ExchangePublicTokenResponse, SyncTransactionsResponse
 
 UBER_TXN = BankTransaction.create(
     account_id="acct-001",
@@ -34,4 +34,11 @@ class MockPlaidClient:
             added_transactions=[UBER_TXN],
             removed_transactions=[],
             modified_transactions=[],
+        )
+
+    def exchange_public_token(self, public_token: str) -> ExchangePublicTokenResponse:
+        return ExchangePublicTokenResponse(
+            public_token=public_token,
+            access_token="test-access-token",
+            item_id="test-item-id",
         )
