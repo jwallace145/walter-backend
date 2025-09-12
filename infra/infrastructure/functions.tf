@@ -82,7 +82,7 @@ module "functions" {
   datadog_api_key                   = var.datadog_api_key
   datadog_site                      = var.datadog_site
   provisioned_concurrent_executions = each.value.provisioned_concurrent_executions
-  alias_name                        = var.domain
+  alias_name                        = "release"
 }
 
 /************************************
