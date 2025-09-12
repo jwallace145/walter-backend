@@ -34,8 +34,14 @@ AWS_REGION = "us-east-1"
 APP_ENVIRONMENT = AppEnvironment.DEVELOPMENT.value
 """(str): The application environment of WalterBackend to deploy."""
 
+VERSION = "0.0.0"
+"""(str): The version of WalterBackend image to build, upload, and tag."""
+
+RELEASE_DESCRIPTION = "The initial release of WalterBackend."
+"""(str): The release description for the git tag."""
+
 WALTER_BACKEND_IMAGE_URI = (
-    "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:latest"
+    f"010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:{VERSION}"
 )
 """(str): The URI of the WalterBackend image to deploy."""
 
@@ -85,9 +91,16 @@ def print_build_step_header(step_name: str, environment: str) -> None:
 
 def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
     print_build_step_header("INITIALIZING BOTO3 CLIENTS", APP_ENVIRONMENT)
-    ecr_client = boto3.client("ecr", region_name=AWS_REGION)
-    lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+
+    print("Initializing S3 client...")
     s3_client = boto3.client("s3", region_name=AWS_REGION)
+
+    print("Initializing ECR client...")
+    ecr_client = boto3.client("ecr", region_name=AWS_REGION)
+
+    print("Initializing Lambda client...")
+    lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+
     return s3_client, ecr_client, lambda_client
 
 
@@ -127,7 +140,9 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
     Returns:
         None
     """
-    print_build_step_header("BUILD AND UPLOAD WALTER BACKEND IMAGE", APP_ENVIRONMENT)
+    print_build_step_header(
+        f"BUILD AND UPLOAD WALTER BACKEND IMAGE 'v{VERSION}'", APP_ENVIRONMENT
+    )
 
     # get an authorization token from ecr and extract username, password, and endpoint for docker login
     auth_data = ecr_client.get_authorization_token()["authorizationData"][0]
@@ -135,7 +150,7 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
     endpoint = auth_data["proxyEndpoint"]
     username, password = base64.b64decode(token).decode("utf-8").split(":")
 
-    # build and tag the latest image
+    # build and tag the versioned image
     run_cmd(
         [
             "docker",
@@ -147,6 +162,8 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ],
         input_data=password,
     )
+    # the following command builds the latest image with the
+    # corresponding tag (referenced below)
     run_cmd(
         [
             "docker",
@@ -159,6 +176,8 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
             ".",
         ]
     )
+
+    # tag the latest image with the versioned tag
     run_cmd(
         [
             "docker",
@@ -168,7 +187,7 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ]
     )
 
-    # push the latest image to ecr
+    # push the versioned image to ecr
     run_cmd(
         [
             "docker",
@@ -177,14 +196,36 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ]
     )
 
-    print("WalterBackend API image built and uploaded successfully!")
+    # Check if git tag exists
+    try:
+        print(f"Checking for existing git tag v{VERSION}...")
+        run_cmd(["git", "rev-parse", f"v{VERSION}"])
+        print(f"Found existing git tag v{VERSION}, deleting...")
+        run_cmd(["git", "tag", "-d", f"v{VERSION}"])
+        run_cmd(["git", "push", "origin", f":refs/tags/v{VERSION}"])
+    except subprocess.CalledProcessError:
+        print(f"No existing git tag v{VERSION} found")
+
+    # create git tag for this version
+    try:
+        print(f"Creating new git tag v{VERSION}...")
+        run_cmd(["git", "tag", "-f", f"v{VERSION}", "-m", RELEASE_DESCRIPTION])
+        run_cmd(["git", "push", "origin", f"v{VERSION}", "-f"])
+        print(f"Successfully created git tag: v{VERSION}")
+    except Exception as e:
+        print(f"Error: Failed to create git tag v{VERSION}: {e}")
+        raise
+
+    print(f"WalterBackend API image {VERSION} built and uploaded successfully!")
 
 
 def update_source_code(lambda_client: LambdaClient, functions) -> None:
-    print_build_step_header("UPDATE WALTER BACKEND FUNCTIONS", APP_ENVIRONMENT)
+    print_build_step_header(
+        f"UPDATE WALTER BACKEND FUNCTIONS 'v{VERSION}'", APP_ENVIRONMENT
+    )
 
     print(
-        f"Updating WalterBackend-{APP_ENVIRONMENT} functions:\n{json.dumps(functions, indent=4)}"
+        f"Updating WalterBackend-{APP_ENVIRONMENT} functions to version 'v{VERSION}':\n{json.dumps(functions, indent=4)}"
     )
     for func in functions:
         lambda_client.update_function_code(
@@ -197,6 +238,8 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
 ##########
 # SCRIPT #
 ##########
+
+print(f"Deploying version: {VERSION}")
 
 s3_client, ecr_client, lambda_client = create_boto3_clients()
 
