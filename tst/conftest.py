@@ -23,6 +23,7 @@ from src.metrics.client import DatadogMetricsClient
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
 from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
+from tst.plaid.mock import MockPlaidClient
 from tst.polygon.mock import MockPolygonClient
 from tst.transactions.mock import MockTransactionsCategorizer
 
@@ -89,6 +90,11 @@ def walter_sm(
 @pytest.fixture
 def polygon_client() -> MockPolygonClient:
     return MockPolygonClient()
+
+
+@pytest.fixture
+def plaid_client() -> MockPlaidClient:
+    return MockPlaidClient()
 
 
 @pytest.fixture

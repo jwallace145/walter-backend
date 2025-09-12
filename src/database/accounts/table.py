@@ -146,7 +146,7 @@ class AccountsTable:
         log.info(
             f"Found {len(accounts)} account(s) with Plaid item ID '{plaid_item_id}'!"
         )
-        return accounts
+        return [Account.from_ddb_item(account) for account in accounts]
 
     def update_account(self, account: Account) -> Account:
         log.info(

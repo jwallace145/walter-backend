@@ -153,4 +153,4 @@ class SyncUserTransactions(Workflow):
         if len(access_tokens) > 1:
             raise ValueError("Multiple Plaid access tokens found for account(s)")
         LOG.info(f"Verified single Plaid access token for {len(accounts)} account(s)")
-        return access_tokens[0]
+        return access_tokens.pop()

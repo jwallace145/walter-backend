@@ -41,7 +41,6 @@ class MockSecretsManager:
                     secrets[name] = {key: value}
 
             # insert secrets into mock secrets manager
-            print(secrets)
             for secret_name, secrets_dict in secrets.items():
                 self.mock_secrets_manager.create_secret(
                     Name=secret_name,
