@@ -17,7 +17,7 @@ image_uri = "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:latest"
 # WalterBackend API settings
 api_timeout_seconds                   = 15
 api_lambda_memory_mb                  = 1024
-api_provisioned_concurrent_executions = 3
+api_provisioned_concurrent_executions = 1
 
 # WalterBackend Canary settings
 canary_timeout_seconds                   = 30
