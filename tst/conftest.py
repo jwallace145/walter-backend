@@ -1,5 +1,3 @@
-import os
-
 import boto3
 import pytest
 from moto import mock_aws
@@ -15,11 +13,13 @@ from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
+from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
+from src.transactions.queue import SyncUserTransactionsTaskQueue
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
 from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
@@ -27,9 +27,9 @@ from tst.plaid.mock import MockPlaidClient
 from tst.polygon.mock import MockPolygonClient
 from tst.transactions.mock import MockTransactionsCategorizer
 
-###################
-# GLOBAL FIXTURES #
-###################
+######################
+# BOTO3 CLIENT MOCKS #
+######################
 
 
 @pytest.fixture
@@ -71,11 +71,9 @@ def ses_client() -> SESClient:
         yield mock_ses
 
 
-@pytest.fixture(autouse=True)
-def env_vars():
-    os.environ["AWS_ACCOUNT_ID"] = "012345678901"
-    yield
-    del os.environ["AWS_ACCOUNT_ID"]
+#################################
+# WALTER BACKEND BOTO3 WRAPPERS #
+#################################
 
 
 @pytest.fixture
@@ -88,13 +86,12 @@ def walter_sm(
 
 
 @pytest.fixture
-def polygon_client() -> MockPolygonClient:
-    return MockPolygonClient()
-
-
-@pytest.fixture
-def plaid_client() -> MockPlaidClient:
-    return MockPlaidClient()
+def walter_db(ddb_client, walter_authenticator: WalterAuthenticator) -> WalterDB:
+    return WalterDB(
+        ddb=WalterDDBClient(ddb_client),
+        authenticator=walter_authenticator,
+        domain=Domain.TESTING,
+    )
 
 
 @pytest.fixture
@@ -108,17 +105,43 @@ def walter_ses(ses_client: SESClient) -> WalterSESClient:
 
 
 @pytest.fixture
+def walter_sqs(sqs_client: SQSClient) -> WalterSQSClient:
+    return WalterSQSClient(client=sqs_client, domain=Domain.TESTING)
+
+
+##################
+# AUTHENTICATION #
+##################
+
+
+@pytest.fixture
 def walter_authenticator(walter_sm: WalterSecretsManagerClient) -> WalterAuthenticator:
     return WalterAuthenticator(walter_sm=walter_sm)
 
 
+#######################
+# MOCK POLYGON CLIENT #
+#######################
+
+
 @pytest.fixture
-def walter_db(ddb_client, walter_authenticator: WalterAuthenticator) -> WalterDB:
-    return WalterDB(
-        ddb=WalterDDBClient(ddb_client),
-        authenticator=walter_authenticator,
-        domain=Domain.TESTING,
-    )
+def polygon_client() -> MockPolygonClient:
+    return MockPolygonClient()
+
+
+#####################
+# MOCK PLAID CLIENT #
+#####################
+
+
+@pytest.fixture
+def plaid_client() -> MockPlaidClient:
+    return MockPlaidClient()
+
+
+################
+# MOCK METRICS #
+################
 
 
 @pytest.fixture
@@ -137,6 +160,13 @@ def datadog_metrics() -> DatadogMetricsClient:
 
 
 @pytest.fixture
+def sync_transactions_task_queue(
+    walter_sqs: WalterSQSClient,
+) -> SyncUserTransactionsTaskQueue:
+    return SyncUserTransactionsTaskQueue(walter_sqs)
+
+
+@pytest.fixture
 def transactions_categorizer() -> ExpenseCategorizerMLP:
     return MockTransactionsCategorizer()
 
@@ -151,33 +181,3 @@ def security_updater(
     polygon_client: MockPolygonClient, walter_db: WalterDB
 ) -> SecurityUpdater:
     return SecurityUpdater(polygon_client, walter_db)
-
-
-####################
-# TEST USER TOKENS #
-####################
-
-
-@pytest.fixture
-def jwt_walter(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("walter@gmail.com")
-
-
-@pytest.fixture
-def jwt_walrus(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("walrus@gmail.com")
-
-
-@pytest.fixture
-def jwt_bob(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("bob@gmail.com")
-
-
-@pytest.fixture
-def jwt_john(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("john@gmail.com")
-
-
-@pytest.fixture
-def jwt_lucy(walter_authenticator: WalterAuthenticator) -> str:
-    return walter_authenticator.generate_user_token("lucy@gmail.com")

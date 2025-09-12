@@ -6,9 +6,8 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from mypy_boto3_sqs import SQSClient
 
 from tst.constants import (
-    NEWS_SUMMARIES_QUEUE_NAME,
-    NEWSLETTERS_QUEUE_NAME,
     SECRETS_TEST_FILE,
+    SYNC_TRANSACTIONS_TASK_QUEUE_NAME,
 )
 
 
@@ -69,11 +68,4 @@ class MockSQS:
     sqs: SQSClient
 
     def initialize(self) -> None:
-        self._create_newsletters_queue()
-        self._create_news_summaries_queue()
-
-    def _create_newsletters_queue(self) -> None:
-        self.sqs.create_queue(QueueName=NEWSLETTERS_QUEUE_NAME)
-
-    def _create_news_summaries_queue(self) -> None:
-        self.sqs.create_queue(QueueName=NEWS_SUMMARIES_QUEUE_NAME)
+        self.sqs.create_queue(QueueName=SYNC_TRANSACTIONS_TASK_QUEUE_NAME)
