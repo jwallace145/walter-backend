@@ -57,6 +57,16 @@ variable "api_lambda_memory_mb" {
   }
 }
 
+variable "api_provisioned_concurrent_executions" {
+  description = "The provisioned number of concurrent executions allowed for the API function."
+  type        = number
+
+  validation {
+    condition     = var.api_provisioned_concurrent_executions >= 1 && var.api_provisioned_concurrent_executions <= 5
+    error_message = "The api_provisioned_concurrent_executions must be between 1 and 5."
+  }
+}
+
 variable "canary_timeout_seconds" {
   description = "The timeout in seconds of all API canaries."
   type        = number
@@ -76,6 +86,18 @@ variable "canary_lambda_memory_mb" {
     error_message = "The canary_lambda_memory_mb must be between 128 and 10240 MB (10 GB)."
   }
 }
+
+
+variable "canary_provisioned_concurrent_executions" {
+  description = "The provisioned number of concurrent executions allowed for the Canary function."
+  type        = number
+
+  validation {
+    condition     = var.canary_provisioned_concurrent_executions >= 1 && var.canary_provisioned_concurrent_executions <= 5
+    error_message = "The canary_provisioned_concurrent_executions must be between 1 and 5."
+  }
+}
+
 
 variable "workflow_timeout_seconds" {
   description = "The timeout in seconds of all asynchronous workflows."
@@ -98,6 +120,17 @@ variable "workflow_lambda_memory_mb" {
     error_message = "The workflow_lambda_memory_mb must be between 128 and 10240 MB (10 GB)."
   }
 }
+
+variable "workflow_provisioned_concurrent_executions" {
+  description = "The provisioned number of concurrent executions allowed for the Workflow function."
+  type        = number
+
+  validation {
+    condition     = var.workflow_provisioned_concurrent_executions >= 1 && var.workflow_provisioned_concurrent_executions <= 5
+    error_message = "The workflow_provisioned_concurrent_executions must be between 1 and 5."
+  }
+}
+
 
 variable "sync_transactions_max_concurrency" {
   description = "The maximum number of concurrent Lambdas allowed to process sync transaction events."

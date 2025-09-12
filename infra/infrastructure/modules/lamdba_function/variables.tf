@@ -65,3 +65,9 @@ variable "datadog_site" {
   description = "The Datadog site used send application data to Datadog"
   type        = string
 }
+
+variable "provisioned_concurrent_executions" {
+  description = "The number of concurrent executions to reserve for the function"
+  type        = number
+  default     = 1
+}
