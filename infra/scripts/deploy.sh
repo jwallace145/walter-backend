@@ -212,7 +212,6 @@ run_terraform() {
         -var="plaid_secret=$PLAID_SECRET"
         -var="polygon_api_key=$POLYGON_API_KEY"
         -var="stripe_secret_key=$STRIPE_SECRET_KEY"
-        -auto-approve
     )
 
     # Run the specified action
@@ -223,14 +222,14 @@ run_terraform() {
             ;;
         apply)
             log_info "Running Terraform apply..."
-            terraform apply "${var_args[@]}"
+            terraform apply "${var_args[@]}" -auto-approve
             ;;
         destroy)
             log_warning "Running Terraform destroy..."
             log_warning "This will destroy resources in the $ENVIRONMENT environment!"
             read -p "Are you sure? (yes/no): " -r
             if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-                terraform destroy "${var_args[@]}"
+                terraform destroy "${var_args[@]}" -auto-approve
             else
                 log_info "Destroy cancelled"
                 exit 0
