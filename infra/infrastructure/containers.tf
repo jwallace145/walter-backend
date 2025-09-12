@@ -1,10 +1,15 @@
-resource "aws_ecr_repository" "walter_backend" {
-  name = "walter-backend"
+locals {
+  REPOSITORIES = {
+    walter_backend : {
+      name    = "walter-backend-${var.domain}"
+      version = var.walter_backend_version
+    }
+  }
 }
 
-data "aws_ecr_image" "walter_backend_image" {
-  repository_name = aws_ecr_repository.walter_backend.name
-  image_tag       = "latest"
+module "repositories" {
+  source          = "./modules/ecr_repository"
+  for_each        = local.REPOSITORIES
+  repository_name = each.value.name
+  image_version   = each.value.version
 }
-
-

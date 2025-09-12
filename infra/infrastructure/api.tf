@@ -63,7 +63,7 @@ module "api" {
   name          = local.NAME
   description   = local.DESCRIPTION
   function_name = module.functions["api"].function_name
-  image_digest  = data.aws_ecr_image.walter_backend_image.image_digest
+  image_digest  = "sha256:951814ece918d9b1dace8203e041e86342059720f775e7e5f42f82545ed067d8"
   stage_name    = "dev"
 }
 

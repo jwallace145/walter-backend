@@ -33,7 +33,7 @@ resource "aws_lambda_function" "this" {
 }
 
 resource "aws_lambda_alias" "release" {
-  name             = "release"
+  name             = var.alias_name
   description      = "The release alias of the WalterBackend function that points to the latest image."
   function_name    = aws_lambda_function.this.function_name
   function_version = aws_lambda_function.this.version

@@ -125,7 +125,10 @@ set_environment_variables() {
 
         # Print missing vars if any are found
         if [[ ${#missing_vars[@]} -gt 0 ]]; then
-            log_info "Missing environment variables: ${missing_vars[*]}"
+            log_info "Missing environment variables:"
+            for var in "${missing_vars[@]}"; do
+                log_info "  - $var"
+            done
         fi
 
         if [[ ${#missing_vars[@]} -eq 0 ]]; then
