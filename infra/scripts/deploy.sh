@@ -49,7 +49,7 @@ check_aws_cli() {
 # Function to retrieve Datadog credentials from shell
 # used by Terraform to create Datadog resources like monitors
 get_datadog_credentials() {
-    log_info "Setting Datadog environment variables from TF_VAR values..."
+    log_info "Setting Datadog environment variables..."
 
     # Export as environment variables for Terraform
     export DD_API_KEY="$DATADOG_API_KEY"
