@@ -2,6 +2,31 @@
  * WalterBackend Variables *
  ***************************/
 
+variable "account_id" {
+  description = "The 12-digit account ID of the WalterAI AWS account."
+  type        = string
+
+  validation {
+    condition     = contains(["010526272437"], var.account_id)
+    error_message = "The WalterAI account_id must be in: ['010526272437']."
+  }
+}
+
+variable "region" {
+  description = "The AWS region of the deployment region in the AWS account."
+  type        = string
+
+  validation {
+    condition     = contains(["us-east-1"], var.region)
+    error_message = "The WalterBackend deployment region must be in: ['us-east-1']."
+  }
+}
+
+variable "walter_backend_version" {
+  description = "The version of the WalterBackend application."
+  type        = string
+}
+
 variable "domain" {
   description = "The domain of WalterBackend."
   type        = string
@@ -30,11 +55,6 @@ variable "log_retention_in_days" {
     condition     = var.log_retention_in_days >= 0 && var.log_retention_in_days < 365
     error_message = "The log_retention_in_days must be between 1 day and 365 days."
   }
-}
-
-variable "image_uri" {
-  description = "The ECR image URI of WalterBackend."
-  type        = string
 }
 
 variable "api_timeout_seconds" {

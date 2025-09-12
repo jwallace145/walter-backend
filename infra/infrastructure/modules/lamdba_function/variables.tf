@@ -71,3 +71,8 @@ variable "provisioned_concurrent_executions" {
   type        = number
   default     = 1
 }
+
+variable "alias_name" {
+  description = "Alias name for the Lambda function"
+  type        = string
+}

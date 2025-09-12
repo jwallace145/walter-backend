@@ -28,21 +28,25 @@ class AppEnvironment(Enum):
 # CONSTANTS #
 #############
 
-AWS_REGION = "us-east-1"
-"""(str): The AWS deployment region."""
-
 APP_ENVIRONMENT = AppEnvironment.DEVELOPMENT.value
 """(str): The application environment of WalterBackend to deploy."""
+
+AWS_ACCOUNT_ID = "010526272437"
+"""(str): The AWS account ID of the WalterAI."""
+
+AWS_REGION = "us-east-1"
+"""(str): The AWS deployment region."""
 
 VERSION = "0.0.0"
 """(str): The version of WalterBackend image to build, upload, and tag."""
 
+VERSION_TAG = f"v{VERSION}"
+"""(str): The version tag of WalterBackend image to build, upload, and tag."""
+
 RELEASE_DESCRIPTION = "The initial release of WalterBackend."
 """(str): The release description for the git tag."""
 
-WALTER_BACKEND_IMAGE_URI = (
-    f"010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend:{VERSION}"
-)
+WALTER_BACKEND_IMAGE_URI = f"010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend-{APP_ENVIRONMENT}:{VERSION}"
 """(str): The URI of the WalterBackend image to deploy."""
 
 LAMBDA_FUNCTIONS = [
@@ -141,7 +145,7 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         None
     """
     print_build_step_header(
-        f"BUILD AND UPLOAD WALTER BACKEND IMAGE 'v{VERSION}'", APP_ENVIRONMENT
+        f"BUILD AND UPLOAD WALTER BACKEND IMAGE '{VERSION_TAG}'", APP_ENVIRONMENT
     )
 
     # get an authorization token from ecr and extract username, password, and endpoint for docker login
@@ -163,7 +167,7 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         input_data=password,
     )
     # the following command builds the latest image with the
-    # corresponding tag (referenced below)
+    # corresponding tag
     run_cmd(
         [
             "docker",
@@ -196,27 +200,61 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ]
     )
 
-    # Check if git tag exists
-    try:
-        print(f"Checking for existing git tag v{VERSION}...")
-        run_cmd(["git", "rev-parse", f"v{VERSION}"])
-        print(f"Found existing git tag v{VERSION}, deleting...")
-        run_cmd(["git", "tag", "-d", f"v{VERSION}"])
-        run_cmd(["git", "push", "origin", f":refs/tags/v{VERSION}"])
-    except subprocess.CalledProcessError:
-        print(f"No existing git tag v{VERSION} found")
-
-    # create git tag for this version
-    try:
-        print(f"Creating new git tag v{VERSION}...")
-        run_cmd(["git", "tag", "-f", f"v{VERSION}", "-m", RELEASE_DESCRIPTION])
-        run_cmd(["git", "push", "origin", f"v{VERSION}", "-f"])
-        print(f"Successfully created git tag: v{VERSION}")
-    except Exception as e:
-        print(f"Error: Failed to create git tag v{VERSION}: {e}")
-        raise
-
     print(f"WalterBackend API image {VERSION} built and uploaded successfully!")
+
+
+def create_git_tag(version: str, description: str) -> None:
+    """
+    Create a git tag for the given version.
+
+    Args:
+        version: The semantic version of the git tag.
+        description: The description of the git tag.
+
+    Returns:
+        None.
+    """
+    print_build_step_header(
+        f"CREATE WALTER BACKEND GIT TAG '{version}'", APP_ENVIRONMENT
+    )
+
+    print(
+        f"Creating git tag with the following details:\nVersion: {version}\nDescription: {description}"
+    )
+
+    if tag_exists(version):
+        print(f"Warning: Tag {version} already exists, deleting...")
+        run_cmd(["git", "tag", "-d", version])
+        run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
+
+    try:
+        run_cmd(["git", "tag", "-a", version, "-m", description])
+        run_cmd(["git", "push", "origin", version])
+        print(f"Created and pushed git tag: {version}")
+    except Exception as e:
+        print(f"Warning: Could not create/push git tag {version}", e)
+
+
+def tag_exists(version: str) -> bool:
+    """
+    Check if a git tag exists at the given version.
+
+    Args:
+        version: The semantic version of the git tag
+            to check.
+
+    Returns:
+        (bool): True if the tag exists, False otherwise.
+    """
+    print(f"Checking for existing tag '{version}'...")
+
+    try:
+        run_cmd(["git", "rev-parse", version])
+        print(f"Found existing git tag '{version}'!")
+        return True
+    except subprocess.CalledProcessError:
+        print(f"No git tag '{version}' found...")
+        return False
 
 
 def update_source_code(lambda_client: LambdaClient, functions) -> None:
@@ -239,7 +277,6 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
 # SCRIPT #
 ##########
 
-print(f"Deploying version: {VERSION}")
 
 s3_client, ecr_client, lambda_client = create_boto3_clients()
 
@@ -248,6 +285,9 @@ update_docs(s3_client)
 
 # Not sure if Terraform can automate this yet, so we'll do it manually for now
 build_and_upload_image(ecr_client)
+
+# Create git tag to track the version
+create_git_tag(VERSION_TAG, RELEASE_DESCRIPTION)
 
 # TODO: Move this logic to Terraform, update functions when image digest hash changes (i.e. new changes)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
