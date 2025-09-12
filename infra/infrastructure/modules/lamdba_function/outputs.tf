@@ -10,7 +10,7 @@ output "function_name" {
 
 output "invoke_arn" {
   description = "Invoke ARN of the Lambda function"
-  value       = aws_lambda_function.this.invoke_arn
+  value       = aws_lambda_alias.release.invoke_arn
 }
 
 output "id" {
