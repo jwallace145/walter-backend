@@ -32,6 +32,13 @@ resource "aws_lambda_function" "this" {
   publish = var.publish
 }
 
+resource "aws_lambda_alias" "release" {
+  name             = "release"
+  description      = "The release alias of the WalterBackend function that points to the latest image."
+  function_name    = aws_lambda_function.this.function_name
+  function_version = aws_lambda_function.this.version
+}
+
 resource "aws_cloudwatch_log_group" "log_group" {
   name              = "/aws/lambda/${aws_lambda_function.this.function_name}"
   retention_in_days = var.log_retention_in_days
