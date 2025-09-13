@@ -210,9 +210,6 @@ def create_git_tag(version: str, description: str) -> None:
     Args:
         version: The semantic version of the git tag.
         description: The description of the git tag.
-
-    Returns:
-        None.
     """
     print_build_step_header(
         f"CREATE WALTER BACKEND GIT TAG '{version}'", APP_ENVIRONMENT
@@ -223,16 +220,26 @@ def create_git_tag(version: str, description: str) -> None:
     )
 
     if tag_exists(version):
-        print(f"Warning: Tag {version} already exists, deleting...")
+        print(f"Warning: Tag {version} already exists locally, deleting...")
         run_cmd(["git", "tag", "-d", version])
-        run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
+
+        # check if tag exists remotely before deleting
+        try:
+            output = run_cmd(["git", "ls-remote", "--tags", "origin", version])
+            if output and f"refs/tags/{version}" in output:
+                print(f"Remote tag {version} exists, deleting...")
+                run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
+            else:
+                print(f"Remote tag {version} does not exist, skipping remote deletion")
+        except Exception as e:
+            print(f"Warning: Could not check/delete remote tag {version}: {e}")
 
     try:
         run_cmd(["git", "tag", "-a", version, "-m", description])
         run_cmd(["git", "push", "origin", version])
         print(f"Created and pushed git tag: {version}")
     except Exception as e:
-        print(f"Warning: Could not create/push git tag {version}", e)
+        print(f"Warning: Could not create/push git tag {version}: {e}")
 
 
 def tag_exists(version: str) -> bool:
