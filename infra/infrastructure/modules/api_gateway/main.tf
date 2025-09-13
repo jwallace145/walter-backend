@@ -14,6 +14,7 @@ resource "aws_lambda_permission" "api_invoke_function" {
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_api_gateway_rest_api.api.execution_arn}/*"
+  qualifier  = var.alias_name
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {

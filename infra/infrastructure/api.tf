@@ -63,7 +63,8 @@ module "api" {
   name          = local.NAME
   description   = local.DESCRIPTION
   function_name = module.functions["api"].function_name
-  image_digest  = "sha256:951814ece918d9b1dace8203e041e86342059720f775e7e5f42f82545ed067d8"
+  alias_name    = module.functions["api"].alias_name
+  image_digest  = module.repositories["walter_backend"].image_digest
   stage_name    = "dev"
 }
 

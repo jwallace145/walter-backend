@@ -8,6 +8,11 @@ output "function_name" {
   value       = aws_lambda_function.this.function_name
 }
 
+output "alias_name" {
+  description = "The alias of the Lambda function."
+  value       = aws_lambda_alias.release.name
+}
+
 output "invoke_arn" {
   description = "Invoke ARN of the Lambda function"
   value       = aws_lambda_alias.release.invoke_arn
