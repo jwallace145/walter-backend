@@ -13,6 +13,11 @@ variable "function_name" {
   type        = string
 }
 
+variable "alias_name" {
+  description = "The name of the alias used to increment versions of the Lambda function."
+  type        = string
+}
+
 variable "image_digest" {
   description = "The image digest of the image used for the Lambda functions to trigger new API deployments."
   type        = string
@@ -21,4 +26,9 @@ variable "image_digest" {
 variable "stage_name" {
   description = "The name of the stage to create for the API Gateway."
   type        = string
+}
+
+variable "log_retention_in_days" {
+  description = "The number of days to retain API Gateway logs."
+  type        = number
 }

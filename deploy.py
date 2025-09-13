@@ -203,43 +203,43 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
     print(f"WalterBackend API image {VERSION} built and uploaded successfully!")
 
 
-def create_git_tag(version: str, description: str) -> None:
-    """
-    Create a git tag for the given version.
-
-    Args:
-        version: The semantic version of the git tag.
-        description: The description of the git tag.
-    """
-    print_build_step_header(
-        f"CREATE WALTER BACKEND GIT TAG '{version}'", APP_ENVIRONMENT
-    )
-
-    print(
-        f"Creating git tag with the following details:\nVersion: {version}\nDescription: {description}"
-    )
-
-    if tag_exists(version):
-        print(f"Warning: Tag {version} already exists locally, deleting...")
-        run_cmd(["git", "tag", "-d", version])
-
-        # check if tag exists remotely before deleting
-        try:
-            output = run_cmd(["git", "ls-remote", "--tags", "origin", version])
-            if output and f"refs/tags/{version}" in output:
-                print(f"Remote tag {version} exists, deleting...")
-                run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
-            else:
-                print(f"Remote tag {version} does not exist, skipping remote deletion")
-        except Exception as e:
-            print(f"Warning: Could not check/delete remote tag {version}: {e}")
-
-    try:
-        run_cmd(["git", "tag", "-a", version, "-m", description])
-        run_cmd(["git", "push", "origin", version])
-        print(f"Created and pushed git tag: {version}")
-    except Exception as e:
-        print(f"Warning: Could not create/push git tag {version}: {e}")
+# def create_git_tag(version: str, description: str) -> None:
+#     """
+#     Create a git tag for the given version.
+#
+#     Args:
+#         version: The semantic version of the git tag.
+#         description: The description of the git tag.
+#     """
+#     print_build_step_header(
+#         f"CREATE WALTER BACKEND GIT TAG '{version}'", APP_ENVIRONMENT
+#     )
+#
+#     print(
+#         f"Creating git tag with the following details:\nVersion: {version}\nDescription: {description}"
+#     )
+#
+#     if tag_exists(version):
+#         print(f"Warning: Tag {version} already exists locally, deleting...")
+#         run_cmd(["git", "tag", "-d", version])
+#
+#         # check if tag exists remotely before deleting
+#         try:
+#             output = run_cmd(["git", "ls-remote", "--tags", "origin", version])
+#             if output and f"refs/tags/{version}" in output:
+#                 print(f"Remote tag {version} exists, deleting...")
+#                 run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
+#             else:
+#                 print(f"Remote tag {version} does not exist, skipping remote deletion")
+#         except Exception as e:
+#             print(f"Warning: Could not check/delete remote tag {version}: {e}")
+#
+#     try:
+#         run_cmd(["git", "tag", "-a", version, "-m", description])
+#         run_cmd(["git", "push", "origin", version])
+#         print(f"Created and pushed git tag: {version}")
+#     except Exception as e:
+#         print(f"Warning: Could not create/push git tag {version}: {e}")
 
 
 def tag_exists(version: str) -> bool:
@@ -294,7 +294,7 @@ update_docs(s3_client)
 build_and_upload_image(ecr_client)
 
 # Create git tag to track the version
-create_git_tag(VERSION_TAG, RELEASE_DESCRIPTION)
+# create_git_tag(VERSION_TAG, RELEASE_DESCRIPTION)
 
 # TODO: Move this logic to Terraform, update functions when image digest hash changes (i.e. new changes)
 update_source_code(lambda_client, LAMBDA_FUNCTIONS)
