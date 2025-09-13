@@ -59,13 +59,14 @@ locals {
  *********************/
 
 module "api" {
-  source        = "./modules/api_gateway"
-  name          = local.NAME
-  description   = local.DESCRIPTION
-  function_name = module.functions["api"].function_name
-  alias_name    = module.functions["api"].alias_name
-  image_digest  = module.repositories["walter_backend"].image_digest
-  stage_name    = "dev"
+  source                = "./modules/api_gateway"
+  name                  = local.NAME
+  description           = local.DESCRIPTION
+  function_name         = module.functions["api"].function_name
+  alias_name            = module.functions["api"].alias_name
+  image_digest          = module.repositories["walter_backend"].image_digest
+  stage_name            = "dev"
+  log_retention_in_days = var.log_retention_in_days
 }
 
 resource "aws_api_gateway_resource" "auth" {

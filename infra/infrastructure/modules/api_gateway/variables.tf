@@ -27,3 +27,8 @@ variable "stage_name" {
   description = "The name of the stage to create for the API Gateway."
   type        = string
 }
+
+variable "log_retention_in_days" {
+  description = "The number of days to retain API Gateway logs."
+  type        = number
+}
