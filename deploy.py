@@ -291,12 +291,12 @@ def ensure_git_tag() -> None:
     Behavior:
     - Fetches tags to ensure local state is up-to-date.
     - If the tag already exists (locally or remotely), it is deleted locally and remotely.
-    - Creates an annotated tag with RELEASE_DESCRIPTION.
-    - Pushes the tag to origin.
+    - Creates (or recreates) an annotated tag with RELEASE_DESCRIPTION.
+    - Pushes the tag to origin (force-updated if necessary).
     """
     print_build_step_header(f"APPLY GIT TAG '{VERSION_TAG}'", APP_ENVIRONMENT)
 
-    # Ensure we're in a git repo and fetch latest tags
+    # Ensure we're in a git repo
     try:
         subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
@@ -308,13 +308,11 @@ def ensure_git_tag() -> None:
         print("Not a git repository. Skipping git tagging step.")
         return
 
-    # Fetch tags from origin to have an up-to-date view
-    run_cmd(
-        ["git", "fetch", "--tags", "origin"]
-    )  # if origin missing, this will fail and exit
+    # Fetch latest tags
+    run_cmd(["git", "fetch", "--tags", "origin", "--force"])
 
-    # Check if tag exists locally
-    tag_exists_local = (
+    # Delete local tag if it exists
+    if (
         subprocess.run(
             ["git", "rev-parse", "-q", "--verify", f"refs/tags/{VERSION_TAG}"],
             check=False,
@@ -322,9 +320,11 @@ def ensure_git_tag() -> None:
             stderr=subprocess.DEVNULL,
         ).returncode
         == 0
-    )
+    ):
+        print(f"Tag '{VERSION_TAG}' exists locally. Deleting local tag...")
+        run_cmd(["git", "tag", "-d", VERSION_TAG])
 
-    # Check if tag exists on remote 'origin'
+    # Delete remote tag if it exists
     tag_exists_remote = subprocess.run(
         ["git", "ls-remote", "--tags", "origin", VERSION_TAG],
         check=False,
@@ -332,24 +332,17 @@ def ensure_git_tag() -> None:
         stderr=subprocess.DEVNULL,
         text=True,
     )
-    tag_exists_remote = (
-        tag_exists_remote.returncode == 0 and len(tag_exists_remote.stdout.strip()) > 0
-    )
-
-    if tag_exists_local:
-        print(f"Tag '{VERSION_TAG}' exists locally. Deleting local tag...")
-        run_cmd(["git", "tag", "-d", VERSION_TAG])
-
-    if tag_exists_remote:
+    if tag_exists_remote.returncode == 0 and tag_exists_remote.stdout.strip():
         print(f"Tag '{VERSION_TAG}' exists on remote. Deleting remote tag...")
-        # Delete the tag from the remote. This is idempotent if run multiple times.
-        run_cmd(["git", "push", "origin", f":refs/tags/{VERSION_TAG}"])
+        run_cmd(["git", "push", "--delete", "origin", VERSION_TAG])
 
+    # Force-create the tag
     print(f"Creating annotated tag '{VERSION_TAG}'...")
-    run_cmd(["git", "tag", "-a", VERSION_TAG, "-m", RELEASE_DESCRIPTION])
+    run_cmd(["git", "tag", "-fa", VERSION_TAG, "-m", RELEASE_DESCRIPTION])
 
+    # Push the tag (force to ensure update)
     print(f"Pushing tag '{VERSION_TAG}' to origin...")
-    run_cmd(["git", "push", "origin", VERSION_TAG])
+    run_cmd(["git", "push", "origin", VERSION_TAG, "--force"])
 
 
 ##########
