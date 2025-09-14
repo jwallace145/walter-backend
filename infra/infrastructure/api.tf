@@ -1,6 +1,9 @@
 locals {
+  BASE_DOMAIN = "walterai.dev"
   NAME        = "WalterBackend-API"
   DESCRIPTION = "The API Gateway for all APIs served by WalterBackend."
+
+  STAGE_NAME = "dev"
 
   # all api resources for walter backend api defined here
   RESOURCES = {
@@ -58,6 +61,15 @@ locals {
  * WalterBackend API *
  *********************/
 
+module "api_custom_domain" {
+  source         = "./modules/api_gateway_custom_domain"
+  api_id         = module.api.api_id
+  base_domain    = local.BASE_DOMAIN
+  domain         = var.domain
+  hosted_zone_id = var.hosted_zone_id
+  stage_name     = local.STAGE_NAME
+}
+
 module "api" {
   source                = "./modules/api_gateway"
   name                  = local.NAME
@@ -65,7 +77,7 @@ module "api" {
   function_name         = module.functions["api"].function_name
   alias_name            = module.functions["api"].alias_name
   image_digest          = module.repositories["walter_backend"].image_digest
-  stage_name            = "dev"
+  stage_name            = local.STAGE_NAME
   log_retention_in_days = var.log_retention_in_days
 }
 

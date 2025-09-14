@@ -37,6 +37,11 @@ variable "domain" {
   }
 }
 
+variable "hosted_zone_id" {
+  description = "The hosted zone ID of the walterai.dev domain."
+  type        = string
+}
+
 variable "log_level" {
   description = "The logging level of WalterBackend."
   type        = string
