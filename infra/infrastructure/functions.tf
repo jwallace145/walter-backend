@@ -4,6 +4,7 @@ locals {
       name                              = "WalterBackend-API-${var.domain}"
       component                         = "API"
       description                       = "The entrypoint function for all APIs included in WalterBackend (v${var.walter_backend_version}-${var.domain})."
+      function_version                  = var.api_function_version
       role_arn                          = module.api_role.arn
       timeout                           = var.api_timeout_seconds
       memory_size                       = var.api_lambda_memory_mb
@@ -14,6 +15,7 @@ locals {
       name                              = "WalterBackend-Canary-${var.domain}"
       component                         = "Canary"
       description                       = "The single entrypoint for all API canaries in WalterBackend (v${var.walter_backend_version}-${var.domain})."
+      function_version                  = var.canary_function_version
       role_arn                          = module.canary_role.arn
       timeout                           = var.canary_timeout_seconds
       memory_size                       = var.canary_lambda_memory_mb
@@ -24,6 +26,7 @@ locals {
       name                              = "WalterBackend-Workflow-${var.domain}"
       component                         = "Workflow"
       description                       = "The entrypoint function for all asynchronous workflows in WalterBackend (v${var.walter_backend_version}-${var.domain})."
+      function_version                  = var.workflow_function_version
       role_arn                          = module.workflow_role.arn
       timeout                           = var.workflow_timeout_seconds
       memory_size                       = var.workflow_lambda_memory_mb
@@ -83,6 +86,7 @@ module "functions" {
   datadog_site                      = var.datadog_site
   provisioned_concurrent_executions = each.value.provisioned_concurrent_executions
   alias_name                        = "release"
+  function_version                  = each.value.function_version
 }
 
 /************************************

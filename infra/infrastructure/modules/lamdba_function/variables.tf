@@ -76,3 +76,8 @@ variable "alias_name" {
   description = "Alias name for the Lambda function"
   type        = string
 }
+
+variable "function_version" {
+  description = "The version of the Lambda function."
+  type        = string
+}

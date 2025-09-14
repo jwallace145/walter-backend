@@ -17,16 +17,19 @@ log_level = "INFO"
 log_retention_in_days = 14
 
 # WalterBackend API settings
+api_function_version                  = 16
 api_timeout_seconds                   = 15
 api_lambda_memory_mb                  = 1024
 api_provisioned_concurrent_executions = 1
 
 # WalterBackend Canary settings
+canary_function_version                  = 19
 canary_timeout_seconds                   = 30
 canary_lambda_memory_mb                  = 1024
 canary_provisioned_concurrent_executions = 1
 
 # WalterBackend Workflow Settings
+workflow_function_version                  = 17
 workflow_timeout_seconds                   = 15
 workflow_lambda_memory_mb                  = 1024
 workflow_provisioned_concurrent_executions = 1
