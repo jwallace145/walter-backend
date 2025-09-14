@@ -7,7 +7,11 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
-from src.plaid.models import ExchangePublicTokenResponse, SyncTransactionsResponse
+from src.plaid.models import (
+    CreateLinkTokenResponse,
+    ExchangePublicTokenResponse,
+    SyncTransactionsResponse,
+)
 
 UBER_TXN = BankTransaction.create(
     account_id="acct-001",
@@ -25,6 +29,14 @@ UBER_TXN = BankTransaction.create(
 
 @dataclass
 class MockPlaidClient:
+    def create_link_token(self, user_id: str) -> CreateLinkTokenResponse:
+        return CreateLinkTokenResponse(
+            request_id="test-request-id",
+            user_id=user_id,
+            link_token="test-link-token",
+            expiration=datetime.now(timezone.utc),
+        )
+
     def sync_transactions(
         self, user_id: str, token: str, cursor: str
     ) -> SyncTransactionsResponse:
