@@ -1,16 +1,11 @@
 openapi: 3.0.0
 info:
-  title: Walter API
+  title: WalterBackend API (dev)
   version: 1.0.0
-  description: The API that serves the Walter AI financial assistant.
+  description: The API for WalterAI served by WalterBackend.
 servers:
-  - url: https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/{environment}
-    description: The API Gateway endpoint for the Walter API.
-    variables:
-      environment:
-        default: dev
-        enum:
-          - dev
+  - url: https://dev-api.walterai.dev
+    description: WalterBackend API (dev environment)
 paths:
   /auth/login:
     post:

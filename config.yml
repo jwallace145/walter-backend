@@ -5,10 +5,10 @@ walter_config:
     access_token_expiration_minutes: 15
     refresh_token_expiration_days: 7
   canaries:
-    endpoint: "https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/dev"
+    endpoint: "https://dev-api.walterai.dev"
     user_email: "canary@walterai.dev"
     user_password: "CanaryPassword1234&"
   plaid:
     client_name: "WalterAI"
     redirect_uri: "http://localhost:3000/"
-    sync_transactions_webhook_url: "https://hy447lxnrd.execute-api.us-east-1.amazonaws.com/dev/sync_transactions"
+    sync_transactions_webhook_url: "https://dev-api.walterai.dev/sync_transactions"
