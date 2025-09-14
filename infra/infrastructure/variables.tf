@@ -92,8 +92,8 @@ variable "api_provisioned_concurrent_executions" {
   type        = number
 
   validation {
-    condition     = var.api_provisioned_concurrent_executions >= 1 && var.api_provisioned_concurrent_executions <= 5
-    error_message = "The api_provisioned_concurrent_executions must be between 1 and 5."
+    condition     = var.api_provisioned_concurrent_executions >= 0 && var.api_provisioned_concurrent_executions <= 5
+    error_message = "The api_provisioned_concurrent_executions must be between 0 and 5."
   }
 }
 
@@ -128,8 +128,8 @@ variable "canary_provisioned_concurrent_executions" {
   type        = number
 
   validation {
-    condition     = var.canary_provisioned_concurrent_executions >= 1 && var.canary_provisioned_concurrent_executions <= 5
-    error_message = "The canary_provisioned_concurrent_executions must be between 1 and 5."
+    condition     = var.canary_provisioned_concurrent_executions >= 0 && var.canary_provisioned_concurrent_executions <= 5
+    error_message = "The canary_provisioned_concurrent_executions must be between 0 and 5."
   }
 }
 
@@ -165,8 +165,8 @@ variable "workflow_provisioned_concurrent_executions" {
   type        = number
 
   validation {
-    condition     = var.workflow_provisioned_concurrent_executions >= 1 && var.workflow_provisioned_concurrent_executions <= 5
-    error_message = "The workflow_provisioned_concurrent_executions must be between 1 and 5."
+    condition     = var.workflow_provisioned_concurrent_executions >= 0 && var.workflow_provisioned_concurrent_executions <= 5
+    error_message = "The workflow_provisioned_concurrent_executions must be between 0 and 5."
   }
 }
 
