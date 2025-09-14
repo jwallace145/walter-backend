@@ -73,7 +73,7 @@ module "functions" {
   source                            = "./modules/lamdba_function"
   function_name                     = each.value.name
   description                       = each.value.description
-  image_uri                         = "010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend-dev:0.0.0"
+  image_uri                         = module.repositories["walter_backend"].image_uri
   role_arn                          = each.value.role_arn
   timeout                           = each.value.timeout
   memory_size                       = each.value.memory_size

@@ -4,7 +4,6 @@ set -e
 
 ENVIRONMENT=$1
 ACTION=${2:-apply}
-SECRET_NAME="WalterBackendDatadogAPIKey"
 
 # Color codes for output
 RED='\033[0;31m'
@@ -96,6 +95,56 @@ validate_inputs() {
             exit 1
             ;;
     esac
+}
+
+# Get latest published Lambda function versions for API, Canary, and Workflow
+get_lambda_function_versions() {
+    local env="$ENVIRONMENT"
+
+    local api_fn="WalterBackend-API-${env}"
+    local canary_fn="WalterBackend-Canary-${env}"
+    local workflow_fn="WalterBackend-Workflow-${env}"
+
+    log_info "Fetching latest published Lambda versions for environment '${env}'..."
+
+    # Helper to fetch max numeric version (exclude $LATEST)
+    fetch_latest_version() {
+        local function_name="$1"
+        aws lambda list-versions-by-function \
+            --function-name "$function_name" \
+            --query "Versions[?Version!='\$LATEST'] | sort_by(@, &to_number(Version))[-1].Version" \
+            --output text 2>/dev/null
+    }
+
+
+    local api_ver
+    api_ver=$(fetch_latest_version "$api_fn" || true)
+    local canary_ver
+    canary_ver=$(fetch_latest_version "$canary_fn" || true)
+    local workflow_ver
+    workflow_ver=$(fetch_latest_version "$workflow_fn" || true)
+
+    # Validate that we got versions back
+    if [[ -z "$api_ver" || "$api_ver" == "None" ]]; then
+        log_error "Could not determine latest version for $api_fn. Ensure the function exists and has a published version."
+        exit 1
+    fi
+    if [[ -z "$canary_ver" || "$canary_ver" == "None" ]]; then
+        log_error "Could not determine latest version for $canary_fn. Ensure the function exists and has a published version."
+        exit 1
+    fi
+    if [[ -z "$workflow_ver" || "$workflow_ver" == "None" ]]; then
+        log_error "Could not determine latest version for $workflow_fn. Ensure the function exists and has a published version."
+        exit 1
+    fi
+
+    export API_FUNCTION_VERSION="$api_ver"
+    export CANARY_FUNCTION_VERSION="$canary_ver"
+    export WORKFLOW_FUNCTION_VERSION="$workflow_ver"
+
+    log_success "API function: $api_fn version $API_FUNCTION_VERSION"
+    log_success "Canary function: $canary_fn version $CANARY_FUNCTION_VERSION"
+    log_success "Workflow function: $workflow_fn version $WORKFLOW_FUNCTION_VERSION"
 }
 
 set_environment_variables() {
@@ -215,6 +264,9 @@ run_terraform() {
         -var="plaid_secret=$PLAID_SECRET"
         -var="polygon_api_key=$POLYGON_API_KEY"
         -var="stripe_secret_key=$STRIPE_SECRET_KEY"
+        -var="api_function_version=$API_FUNCTION_VERSION"
+        -var="canary_function_version=$CANARY_FUNCTION_VERSION"
+        -var="workflow_function_version=$WORKFLOW_FUNCTION_VERSION"
     )
 
     # Run the specified action
@@ -255,6 +307,9 @@ cleanup() {
     unset PLAID_SECRET
     unset POLYGON_API_KEY
     unset STRIPE_SECRET_KEY
+    unset API_FUNCTION_VERSION
+    unset CANARY_FUNCTION_VERSION
+    unset WORKFLOW_FUNCTION_VERSION
     log_info "Cleaned up sensitive environment variables"
 }
 
@@ -274,6 +329,9 @@ main() {
 
     # Get Datadog credentials
     get_datadog_credentials
+
+    # Determine latest Lambda function versions for this environment
+    get_lambda_function_versions
 
     # Set trap to cleanup on exit
     trap cleanup EXIT

@@ -210,67 +210,6 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
     print(f"WalterBackend image '{VERSION_TAG}' built and uploaded successfully!")
 
 
-# def create_git_tag(version: str, description: str) -> None:
-#     """
-#     Create a git tag for the given version.
-#
-#     Args:
-#         version: The semantic version of the git tag.
-#         description: The description of the git tag.
-#     """
-#     print_build_step_header(
-#         f"CREATE WALTER BACKEND GIT TAG '{version}'", APP_ENVIRONMENT
-#     )
-#
-#     print(
-#         f"Creating git tag with the following details:\nVersion: {version}\nDescription: {description}"
-#     )
-#
-#     if tag_exists(version):
-#         print(f"Warning: Tag {version} already exists locally, deleting...")
-#         run_cmd(["git", "tag", "-d", version])
-#
-#         # check if tag exists remotely before deleting
-#         try:
-#             output = run_cmd(["git", "ls-remote", "--tags", "origin", version])
-#             if output and f"refs/tags/{version}" in output:
-#                 print(f"Remote tag {version} exists, deleting...")
-#                 run_cmd(["git", "push", "origin", f":refs/tags/{version}"])
-#             else:
-#                 print(f"Remote tag {version} does not exist, skipping remote deletion")
-#         except Exception as e:
-#             print(f"Warning: Could not check/delete remote tag {version}: {e}")
-#
-#     try:
-#         run_cmd(["git", "tag", "-a", version, "-m", description])
-#         run_cmd(["git", "push", "origin", version])
-#         print(f"Created and pushed git tag: {version}")
-#     except Exception as e:
-#         print(f"Warning: Could not create/push git tag {version}: {e}")
-
-
-# def tag_exists(version: str) -> bool:
-#     """
-#     Check if a git tag exists at the given version.
-#
-#     Args:
-#         version: The semantic version of the git tag
-#             to check.
-#
-#     Returns:
-#         (bool): True if the tag exists, False otherwise.
-#     """
-#     print(f"Checking for existing tag '{version}'...")
-#
-#     try:
-#         run_cmd(["git", "rev-parse", version])
-#         print(f"Found existing git tag '{version}'!")
-#         return True
-#     except subprocess.CalledProcessError:
-#         print(f"No git tag '{version}' found...")
-#         return False
-
-
 def update_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     print_build_step_header(
         f"UPDATE WALTER BACKEND FUNCTIONS '{VERSION_TAG}'", APP_ENVIRONMENT
@@ -326,15 +265,91 @@ def update_aliases(lambda_client: LambdaClient, functions: List[str]) -> None:
 
     print("Updating function aliases...")
 
+    release_versions = {}
     for func, version in latest_versions.items():
         lambda_client.update_alias(
             FunctionName=func,
             Name=FUNCTION_ALIAS,
             FunctionVersion=str(version),
         )
-        print(
-            f"Updated alias '{FUNCTION_ALIAS}' for function '{func}' to version {version}"
+        release_versions[f"{func}:{FUNCTION_ALIAS}"] = version
+
+    print(
+        f"Updated function aliases to the following versions:\n{json.dumps(release_versions, indent=4)}"
+    )
+
+
+###########
+# GIT TAG #
+###########
+
+
+def ensure_git_tag() -> None:
+    """
+    Ensures the current commit is tagged with VERSION_TAG and pushed to origin.
+
+    Behavior:
+    - Fetches tags to ensure local state is up-to-date.
+    - If the tag already exists (locally or remotely), it is deleted locally and remotely.
+    - Creates an annotated tag with RELEASE_DESCRIPTION.
+    - Pushes the tag to origin.
+    """
+    print_build_step_header(f"APPLY GIT TAG '{VERSION_TAG}'", APP_ENVIRONMENT)
+
+    # Ensure we're in a git repo and fetch latest tags
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
+    except subprocess.CalledProcessError:
+        print("Not a git repository. Skipping git tagging step.")
+        return
+
+    # Fetch tags from origin to have an up-to-date view
+    run_cmd(
+        ["git", "fetch", "--tags", "origin"]
+    )  # if origin missing, this will fail and exit
+
+    # Check if tag exists locally
+    tag_exists_local = (
+        subprocess.run(
+            ["git", "rev-parse", "-q", "--verify", f"refs/tags/{VERSION_TAG}"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
+
+    # Check if tag exists on remote 'origin'
+    tag_exists_remote = subprocess.run(
+        ["git", "ls-remote", "--tags", "origin", VERSION_TAG],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    tag_exists_remote = (
+        tag_exists_remote.returncode == 0 and len(tag_exists_remote.stdout.strip()) > 0
+    )
+
+    if tag_exists_local:
+        print(f"Tag '{VERSION_TAG}' exists locally. Deleting local tag...")
+        run_cmd(["git", "tag", "-d", VERSION_TAG])
+
+    if tag_exists_remote:
+        print(f"Tag '{VERSION_TAG}' exists on remote. Deleting remote tag...")
+        # Delete the tag from the remote. This is idempotent if run multiple times.
+        run_cmd(["git", "push", "origin", f":refs/tags/{VERSION_TAG}"])
+
+    print(f"Creating annotated tag '{VERSION_TAG}'...")
+    run_cmd(["git", "tag", "-a", VERSION_TAG, "-m", RELEASE_DESCRIPTION])
+
+    print(f"Pushing tag '{VERSION_TAG}' to origin...")
+    run_cmd(["git", "push", "origin", VERSION_TAG])
 
 
 ##########
@@ -346,6 +361,7 @@ s3_client, ecr_client, lambda_client = create_boto3_clients()
 
 update_docs(s3_client)
 build_and_upload_image(ecr_client)
+ensure_git_tag()
 update_functions(lambda_client, LAMBDA_FUNCTIONS)
 publish_functions(lambda_client, LAMBDA_FUNCTIONS)
 update_aliases(lambda_client, LAMBDA_FUNCTIONS)
