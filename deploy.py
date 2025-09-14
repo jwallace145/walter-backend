@@ -322,6 +322,8 @@ def update_aliases(lambda_client: LambdaClient, functions: List[str]) -> None:
         latest_version = versions[-1]
         latest_versions[func] = latest_version
 
+    print(f"Latest function versions:\n{json.dumps(latest_versions, indent=4)}")
+
     print("Updating function aliases...")
 
     for func, version in latest_versions.items():
