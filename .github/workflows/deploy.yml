@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 env:
   TF_VERSION: '1.13.0'
 
