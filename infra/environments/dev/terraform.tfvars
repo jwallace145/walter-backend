@@ -20,19 +20,16 @@ log_retention_in_days = 7
 hosted_zone_id = "Z06872281VCZDG3SK2QXB"
 
 # WalterBackend API settings
-api_function_version                  = 26
 api_timeout_seconds                   = 15
 api_lambda_memory_mb                  = 1024
 api_provisioned_concurrent_executions = 0
 
 # WalterBackend Canary settings
-canary_function_version                  = 29
 canary_timeout_seconds                   = 30
 canary_lambda_memory_mb                  = 1024
 canary_provisioned_concurrent_executions = 0
 
 # WalterBackend Workflow Settings
-workflow_function_version                  = 27
 workflow_timeout_seconds                   = 15
 workflow_lambda_memory_mb                  = 1024
 workflow_provisioned_concurrent_executions = 0
