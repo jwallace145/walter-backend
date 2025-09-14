@@ -338,7 +338,7 @@ def ensure_git_tag() -> None:
 
     # Force-create the tag
     print(f"Creating annotated tag '{VERSION_TAG}'...")
-    run_cmd(["git", "tag", "-fa", VERSION_TAG, "-m", RELEASE_DESCRIPTION])
+    run_cmd(["git", "tag", "-fa", VERSION_TAG, "-m", f"{RELEASE_DESCRIPTION}"])
 
     # Push the tag (force to ensure update)
     print(f"Pushing tag '{VERSION_TAG}' to origin...")
