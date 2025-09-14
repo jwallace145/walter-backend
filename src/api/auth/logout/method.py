@@ -97,10 +97,8 @@ class Logout(WalterAPIMethod):
             f"Revoked session for user '{user_id}' and token ID '{token_id}'. Logout successful."
         )
 
-        return Response(
-            domain=self.domain,
-            api_name=Logout.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="User logged out successfully!",
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "User logged out successfully!",
         )

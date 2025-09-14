@@ -103,13 +103,12 @@ class EditTransaction(WalterAPIMethod):
             self.holding_updater.update_transaction(updated_transaction)
 
         self.db.put_transaction(updated_transaction)
-        return Response(
-            domain=self.domain,
-            api_name=EditTransaction.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="Transaction edited!",
-            data={
+
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "Transaction edited!",
+            {
                 "transaction": updated_transaction.to_dict(),
             },
         )

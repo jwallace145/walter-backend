@@ -6,7 +6,7 @@ from typing import List
 from src.database.transactions.models import Transaction
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class CreateLinkTokenResponse:
 
     request_id: str

@@ -57,6 +57,11 @@ variable "log_retention_in_days" {
   }
 }
 
+variable "api_function_version" {
+  description = "The WalterBackend-API Lambda function version to use for API requests."
+  type        = number
+}
+
 variable "api_timeout_seconds" {
   description = "The timeout in seconds of all API endpoints."
   type        = number
@@ -85,6 +90,11 @@ variable "api_provisioned_concurrent_executions" {
     condition     = var.api_provisioned_concurrent_executions >= 1 && var.api_provisioned_concurrent_executions <= 5
     error_message = "The api_provisioned_concurrent_executions must be between 1 and 5."
   }
+}
+
+variable "canary_function_version" {
+  description = "The WalterBackend-Canary Lambda function version to use to run all canaries."
+  type        = number
 }
 
 variable "canary_timeout_seconds" {
@@ -118,6 +128,10 @@ variable "canary_provisioned_concurrent_executions" {
   }
 }
 
+variable "workflow_function_version" {
+  description = "The WalterBackend-Workflow Lambda function version to use to serve all workflows."
+  type        = number
+}
 
 variable "workflow_timeout_seconds" {
   description = "The timeout in seconds of all asynchronous workflows."

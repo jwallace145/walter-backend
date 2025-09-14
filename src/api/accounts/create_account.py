@@ -59,13 +59,11 @@ class CreateAccount(WalterAPIMethod):
     def execute(self, event: dict, session: Optional[Session]) -> Response:
         user = self._verify_user_exists(session.user_id)
         account = self._create_new_account(user, event)
-        return Response(
-            domain=self.domain,
-            api_name=CreateAccount.API_NAME,
-            http_status=HTTPStatus.CREATED,
-            status=Status.SUCCESS,
-            message="Account created successfully!",
-            data={"account": account.to_dict()},
+        return self._create_response(
+            HTTPStatus.CREATED,
+            Status.SUCCESS,
+            "Account created successfully!",
+            {"account": account.to_dict()},
         )
 
     def validate_fields(self, event: dict) -> None:

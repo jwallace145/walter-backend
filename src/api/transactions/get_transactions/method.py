@@ -105,14 +105,12 @@ class GetTransactions(WalterAPIMethod):
                 if transaction.is_expense()
             ]
         )
-        return Response(
-            domain=self.domain,
-            api_name=GetTransactions.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="Retrieved transactions!",
-            data={
-                "user_id": user.user_id,
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "Retrieved transactions!",
+            {
+                "user": user.user_id,
                 "num_transactions": len(transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,

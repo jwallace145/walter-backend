@@ -40,6 +40,8 @@ class WalterAPIMethod(ABC):
         metrics: DatadogMetricsClient,
         db: WalterDB,
     ) -> None:
+        # assigned during api invocation, passed from API Gateway
+        self.request_id = None
         self.domain = domain
         self.api_name = api_name
         self.required_query_fields = required_query_fields
@@ -63,7 +65,10 @@ class WalterAPIMethod(ABC):
         Returns:
             The API response.
         """
-        log.info(f"Invoking '{self.api_name}' API")
+        self.request_id = event.get("requestContext", {}).get(
+            "requestId", "NULL_REQUEST_ID"
+        )
+        log.info(f"Invoking '{self.api_name}' API with request ID: '{self.request_id}'")
         log.debug(f"Event:\n{json.dumps(event, indent=4)}")
 
         # start timing the invocation for response time metrics
@@ -257,13 +262,7 @@ class WalterAPIMethod(ABC):
                 break
 
         # return failure response
-        return Response(
-            domain=self.domain,
-            api_name=self.api_name,
-            http_status=http_status,
-            status=status,
-            message=str(exception),
-        )
+        return self._create_response(http_status, status, str(exception), None)
 
     def _emit_metrics(self, response: Response) -> None:
         """
@@ -303,6 +302,24 @@ class WalterAPIMethod(ABC):
             raise UserDoesNotExist(f"User '{user_id}' does not exist!")
         log.info("Verified user exists!")
         return user
+
+    def _create_response(
+        self,
+        http_status: HTTPStatus,
+        status: Status,
+        message: str,
+        data: Optional[dict] = None,
+    ) -> Response:
+        return Response(
+            domain=self.domain,
+            api_name=self.api_name,
+            request_id=self.request_id,
+            http_status=http_status,
+            status=status,
+            message=message,
+            response_time_millis=None,
+            data=data,
+        )
 
     @abstractmethod
     def execute(self, event: dict, session: Optional[Session]) -> Response:

@@ -46,15 +46,18 @@ VERSION_TAG = f"v{VERSION}"
 RELEASE_DESCRIPTION = "The initial release of WalterBackend."
 """(str): The release description for the git tag."""
 
-WALTER_BACKEND_IMAGE_URI = f"010526272437.dkr.ecr.us-east-1.amazonaws.com/walter-backend-{APP_ENVIRONMENT}:{VERSION}"
+WALTER_BACKEND_IMAGE_URI = f"{AWS_ACCOUNT_ID}.dkr.ecr.{AWS_REGION}.amazonaws.com/walter-backend-{APP_ENVIRONMENT}:{VERSION}"
 """(str): The URI of the WalterBackend image to deploy."""
 
-LAMBDA_FUNCTIONS = [
+LAMBDA_FUNCTIONS: List[str] = [
     f"WalterBackend-API-{APP_ENVIRONMENT}",
     f"WalterBackend-Canary-{APP_ENVIRONMENT}",
     f"WalterBackend-Workflow-{APP_ENVIRONMENT}",
 ]
 """(List[str]): The names of the Lambda functions to deploy."""
+
+FUNCTION_ALIAS: str = "release"
+"""(str): The alias for the current Lambda function version used by WalterBackend."""
 
 
 ###########
@@ -148,11 +151,15 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         f"BUILD AND UPLOAD WALTER BACKEND IMAGE '{VERSION_TAG}'", APP_ENVIRONMENT
     )
 
+    print("Getting authorization token from ECR...")
+
     # get an authorization token from ecr and extract username, password, and endpoint for docker login
     auth_data = ecr_client.get_authorization_token()["authorizationData"][0]
     token = auth_data["authorizationToken"]
     endpoint = auth_data["proxyEndpoint"]
     username, password = base64.b64decode(token).decode("utf-8").split(":")
+
+    print("Building and uploading image...")
 
     # build and tag the versioned image
     run_cmd(
@@ -200,7 +207,7 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
         ]
     )
 
-    print(f"WalterBackend API image {VERSION} built and uploaded successfully!")
+    print(f"WalterBackend image '{VERSION_TAG}' built and uploaded successfully!")
 
 
 # def create_git_tag(version: str, description: str) -> None:
@@ -242,35 +249,35 @@ def build_and_upload_image(ecr_client: ECRClient) -> None:
 #         print(f"Warning: Could not create/push git tag {version}: {e}")
 
 
-def tag_exists(version: str) -> bool:
-    """
-    Check if a git tag exists at the given version.
+# def tag_exists(version: str) -> bool:
+#     """
+#     Check if a git tag exists at the given version.
+#
+#     Args:
+#         version: The semantic version of the git tag
+#             to check.
+#
+#     Returns:
+#         (bool): True if the tag exists, False otherwise.
+#     """
+#     print(f"Checking for existing tag '{version}'...")
+#
+#     try:
+#         run_cmd(["git", "rev-parse", version])
+#         print(f"Found existing git tag '{version}'!")
+#         return True
+#     except subprocess.CalledProcessError:
+#         print(f"No git tag '{version}' found...")
+#         return False
 
-    Args:
-        version: The semantic version of the git tag
-            to check.
 
-    Returns:
-        (bool): True if the tag exists, False otherwise.
-    """
-    print(f"Checking for existing tag '{version}'...")
-
-    try:
-        run_cmd(["git", "rev-parse", version])
-        print(f"Found existing git tag '{version}'!")
-        return True
-    except subprocess.CalledProcessError:
-        print(f"No git tag '{version}' found...")
-        return False
-
-
-def update_source_code(lambda_client: LambdaClient, functions) -> None:
+def update_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     print_build_step_header(
-        f"UPDATE WALTER BACKEND FUNCTIONS 'v{VERSION}'", APP_ENVIRONMENT
+        f"UPDATE WALTER BACKEND FUNCTIONS '{VERSION_TAG}'", APP_ENVIRONMENT
     )
 
     print(
-        f"Updating WalterBackend-{APP_ENVIRONMENT} functions to version 'v{VERSION}':\n{json.dumps(functions, indent=4)}"
+        f"Updating function code to WalterBackend version '{VERSION_TAG}':\n{json.dumps(functions, indent=4)}"
     )
     for func in functions:
         lambda_client.update_function_code(
@@ -280,6 +287,54 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
     sleep(30)
 
 
+def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
+    print_build_step_header(
+        f"PUBLISH WALTER BACKEND FUNCTIONS '{VERSION_TAG}'", APP_ENVIRONMENT
+    )
+
+    print(f"Publishing new function versions:\n{json.dumps(functions, indent=4)}")
+    for func in functions:
+        lambda_client.publish_version(
+            FunctionName=func,
+        )
+
+    print("Waiting for new function versions to become active...")
+    sleep(30)
+
+
+def update_aliases(lambda_client: LambdaClient, functions: List[str]) -> None:
+    print_build_step_header(
+        f"UPDATE WALTER BACKEND FUNCTION ALIASES '{VERSION_TAG}'", APP_ENVIRONMENT
+    )
+
+    print("Getting latest function versions...")
+
+    latest_versions = {}
+    for func in functions:
+        response = lambda_client.list_versions_by_function(FunctionName=func)
+        versions = []
+        for v in response["Versions"]:
+            version = v["Version"]
+            if version == "$LATEST":
+                continue
+            versions.append(int(version))
+        versions.sort()
+        latest_version = versions[-1]
+        latest_versions[func] = latest_version
+
+    print("Updating function aliases...")
+
+    for func, version in latest_versions.items():
+        lambda_client.update_alias(
+            FunctionName=func,
+            Name=FUNCTION_ALIAS,
+            FunctionVersion=str(version),
+        )
+        print(
+            f"Updated alias '{FUNCTION_ALIAS}' for function '{func}' to version {version}"
+        )
+
+
 ##########
 # SCRIPT #
 ##########
@@ -287,14 +342,8 @@ def update_source_code(lambda_client: LambdaClient, functions) -> None:
 
 s3_client, ecr_client, lambda_client = create_boto3_clients()
 
-# TODO: Move this logic to Terraform, update S3 bucket when OpenAPI specifications change
 update_docs(s3_client)
-
-# Not sure if Terraform can automate this yet, so we'll do it manually for now
 build_and_upload_image(ecr_client)
-
-# Create git tag to track the version
-# create_git_tag(VERSION_TAG, RELEASE_DESCRIPTION)
-
-# TODO: Move this logic to Terraform, update functions when image digest hash changes (i.e. new changes)
-update_source_code(lambda_client, LAMBDA_FUNCTIONS)
+update_functions(lambda_client, LAMBDA_FUNCTIONS)
+publish_functions(lambda_client, LAMBDA_FUNCTIONS)
+update_aliases(lambda_client, LAMBDA_FUNCTIONS)

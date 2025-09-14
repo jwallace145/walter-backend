@@ -28,15 +28,13 @@ resource "aws_lambda_function" "this" {
       LOG_LEVEL         = var.log_level
     }
   }
-
-  publish = var.publish
 }
 
 resource "aws_lambda_alias" "release" {
   name             = var.alias_name
   description      = "The release alias of the WalterBackend function that points to the latest image."
   function_name    = aws_lambda_function.this.function_name
-  function_version = aws_lambda_function.this.version
+  function_version = var.function_version
 }
 
 resource "aws_lambda_provisioned_concurrency_config" "provisioned_concurrency" {

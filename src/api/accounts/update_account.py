@@ -70,13 +70,11 @@ class UpdateAccount(WalterAPIMethod):
         user = self._verify_user_exists(session.user_id)
         account = self._verify_account_exists(user, event)
         updated_account = self._update_account(user, account, event)
-        return Response(
-            domain=self.domain,
-            api_name=UpdateAccount.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="Account updated successfully!",
-            data={"account": updated_account.to_dict()},
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "Account updated successfully!",
+            {"account": updated_account.to_dict()},
         )
 
     def validate_fields(self, event: dict) -> None:
