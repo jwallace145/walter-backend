@@ -16,6 +16,9 @@ log_level = "INFO"
 # The number of days to retain application logs before deletion
 log_retention_in_days = 14
 
+# walterai.dev Route53 hosted zone ID
+hosted_zone_id = "Z06872281VCZDG3SK2QXB"
+
 # WalterBackend API settings
 api_function_version                  = 16
 api_timeout_seconds                   = 15
