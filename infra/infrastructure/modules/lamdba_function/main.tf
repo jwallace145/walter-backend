@@ -38,6 +38,7 @@ resource "aws_lambda_alias" "release" {
 }
 
 resource "aws_lambda_provisioned_concurrency_config" "provisioned_concurrency" {
+  count                             = var.provisioned_concurrent_executions > 0 ? 1 : 0
   function_name                     = aws_lambda_function.this.function_name
   provisioned_concurrent_executions = var.provisioned_concurrent_executions
   qualifier                         = aws_lambda_alias.release.name
