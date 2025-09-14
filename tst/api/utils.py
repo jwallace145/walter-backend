@@ -86,8 +86,9 @@ def get_expected_response(
         optional data.
     """
     return Response(
-        Domain.TESTING,
+        domain=Domain.TESTING,
         api_name=api_name,
+        request_id="WALTER_BACKEND_UNIT_TEST_REQUEST_ID",
         http_status=status_code,
         status=status,
         message=message,

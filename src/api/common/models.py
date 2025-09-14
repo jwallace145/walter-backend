@@ -41,7 +41,7 @@ class HTTPStatus(Enum):
         return str(self.value).startswith("2")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Response:
     """
     WalterAPI - Response
@@ -56,6 +56,7 @@ class Response:
 
     domain: Domain
     api_name: str
+    request_id: str
     http_status: HTTPStatus
     status: Status
     message: str
@@ -69,6 +70,7 @@ class Response:
             "Service": "WalterBackend-API",
             "Domain": self.domain.value,
             "API": self.api_name,
+            "RequestId": self.request_id,
             "Status": self.status.value,
             "Message": self.message,
         }

@@ -69,9 +69,7 @@ class GetAccounts(WalterAPIMethod):
             user, accounts, holdings, securities
         )
         self._update_investment_account_balances(user, data, accounts)
-        return Response(
-            domain=self.domain,
-            api_name=GetAccounts.API_NAME,
+        return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Successfully retrieved accounts!",

@@ -12,9 +12,11 @@ from src.api.common.models import HTTPStatus, Response, Status
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
+from src.database.users.models import User
 from src.environment import Domain
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
+from src.plaid.models import CreateLinkTokenResponse
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -61,15 +63,13 @@ class CreateLinkToken(WalterAPIMethod):
         self.plaid = plaid
 
     def execute(self, event: dict, session: Optional[Session]) -> Response:
-        user = self._verify_user_exists(session.user_id)
-        response = self.plaid.create_link_token(user.user_id)
-        return Response(
-            domain=self.domain,
-            api_name=CreateLinkToken.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="Created link token successfully!",
-            data=response.to_dict(),
+        user: User = self._verify_user_exists(session.user_id)
+        response: CreateLinkTokenResponse = self.plaid.create_link_token(user.user_id)
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "Created link token successfully!",
+            response.to_dict(),
         )
 
     def validate_fields(self, event: dict) -> None:

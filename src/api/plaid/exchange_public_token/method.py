@@ -135,13 +135,11 @@ class ExchangePublicToken(WalterAPIMethod):
         self._add_sync_transactions_tasks(user.user_id, saved_accounts)
 
         # return successful exchange public token response
-        return Response(
-            domain=self.domain,
-            api_name=ExchangePublicToken.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="Tokens exchanged successfully!",
-            data={
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "Tokens exchanged successfully!",
+            {
                 "institution_id": institution_id,
                 "institution_name": institution_name,
                 "num_accounts": len(accounts),

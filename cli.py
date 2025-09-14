@@ -48,6 +48,10 @@ def create_api_event(
     """
     event = {}
 
+    # set request ID for CLI invocations
+    event["requestContext"] = {}
+    event["requestContext"]["requestId"] = "WALTER_BACKEND_CLI_REQUEST"
+
     # if api token is provided, add it to the event
     if token:
         event["headers"] = {"Authorization": f"Bearer {token}"}

@@ -75,13 +75,11 @@ class Login(WalterAPIMethod):
         tokens = self._create_tokens(user)
         self._create_session(user, tokens, event)
         self._update_last_active_date(user)
-        return Response(
-            domain=self.domain,
-            api_name=Login.API_NAME,
-            http_status=HTTPStatus.OK,
-            status=Status.SUCCESS,
-            message="User logged in successfully!",
-            data=LoginResponse(user, tokens).to_dict(),
+        return self._create_response(
+            HTTPStatus.OK,
+            Status.SUCCESS,
+            "User logged in successfully!",
+            LoginResponse(user, tokens).to_dict(),
         )
 
     def validate_fields(self, event: dict) -> None:
