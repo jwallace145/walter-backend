@@ -110,7 +110,7 @@ class GetTransactions(WalterAPIMethod):
             Status.SUCCESS,
             "Retrieved transactions!",
             {
-                "user": user.user_id,
+                "user_id": user.user_id,
                 "num_transactions": len(transactions),
                 "total_income": total_income,
                 "total_expense": total_expenses,
