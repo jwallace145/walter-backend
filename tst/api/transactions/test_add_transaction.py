@@ -2,8 +2,9 @@ import datetime as dt
 
 import pytest
 
-from src.ai.mlp.expenses import ExpenseCategorizerMLP
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.transactions.add_transaction import AddTransaction
 from src.auth.authenticator import WalterAuthenticator
@@ -15,12 +16,7 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
-from src.environment import Domain
-from src.investments.holdings.updater import HoldingUpdater
-from src.investments.securities.updater import SecurityUpdater
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event
-from tst.polygon.mock import MockPolygonClient
 
 ADD_TRANSACTION_API_PATH = "/transactions"
 ADD_TRANSACTION_API_METHOD = HTTPMethod.POST
@@ -28,24 +24,9 @@ ADD_TRANSACTION_API_METHOD = HTTPMethod.POST
 
 @pytest.fixture()
 def add_transaction_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    transactions_categorizer: ExpenseCategorizerMLP,
-    polygon_client: MockPolygonClient,
-    holding_updater: HoldingUpdater,
-    security_updater: SecurityUpdater,
-):
-    return AddTransaction(
-        Domain.TESTING,
-        walter_authenticator,
-        datadog_metrics,
-        walter_db,
-        transactions_categorizer,
-        polygon_client,
-        holding_updater,
-        security_updater,
-    )
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.ADD_TRANSACTION)
 
 
 def test_add_bank_debit_success(

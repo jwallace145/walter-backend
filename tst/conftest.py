@@ -8,6 +8,7 @@ from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
+from src.api.factory import APIMethodFactory
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
@@ -228,3 +229,8 @@ def client_factory(
 
     # return the client factory configured with mock clients
     return client_factory
+
+
+@pytest.fixture
+def api_method_factory(client_factory: ClientFactory) -> APIMethodFactory:
+    return APIMethodFactory(client_factory=client_factory)

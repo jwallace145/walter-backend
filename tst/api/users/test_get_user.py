@@ -1,14 +1,9 @@
 import pytest
 
-from src.api.common.methods import HTTPStatus, Status
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.users.get_user import GetUser
-from src.auth.authenticator import WalterAuthenticator
-from src.aws.s3.client import WalterS3Client
-from src.aws.secretsmanager.client import WalterSecretsManagerClient
-from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event, get_expected_response
 
 GET_USER_API_PATH = "/users"
@@ -20,20 +15,9 @@ GET_USER_API_METHOD = HTTPMethod.GET
 
 @pytest.fixture
 def get_user_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    walter_sm: WalterSecretsManagerClient,
-    walter_s3: WalterS3Client,
-) -> GetUser:
-    return GetUser(
-        Domain.TESTING,
-        walter_authenticator,
-        datadog_metrics,
-        walter_db,
-        walter_sm,
-        walter_s3,
-    )
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.GET_USER)
 
 
 # def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:

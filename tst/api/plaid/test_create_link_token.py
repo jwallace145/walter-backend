@@ -2,28 +2,22 @@ from typing import Optional
 
 import pytest
 
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event
-from tst.plaid.mock import MockPlaidClient
 
 
 @pytest.fixture
 def create_link_token_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    plaid_client: MockPlaidClient,
-) -> CreateLinkToken:
-    return CreateLinkToken(
-        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db, plaid_client
-    )
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.CREATE_LINK_TOKEN)
 
 
 def test_create_link_token_success(

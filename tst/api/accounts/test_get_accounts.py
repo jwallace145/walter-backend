@@ -3,11 +3,10 @@ from freezegun import freeze_time
 
 from src.api.accounts.get_accounts.method import GetAccounts
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event, get_expected_response
 
 GET_ACCOUNTS_API_PATH = "/accounts"
@@ -19,11 +18,9 @@ GET_ACCOUNTS_API_METHOD = HTTPMethod.GET
 
 @pytest.fixture
 def get_accounts_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
+    api_method_factory: APIMethodFactory,
 ) -> GetAccounts:
-    return GetAccounts(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
+    return api_method_factory.get_api(APIMethod.GET_ACCOUNTS)
 
 
 @freeze_time("2025-07-01")

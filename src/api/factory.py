@@ -159,7 +159,7 @@ class APIMethodFactory:
                     metrics=self.client_factory.get_metrics_client(),
                     walter_db=self.client_factory.get_db_client(),
                     expense_categorizer=self.client_factory.get_expense_categorizer(),
-                    polygon_client=self.client_factory.get_polygon_client(),
+                    polygon=self.client_factory.get_polygon_client(),
                     holding_updater=self.client_factory.get_holding_updater(),
                     security_updater=self.client_factory.get_security_updater(),
                 )
@@ -169,7 +169,7 @@ class APIMethodFactory:
                     walter_authenticator=self.client_factory.get_authenticator(),
                     metrics=self.client_factory.get_metrics_client(),
                     walter_db=self.client_factory.get_db_client(),
-                    polygon_client=self.client_factory.get_polygon_client(),
+                    polygon=self.client_factory.get_polygon_client(),
                     holding_updater=self.client_factory.get_holding_updater(),
                     security_updater=self.client_factory.get_security_updater(),
                 )
