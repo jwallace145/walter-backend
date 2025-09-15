@@ -50,11 +50,6 @@ module "api_role_secrets_access" {
   source      = "./modules/iam_secrets_manager_access_policy"
   policy_name = "api-secrets-access-policy"
   secret_names = [
-    local.AUTH_SECRETS,
-    local.DATADOG_SECRET,
-    local.POLYGON_SECRET,
-    local.PLAID_SECRET,
-    local.STRIPE_SECRET,
     module.secrets["Auth"].secret_name,
     module.secrets["Datadog"].secret_name,
     module.secrets["Polygon"].secret_name,
