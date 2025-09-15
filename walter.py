@@ -2,7 +2,8 @@ import json
 
 from src.api.common.models import HTTPStatus, Status
 from src.api.router import API_ROUTER
-from src.canaries.routing.router import CanaryRouter, CanaryType
+from src.canaries.router import CANARY_ROUTER
+from src.canaries.routing.router import CanaryType
 from src.utils.log import Logger
 from src.workflows.router import WORKFLOW_ROUTER
 
@@ -43,7 +44,7 @@ def canaries_entrypoint(event, context) -> dict:
     # iterate over all canaries and invoke them
     responses = []
     for canary_type in CanaryType:
-        response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=True)
+        response = CANARY_ROUTER.get_canary(canary_type).invoke(emit_metrics=True)
         responses.append(json.loads(response["body"]))
 
     # count successful and failed canaries
