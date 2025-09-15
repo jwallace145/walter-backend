@@ -6,6 +6,7 @@ import typer
 from src.api.router import API_ROUTER
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
+from src.workflows.router import WORKFLOW_ROUTER
 
 log = Logger(__name__).get_logger()
 
@@ -476,21 +477,21 @@ def create_link_token(token: str = None) -> None:
 #############
 
 
-# def get_workflow_event(workflow_name: str) -> dict:
-#     return {
-#         "workflow_name": workflow_name,
-#     }
-#
-#
-# @app.command()
-# def update_prices() -> None:
-#     workflow_name = "UpdateSecurityPrices"
-#     log.info(f"WalterCLI: {workflow_name}")
-#     event = get_workflow_event(workflow_name)
-#     response = (
-#         WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=False).to_json()
-#     )
-#     log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
+def get_workflow_event(workflow_name: str) -> dict:
+    return {
+        "workflow_name": workflow_name,
+    }
+
+
+@app.command()
+def update_prices() -> None:
+    workflow_name = "UpdateSecurityPrices"
+    log.info(f"WalterCLI: {workflow_name}")
+    event: dict = get_workflow_event(workflow_name)
+    response: dict = (
+        WORKFLOW_ROUTER.get_workflow(event).invoke(event, emit_metrics=False).to_json()
+    )
+    log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
 
 
 if __name__ == "__main__":
