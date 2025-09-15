@@ -3,23 +3,17 @@ import json
 import pytest
 
 from src.api.accounts.update_account import UpdateAccount
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_expected_response
 
 
 @pytest.fixture
-def update_account_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-) -> UpdateAccount:
-    return UpdateAccount(
-        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
-    )
+def update_account_api(api_method_factory: APIMethodFactory) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.UPDATE_ACCOUNT)
 
 
 def _event_with_auth_and_body(token: str, body) -> dict:

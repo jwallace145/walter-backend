@@ -1,10 +1,10 @@
 import json
 
 from src.api.common.models import HTTPStatus, Status
-from src.api.routing.router import APIRouter
+from src.api.router import API_ROUTER
 from src.canaries.routing.router import CanaryRouter, CanaryType
 from src.utils.log import Logger
-from src.workflows.common.router import WorkflowRouter
+from src.workflows.router import WORKFLOW_ROUTER
 
 LOG = Logger(__name__).get_logger()
 
@@ -25,13 +25,15 @@ This module defines the entry functions for three distinct Lambda functions:
 def api_entrypoint(event, context) -> dict:
     """Process API Gateway requests"""
     LOG.info("Invoking API!")
-    return APIRouter.get_method(event).invoke(event, emit_metrics=True).to_json()
+    return API_ROUTER.get_method(event).invoke(event, emit_metrics=True).to_json()
 
 
 def workflows_entrypoint(event, context) -> dict:
     """Execute asynchronous workflows for data processing and updates"""
     LOG.info("Invoking workflow!")
-    return WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=True).to_json()
+    return (
+        WORKFLOW_ROUTER.get_workflow(event).invoke(event, emit_metrics=True).to_json()
+    )
 
 
 def canaries_entrypoint(event, context) -> dict:

@@ -34,6 +34,7 @@ plaid-python = "*"
 user-agents = "*"
 datadog-lambda = "*"
 mypy-boto3-events = "*"
+mypy-boto3-sts = "*"
 
 [dev-packages]
 black = "*"

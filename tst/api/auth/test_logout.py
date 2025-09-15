@@ -1,12 +1,12 @@
 import pytest
 
 from src.api.auth.logout.method import Logout
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event, get_expected_response
 
 LOGOUT_API_PATH = "/auth/logout"
@@ -18,11 +18,9 @@ LOGOUT_API_METHOD = HTTPMethod.POST
 
 @pytest.fixture
 def logout_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-) -> Logout:
-    return Logout(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.LOGOUT)
 
 
 def test_logout_success(

@@ -8,6 +8,7 @@ from mypy_boto3_ses.client import SESClient
 from mypy_boto3_sqs import SQSClient
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
+from src.api.factory import APIMethodFactory
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.dynamodb.client import WalterDDBClient
 from src.aws.s3.client import WalterS3Client
@@ -16,6 +17,7 @@ from src.aws.ses.client import WalterSESClient
 from src.aws.sqs.client import WalterSQSClient
 from src.database.client import WalterDB
 from src.environment import Domain
+from src.factory import ClientFactory
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
@@ -181,3 +183,54 @@ def security_updater(
     polygon_client: MockPolygonClient, walter_db: WalterDB
 ) -> SecurityUpdater:
     return SecurityUpdater(polygon_client, walter_db)
+
+
+############################
+# UNIT TEST CLIENT FACTORY #
+############################
+
+
+@pytest.fixture
+def client_factory(
+    datadog_metrics: DatadogMetricsClient,
+    walter_s3: WalterS3Client,
+    ddb_client: DynamoDBClient,
+    walter_db: WalterDB,
+    walter_sm: WalterSecretsManagerClient,
+    walter_sqs: WalterSQSClient,
+    walter_authenticator: WalterAuthenticator,
+    polygon_client: MockPolygonClient,
+    security_updater: SecurityUpdater,
+    holding_updater: HoldingUpdater,
+    transactions_categorizer: MockTransactionsCategorizer,
+    plaid_client: MockPlaidClient,
+    sync_transactions_task_queue: SyncUserTransactionsTaskQueue,
+) -> ClientFactory:
+    # create a client factory
+    client_factory: ClientFactory = ClientFactory(
+        domain=Domain.TESTING, region=AWS_REGION
+    )
+
+    # set factory clients to mocked clients for unit tests
+    client_factory.metrics = datadog_metrics
+    client_factory.s3 = walter_s3
+    client_factory.ddb = ddb_client
+    client_factory.secrets = walter_sm
+    client_factory.sqs = walter_sqs
+    client_factory.sts = None  # TODO: Support mock STS client creation for unit tests
+    client_factory.auth = walter_authenticator
+    client_factory.db = walter_db
+    client_factory.polygon = polygon_client
+    client_factory.security_updater = security_updater
+    client_factory.holding_updater = holding_updater
+    client_factory.expense_categorizer = transactions_categorizer
+    client_factory.plaid = plaid_client
+    client_factory.sync_transactions_task_queue = sync_transactions_task_queue
+
+    # return the client factory configured with mock clients
+    return client_factory
+
+
+@pytest.fixture
+def api_method_factory(client_factory: ClientFactory) -> APIMethodFactory:
+    return APIMethodFactory(client_factory=client_factory)

@@ -3,7 +3,9 @@ from typing import List, Optional, Tuple
 import pytest
 
 from src.api.common.exceptions import InvalidPlaidInstitution
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Response, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.plaid.exchange_public_token.method import ExchangePublicToken
 from src.api.plaid.exchange_public_token.models import AccountDetails
 from src.api.routing.methods import HTTPMethod
@@ -13,30 +15,15 @@ from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from src.plaid.models import ExchangePublicTokenResponse
-from src.transactions.queue import SyncUserTransactionsTaskQueue
 from tst.api.utils import get_api_event
-from tst.plaid.mock import MockPlaidClient
 
 
 @pytest.fixture
 def exchange_public_token_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    plaid_client: MockPlaidClient,
-    sync_transactions_task_queue: SyncUserTransactionsTaskQueue,
-) -> ExchangePublicToken:
-    return ExchangePublicToken(
-        Domain.TESTING,
-        walter_authenticator,
-        datadog_metrics,
-        walter_db,
-        plaid_client,
-        sync_transactions_task_queue,
-    )
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.EXCHANGE_PUBLIC_TOKEN)
 
 
 def test_get_details_from_event_success(

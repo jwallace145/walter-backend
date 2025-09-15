@@ -2,11 +2,10 @@ import pytest
 
 from src.api.accounts.delete_account import DeleteAccount
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event, get_expected_response
 
 DELETE_ACCOUNT_API_PATH = "/accounts"
@@ -18,13 +17,9 @@ DELETE_ACCOUNT_API_METHOD = HTTPMethod.DELETE
 
 @pytest.fixture
 def delete_account_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
+    api_method_factory: APIMethodFactory,
 ) -> DeleteAccount:
-    return DeleteAccount(
-        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
-    )
+    return api_method_factory.get_api(APIMethod.DELETE_ACCOUNT)
 
 
 def test_delete_account_success(

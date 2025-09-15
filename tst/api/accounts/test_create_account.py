@@ -2,11 +2,10 @@ import pytest
 
 from src.api.accounts.create_account import CreateAccount
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event
 
 CREATE_ACCOUNT_API_PATH = "/accounts"
@@ -18,13 +17,9 @@ CREATE_ACCOUNT_API_METHOD = HTTPMethod.POST
 
 @pytest.fixture
 def create_account_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
+    api_method_factory: APIMethodFactory,
 ) -> CreateAccount:
-    return CreateAccount(
-        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
-    )
+    return api_method_factory.get_api(APIMethod.CREATE_ACCOUNT)
 
 
 def test_create_account_success(

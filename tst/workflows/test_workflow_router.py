@@ -1,3 +1,6 @@
+import pytest
+
+from src.factory import ClientFactory
 from src.workflows.common.router import WorkflowRouter, Workflows
 
 task = {
@@ -23,6 +26,15 @@ task = {
 }
 
 
+@pytest.fixture
+def workflow_router(
+    client_factory: ClientFactory,
+) -> WorkflowRouter:
+    return WorkflowRouter(
+        client_factory=client_factory,
+    )
+
+
 def test_get_workflow_from_string() -> None:
     assert (
         Workflows.from_string("UpdateSecurityPrices")
@@ -34,5 +46,7 @@ def test_get_workflow_from_string() -> None:
     )
 
 
-def test_get_workflow_name_from_task() -> None:
-    assert WorkflowRouter._get_workflow_name(task) == "SyncUserTransactions"
+def test_get_workflow_name_from_task(
+    workflow_router: WorkflowRouter,
+) -> None:
+    assert workflow_router._get_workflow_name(task) == "SyncUserTransactions"

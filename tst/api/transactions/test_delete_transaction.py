@@ -3,14 +3,12 @@ from datetime import datetime
 import pytest
 
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.transactions.delete_transaction import DeleteTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.transactions.models import InvestmentTransaction
-from src.environment import Domain
-from src.investments.holdings.updater import HoldingUpdater
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event
 
 DELETE_TRANSACTION_API_PATH = "/transactions"
@@ -22,18 +20,9 @@ DELETE_TRANSACTION_API_METHOD = HTTPMethod.DELETE
 
 @pytest.fixture
 def delete_transaction_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    holding_updater: HoldingUpdater,
-) -> DeleteTransaction:
-    return DeleteTransaction(
-        Domain.TESTING,
-        walter_authenticator,
-        datadog_metrics,
-        walter_db,
-        holding_updater,
-    )
+    api_method_factory: APIMethodFactory,
+) -> APIMethodFactory:
+    return api_method_factory.get_api(APIMethod.DELETE_TRANSACTION)
 
 
 def test_delete_buy_investment_transaction_failure_invalid_holding_update(

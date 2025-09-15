@@ -28,7 +28,7 @@ from src.utils.log import Logger
 log = Logger(__name__).get_logger()
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Login(WalterAPIMethod):
     """
     WalterAPI: Login

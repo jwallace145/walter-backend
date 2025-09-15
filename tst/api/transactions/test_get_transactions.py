@@ -1,24 +1,19 @@
 import pytest
 
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.transactions.get_transactions.method import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
-from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event
 
 
 @pytest.fixture()
 def get_transactions_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-):
-    return GetTransactions(
-        Domain.TESTING, walter_authenticator, datadog_metrics, walter_db
-    )
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.GET_TRANSACTIONS)
 
 
 GET_TRANSACTIONS_API_PATH = "/transactions"

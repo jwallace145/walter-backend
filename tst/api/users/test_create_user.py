@@ -1,13 +1,9 @@
 import pytest
 
-from src.api.common.methods import HTTPStatus, Status
+from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
+from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.users.create_user import CreateUser
-from src.auth.authenticator import WalterAuthenticator
-from src.aws.ses.client import WalterSESClient
-from src.database.client import WalterDB
-from src.environment import Domain
-from src.metrics.client import DatadogMetricsClient
 from tst.api.utils import get_api_event, get_expected_response
 
 CREATE_USER_API_PATH = "/users"
@@ -19,12 +15,9 @@ CREATE_USER_API_METHOD = HTTPMethod.POST
 
 @pytest.fixture
 def create_user_api(
-    walter_authenticator: WalterAuthenticator,
-    datadog_metrics: DatadogMetricsClient,
-    walter_db: WalterDB,
-    walter_ses: WalterSESClient,
-) -> CreateUser:
-    return CreateUser(Domain.TESTING, walter_authenticator, datadog_metrics, walter_db)
+    api_method_factory: APIMethodFactory,
+) -> WalterAPIMethod:
+    return api_method_factory.get_api(APIMethod.CREATE_USER)
 
 
 # def test_create_user(create_user_api: CreateUser) -> None:

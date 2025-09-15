@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from enum import Enum
 
-from src.clients import DATABASE, DATADOG, DOMAIN, PLAID, POLYGON
+from src.factory import ClientFactory
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow
 from src.workflows.sync_user_transactions import SyncUserTransactions
@@ -25,25 +25,38 @@ class Workflows(Enum):
         raise ValueError(f"{workflow} is not a valid workflow!")
 
 
-@dataclass
+@dataclass(kw_only=True)
 class WorkflowRouter:
-    """Workflow Router"""
+    """Router for WalterBackend workflows."""
 
-    @staticmethod
-    def get_workflow(event: dict) -> Workflow:
-        workflow_name = WorkflowRouter._get_workflow_name(event)
+    client_factory: ClientFactory
+
+    def __post_init__(self) -> None:
+        LOG.debug("Initializing WorkflowRouter")
+
+    def get_workflow(self, event: dict) -> Workflow:
+        workflow_name = self._get_workflow_name(event)
         workflow = Workflows.from_string(workflow_name)
 
         match workflow:
             case Workflows.UPDATE_SECURITY_PRICES:
-                return UpdateSecurityPrices(DOMAIN, DATABASE, POLYGON, DATADOG)
+                return UpdateSecurityPrices(
+                    domain=self.client_factory.get_domain(),
+                    walter_db=self.client_factory.get_db_client(),
+                    polygon=self.client_factory.get_polygon_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case Workflows.SYNC_USER_TRANSACTIONS:
-                return SyncUserTransactions(DOMAIN, PLAID, DATABASE, DATADOG)
+                return SyncUserTransactions(
+                    domain=self.client_factory.get_domain(),
+                    plaid=self.client_factory.get_plaid_client(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case _:
                 raise ValueError(f"Workflow '{workflow}' not found")
 
-    @staticmethod
-    def _get_workflow_name(event: dict) -> str:
+    def _get_workflow_name(self, event: dict) -> str:
         LOG.info(f"Getting workflow name from event:\n{json.dumps(event, indent=4)}")
 
         # only sqs messages have records in the event
