@@ -9,7 +9,7 @@ from src.canaries.common.canary import BaseCanary
 from src.canaries.transactions.get_transactions import GetTransactions
 from src.canaries.users.create_user import CreateUser
 from src.canaries.users.get_user import GetUser
-from src.clients import AUTHENTICATOR, DATABASE, DATADOG
+from src.factory import ClientFactory
 from src.utils.log import Logger
 
 log = Logger(__name__).get_logger()
@@ -57,24 +57,53 @@ class CanaryType(Enum):
 class CanaryRouter:
     """Router for Canaries"""
 
-    @staticmethod
-    def get_canary(canary_type: CanaryType) -> BaseCanary:
+    client_factory: ClientFactory
+
+    def get_canary(self, canary_type: CanaryType) -> BaseCanary:
         log.info(f"Getting '{canary_type.value}' canary'")
 
         match canary_type:
             case CanaryType.LOGIN:
-                return Login(AUTHENTICATOR, DATABASE, DATADOG)
+                return Login(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.REFRESH:
-                return Refresh(AUTHENTICATOR, DATABASE, DATADOG)
+                return Refresh(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.LOGOUT:
-                return Logout(AUTHENTICATOR, DATABASE, DATADOG)
+                return Logout(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.GET_USER:
-                return GetUser(AUTHENTICATOR, DATABASE, DATADOG)
+                return GetUser(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.CREATE_USER:
-                return CreateUser(AUTHENTICATOR, DATABASE, DATADOG)
+                return CreateUser(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.GET_ACCOUNTS:
-                return GetAccounts(AUTHENTICATOR, DATABASE, DATADOG)
+                return GetAccounts(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case CanaryType.GET_TRANSACTIONS:
-                return GetTransactions(AUTHENTICATOR, DATABASE, DATADOG)
+                return GetTransactions(
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
             case _:
                 raise Exception(f"Canary type {canary_type} not found.")
