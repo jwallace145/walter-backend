@@ -4,6 +4,8 @@ from typing import Optional
 import typer
 
 from src.api.router import API_ROUTER
+from src.canaries.router import CANARY_ROUTER
+from src.canaries.routing.router import CanaryType
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
 from src.workflows.router import WORKFLOW_ROUTER
@@ -447,29 +449,29 @@ def create_link_token(token: str = None) -> None:
 ############
 
 
-# @app.command()
-# def canary(
-#     api: str = typer.Option(
-#         None,
-#         help=f"The name of the API the canary invokes. Defaults to None which invokes all canaries. Valid canary options: {[canary.value for canary in CanaryType]})",
-#     )
-# ) -> None:
-#     """
-#     This CLI command invokes a canary to test API endpoints.
-#
-#     The canary is invoked using the specified API. If no API is specified, all canaries are invoked.
-#     """
-#     log.info("WalterCLI: Canary")
-#     if api:
-#         log.info(f"Invoking canary for '{api}'")
-#         canary_type = CanaryType.from_string(api)
-#         response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
-#         log.info(f"WalterCLI: Canary Response:\n{parse_response(response)}")
-#     else:
-#         log.info("Invoking all canaries")
-#         for canary_type in CanaryType:
-#             response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
-#             log.info(f"WalterCLI: {canary_type} Response:\n{parse_response(response)}")
+@app.command()
+def canary(
+    api: str = typer.Option(
+        None,
+        help=f"The name of the API the canary invokes. Defaults to None which invokes all canaries. Valid canary options: {[canary.value for canary in CanaryType]})",
+    )
+) -> None:
+    """
+    This CLI command invokes a canary to test API endpoints.
+
+    The canary is invoked using the specified API. If no API is specified, all canaries are invoked.
+    """
+    log.info("WalterCLI: Canary")
+    if api:
+        log.info(f"Invoking canary for '{api}'")
+        canary_type = CanaryType.from_string(api)
+        response = CANARY_ROUTER.get_canary(canary_type).invoke(emit_metrics=False)
+        log.info(f"WalterCLI: Canary Response:\n{parse_response(response)}")
+    else:
+        log.info("Invoking all canaries")
+        for canary_type in CanaryType:
+            response = CANARY_ROUTER.get_canary(canary_type).invoke(emit_metrics=False)
+            log.info(f"WalterCLI: {canary_type} Response:\n{parse_response(response)}")
 
 
 #############
