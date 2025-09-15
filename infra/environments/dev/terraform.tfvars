@@ -23,6 +23,7 @@ hosted_zone_id = "Z06872281VCZDG3SK2QXB"
 api_timeout_seconds                   = 15
 api_lambda_memory_mb                  = 1024
 api_provisioned_concurrent_executions = 0
+api_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/WalterAIDeveloper"]
 
 # WalterBackend Canary settings
 canary_timeout_seconds                   = 30

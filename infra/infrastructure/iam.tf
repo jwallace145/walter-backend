@@ -6,56 +6,47 @@
 
 module "api_role" {
   source      = "./modules/iam_lambda_execution_role"
-  name        = "api-role-${var.domain}"
-  description = "The IAM role used by the WalterBackend-API-${var.domain} Lambda function to process API requests."
+  name        = "WalterBackend-API-Role-${var.domain}"
+  description = "The IAM role used by the WalterBackend API Lambda function to process API requests. (${var.domain})"
   policies = {
-    api_secrets_access = module.api_role_secrets_access.policy_arn,
-    api_db_access      = module.api_role_db_access.policy_arn
-    api_queue_access   = module.api_role_queue_access.policy_arn
+    assume_api_roles_policy = aws_iam_policy.api_assume_role_policy.arn
   }
 }
 
-# APIs require access to all DynamoDB tables for CRUD operations
+resource "aws_iam_policy" "api_assume_role_policy" {
+  name        = "WalterBackend-API-Base-Policy-${var.domain}"
+  description = "The base IAM policy for the WalterBackend API function used to assume API-specific execution roles."
 
-module "api_role_db_access" {
-  source      = "./modules/iam_dynamodb_access_policy"
-  policy_name = "api-db-access-policy"
-  table_names = [
-    local.USERS_TABLE,
-    local.SESSIONS_TABLE,
-    local.ACCOUNTS_TABLE,
-    local.TRANSACTIONS_TABLE,
-    local.SECURITIES_TABLE,
-    local.HOLDINGS_TABLE
-  ]
-}
-
-# SyncTransactions API requires queue access to submit tasks
-# for users on-demand
-
-module "api_role_queue_access" {
-  source      = "./modules/iam_sqs_queue_access_policy"
-  name        = "api-queue-access-policy"
-  access_type = "producer"
-  queue_arns = [
-    module.queues["sync_transactions"].queue_arn,
-    module.queues["sync_transactions"].dead_letter_queue_arn
-  ]
-}
-
-# API requires access to all secrets primarily for authentication purposes and api
-# keys for external software
-
-module "api_role_secrets_access" {
-  source      = "./modules/iam_secrets_manager_access_policy"
-  policy_name = "api-secrets-access-policy"
-  secret_names = [
-    module.secrets["Auth"].secret_name,
-    module.secrets["Datadog"].secret_name,
-    module.secrets["Polygon"].secret_name,
-    module.secrets["Plaid"].secret_name,
-    module.secrets["Stripe"].secret_name
-  ]
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sts:AssumeRole",
+        ]
+        Effect = "Allow"
+        Resource = [
+          module.api_roles["login"].role_arn,
+          module.api_roles["logout"].role_arn,
+          module.api_roles["refresh"].role_arn,
+          module.api_roles["get_user"].role_arn,
+          module.api_roles["create_user"].role_arn,
+          module.api_roles["update_user"].role_arn,
+          module.api_roles["get_accounts"].role_arn,
+          module.api_roles["create_account"].role_arn,
+          module.api_roles["update_account"].role_arn,
+          module.api_roles["delete_account"].role_arn,
+          module.api_roles["get_transactions"].role_arn,
+          module.api_roles["add_transaction"].role_arn,
+          module.api_roles["edit_transaction"].role_arn,
+          module.api_roles["delete_transaction"].role_arn,
+          module.api_roles["create_link_token"].role_arn,
+          module.api_roles["exchange_public_token"].role_arn,
+          module.api_roles["sync_transactions"].role_arn
+        ]
+      },
+    ]
+  })
 }
 
 /*********************************

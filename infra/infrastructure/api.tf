@@ -23,8 +23,8 @@ locals {
 
     # authentication endpoints
     login   = { parent = "auth", path = "login", method = "POST" },
-    refresh = { parent = "auth", path = "refresh", method = "POST" },
     logout  = { parent = "auth", path = "logout", method = "POST" },
+    refresh = { parent = "auth", path = "refresh", method = "POST" },
 
     # user endpoints
     get_user    = { parent = "root", path = "users", method = "GET" },
@@ -54,6 +54,223 @@ locals {
     auth  = aws_api_gateway_resource.auth.id,
     plaid = aws_api_gateway_resource.plaid.id,
     root  = module.api.root_resource_id,
+  }
+
+  API_ROLES = {
+    login = {
+      name        = "Login"
+      description = "The role used by the WalterBackend API function to execute the Login API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.users_table.table_name,
+        module.sessions_table.table_name
+      ]
+    }
+
+    logout = {
+      name        = "Logout"
+      description = "The role used by the WalterBackend API function to execute the Logout API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.users_table.table_name,
+        module.sessions_table.table_name
+      ]
+    }
+
+    refresh = {
+      name        = "Refresh"
+      description = "The role used by the WalterBackend API function to execute the Refresh API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.users_table.table_name,
+        module.sessions_table.table_name
+      ]
+    }
+
+    get_user = {
+      name        = "GetUser"
+      description = "The role used by the WalterBackend API function to execute the GetUser API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.users_table.table_name,
+        module.sessions_table.table_name
+      ]
+    }
+
+    create_user = {
+      name        = "CreateUser"
+      description = "The role used by the WalterBackend API function to execute the CreateUser API. (${var.domain})"
+      secrets     = []
+      tables = [
+        module.users_table.table_name
+      ]
+    }
+
+    update_user = {
+      name        = "UpdateUser"
+      description = "The role used by the WalterBackend API function to execute the UpdateUser API. (${var.domain})"
+      secrets     = []
+      tables = [
+        module.users_table.table_name
+      ]
+    }
+
+    get_accounts = {
+      name        = "GetAccounts"
+      description = "The role used by the WalterBackend API function to execute the GetAccounts API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.accounts_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name,
+        module.holdings_table.table_name,
+        module.securities_table.table_name
+      ]
+    }
+
+    create_account = {
+      name        = "CreateAccount"
+      description = "The role used by the WalterBackend API function to execute the CreateAccount API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.accounts_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    update_account = {
+      name        = "UpdateAccount"
+      description = "The role used by the WalterBackend API function to execute the UpdateAccount API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.accounts_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    delete_account = {
+      name        = "DeleteAccount"
+      description = "The role used by the WalterBackend API function to execute the DeleteAccount API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.accounts_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    get_transactions = {
+      name        = "GetTransactions"
+      description = "The role used by the WalterBackend API function to execute the GetTransactions API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.sessions_table.table_name,
+        module.accounts_table.table_name,
+        module.users_table.table_name,
+        module.holdings_table.table_name,
+        module.securities_table.table_name,
+        module.transactions_table.table_name,
+      ]
+    }
+
+    add_transaction = {
+      name        = "AddTransaction"
+      description = "The role used by the WalterBackend API function to execute the AddTransaction API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.transactions_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    edit_transaction = {
+      name        = "EditTransaction"
+      description = "The role used by the WalterBackend API function to execute the EditTransaction API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.transactions_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    delete_transaction = {
+      name        = "DeleteTransaction"
+      description = "The role used by the WalterBackend API function to execute the DeleteTransaction API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      tables = [
+        module.transactions_table.table_name,
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    create_link_token = {
+      name        = "CreateLinkToken"
+      description = "The role used by the WalterBackend API function to execute the CreateLinkToken API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name,
+        module.secrets["Plaid"].secret_name
+      ]
+      tables = [
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    exchange_public_token = {
+      name        = "ExchangePublicToken"
+      description = "The role used by the WalterBackend API function to execute the ExchangePublicToken API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name,
+        module.secrets["Plaid"].secret_name
+      ]
+      tables = [
+        module.sessions_table.table_name,
+        module.users_table.table_name
+      ]
+    }
+
+    sync_transactions = {
+      name        = "SyncTransactions"
+      description = "The role used by the WalterBackend API function to execute the SyncTransactions API. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name,
+        module.secrets["Plaid"].secret_name
+      ]
+      tables = [
+        module.sessions_table.table_name,
+        module.users_table.table_name,
+        module.transactions_table.table_name
+      ]
+    }
   }
 }
 
@@ -117,5 +334,20 @@ module "endpoints" {
   lambda_invoke_arn = module.functions["api"].invoke_arn
 }
 
+/***************************
+ * WalterBackend API Roles *
+ ***************************/
+
+module "api_roles" {
+  source                     = "./modules/api_iam_roles"
+  for_each                   = local.API_ROLES
+  domain                     = var.domain
+  name                       = each.value.name
+  description                = each.value.description
+  secret_names               = each.value.secrets
+  table_names                = each.value.tables
+  api_base_role              = module.api_role.arn
+  assume_api_role_principals = var.api_assume_role_additional_principals
+}
 
 

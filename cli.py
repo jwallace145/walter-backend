@@ -3,32 +3,19 @@ from typing import Optional
 
 import typer
 
-from src.api.methods import (
-    add_transaction_api,
-    create_account_api,
-    create_link_token_api,
-    create_user_api,
-    delete_account_api,
-    delete_transaction_api,
-    get_accounts_api,
-    get_transactions_api,
-    get_user_api,
-    login_api,
-    logout_api,
-    refresh_api,
-    update_account_api,
-)
-from src.api.routing.router import APIRouter
-from src.canaries.routing.router import CanaryRouter, CanaryType
+from src.api.router import API_ROUTER
 from src.database.transactions.models import TransactionType
 from src.utils.log import Logger
-from src.workflows.common.router import WorkflowRouter
 
 log = Logger(__name__).get_logger()
 
 
 def create_api_event(
-    token: Optional[str] = None, query_params: Optional[dict] = None, **kwargs
+    http_path: str = None,
+    http_method: str = None,
+    token: Optional[str] = None,
+    query_params: Optional[dict] = None,
+    **kwargs,
 ) -> dict:
     """
     Create an API event with the provided token and kwargs.
@@ -39,6 +26,8 @@ def create_api_event(
     the API router. The APIs are called directly with their respective methods.
 
     Args:
+        http_path: The HTTP path to include in the event.
+        http_method: The HTTP method to include in the event.
         token: The authentication token to include in the event for authenticated APIs.
         query_params: The query parameters to include in the event.
         **kwargs: The additional kwargs to include in the event as body.
@@ -47,6 +36,9 @@ def create_api_event(
         Properly formatted event for testing with the CLI.
     """
     event = {}
+
+    event["path"] = http_path
+    event["httpMethod"] = http_method
 
     # set request ID for CLI invocations
     event["requestContext"] = {}
@@ -99,8 +91,12 @@ def login(
     - password: Account password (required)
     """
     log.info("WalterCLI: Login")
-    event = create_api_event(email=email, password=password)
-    response = login_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/auth/login", http_method="POST", email=email, password=password
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -119,8 +115,12 @@ def refresh(
     - refresh_token: Valid refresh token obtained from login (required)
     """
     log.info("WalterCLI: Refresh")
-    event = create_api_event(token=refresh_token)
-    response = refresh_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/auth/refresh", http_method="POST", token=refresh_token
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -137,8 +137,12 @@ def logout(
     - access_token: Valid access token for the session to end (required)
     """
     log.info("WalterCLI: Logout")
-    event = create_api_event(token=access_token)
-    response = logout_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/auth/logout", http_method="POST", token=access_token
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: Response:\n{parse_response(response)}")
 
 
@@ -148,8 +152,10 @@ def logout(
 @app.command()
 def get_user(token: str = None) -> None:
     log.info("WalterCLI: Getting user...")
-    event = create_api_event(token)
-    response = get_user_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(http_path="/users", http_method="GET", token=token)
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -172,10 +178,17 @@ def create_user(
     - password: Password that meets security requirements (required)
     """
     log.info("Walter CLI: Creating user...")
-    event = create_api_event(
-        email=email, first_name=first_name, last_name=last_name, password=password
+    event: dict = create_api_event(
+        http_path="/users",
+        http_method="POST",
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        password=password,
     )
-    response = create_user_api.invoke(event, emit_metrics=False).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"Walter CLI: Response:\n{parse_response(response)}")
 
 
@@ -192,8 +205,14 @@ def get_accounts(
     - token: Bearer JWT for the user (required)
     """
     log.info("WalterCLI: GetAccounts")
-    event = create_api_event(token)
-    response = get_accounts_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/accounts",
+        http_method="GET",
+        token=token,
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: GetAccounts Response:\n{parse_response(response)}")
 
 
@@ -217,8 +236,10 @@ def create_account(
 ) -> None:
     """Create a new account for the authenticated user."""
     log.info("WalterCLI: CreateAccount")
-    event = create_api_event(
-        token,
+    event: dict = create_api_event(
+        http_path="/accounts",
+        http_method="POST",
+        token=token,
         account_type=account_type,
         account_subtype=account_subtype,
         institution_name=institution_name,
@@ -226,7 +247,9 @@ def create_account(
         account_mask=account_mask,
         balance=balance,
     )
-    response = create_account_api.invoke(event, emit_metrics=False).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: CreateAccount Response:\n{parse_response(response)}")
 
 
@@ -248,8 +271,10 @@ def update_account(
 ) -> None:
     """Update an existing account for the authenticated user."""
     log.info("WalterCLI: UpdateAccount")
-    event = create_api_event(
-        token,
+    event: dict = create_api_event(
+        http_path="/accounts",
+        http_method="PUT",
+        token=token,
         account_id=account_id,
         account_type=account_type,
         account_subtype=account_subtype,
@@ -259,7 +284,9 @@ def update_account(
         balance=balance,
         logo_url=logo_url,
     )
-    response = update_account_api.invoke(event, emit_metrics=False).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: UpdateAccount Response:\n{parse_response(response)}")
 
 
@@ -270,8 +297,12 @@ def delete_account(
 ) -> None:
     """Delete an account (and its transactions) for the authenticated user."""
     log.info("WalterCLI: DeleteAccount")
-    event = create_api_event(token, account_id=account_id)
-    response = delete_account_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/accounts", http_method="DELETE", token=token, account_id=account_id
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: DeleteAccount Response:\n{parse_response(response)}")
 
 
@@ -286,13 +317,17 @@ def get_transactions(
     end_date: str = None,
 ) -> None:
     log.info("WalterCLI: GetTransactions")
-    event = create_api_event(
-        token,
+    event: dict = create_api_event(
+        http_path="/transactions",
+        http_method="GET",
+        token=token,
         query_params={"start_date": start_date, "end_date": end_date},
     )
     if account_id:
         event["queryStringParameters"]["account_id"] = account_id
-    response = get_transactions_api.invoke(event, emit_metrics=False).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: GetTransactions Response:\n{parse_response(response)}")
 
 
@@ -331,12 +366,16 @@ def add_transaction(
             kwargs["quantity"] = quantity
             kwargs["price_per_share"] = price_per_share
 
-    event = create_api_event(
+    event: dict = create_api_event(
+        http_path="/transactions",
+        http_method="POST",
         token=token,
         query_params={},
         **kwargs,
     )
-    response = add_transaction_api.invoke(event, emit_metrics=False).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: AddTransaction Response:\n{parse_response(response)}")
 
 
@@ -351,8 +390,10 @@ def edit_transaction(
     category: str = None,
 ) -> None:
     log.info("WalterCLI: EditTransaction")
-    event = create_api_event(
-        token,
+    event: dict = create_api_event(
+        http_path="/transactions",
+        http_method="PUT",
+        token=token,
         query_params={},
         transaction_date=transaction_date,
         transaction_id=transaction_id,
@@ -361,7 +402,9 @@ def edit_transaction(
         updated_amount=amount,
         updated_category=category,
     )
-    response = APIRouter.get_method(event, emit_metrics=False).invoke(event).to_json()
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
 
 
@@ -370,8 +413,16 @@ def delete_transaction(
     token: str = None, date: str = None, transaction_id: str = None
 ) -> None:
     log.info("WalterCLI: DeleteTransaction")
-    event = create_api_event(token, date=date, transaction_id=transaction_id)
-    response = delete_transaction_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/transactions",
+        http_method="DELETE",
+        token=token,
+        date=date,
+        transaction_id=transaction_id,
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: DeleteTransaction Response:\n{parse_response(response)}")
 
 
@@ -381,8 +432,12 @@ def delete_transaction(
 @app.command()
 def create_link_token(token: str = None) -> None:
     log.info("WalterCLI: CreateLinkToken")
-    event = create_api_event(token)
-    response = create_link_token_api.invoke(event, emit_metrics=False).to_json()
+    event: dict = create_api_event(
+        http_path="/plaid/create-link-token", http_method="POST", token=token
+    )
+    response: dict = (
+        API_ROUTER.get_method(event).invoke(event, emit_metrics=False).to_json()
+    )
     log.info(f"WalterCLI: CreateLinkToken Response:\n{parse_response(response)}")
 
 
@@ -391,29 +446,29 @@ def create_link_token(token: str = None) -> None:
 ############
 
 
-@app.command()
-def canary(
-    api: str = typer.Option(
-        None,
-        help=f"The name of the API the canary invokes. Defaults to None which invokes all canaries. Valid canary options: {[canary.value for canary in CanaryType]})",
-    )
-) -> None:
-    """
-    This CLI command invokes a canary to test API endpoints.
-
-    The canary is invoked using the specified API. If no API is specified, all canaries are invoked.
-    """
-    log.info("WalterCLI: Canary")
-    if api:
-        log.info(f"Invoking canary for '{api}'")
-        canary_type = CanaryType.from_string(api)
-        response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
-        log.info(f"WalterCLI: Canary Response:\n{parse_response(response)}")
-    else:
-        log.info("Invoking all canaries")
-        for canary_type in CanaryType:
-            response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
-            log.info(f"WalterCLI: {canary_type} Response:\n{parse_response(response)}")
+# @app.command()
+# def canary(
+#     api: str = typer.Option(
+#         None,
+#         help=f"The name of the API the canary invokes. Defaults to None which invokes all canaries. Valid canary options: {[canary.value for canary in CanaryType]})",
+#     )
+# ) -> None:
+#     """
+#     This CLI command invokes a canary to test API endpoints.
+#
+#     The canary is invoked using the specified API. If no API is specified, all canaries are invoked.
+#     """
+#     log.info("WalterCLI: Canary")
+#     if api:
+#         log.info(f"Invoking canary for '{api}'")
+#         canary_type = CanaryType.from_string(api)
+#         response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
+#         log.info(f"WalterCLI: Canary Response:\n{parse_response(response)}")
+#     else:
+#         log.info("Invoking all canaries")
+#         for canary_type in CanaryType:
+#             response = CanaryRouter.get_canary(canary_type).invoke(emit_metrics=False)
+#             log.info(f"WalterCLI: {canary_type} Response:\n{parse_response(response)}")
 
 
 #############
@@ -421,21 +476,21 @@ def canary(
 #############
 
 
-def get_workflow_event(workflow_name: str) -> dict:
-    return {
-        "workflow_name": workflow_name,
-    }
-
-
-@app.command()
-def update_prices() -> None:
-    workflow_name = "UpdateSecurityPrices"
-    log.info(f"WalterCLI: {workflow_name}")
-    event = get_workflow_event(workflow_name)
-    response = (
-        WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=False).to_json()
-    )
-    log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
+# def get_workflow_event(workflow_name: str) -> dict:
+#     return {
+#         "workflow_name": workflow_name,
+#     }
+#
+#
+# @app.command()
+# def update_prices() -> None:
+#     workflow_name = "UpdateSecurityPrices"
+#     log.info(f"WalterCLI: {workflow_name}")
+#     event = get_workflow_event(workflow_name)
+#     response = (
+#         WorkflowRouter.get_workflow(event).invoke(event, emit_metrics=False).to_json()
+#     )
+#     log.info(f"WalterCLI: {workflow_name}:\n{json.dumps(response, indent=4)}")
 
 
 if __name__ == "__main__":

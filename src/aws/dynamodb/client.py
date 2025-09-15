@@ -48,6 +48,7 @@ class WalterDDBClient:
                 f"Unexpected error occurred putting item to '{table}'!\n"
                 f"Error: {error.response['Error']['Message']}"
             )
+            raise error
 
     def query(self, table: str, query: dict) -> List[dict]:
         """
@@ -68,6 +69,7 @@ class WalterDDBClient:
                 f"Unexpected error occurred querying items from table '{table}'!\n"
                 f"Error: {error.response['Error']['Message']}"
             )
+            raise error
 
     def query_index(
         self, table: str, index_name: str, expression: str, attributes: dict
@@ -113,7 +115,7 @@ class WalterDDBClient:
                 f"Unexpected error occurred getting item from '{table}'!\n"
                 f"Error: {clientError.response['Error']['Message']}"
             )
-            return None
+            raise clientError
         except KeyError:
             # key error thrown when trying to index ddb client response
             # i.e. the item does not exist

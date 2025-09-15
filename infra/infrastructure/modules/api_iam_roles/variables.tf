@@ -28,3 +28,12 @@ variable "table_names" {
   type        = list(string)
 }
 
+variable "api_base_role" {
+  description = "The IAM role used by the WalterBackend API function to assume the more specific API roles after routing."
+  type        = string
+}
+
+variable "assume_api_role_principals" {
+  description = "The principals other than the WalterBackend API function that are able to assume the API role. This is useful for enabling local API testing."
+  type        = list(string)
+}
