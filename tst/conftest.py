@@ -15,6 +15,7 @@ from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.ses.client import WalterSESClient
 from src.aws.sqs.client import WalterSQSClient
+from src.canaries.routing.router import CanaryRouter
 from src.database.client import WalterDB
 from src.environment import Domain
 from src.factory import ClientFactory
@@ -234,3 +235,8 @@ def client_factory(
 @pytest.fixture
 def api_method_factory(client_factory: ClientFactory) -> APIMethodFactory:
     return APIMethodFactory(client_factory=client_factory)
+
+
+@pytest.fixture
+def canary_router(client_factory: ClientFactory) -> CanaryRouter:
+    return CanaryRouter(client_factory=client_factory)
