@@ -9,7 +9,7 @@ from src.api.transactions.delete_transaction import DeleteTransaction
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.transactions.models import InvestmentTransaction
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 DELETE_TRANSACTION_API_PATH = "/transactions"
 """(str): Path to the delete transaction API endpoint."""
@@ -22,7 +22,9 @@ DELETE_TRANSACTION_API_METHOD = HTTPMethod.DELETE
 def delete_transaction_api(
     api_method_factory: APIMethodFactory,
 ) -> APIMethodFactory:
-    return api_method_factory.get_api(APIMethod.DELETE_TRANSACTION)
+    return api_method_factory.get_api(
+        APIMethod.DELETE_TRANSACTION, UNIT_TEST_REQUEST_ID
+    )
 
 
 def test_delete_buy_investment_transaction_failure_invalid_holding_update(

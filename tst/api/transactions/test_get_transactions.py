@@ -6,14 +6,14 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.transactions.get_transactions.method import GetTransactions
 from src.auth.authenticator import WalterAuthenticator
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 
 @pytest.fixture()
 def get_transactions_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.GET_TRANSACTIONS)
+    return api_method_factory.get_api(APIMethod.GET_TRANSACTIONS, UNIT_TEST_REQUEST_ID)
 
 
 GET_TRANSACTIONS_API_PATH = "/transactions"

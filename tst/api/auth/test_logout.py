@@ -7,7 +7,7 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 LOGOUT_API_PATH = "/auth/logout"
 """(str): Path to the logout API endpoint."""
@@ -20,7 +20,7 @@ LOGOUT_API_METHOD = HTTPMethod.POST
 def logout_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.LOGOUT)
+    return api_method_factory.get_api(APIMethod.LOGOUT, UNIT_TEST_REQUEST_ID)
 
 
 def test_logout_success(

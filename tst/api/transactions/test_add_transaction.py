@@ -16,7 +16,7 @@ from src.database.transactions.models import (
     TransactionCategory,
     TransactionType,
 )
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 ADD_TRANSACTION_API_PATH = "/transactions"
 ADD_TRANSACTION_API_METHOD = HTTPMethod.POST
@@ -26,7 +26,7 @@ ADD_TRANSACTION_API_METHOD = HTTPMethod.POST
 def add_transaction_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.ADD_TRANSACTION)
+    return api_method_factory.get_api(APIMethod.ADD_TRANSACTION, UNIT_TEST_REQUEST_ID)
 
 
 def test_add_bank_debit_success(
