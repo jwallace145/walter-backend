@@ -46,7 +46,7 @@ module "workflow_base_role" {
 }
 
 resource "aws_iam_policy" "workflow_assume_role_policy" {
-  name        = "WalterBackend-Workflow-Base-Policy-${var.domain}"
+  name        = "WalterBackend-Workflow-Base-Assume-Policy-${var.domain}"
   description = "The base IAM policy for the WalterBackend Workflow function used to assume workflow-specific execution roles."
 
   policy = jsonencode({
@@ -61,7 +61,18 @@ resource "aws_iam_policy" "workflow_assume_role_policy" {
           module.workflow_roles["update_security_prices"].role_arn,
           module.workflow_roles["sync_transactions"].role_arn
         ]
-      },
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "workflow_kms_access_policy" {
+  name        = "WalterBackend-Workflow-Base-KMS-Policy-${var.domain}"
+  description = "The base IAM policy for the WalterBackend Workflow function used to encrypt and decrypt with KMS."
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
         Action = [
           "kms:*"

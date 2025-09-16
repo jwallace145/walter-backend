@@ -344,11 +344,12 @@ module "api_base_role" {
   description = "The IAM role used by the WalterBackend API Lambda function to process API requests. (${var.domain})"
   policies = {
     assume_api_roles_policy = aws_iam_policy.api_assume_role_policy.arn
+    api_kms_access_policy   = aws_iam_policy.api_kms_access_policy.arn
   }
 }
 
 resource "aws_iam_policy" "api_assume_role_policy" {
-  name        = "WalterBackend-API-Base-Policy-${var.domain}"
+  name        = "WalterBackend-API-Base-Assume-Policy-${var.domain}"
   description = "The base IAM policy for the WalterBackend API function used to assume API-specific execution roles."
 
   policy = jsonencode({
@@ -378,7 +379,18 @@ resource "aws_iam_policy" "api_assume_role_policy" {
           module.api_roles["exchange_public_token"].role_arn,
           module.api_roles["sync_transactions"].role_arn
         ]
-      },
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "api_kms_access_policy" {
+  name        = "WalterBackend-API-Base-KMS-Policy-${var.domain}"
+  description = "The base IAM policy for the WalterBackend API function used to encrypt and decrypt with KMS keys."
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
         Action = [
           "kms:*"
