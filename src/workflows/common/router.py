@@ -1,60 +1,32 @@
 import json
 from dataclasses import dataclass
-from enum import Enum
 
+from src.environment import AWS_REGION, DOMAIN
 from src.factory import ClientFactory
 from src.utils.log import Logger
 from src.workflows.common.models import Workflow
-from src.workflows.sync_user_transactions import SyncUserTransactions
-from src.workflows.update_security_prices import UpdateSecurityPrices
+from src.workflows.factory import WorkflowFactory, Workflows
 
 LOG = Logger(__name__).get_logger()
-
-
-class Workflows(Enum):
-    """Workflows"""
-
-    SYNC_USER_TRANSACTIONS = SyncUserTransactions.WORKFLOW_NAME
-    UPDATE_SECURITY_PRICES = UpdateSecurityPrices.WORKFLOW_NAME
-
-    @classmethod
-    def from_string(cls, workflow: str):
-        for workflow_enum in Workflows:
-            if workflow_enum.value.lower() == workflow.lower():
-                return workflow_enum
-        raise ValueError(f"{workflow} is not a valid workflow!")
 
 
 @dataclass(kw_only=True)
 class WorkflowRouter:
     """Router for WalterBackend workflows."""
 
-    client_factory: ClientFactory
+    # set during post-init
+    client_factory: ClientFactory = None
+    workflow_factory: WorkflowFactory = None
 
     def __post_init__(self) -> None:
         LOG.debug("Initializing WorkflowRouter")
+        self.client_factory = ClientFactory(region=AWS_REGION, domain=DOMAIN)
+        self.workflow_factory = WorkflowFactory(client_factory=self.client_factory)
 
     def get_workflow(self, event: dict) -> Workflow:
         workflow_name = self._get_workflow_name(event)
         workflow = Workflows.from_string(workflow_name)
-
-        match workflow:
-            case Workflows.UPDATE_SECURITY_PRICES:
-                return UpdateSecurityPrices(
-                    domain=self.client_factory.get_domain(),
-                    walter_db=self.client_factory.get_db_client(),
-                    polygon=self.client_factory.get_polygon_client(),
-                    metrics=self.client_factory.get_metrics_client(),
-                )
-            case Workflows.SYNC_USER_TRANSACTIONS:
-                return SyncUserTransactions(
-                    domain=self.client_factory.get_domain(),
-                    plaid=self.client_factory.get_plaid_client(),
-                    db=self.client_factory.get_db_client(),
-                    metrics=self.client_factory.get_metrics_client(),
-                )
-            case _:
-                raise ValueError(f"Workflow '{workflow}' not found")
+        return self.workflow_factory.get_workflow(workflow)
 
     def _get_workflow_name(self, event: dict) -> str:
         LOG.info(f"Getting workflow name from event:\n{json.dumps(event, indent=4)}")

@@ -5,7 +5,7 @@ locals {
       component                         = "API"
       description                       = "The entrypoint function for all APIs included in WalterBackend (v${var.walter_backend_version}-${var.domain})."
       function_version                  = var.api_function_version
-      role_arn                          = module.api_role.arn
+      role_arn                          = module.api_base_role.arn
       timeout                           = var.api_timeout_seconds
       memory_size                       = var.api_lambda_memory_mb
       lambda_handler                    = "walter.api_entrypoint"
@@ -27,7 +27,7 @@ locals {
       component                         = "Workflow"
       description                       = "The entrypoint function for all asynchronous workflows in WalterBackend (v${var.walter_backend_version}-${var.domain})."
       function_version                  = var.workflow_function_version
-      role_arn                          = module.workflow_role.arn
+      role_arn                          = module.workflow_base_role.arn
       timeout                           = var.workflow_timeout_seconds
       memory_size                       = var.workflow_lambda_memory_mb
       lambda_handler                    = "walter.workflows_entrypoint"

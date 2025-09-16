@@ -75,11 +75,6 @@ class APIMethodFactory:
 
     client_factory: ClientFactory
 
-    # all apis are lazily loaded after routing
-    login_api: Login = None
-    logout_api: Logout = None
-    refresh_api: Refresh = None
-
     def get_api(self, api: APIMethod) -> WalterAPIMethod:
         LOG.info(f"Getting API method: '{api.value}'")
 

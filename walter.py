@@ -1,11 +1,10 @@
 import json
 
 from src.api.common.models import HTTPStatus, Status
-from src.api.router import API_ROUTER
-from src.canaries.router import CANARY_ROUTER
-from src.canaries.routing.router import CanaryType
+from src.api.routing.router import APIRouter
+from src.canaries.routing.router import CanaryRouter, CanaryType
 from src.utils.log import Logger
-from src.workflows.router import WORKFLOW_ROUTER
+from src.workflows.common.router import WorkflowRouter
 
 LOG = Logger(__name__).get_logger()
 
@@ -26,14 +25,14 @@ This module defines the entry functions for three distinct Lambda functions:
 def api_entrypoint(event, context) -> dict:
     """Process API Gateway requests"""
     LOG.info("Invoking API!")
-    return API_ROUTER.get_method(event).invoke(event, emit_metrics=True).to_json()
+    return APIRouter().get_method(event).invoke(event, emit_metrics=True).to_json()
 
 
 def workflows_entrypoint(event, context) -> dict:
     """Execute asynchronous workflows for data processing and updates"""
     LOG.info("Invoking workflow!")
     return (
-        WORKFLOW_ROUTER.get_workflow(event).invoke(event, emit_metrics=True).to_json()
+        WorkflowRouter().get_workflow(event).invoke(event, emit_metrics=True).to_json()
     )
 
 
@@ -44,7 +43,7 @@ def canaries_entrypoint(event, context) -> dict:
     # iterate over all canaries and invoke them
     responses = []
     for canary_type in CanaryType:
-        response = CANARY_ROUTER.get_canary(canary_type).invoke(emit_metrics=True)
+        response = CanaryRouter().get_canary(canary_type).invoke(emit_metrics=True)
         responses.append(json.loads(response["body"]))
 
     # count successful and failed canaries

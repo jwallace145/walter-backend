@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_lambda_function" "this" {
   function_name = var.function_name
   description   = var.description
@@ -28,6 +30,8 @@ resource "aws_lambda_function" "this" {
       LOG_LEVEL         = var.log_level
     }
   }
+
+  kms_key_arn = aws_kms_key.env_vars_kms_key.arn
 }
 
 resource "aws_lambda_alias" "release" {
@@ -51,4 +55,25 @@ resource "aws_cloudwatch_log_group" "log_group" {
   retention_in_days = var.log_retention_in_days
 
   depends_on = [aws_lambda_function.this]
+}
+
+resource "aws_kms_key" "env_vars_kms_key" {
+  description             = "An example symmetric encryption KMS key"
+  enable_key_rotation     = false
+  deletion_window_in_days = 7
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "key-default-1"
+    Statement = [
+      {
+        Sid    = "AllowIAMUserKMSActions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
 }

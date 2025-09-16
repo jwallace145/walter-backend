@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from src.api.common.methods import WalterAPIMethod
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
+from src.environment import AWS_REGION, DOMAIN
 from src.factory import ClientFactory
 from src.utils.log import Logger
 
@@ -24,13 +25,13 @@ class APIRouter:
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
 
-    client_factory: ClientFactory
-
     # set during post-init
+    client_factory: ClientFactory = None
     api_factory: APIMethodFactory = None
 
     def __post_init__(self) -> None:
         log.debug("Initializing APIRouter")
+        self.client_factory = ClientFactory(region=AWS_REGION, domain=DOMAIN)
         self.api_factory = APIMethodFactory(client_factory=self.client_factory)
 
     def get_method(self, event: dict) -> WalterAPIMethod:

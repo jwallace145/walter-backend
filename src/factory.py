@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 
 import boto3
@@ -12,7 +11,7 @@ from src.aws.secretsmanager.client import WalterSecretsManagerClient
 from src.aws.sqs.client import WalterSQSClient
 from src.aws.sts.client import WalterSTSClient
 from src.database.client import WalterDB
-from src.environment import AWS_REGION, DOMAIN, Domain
+from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
@@ -57,22 +56,25 @@ class ClientFactory:
     def __post_init__(self) -> None:
         LOG.debug("Creating WalterBackend client factory")
 
-        # initially set AWS credentials to the IAM role of the Lambda function
-        # overwrite AWS credentials after assuming roles to ensure new clients
-        # are created with the correct credentials
-        self.set_aws_credentials(
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-        )
-
     def set_aws_credentials(
         self, aws_access_key_id: str, aws_secret_access_key: str, aws_session_token: str
     ) -> None:
-        LOG.debug("Setting AWS credentials for Boto3 clients")
+        LOG.info("Setting AWS credentials for Boto3 clients")
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.aws_session_token = aws_session_token
+        credentials_role_arn: str = WalterSTSClient(
+            region=self.region,
+            client=boto3.client(
+                "sts",
+                region_name=self.region,
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key,
+                aws_session_token=self.aws_session_token,
+            ),
+            domain=self.domain,
+        ).get_caller_identity()
+        LOG.info(f"Set AWS credentials to role '{credentials_role_arn}'")
 
     def get_aws_region(self) -> str:
         return self.region
@@ -90,10 +92,7 @@ class ClientFactory:
             self.s3 = WalterS3Client(
                 client=boto3.client(
                     "s3",
-                    region_name=self.region,
-                    aws_access_key_id=self.aws_access_key_id,
-                    aws_secret_access_key=self.aws_secret_access_key,
-                    aws_session_token=self.aws_session_token,
+                    **self._boto3_client_kwargs(),
                 ),
                 domain=self.domain,
             )
@@ -104,10 +103,7 @@ class ClientFactory:
             self.ddb = WalterDDBClient(
                 client=boto3.client(
                     "dynamodb",
-                    region_name=self.region,
-                    aws_access_key_id=self.aws_access_key_id,
-                    aws_secret_access_key=self.aws_secret_access_key,
-                    aws_session_token=self.aws_session_token,
+                    **self._boto3_client_kwargs(),
                 )
             )
         return self.ddb
@@ -117,10 +113,7 @@ class ClientFactory:
             self.secrets = WalterSecretsManagerClient(
                 client=boto3.client(
                     "secretsmanager",
-                    region_name=self.region,
-                    aws_access_key_id=self.aws_access_key_id,
-                    aws_secret_access_key=self.aws_secret_access_key,
-                    aws_session_token=self.aws_session_token,
+                    **self._boto3_client_kwargs(),
                 ),
                 domain=self.domain,
             )
@@ -131,28 +124,43 @@ class ClientFactory:
             self.sqs = WalterSQSClient(
                 client=boto3.client(
                     "sqs",
-                    region_name=self.region,
-                    aws_access_key_id=self.aws_access_key_id,
-                    aws_secret_access_key=self.aws_secret_access_key,
-                    aws_session_token=self.aws_session_token,
+                    **self._boto3_client_kwargs(),
                 ),
                 domain=self.domain,
             )
         return self.sqs
 
     def get_sts_client(self) -> WalterSTSClient:
+        """
+        Create a WalterSTSClient instance using the current AWS credentials.
+
+        This method creates a WalterSTSClient given the Lambda role credentials.
+        This method purposefully uses the Boto3 default credentials provider chain
+        to ensure that the Lambda's role credentials are used. The other Boto3 clients
+        created by the factory will use the credentials provided by an STS AssumeRole
+        API call using this client. This client should not be created with non-Lambda
+        role credentials.
+
+        Returns:
+            (WalterSTSClient): The WalterSTSClient instance.
+        """
         if self.sts is None:
+            LOG.info("Creating STS client to assume roles")
+            session = boto3.Session()
+            creds = session.get_credentials()
             self.sts = WalterSTSClient(
                 region=self.region,
                 client=boto3.client(
                     "sts",
                     region_name=self.region,
-                    aws_access_key_id=self.aws_access_key_id,
-                    aws_secret_access_key=self.aws_secret_access_key,
-                    aws_session_token=self.aws_session_token,
+                    aws_access_key_id=creds.access_key,
+                    aws_secret_access_key=creds.secret_key,
+                    aws_session_token=creds.token,
                 ),
                 domain=self.domain,
             )
+            role_arn: str = self.sts.get_caller_identity()
+            LOG.info(f"Created STS client with credentials for role '{role_arn}'")
         return self.sts
 
     def get_authenticator(self) -> WalterAuthenticator:
@@ -209,9 +217,24 @@ class ClientFactory:
             )
         return self.sync_transactions_task_queue
 
-
-CLIENT_FACTORY = ClientFactory(
-    region=AWS_REGION,
-    domain=DOMAIN,
-)
-"""(ClientFactory): The WalterBackend Client Factory used to lazily load and create clients."""
+    def _boto3_client_kwargs(self) -> dict:
+        if (
+            not self.aws_access_key_id
+            or not self.aws_secret_access_key
+            or not self.aws_session_token
+        ):
+            # if overrides are not provided, use the default credentials provider chain
+            session = boto3.Session()
+            creds = session.get_credentials()
+            return dict(
+                region_name=self.region,
+                aws_access_key_id=creds.access_key,
+                aws_secret_access_key=creds.secret_key,
+                aws_session_token=creds.token,
+            )
+        return dict(
+            region_name=self.region,
+            aws_access_key_id=self.aws_access_key_id,
+            aws_secret_access_key=self.aws_secret_access_key,
+            aws_session_token=self.aws_session_token,
+        )
