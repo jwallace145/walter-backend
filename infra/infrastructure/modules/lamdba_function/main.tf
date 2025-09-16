@@ -26,6 +26,7 @@ resource "aws_lambda_function" "this" {
       DD_LOG_LEVEL      = var.log_level
       DD_API_KEY        = var.datadog_api_key
       DD_SITE           = var.datadog_site
+      DD_TRACE_ENABLED  = false
       DOMAIN            = var.domain
       LOG_LEVEL         = var.log_level
     }

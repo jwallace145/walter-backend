@@ -11,6 +11,7 @@ module "canary_role" {
   policies = {
     canary_db_access      = module.canary_role_db_access.policy_arn,
     canary_secrets_access = module.canary_role_secrets_access.policy_arn
+    canary_kms_access     = aws_iam_policy.canary_kms_access_policy.arn
   }
 }
 
@@ -32,6 +33,26 @@ module "canary_role_secrets_access" {
   secret_names = [
     module.secrets["Auth"].secret_name
   ]
+}
+
+resource "aws_iam_policy" "canary_kms_access_policy" {
+  name        = "WalterBackend-Canary-KMS-Policy-${var.domain}"
+  description = "The IAM policy used to encrypt and decrypt information with the given KMS keys for the WalterBackend canary."
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "kms:*"
+        ]
+        Effect = "Allow"
+        Resource = [
+          module.functions["canary"].kms_key_arn
+        ]
+      }
+    ]
+  })
 }
 
 
