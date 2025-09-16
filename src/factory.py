@@ -74,7 +74,8 @@ class ClientFactory:
             ),
             domain=self.domain,
         ).get_caller_identity()
-        LOG.info(f"Set AWS credentials to role '{credentials_role_arn}'")
+        principal = "/".join(credentials_role_arn.split("/")[1:])
+        LOG.info(f"Set AWS credentials to principal '{principal}'")
 
     def get_aws_region(self) -> str:
         return self.region
@@ -160,7 +161,8 @@ class ClientFactory:
                 domain=self.domain,
             )
             role_arn: str = self.sts.get_caller_identity()
-            LOG.info(f"Created STS client with credentials for role '{role_arn}'")
+            principal = role_arn.split(":")[5].split("/")[1]
+            LOG.info(f"Created STS client with credentials for principal '{principal}'")
         return self.sts
 
     def get_authenticator(self) -> WalterAuthenticator:
