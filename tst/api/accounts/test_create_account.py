@@ -6,7 +6,7 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 CREATE_ACCOUNT_API_PATH = "/accounts"
 """(str): Path to the create account API endpoint."""
@@ -19,7 +19,7 @@ CREATE_ACCOUNT_API_METHOD = HTTPMethod.POST
 def create_account_api(
     api_method_factory: APIMethodFactory,
 ) -> CreateAccount:
-    return api_method_factory.get_api(APIMethod.CREATE_ACCOUNT)
+    return api_method_factory.get_api(APIMethod.CREATE_ACCOUNT, UNIT_TEST_REQUEST_ID)
 
 
 def test_create_account_success(

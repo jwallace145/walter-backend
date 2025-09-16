@@ -6,7 +6,7 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 DELETE_ACCOUNT_API_PATH = "/accounts"
 """(str): Path to the delete account API endpoint."""
@@ -19,7 +19,7 @@ DELETE_ACCOUNT_API_METHOD = HTTPMethod.DELETE
 def delete_account_api(
     api_method_factory: APIMethodFactory,
 ) -> DeleteAccount:
-    return api_method_factory.get_api(APIMethod.DELETE_ACCOUNT)
+    return api_method_factory.get_api(APIMethod.DELETE_ACCOUNT, UNIT_TEST_REQUEST_ID)
 
 
 def test_delete_account_success(

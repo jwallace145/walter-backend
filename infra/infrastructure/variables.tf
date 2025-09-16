@@ -175,6 +175,11 @@ variable "workflow_provisioned_concurrent_executions" {
   }
 }
 
+variable "workflow_assume_role_additional_principals" {
+  description = "The additional AWS principals to allow STS assume role access on the WalterBackend workflow roles. Useful for local workflow testing."
+  type        = list(string)
+}
+
 
 variable "sync_transactions_max_concurrency" {
   description = "The maximum number of concurrent Lambdas allowed to process sync transaction events."

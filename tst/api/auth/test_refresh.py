@@ -7,7 +7,7 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 REFRESH_API_PATH = "/auth/refresh"
 """(str): Path to the refresh API endpoint."""
@@ -20,7 +20,7 @@ REFRESH_API_METHOD = HTTPMethod.POST
 def refresh_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.REFRESH)
+    return api_method_factory.get_api(APIMethod.REFRESH, UNIT_TEST_REQUEST_ID)
 
 
 def test_refresh_success(

@@ -8,7 +8,7 @@ from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.users.models import User
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 LOGIN_API_PATH = "/auth/login"
 """(str): Path to the login API endpoint."""
@@ -21,7 +21,7 @@ LOGIN_API_METHOD = HTTPMethod.POST
 def login_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.LOGIN)
+    return api_method_factory.get_api(APIMethod.LOGIN, UNIT_TEST_REQUEST_ID)
 
 
 def test_login_success(

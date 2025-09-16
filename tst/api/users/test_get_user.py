@@ -4,7 +4,7 @@ from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.users.get_user import GetUser
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 GET_USER_API_PATH = "/users"
 """(str): Path to the get user API endpoint."""
@@ -17,7 +17,7 @@ GET_USER_API_METHOD = HTTPMethod.GET
 def get_user_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.GET_USER)
+    return api_method_factory.get_api(APIMethod.GET_USER, UNIT_TEST_REQUEST_ID)
 
 
 # def test_get_user(get_user_api: GetUser, jwt_walter: str) -> None:

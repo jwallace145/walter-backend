@@ -75,15 +75,10 @@ class APIMethodFactory:
 
     client_factory: ClientFactory
 
-    # all apis are lazily loaded after routing
-    login_api: Login = None
-    logout_api: Logout = None
-    refresh_api: Refresh = None
-
-    def get_api(self, api: APIMethod) -> WalterAPIMethod:
+    def get_api(self, api: APIMethod, request_id: str) -> WalterAPIMethod:
         LOG.info(f"Getting API method: '{api.value}'")
 
-        credentials: Tuple[str, str, str] = self.get_api_credentials(api)
+        credentials: Tuple[str, str, str] = self.get_api_credentials(api, request_id)
         aws_access_key_id, aws_secret_access_key, aws_session_token = credentials
 
         self.client_factory.set_aws_credentials(
@@ -235,7 +230,9 @@ class APIMethodFactory:
                     queue=self.client_factory.get_sync_transactions_task_queue(),
                 )
 
-    def get_api_credentials(self, api: APIMethod) -> Tuple[str, str, str]:
+    def get_api_credentials(
+        self, api: APIMethod, request_id: str
+    ) -> Tuple[str, str, str]:
         LOG.info(f"Getting API credentials for '{api.value}'")
         domain: str = self.client_factory.get_domain().value
 
@@ -247,7 +244,7 @@ class APIMethodFactory:
         sts: WalterSTSClient = self.client_factory.get_sts_client()
         credentials = sts.assume_role(
             role_name,
-            f"{api.value}-{domain}",
+            request_id,
         )
         LOG.info(f"Assumed role '{role_name}' successfully!")
 

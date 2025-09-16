@@ -6,6 +6,9 @@ from src.api.common.models import Response
 from src.api.routing.methods import HTTPMethod
 from src.environment import Domain
 
+UNIT_TEST_REQUEST_ID = "WALTER_BACKEND_UNIT_TEST_REQUEST_ID"
+"""(str): Request ID used for unit testing."""
+
 
 def get_api_event(
     path: str,
@@ -88,7 +91,7 @@ def get_expected_response(
     return Response(
         domain=Domain.TESTING,
         api_name=api_name,
-        request_id="WALTER_BACKEND_UNIT_TEST_REQUEST_ID",
+        request_id=UNIT_TEST_REQUEST_ID,
         http_status=status_code,
         status=status,
         message=message,

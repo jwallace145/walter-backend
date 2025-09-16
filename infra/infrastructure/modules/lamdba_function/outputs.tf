@@ -22,3 +22,8 @@ output "id" {
   description = "ID of the Lambda function resource"
   value       = aws_lambda_function.this.id
 }
+
+output "kms_key_arn" {
+  description = "The KMS key ARN used to encrypt/decrypt the Lambda function environment variables."
+  value       = aws_kms_key.env_vars_kms_key.arn
+}

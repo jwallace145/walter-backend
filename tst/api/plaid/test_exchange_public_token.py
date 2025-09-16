@@ -16,14 +16,16 @@ from src.database.client import WalterDB
 from src.database.sessions.models import Session
 from src.database.users.models import User
 from src.plaid.models import ExchangePublicTokenResponse
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 
 @pytest.fixture
 def exchange_public_token_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.EXCHANGE_PUBLIC_TOKEN)
+    return api_method_factory.get_api(
+        APIMethod.EXCHANGE_PUBLIC_TOKEN, UNIT_TEST_REQUEST_ID
+    )
 
 
 def test_get_details_from_event_success(

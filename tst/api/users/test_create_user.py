@@ -4,7 +4,7 @@ from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.api.users.create_user import CreateUser
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 CREATE_USER_API_PATH = "/users"
 """(str): Path to the create user API endpoint."""
@@ -17,7 +17,7 @@ CREATE_USER_API_METHOD = HTTPMethod.POST
 def create_user_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.CREATE_USER)
+    return api_method_factory.get_api(APIMethod.CREATE_USER, UNIT_TEST_REQUEST_ID)
 
 
 # def test_create_user(create_user_api: CreateUser) -> None:

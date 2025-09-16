@@ -41,5 +41,16 @@ class WalterSTSClient:
             )
             raise error
 
+    def get_caller_identity(self) -> str:
+        LOG.debug("Getting caller identity")
+        try:
+            return self.client.get_caller_identity()["Arn"]
+        except ClientError as error:
+            LOG.error(
+                f"Unexpected error occurred getting caller identity!\n"
+                f"Error: {error.response['Error']['Message']}"
+            )
+            raise error
+
     def _get_role_arn(self, role_name: str) -> str:
         return f"arn:aws:iam::010526272437:role/{role_name}"

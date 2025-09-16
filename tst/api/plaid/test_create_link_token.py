@@ -10,14 +10,14 @@ from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
-from tst.api.utils import get_api_event
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event
 
 
 @pytest.fixture
 def create_link_token_api(
     api_method_factory: APIMethodFactory,
 ) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.CREATE_LINK_TOKEN)
+    return api_method_factory.get_api(APIMethod.CREATE_LINK_TOKEN, UNIT_TEST_REQUEST_ID)
 
 
 def test_create_link_token_success(

@@ -9,6 +9,7 @@ from src.canaries.common.canary import BaseCanary
 from src.canaries.transactions.get_transactions import GetTransactions
 from src.canaries.users.create_user import CreateUser
 from src.canaries.users.get_user import GetUser
+from src.environment import AWS_REGION, DOMAIN
 from src.factory import ClientFactory
 from src.utils.log import Logger
 
@@ -57,7 +58,12 @@ class CanaryType(Enum):
 class CanaryRouter:
     """Router for Canaries"""
 
-    client_factory: ClientFactory
+    # set during post-init
+    client_factory: ClientFactory = None
+
+    def __post_init__(self) -> None:
+        log.debug("Initializing CanaryRouter")
+        self.client_factory = ClientFactory(region=AWS_REGION, domain=DOMAIN)
 
     def get_canary(self, canary_type: CanaryType) -> BaseCanary:
         log.info(f"Getting '{canary_type.value}' canary'")

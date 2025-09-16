@@ -8,12 +8,12 @@ from src.api.common.models import HTTPStatus, Status
 from src.api.factory import APIMethod, APIMethodFactory
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_expected_response
 
 
 @pytest.fixture
 def update_account_api(api_method_factory: APIMethodFactory) -> WalterAPIMethod:
-    return api_method_factory.get_api(APIMethod.UPDATE_ACCOUNT)
+    return api_method_factory.get_api(APIMethod.UPDATE_ACCOUNT, UNIT_TEST_REQUEST_ID)
 
 
 def _event_with_auth_and_body(token: str, body) -> dict:

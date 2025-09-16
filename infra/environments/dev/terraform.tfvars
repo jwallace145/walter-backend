@@ -34,6 +34,7 @@ canary_provisioned_concurrent_executions = 0
 workflow_timeout_seconds                   = 15
 workflow_lambda_memory_mb                  = 1024
 workflow_provisioned_concurrent_executions = 0
+workflow_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/WalterAIDeveloper"]
 
 # SyncUserTransactions Workflow Settings
 sync_transactions_max_concurrency    = 2

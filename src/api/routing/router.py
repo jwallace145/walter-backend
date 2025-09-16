@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from src.api.common.methods import WalterAPIMethod
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
+from src.environment import AWS_REGION, DOMAIN
 from src.factory import ClientFactory
 from src.utils.log import Logger
 
@@ -24,19 +25,22 @@ class APIRouter:
     PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE = "/plaid/exchange-public-token"
     PLAID_SYNC_TRANSACTIONS_RESOURCE = "/plaid/sync-transactions"
 
-    client_factory: ClientFactory
-
     # set during post-init
+    client_factory: ClientFactory = None
     api_factory: APIMethodFactory = None
 
     def __post_init__(self) -> None:
         log.debug("Initializing APIRouter")
+        self.client_factory = ClientFactory(region=AWS_REGION, domain=DOMAIN)
         self.api_factory = APIMethodFactory(client_factory=self.client_factory)
 
     def get_method(self, event: dict) -> WalterAPIMethod:
         log.debug(f"Received event:\n{json.dumps(event, indent=4)}")
         api_path: str = self._get_api_path(event)
         http_method: HTTPMethod = self._get_http_method(event)
+        request_id: str = event.get("requestContext", {}).get(
+            "requestId", "NULL_REQUEST_ID"
+        )
         log.info(f"API path: {api_path}, HTTP method: {http_method}")
 
         match (api_path, http_method):
@@ -46,59 +50,63 @@ class APIRouter:
             ##################
 
             case (APIRouter.LOGIN_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.LOGIN)
+                return self.api_factory.get_api(APIMethod.LOGIN, request_id)
             case (APIRouter.REFRESH_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.REFRESH)
+                return self.api_factory.get_api(APIMethod.REFRESH, request_id)
             case (APIRouter.LOGOUT_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.LOGOUT)
+                return self.api_factory.get_api(APIMethod.LOGOUT, request_id)
 
             ############
             # ACCOUNTS #
             ############
 
             case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.GET):
-                return self.api_factory.get_api(APIMethod.GET_ACCOUNTS)
+                return self.api_factory.get_api(APIMethod.GET_ACCOUNTS, request_id)
             case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.CREATE_ACCOUNT)
+                return self.api_factory.get_api(APIMethod.CREATE_ACCOUNT, request_id)
             case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.PUT):
-                return self.api_factory.get_api(APIMethod.UPDATE_ACCOUNT)
+                return self.api_factory.get_api(APIMethod.UPDATE_ACCOUNT, request_id)
             case (APIRouter.ACCOUNTS_RESOURCE, HTTPMethod.DELETE):
-                return self.api_factory.get_api(APIMethod.DELETE_ACCOUNT)
+                return self.api_factory.get_api(APIMethod.DELETE_ACCOUNT, request_id)
 
             ################
             # TRANSACTIONS #
             ################
 
             case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.GET):
-                return self.api_factory.get_api(APIMethod.GET_TRANSACTIONS)
+                return self.api_factory.get_api(APIMethod.GET_TRANSACTIONS, request_id)
             case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.ADD_TRANSACTION)
+                return self.api_factory.get_api(APIMethod.ADD_TRANSACTION, request_id)
             case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.PUT):
-                return self.api_factory.get_api(APIMethod.EDIT_TRANSACTION)
+                return self.api_factory.get_api(APIMethod.EDIT_TRANSACTION, request_id)
             case (APIRouter.TRANSACTIONS_RESOURCE, HTTPMethod.DELETE):
-                return self.api_factory.get_api(APIMethod.DELETE_TRANSACTION)
+                return self.api_factory.get_api(
+                    APIMethod.DELETE_TRANSACTION, request_id
+                )
 
             #########
             # USERS #
             #########
 
             case (APIRouter.USER_RESOURCE, HTTPMethod.GET):
-                return self.api_factory.get_api(APIMethod.GET_USER)
+                return self.api_factory.get_api(APIMethod.GET_USER, request_id)
             case (APIRouter.USER_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.CREATE_USER)
+                return self.api_factory.get_api(APIMethod.CREATE_USER, request_id)
             case (APIRouter.USER_RESOURCE, HTTPMethod.PUT):
-                return self.api_factory.get_api(APIMethod.UPDATE_USER)
+                return self.api_factory.get_api(APIMethod.UPDATE_USER, request_id)
 
             #########
             # PLAID #
             #########
 
             case (APIRouter.PLAID_CREATE_LINK_TOKEN_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.CREATE_LINK_TOKEN)
+                return self.api_factory.get_api(APIMethod.CREATE_LINK_TOKEN, request_id)
             case (APIRouter.PLAID_EXCHANGE_PUBLIC_TOKEN_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.EXCHANGE_PUBLIC_TOKEN)
+                return self.api_factory.get_api(
+                    APIMethod.EXCHANGE_PUBLIC_TOKEN, request_id
+                )
             case (APIRouter.PLAID_SYNC_TRANSACTIONS_RESOURCE, HTTPMethod.POST):
-                return self.api_factory.get_api(APIMethod.SYNC_TRANSACTIONS)
+                return self.api_factory.get_api(APIMethod.SYNC_TRANSACTIONS, request_id)
 
             # if none of the above cases match, raise an exception as the API method is not found
             case _:

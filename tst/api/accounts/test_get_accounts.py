@@ -7,7 +7,7 @@ from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
-from tst.api.utils import get_api_event, get_expected_response
+from tst.api.utils import UNIT_TEST_REQUEST_ID, get_api_event, get_expected_response
 
 GET_ACCOUNTS_API_PATH = "/accounts"
 """(str): Path to the get accounts API endpoint."""
@@ -20,7 +20,7 @@ GET_ACCOUNTS_API_METHOD = HTTPMethod.GET
 def get_accounts_api(
     api_method_factory: APIMethodFactory,
 ) -> GetAccounts:
-    return api_method_factory.get_api(APIMethod.GET_ACCOUNTS)
+    return api_method_factory.get_api(APIMethod.GET_ACCOUNTS, UNIT_TEST_REQUEST_ID)
 
 
 @freeze_time("2025-07-01")
