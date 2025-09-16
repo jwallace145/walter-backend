@@ -23,6 +23,7 @@ from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
 from src.metrics.client import DatadogMetricsClient
 from src.transactions.queue import SyncUserTransactionsTaskQueue
+from src.workflows.factory import WorkflowFactory
 from tst.aws.mock import MockS3, MockSecretsManager, MockSQS
 from tst.constants import AWS_REGION
 from tst.database.mock import MockDDB
@@ -235,6 +236,11 @@ def client_factory(
 @pytest.fixture
 def api_method_factory(client_factory: ClientFactory) -> APIMethodFactory:
     return APIMethodFactory(client_factory=client_factory)
+
+
+@pytest.fixture
+def workflow_factory(client_factory: ClientFactory) -> WorkflowFactory:
+    return WorkflowFactory(client_factory=client_factory)
 
 
 @pytest.fixture
