@@ -136,10 +136,10 @@ class ExchangePublicToken(WalterAPIMethod):
 
         # return successful exchange public token response
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Tokens exchanged successfully!",
-            {
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Tokens exchanged successfully!",
+            data={
                 "institution_id": institution_id,
                 "institution_name": institution_name,
                 "num_accounts": len(accounts),

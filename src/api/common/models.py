@@ -50,7 +50,7 @@ class Response:
     HEADERS = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "*",  # TODO: This should be updated for production
         "Access-Control-Allow-Methods": "GET,OPTIONS,POST,PUT,DELETE",
     }
 
@@ -63,9 +63,30 @@ class Response:
     response_time_millis: Optional[float] = (
         None  # optional response time can be included in response
     )
+    cookies: Optional[dict] = None  # optional cookies can be included in response
     data: Optional[dict] = None  # optional data can be included in response
 
     def to_json(self) -> dict:
+        headers = self.HEADERS
+
+        # create cookie headers if cookies are included in response
+        if self.cookies is not None:
+            cookie_headers = []
+            for cookie_name, cookie_value in self.cookies.items():
+                cookie = f"{cookie_name}={cookie_value}"
+
+                # set cookie security attributes based on domain
+                match self.domain:
+                    case Domain.DEVELOPMENT:
+                        cookie += "; Path=/; HttpOnly"
+                    case Domain.STAGING:
+                        cookie += "; Path=/; HttpOnly; Secure"
+                    case Domain.PRODUCTION:
+                        cookie += "; Path=/; HttpOnly; Secure; SameSite=Strict"
+
+                cookie_headers.append(cookie)
+            headers["Set-Cookie"] = cookie_headers
+
         body = {
             "Service": "WalterBackend-API",
             "Domain": self.domain.value,

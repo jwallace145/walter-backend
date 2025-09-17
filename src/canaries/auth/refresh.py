@@ -37,6 +37,9 @@ class Refresh(BaseCanary):
             Refresh.API_URL, headers={"Authorization": f"Bearer {tokens.refresh_token}"}
         )
 
+    def validate_cookies(self, response: dict) -> None:
+        self._validate_required_response_cookies(response, [])
+
     def validate_data(self, response: dict) -> None:
         # validate response data exists
         data = BaseCanary.validate_response_data(response)

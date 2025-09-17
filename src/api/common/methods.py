@@ -308,6 +308,7 @@ class WalterAPIMethod(ABC):
         http_status: HTTPStatus,
         status: Status,
         message: str,
+        cookies: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> Response:
         return Response(
@@ -318,6 +319,7 @@ class WalterAPIMethod(ABC):
             status=status,
             message=message,
             response_time_millis=None,
+            cookies=cookies,
             data=data,
         )
 

@@ -46,6 +46,9 @@ class GetUser(BaseCanary):
             headers={"Authorization": f"Bearer {tokens.access_token}"},
         )
 
+    def validate_cookies(self, response: dict) -> None:
+        self._validate_required_response_cookies(response, [])
+
     def validate_data(self, response: dict) -> None:
         data = BaseCanary.validate_response_data(response)
         BaseCanary.validate_required_field(data, "user_id")

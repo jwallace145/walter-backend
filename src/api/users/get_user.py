@@ -91,10 +91,10 @@ class GetUser(WalterAPIMethod):
         self.db.update_user(user)
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Successfully retrieved user!",
-            {
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Successfully retrieved user!",
+            data={
                 "user_id": user.user_id,
                 "email": user.email,
                 "first_name": user.first_name,

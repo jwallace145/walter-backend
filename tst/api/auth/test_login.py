@@ -51,11 +51,15 @@ def test_login_success(
 
     response = login_api.invoke(event)
 
+    cookies = []
+    for cookie in response.cookies:
+        cookies.append(cookie.split(";")[0].split("=")[0])
+
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.SUCCESS
     assert response.message == "User logged in successfully!"
-    assert "access_token" in response.data
-    assert "refresh_token" in response.data
+    assert "WALTER_BACKEND_ACCESS_TOKEN" in cookies
+    assert "WALTER_BACKEND_REFRESH_TOKEN" in cookies
     assert "access_token_expires_at" in response.data
     assert "refresh_token_expires_at" in response.data
     assert response.data["user_id"] == walter_db.get_user_by_email(email).user_id

@@ -44,6 +44,9 @@ class GetAccounts(BaseCanary):
             headers={"Authorization": f"Bearer {tokens.access_token}"},
         )
 
+    def validate_cookies(self, response: dict) -> None:
+        self._validate_required_response_cookies(response, [])
+
     def validate_data(self, response: dict) -> None:
         LOG.debug("Validating user email in API response data...")
         if response.get("Data", {}).get("user_id", None) is None:

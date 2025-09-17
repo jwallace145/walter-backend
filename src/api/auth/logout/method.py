@@ -98,9 +98,9 @@ class Logout(WalterAPIMethod):
         )
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "User logged out successfully!",
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="User logged out successfully!",
             data={
                 "user_id": user_id,
                 "session_id": token_id,

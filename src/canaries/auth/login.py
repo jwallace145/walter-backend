@@ -70,15 +70,17 @@ class Login(BaseCanary):
 
         return api_response
 
+    def validate_cookies(self, response: dict) -> None:
+        # validate required cookies in response
+        required_cookies = [
+            "WALTER_BACKEND_ACCESS_TOKEN",
+            "WALTER_BACKEND_REFRESH_TOKEN",
+        ]
+        self._validate_required_response_cookies(response, required_cookies)
+
     def validate_data(self, response: dict) -> None:
         # validate required fields in response data
-        required_fields = [
-            "user_id",
-            "refresh_token",
-            "access_token",
-            "refresh_token_expires_at",
-            "access_token_expires_at",
-        ]
+        required_fields = ["user_id", "refresh_token", "access_token"]
         self._validate_required_response_data_fields(response, required_fields)
 
     def clean_up(self) -> None:

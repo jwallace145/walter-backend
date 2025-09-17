@@ -187,11 +187,32 @@ class BaseCanary(ABC):
 
         log.info(f"Validated '{self.api_name}' API response status!")
 
+        log.info(f"Validating '{self.api_name}' API response cookies...")
+        self.validate_cookies(response)
+        log.info(f"Validated '{self.api_name}' API response cookies!")
+
         log.info(f"Validating '{self.api_name}' API response data...")
         self.validate_data(response)
         log.info(f"Validated '{self.api_name}' API response data!")
 
         log.info(f"'{self.api_name}' API response validated successfully!")
+
+    def _validate_required_response_cookies(
+        self, response: dict, cookies: List[str]
+    ) -> None:
+        """Validate required cookies in the API response."""
+        response_cookies = set()
+        for response_cookie in response.get("Set-Cookies", {}):
+            response_cookies.add(response_cookie.split(";")[0].split("=")[0])
+
+        for cookie in cookies:
+            if cookie not in response_cookies:
+                raise CanaryFailure(
+                    f"Required cookie '{cookie}' not found in response!"
+                )
+
+        if len(response_cookies) != len(cookies):
+            raise CanaryFailure("API response contains additional unexpected cookies!")
 
     def _validate_required_response_data_fields(
         self, response: dict, required_fields: List[str]
@@ -240,6 +261,24 @@ class BaseCanary(ABC):
         Override this method to implement the specific API request
         that this canary will monitor. Should return the HTTP response
         for status and timing analysis.
+        """
+        pass
+
+    @abstractmethod
+    def validate_cookies(self, response: dict) -> None:
+        """
+        Validate the API response cookies specific to the canary.
+
+        Override this method to implement the specific validation logic
+        for verifying the presence of cookies in the API response. Few
+        APIs return cookies so this method will be not implemented
+        for a large majority of canaries.
+
+        Args:
+            response: The API response object.
+
+        Throws:
+            CanaryException: If the response cookies are missing or invalid.
         """
         pass
 

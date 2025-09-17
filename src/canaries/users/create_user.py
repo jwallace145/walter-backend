@@ -56,6 +56,9 @@ class CreateUser(BaseCanary):
             },
         )
 
+    def validate_cookies(self, response: dict) -> None:
+        self._validate_required_response_cookies(response, [])
+
     def validate_data(self, response: dict) -> None:
         # validate response includes data
         data = BaseCanary.validate_response_data(response)

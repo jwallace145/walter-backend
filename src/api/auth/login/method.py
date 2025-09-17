@@ -76,10 +76,14 @@ class Login(WalterAPIMethod):
         self._create_session(user, tokens, event)
         self._update_last_active_date(user)
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "User logged in successfully!",
-            LoginResponse(user, tokens).to_dict(),
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="User logged in successfully!",
+            cookies={
+                "WALTER_BACKEND_ACCESS_TOKEN": tokens.access_token,
+                "WALTER_BACKEND_REFRESH_TOKEN": tokens.refresh_token,
+            },
+            data=LoginResponse(user, tokens).to_dict(),
         )
 
     def validate_fields(self, event: dict) -> None:

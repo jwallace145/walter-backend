@@ -106,10 +106,10 @@ class GetTransactions(WalterAPIMethod):
             ]
         )
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Retrieved transactions!",
-            {
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Retrieved transactions!",
+            data={
                 "user_id": user.user_id,
                 "num_transactions": len(transactions),
                 "total_income": total_income,
