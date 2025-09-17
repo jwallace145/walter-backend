@@ -3,6 +3,7 @@ from typing import Optional
 
 import requests
 from requests import Response
+from requests.cookies import RequestsCookieJar
 
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
@@ -44,54 +45,58 @@ class GetAccounts(BaseCanary):
             headers={"Authorization": f"Bearer {tokens.access_token}"},
         )
 
-    def validate_cookies(self, response: dict) -> None:
-        self._validate_required_response_cookies(response, [])
+    def validate_cookies(self, cookies: RequestsCookieJar) -> None:
+        required_cookies = []
+        self._validate_required_response_cookies(cookies, required_cookies)
 
-    def validate_data(self, response: dict) -> None:
-        LOG.debug("Validating user email in API response data...")
-        if response.get("Data", {}).get("user_id", None) is None:
-            raise CanaryFailure("Missing user_id in API response")
+    def validate_data(self, data: dict) -> None:
+        required_fields = [
+            ("user_id", None),
+            ("total_num_accounts", None),
+            ("total_balance", None),
+            ("accounts", None),
+        ]
+        self._validate_required_response_data_fields(data, required_fields)
 
-        LOG.debug("Validating number of accounts in API response data...")
-        if response.get("Data", {}).get("total_num_accounts", None) is None:
-            raise CanaryFailure("Missing total_num_accounts in API response")
+        # validate required fields in accounts response data
+        for account in data["Data"]["accounts"]:
+            account_type = None
+            try:
+                account_type = AccountType.from_string(account["account_type"])
+            except Exception:
+                raise CanaryFailure(
+                    f"Invalid account type '{account['account_type']}'!"
+                )
 
-        LOG.debug("Validating total_balance in API response data...")
-        if response.get("Data", {}).get("total_balance", None) is None:
-            raise CanaryFailure("Missing total_balance in API response")
+            # get required account fields by account type
+            required_account_fields = []
+            match account_type:
+                case AccountType.DEPOSITORY | AccountType.CREDIT | AccountType.LOAN:
+                    required_account_fields = [
+                        ("account_id", None),
+                        ("institution_name", None),
+                        ("account_name", None),
+                        ("account_type", None),
+                        ("account_subtype", None),
+                        ("balance", None),
+                        ("updated_at", None),
+                    ]
+                case AccountType.INVESTMENT:
+                    required_account_fields = [
+                        ("account_id", None),
+                        ("institution_name", None),
+                        ("account_name", None),
+                        ("account_type", None),
+                        ("account_subtype", None),
+                        ("balance", None),
+                        ("updated_at", None),
+                        ("holdings", None),
+                    ]
 
-        LOG.debug("Validating accounts in API response data...")
-        if response.get("Data", {}).get("accounts", None) is None:
-            raise CanaryFailure("Missing accounts in API response")
-
-        for account in response["Data"]["accounts"]:
-            LOG.debug("Validating account")
-
-            if account.get("account_id", None) is None:
-                raise CanaryFailure("Missing account_id in API response")
-
-            if account.get("institution_name", None) is None:
-                raise CanaryFailure("Missing institution_name in API response")
-
-            if account.get("account_name", None) is None:
-                raise CanaryFailure("Missing account_name in API response")
-
-            if account.get("account_type", None) is None:
-                raise CanaryFailure("Missing account_type in API response")
-
-            if (
-                account["account_type"] == AccountType.INVESTMENT.value
-                and account.get("holdings", None) is None
-            ):
-                raise CanaryFailure("Missing holdings in API response")
-
-            if account.get("account_subtype", None) is None:
-                raise CanaryFailure("Missing account_subtype in API response")
-
-            if account.get("balance", None) is None:
-                raise CanaryFailure("Missing balance in API response")
-
-            LOG.debug("Validated account")
+            # validate required fields in account response data
+            self._validate_required_response_data_fields(
+                account, required_account_fields
+            )
 
     def clean_up(self) -> None:
         LOG.info(f"No resources to clean up after '{self.CANARY_NAME}' canary!")

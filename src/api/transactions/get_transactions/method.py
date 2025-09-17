@@ -217,7 +217,6 @@ class GetTransactions(WalterAPIMethod):
                     if isinstance(transaction, BankTransaction):
                         account_transactions.append(
                             {
-                                "user_id": account.user_id,
                                 "account_id": account.account_id,
                                 "transaction_id": transaction.transaction_id,
                                 "account_institution_name": account.institution_name,

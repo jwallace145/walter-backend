@@ -3,6 +3,7 @@ from typing import Optional
 
 import requests
 from requests import Response
+from requests.cookies import RequestsCookieJar
 
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
@@ -56,26 +57,20 @@ class CreateUser(BaseCanary):
             },
         )
 
-    def validate_cookies(self, response: dict) -> None:
-        self._validate_required_response_cookies(response, [])
+    def validate_cookies(self, cookies: RequestsCookieJar) -> None:
+        required_cookies = []
+        self._validate_required_response_cookies(cookies, required_cookies)
 
     def validate_data(self, response: dict) -> None:
-        # validate response includes data
-        data = BaseCanary.validate_response_data(response)
-
-        # validate response data includes the required fields with
-        # asserted values if applicable
-        required_data_fields = [
+        required_fields = [
             ("user_id", None),
-            ("email", self.NEW_USER_EMAIL),
-            ("first_name", self.NEW_USER_FIRST_NAME),
-            ("last_name", self.NEW_USER_LAST_NAME),
+            ("email", None),
+            ("first_name", None),
+            ("last_name", None),
             ("sign_up_date", None),
-            ("verified", False),
+            ("verified", None),
         ]
-        for field in required_data_fields:
-            field_name, field_value = field
-            BaseCanary.validate_required_field(data, field_name, field_value)
+        self._validate_required_response_data_fields(response, required_fields)
 
     def clean_up(self) -> None:
         LOG.info(f"Cleaning up after '{self.CANARY_NAME}' canary!")

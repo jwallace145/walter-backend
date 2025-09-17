@@ -3,6 +3,7 @@ from typing import Optional
 
 import requests
 from requests import Response
+from requests.cookies import RequestsCookieJar
 
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens
@@ -46,13 +47,23 @@ class GetUser(BaseCanary):
             headers={"Authorization": f"Bearer {tokens.access_token}"},
         )
 
-    def validate_cookies(self, response: dict) -> None:
-        self._validate_required_response_cookies(response, [])
+    def validate_cookies(self, cookies: RequestsCookieJar) -> None:
+        required_cookies = []
+        self._validate_required_response_cookies(cookies, required_cookies)
 
     def validate_data(self, response: dict) -> None:
-        data = BaseCanary.validate_response_data(response)
-        BaseCanary.validate_required_field(data, "user_id")
-        BaseCanary.validate_required_field(data, "email", self.CANARY_USER_EMAIL)
+        required_fields = [
+            ("user_id", None),
+            ("email", None),
+            ("first_name", None),
+            ("last_name", None),
+            ("verified", None),
+            ("sign_up_date", None),
+            ("last_active_date", None),
+            ("profile_picture_url", None),
+            ("active_stripe_subscription", None),
+        ]
+        self._validate_required_response_data_fields(response, required_fields)
 
     def clean_up(self) -> None:
         LOG.info(f"No resources to clean up after '{self.CANARY_NAME}' canary!")

@@ -28,33 +28,24 @@ def test_refresh_success(
     walter_authenticator: WalterAuthenticator,
     walter_db: WalterDB,
 ) -> None:
-    # Arrange: create a session matching a generated refresh token
     user_id = "user-001"
     tokens = walter_authenticator.generate_tokens(user_id)
-
-    # Create a session with the JTI from tokens
     walter_db.create_session(
         user_id=user_id,
         token_id=tokens.jti,
         ip_address="127.0.0.1",
         device="pytest/1.0",
     )
-
     event = get_api_event(
         REFRESH_API_PATH,
         REFRESH_API_METHOD,
         token=tokens.refresh_token,
     )
-
-    # Act
     response = refresh_api.invoke(event)
-
-    # Assert
     assert response.http_status == HTTPStatus.OK
     assert response.status == Status.SUCCESS
     assert response.message == "Access token refreshed!"
     assert "user_id" in response.data
-    assert "access_token" in response.data
     assert "access_token_expires_at" in response.data
 
 

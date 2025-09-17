@@ -67,9 +67,8 @@ class Response:
     data: Optional[dict] = None  # optional data can be included in response
 
     def to_json(self) -> dict:
-        headers = self.HEADERS
-
         # create cookie headers if cookies are included in response
+        multivalue_headers = {}
         if self.cookies is not None:
             cookie_headers = []
             for cookie_name, cookie_value in self.cookies.items():
@@ -85,7 +84,7 @@ class Response:
                         cookie += "; Path=/; HttpOnly; Secure; SameSite=Strict"
 
                 cookie_headers.append(cookie)
-            headers["Set-Cookie"] = cookie_headers
+            multivalue_headers["Set-Cookie"] = cookie_headers
 
         body = {
             "Service": "WalterBackend-API",
@@ -104,11 +103,17 @@ class Response:
         if self.data is not None:
             body["Data"] = self.data
 
-        return {
+        response_json = {
             "statusCode": self.http_status.value,
             "headers": Response.HEADERS,
             "body": json.dumps(body),
         }
+
+        # add optional multivalue headers to response
+        if multivalue_headers:
+            response_json["multiValueHeaders"] = multivalue_headers
+
+        return response_json
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Response):

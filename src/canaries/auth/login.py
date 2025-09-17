@@ -5,6 +5,7 @@ from typing import Optional
 
 import requests
 from requests import Response
+from requests.cookies import RequestsCookieJar
 
 from src.api.common.exceptions import SessionDoesNotExist
 from src.auth.authenticator import WalterAuthenticator
@@ -46,8 +47,14 @@ class Login(BaseCanary):
         )
 
         LOG.info("Logging out canary after successful Login API call...")
-        response = api_response.json()
-        access_token = response["Data"]["access_token"]
+
+        # get access token from cookies
+        access_token = None
+        cookies: RequestsCookieJar = api_response.cookies
+        for cookie in cookies:
+            if cookie.name == "WALTER_BACKEND_ACCESS_TOKEN":
+                access_token = cookie.value
+
         user_id, session_id = self.authenticator.decode_access_token(access_token)
 
         LOG.info(
@@ -70,18 +77,22 @@ class Login(BaseCanary):
 
         return api_response
 
-    def validate_cookies(self, response: dict) -> None:
+    def validate_cookies(self, cookies: RequestsCookieJar) -> None:
         # validate required cookies in response
         required_cookies = [
             "WALTER_BACKEND_ACCESS_TOKEN",
             "WALTER_BACKEND_REFRESH_TOKEN",
         ]
-        self._validate_required_response_cookies(response, required_cookies)
+        self._validate_required_response_cookies(cookies, required_cookies)
 
-    def validate_data(self, response: dict) -> None:
+    def validate_data(self, data: dict) -> None:
         # validate required fields in response data
-        required_fields = ["user_id", "refresh_token", "access_token"]
-        self._validate_required_response_data_fields(response, required_fields)
+        required_fields = [
+            ("user_id", None),
+            ("access_token_expires_at", None),
+            ("refresh_token_expires_at", None),
+        ]
+        self._validate_required_response_data_fields(data, required_fields)
 
     def clean_up(self) -> None:
         LOG.info(f"No resources to clean up after '{self.API_NAME}' canary!")

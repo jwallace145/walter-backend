@@ -111,9 +111,12 @@ get_lambda_function_versions() {
     fetch_latest_version() {
         local function_name="$1"
         aws lambda list-versions-by-function \
-            --function-name "$function_name" \
-            --query "Versions[?Version!='\$LATEST'] | sort_by(@, &to_number(Version))[-1].Version" \
-            --output text 2>/dev/null
+          --function-name "$function_name" \
+          --query 'Versions[?Version!=`$LATEST`].Version' \
+          --output text 2>/dev/null | \
+        tr '\t' '\n' | \
+        sort -n | \
+        tail -1
     }
 
 
