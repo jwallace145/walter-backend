@@ -96,14 +96,6 @@ class UpdateUser(WalterAPIMethod):
         self.db.update_user(user)
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Updated user!",
-        )
-        return Response(
-            domain=self.domain,
-            api_name=UpdateUser.API_NAME,
-            request_id=self.request_id,
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Updated user!",

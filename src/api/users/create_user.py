@@ -63,10 +63,10 @@ class CreateUser(WalterAPIMethod):
     def execute(self, event: dict, session: Optional[Session]) -> Response:
         user = self._create_new_user(event)
         return self._create_response(
-            HTTPStatus.CREATED,
-            Status.SUCCESS,
-            "User created!",
-            {
+            http_status=HTTPStatus.CREATED,
+            status=Status.SUCCESS,
+            message="User created!",
+            data={
                 "user_id": user.user_id,
                 "email": user.email,
                 "first_name": user.first_name,

@@ -105,10 +105,10 @@ class EditTransaction(WalterAPIMethod):
         self.db.put_transaction(updated_transaction)
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Transaction edited!",
-            {
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Transaction edited!",
+            data={
                 "transaction": updated_transaction.to_dict(),
             },
         )

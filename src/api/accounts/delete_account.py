@@ -60,9 +60,9 @@ class DeleteAccount(WalterAPIMethod):
         self._verify_account_exists(user, event)
         self._delete_account(user, event)
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Successfully deleted account!",
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Successfully deleted account!",
         )
 
     def validate_fields(self, event: dict) -> None:

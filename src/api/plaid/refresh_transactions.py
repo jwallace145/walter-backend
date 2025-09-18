@@ -75,10 +75,10 @@ class RefreshTransactions(WalterAPIMethod):
             self._refresh_transactions(item)
 
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Transactions refreshed successfully!",
-            {
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Transactions refreshed successfully!",
+            data={
                 "user": user.user_id,
                 "num_items": len(items),
                 "items": [item.get_item_id() for item in items],

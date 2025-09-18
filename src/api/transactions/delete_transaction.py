@@ -80,10 +80,10 @@ class DeleteTransaction(WalterAPIMethod):
         transaction = self._verify_transaction_exists(user, event)
         self._delete_transaction(transaction)
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Transaction deleted!",
-            {"transaction": transaction.to_dict()},
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Transaction deleted!",
+            data={"transaction": transaction.to_dict()},
         )
 
     def validate_fields(self, event: dict) -> None:

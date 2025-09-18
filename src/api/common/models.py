@@ -50,7 +50,7 @@ class Response:
     HEADERS = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "*",  # TODO: This should be updated for production
         "Access-Control-Allow-Methods": "GET,OPTIONS,POST,PUT,DELETE",
     }
 
@@ -63,9 +63,33 @@ class Response:
     response_time_millis: Optional[float] = (
         None  # optional response time can be included in response
     )
+    cookies: Optional[dict] = None  # optional cookies can be included in response
     data: Optional[dict] = None  # optional data can be included in response
+    expire_cookies: Optional[bool] = False
 
     def to_json(self) -> dict:
+        # create cookie headers if cookies are included in response
+        multivalue_headers = {}
+        if self.cookies is not None:
+            cookie_headers = []
+            for cookie_name, cookie_value in self.cookies.items():
+                cookie = f"{cookie_name}={cookie_value}"
+
+                # set cookie security attributes based on domain
+                match self.domain:
+                    case Domain.DEVELOPMENT:
+                        cookie += "; Path=/; HttpOnly"
+                    case Domain.STAGING:
+                        cookie += "; Path=/; HttpOnly; Secure"
+                    case Domain.PRODUCTION:
+                        cookie += "; Path=/; HttpOnly; Secure; SameSite=Strict"
+
+                if self.expire_cookies:
+                    cookie += "; Expires=Thu, 01 Jan 1970 00:00:01 GMT"
+
+                cookie_headers.append(cookie)
+            multivalue_headers["Set-Cookie"] = cookie_headers
+
         body = {
             "Service": "WalterBackend-API",
             "Domain": self.domain.value,
@@ -83,11 +107,17 @@ class Response:
         if self.data is not None:
             body["Data"] = self.data
 
-        return {
+        response_json = {
             "statusCode": self.http_status.value,
             "headers": Response.HEADERS,
             "body": json.dumps(body),
         }
+
+        # add optional multivalue headers to response
+        if multivalue_headers:
+            response_json["multiValueHeaders"] = multivalue_headers
+
+        return response_json
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Response):

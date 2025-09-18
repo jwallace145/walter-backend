@@ -2,9 +2,10 @@ import datetime as dt
 import json
 import time
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Tuple
 
 from requests import Response
+from requests.cookies import RequestsCookieJar
 
 from src.api.common.exceptions import SessionDoesNotExist
 from src.api.common.models import Status
@@ -88,7 +89,7 @@ class BaseCanary(ABC):
                 f"API Response - Status Code: {api_status_code} Status: {api_status.value}"
             )
             log.debug(f"API Response - JSON: {json.dumps(api_response_json, indent=4)}")
-            self.validate(api_response_json)
+            self.validate(api_response)
 
             # end session if api is authenticated
             if self.is_authenticated():
@@ -97,7 +98,7 @@ class BaseCanary(ABC):
 
         except Exception:
             log.error(
-                f"Unexpected exception occurred invoking '{self.api_name}'!",
+                f"Unexpected exception occurred invoking '{self.api_name}' canary!",
                 exc_info=True,
             )
             api_status = Status.FAILURE
@@ -177,33 +178,68 @@ class BaseCanary(ABC):
             f"Ended authenticated session for '{self.api_name}' canary for session '{tokens.jti}'"
         )
 
-    def validate(self, response: dict) -> None:
+    def validate(self, response: Response) -> None:
         """Validate the API response."""
         log.info(f"Validating '{self.api_name}' API response status...")
 
-        if response.get("Status") != "Success":
+        if response.json().get("Status") != "Success":
             log.error(f"API call failure! Response: {json.dumps(response, indent=4)}")
             raise CanaryFailure("API call failure!")
 
         log.info(f"Validated '{self.api_name}' API response status!")
 
+        log.info(f"Validating '{self.api_name}' API response cookies...")
+        self.validate_cookies(response.cookies)
+        log.info(f"Validated '{self.api_name}' API response cookies!")
+
         log.info(f"Validating '{self.api_name}' API response data...")
-        self.validate_data(response)
+        self.validate_data(response.json())
         log.info(f"Validated '{self.api_name}' API response data!")
 
         log.info(f"'{self.api_name}' API response validated successfully!")
 
+    def _validate_required_response_cookies(
+        self, response_cookies: RequestsCookieJar, required_cookies: List[str]
+    ) -> None:
+        """Validate required cookies in the API response."""
+        response_cookies_set = set()
+        for cookie in response_cookies:
+            response_cookies_set.add(cookie.name)
+
+        for cookie in required_cookies:
+            if cookie not in response_cookies_set:
+                raise CanaryFailure(
+                    f"Required cookie '{cookie}' not found in '{self.api_name}' API response!"
+                )
+
+        if len(response_cookies) != len(required_cookies):
+            raise CanaryFailure("API response contains additional unexpected cookies!")
+
     def _validate_required_response_data_fields(
-        self, response: dict, required_fields: List[str]
+        self, response: dict, required_fields: List[Tuple[str, Optional[Any]]]
     ) -> None:
         """Validate required fields in the API response data."""
-        response_data = response.get("Data", {})
+        response_data = response.get("Data", response)
 
-        for field in required_fields:
-            if field not in response_data:
-                raise CanaryFailure(f"Required field '{field}' not found in response!")
+        for required_field, required_value in required_fields:
+            if required_field not in response_data:
+                raise CanaryFailure(
+                    f"Required field '{required_field}' not found in '{self.api_name}' API response!"
+                )
+            if required_value is not None:
+                if response_data[required_field] != required_value:
+                    raise CanaryFailure(
+                        f"Unexpected value for field '{required_field}' in '{self.api_name}' API response!\n"
+                        f"Actual field value: '{response_data[required_field]}'\n"
+                        f"Expected field value: '{required_value}'"
+                    )
 
         if len(response_data) != len(required_fields):
+            log.error(
+                f"'{self.api_name}' API response data contains additional fields!"
+                f"\nResponse Data:\n{json.dumps(response_data, indent=4)}"
+                f"\nRequired Fields:\n{json.dumps(required_fields, indent=4)}"
+            )
             raise CanaryFailure("API response data contains additional fields!")
 
     def _emit_metrics(self, success: bool, response_time_millis: float) -> None:
@@ -244,7 +280,25 @@ class BaseCanary(ABC):
         pass
 
     @abstractmethod
-    def validate_data(self, response: dict) -> None:
+    def validate_cookies(self, cookies: RequestsCookieJar) -> None:
+        """
+        Validate the API response cookies specific to the canary.
+
+        Override this method to implement the specific validation logic
+        for verifying the presence of cookies in the API response. Few
+        APIs return cookies so this method will be not implemented
+        for a large majority of canaries.
+
+        Args:
+            cookies: The cookies inclguded in the API response.
+
+        Throws:
+            CanaryFailure: If the response cookies are missing or invalid.
+        """
+        pass
+
+    @abstractmethod
+    def validate_data(self, data: dict) -> None:
         """
         Validate the API response data specific to the canary.
 
@@ -263,27 +317,3 @@ class BaseCanary(ABC):
         Perform any clean up actions to ensure no dangling resources.
         """
         pass
-
-    @staticmethod
-    def validate_response_data(response: dict) -> dict:
-        log.debug("Validating data in response...")
-        if response.get("Data", None) is None:
-            raise CanaryFailure("Missing data in response!")
-        log.debug("Validated data in response!")
-        return response["Data"]
-
-    @staticmethod
-    def validate_required_field(
-        fields: dict,
-        field_name: str,
-        field_value: Optional[Union[str, int, float]] = None,
-    ) -> None:
-        log.debug(f"Validating required field '{field_name}' in dictionary...")
-        if fields.get(field_name, None) is None:
-            raise CanaryFailure(f"Missing required field '{field_name}' in dictionary!")
-        if field_value is not None:
-            if fields[field_name] != field_value:
-                raise CanaryFailure(
-                    f"Unexpected value for field '{field_name}' in dictionary: '{fields[field_name]}'"
-                )
-        log.debug(f"Validated required field '{field_name}' in dictionary!")

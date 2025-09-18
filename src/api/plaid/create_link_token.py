@@ -66,10 +66,10 @@ class CreateLinkToken(WalterAPIMethod):
         user: User = self._verify_user_exists(session.user_id)
         response: CreateLinkTokenResponse = self.plaid.create_link_token(user.user_id)
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Created link token successfully!",
-            response.to_dict(),
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Created link token successfully!",
+            data=response.to_dict(),
         )
 
     def validate_fields(self, event: dict) -> None:

@@ -77,10 +77,13 @@ class Refresh(WalterAPIMethod):
         self._verify_valid_session(session)
         access_token, access_token_expiry = self._generate_new_access_token(session)
         return self._create_response(
-            HTTPStatus.OK,
-            Status.SUCCESS,
-            "Access token refreshed!",
-            RefreshResponseData(user_id, access_token, access_token_expiry).to_dict(),
+            http_status=HTTPStatus.OK,
+            status=Status.SUCCESS,
+            message="Access token refreshed!",
+            cookies={
+                "WALTER_BACKEND_ACCESS_TOKEN": access_token,
+            },
+            data=RefreshResponseData(user_id, access_token_expiry).to_dict(),
         )
 
     def _get_refresh_token(self, event: dict) -> str:

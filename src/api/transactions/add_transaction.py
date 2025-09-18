@@ -115,17 +115,6 @@ class AddTransaction(WalterAPIMethod):
         self.db.add_transaction(transaction)
 
         return self._create_response(
-            HTTPStatus.CREATED,
-            Status.SUCCESS,
-            "Transaction added!",
-            {
-                "transaction": transaction.to_dict(),
-            },
-        )
-        return Response(
-            domain=self.domain,
-            api_name=AddTransaction.API_NAME,
-            request_id=self.request_id,
             http_status=HTTPStatus.CREATED,
             status=Status.SUCCESS,
             message="Transaction added!",
