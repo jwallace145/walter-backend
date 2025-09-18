@@ -46,17 +46,19 @@ class Session:
         device: str,
     ) -> "Session":
         now = datetime.now(timezone.utc)
+        # TODO: This should stay in sync with refresh token expiry
+        session_expiration = now + timedelta(days=7)
+        # TODO: This should be a config value
+        ttl = session_expiration + timedelta(days=7)
         return Session(
             user_id=user_id,
             token_id=token_id,
             ip_address=ip_address,
             device=device,
             session_start=now,
-            session_expiration=now
-            + timedelta(
-                days=7
-            ),  # TODO: This should stay in sync with refresh token expiry
+            session_expiration=session_expiration,
             revoked=False,
+            ttl=int(ttl.timestamp()),
         )
 
     @classmethod
