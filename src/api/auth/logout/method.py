@@ -111,5 +111,5 @@ class Logout(WalterAPIMethod):
                 "WALTER_BACKEND_ACCESS_TOKEN": "",
                 "WALTER_BACKEND_REFRESH_TOKEN": "",
             },
-            expire_cookies=True
+            expire_cookies=True,
         )
