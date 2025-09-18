@@ -107,4 +107,9 @@ class Logout(WalterAPIMethod):
                 "session_start": session.session_start.isoformat(),
                 "session_end": session.session_end.isoformat(),
             },
+            cookies={
+                "WALTER_BACKEND_ACCESS_TOKEN": "",
+                "WALTER_BACKEND_REFRESH_TOKEN": "",
+            },
+            expire_cookies=True
         )

@@ -310,6 +310,7 @@ class WalterAPIMethod(ABC):
         message: str,
         cookies: Optional[dict] = None,
         data: Optional[dict] = None,
+        expire_cookies: Optional[bool] = False,
     ) -> Response:
         return Response(
             domain=self.domain,
@@ -321,6 +322,7 @@ class WalterAPIMethod(ABC):
             response_time_millis=None,
             cookies=cookies,
             data=data,
+            expire_cookies=expire_cookies,
         )
 
     @abstractmethod

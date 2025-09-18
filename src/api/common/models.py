@@ -65,6 +65,7 @@ class Response:
     )
     cookies: Optional[dict] = None  # optional cookies can be included in response
     data: Optional[dict] = None  # optional data can be included in response
+    expire_cookies: Optional[bool] = False
 
     def to_json(self) -> dict:
         # create cookie headers if cookies are included in response
@@ -82,6 +83,9 @@ class Response:
                         cookie += "; Path=/; HttpOnly; Secure"
                     case Domain.PRODUCTION:
                         cookie += "; Path=/; HttpOnly; Secure; SameSite=Strict"
+
+                if self.expire_cookies:
+                    cookie += "; Expires=Thu, 01 Jan 1970 00:00:01 GMT"
 
                 cookie_headers.append(cookie)
             multivalue_headers["Set-Cookie"] = cookie_headers
