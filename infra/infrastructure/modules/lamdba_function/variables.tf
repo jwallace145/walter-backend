@@ -81,3 +81,13 @@ variable "function_version" {
   description = "The version of the Lambda function."
   type        = string
 }
+
+variable "security_group_ids" {
+  description = "List of security group IDs to associate with the Lambda function."
+  type        = list(string)
+}
+
+variable "subnet_ids" {
+  description = "List of subnet IDs to associate with the Lambda function."
+  type        = list(string)
+}

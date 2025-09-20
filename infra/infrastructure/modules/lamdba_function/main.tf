@@ -20,6 +20,11 @@ resource "aws_lambda_function" "this" {
   memory_size   = var.memory_size
   architectures = ["arm64"]
 
+  vpc_config {
+    security_group_ids = var.security_group_ids
+    subnet_ids         = var.subnet_ids
+  }
+
   environment {
     variables = {
       DD_LAMBDA_HANDLER = var.lambda_handler
@@ -77,4 +82,9 @@ resource "aws_kms_key" "env_vars_kms_key" {
       }
     ]
   })
+}
+
+resource "aws_kms_alias" "env_vars_kms_key_alias" {
+  name          = "alias/${var.function_name}"
+  target_key_id = aws_kms_key.env_vars_kms_key.id
 }

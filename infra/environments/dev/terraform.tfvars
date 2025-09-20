@@ -3,9 +3,10 @@
  ***********************/
 
 # WalterAI dev account details
-account_id = "010526272437"
-region     = "us-east-1"
-domain     = "dev"
+account_id        = "010526272437"
+region            = "us-east-1"
+availability_zone = "us-east-1a"
+domain            = "dev"
 
 # WalterBackend application version
 walter_backend_version = "0.0.0"
@@ -18,6 +19,11 @@ log_retention_in_days = 7
 
 # walterai.dev Route53 hosted zone ID
 hosted_zone_id = "Z06872281VCZDG3SK2QXB"
+
+# WalterBackend Network settings
+network_cidr        = "10.0.0.0/27"
+public_subnet_cidr  = "10.0.0.0/28"
+private_subnet_cidr = "10.0.0.16/28"
 
 # WalterBackend API settings
 api_timeout_seconds                   = 15

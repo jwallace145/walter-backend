@@ -62,6 +62,26 @@ variable "log_retention_in_days" {
   }
 }
 
+variable "network_cidr" {
+  description = "The CIDR block of the WalterBackend network."
+  type        = string
+}
+
+variable "availability_zone" {
+  description = "The availability zone of the public and private subnets."
+  type        = string
+}
+
+variable "public_subnet_cidr" {
+  description = "The CIDR block of the WalterBackend public subnet."
+  type        = string
+}
+
+variable "private_subnet_cidr" {
+  description = "The CIDR block of the WalterBackend private subnet."
+  type        = string
+}
+
 variable "api_function_version" {
   description = "The WalterBackend-API Lambda function version to use for API requests."
   type        = number
