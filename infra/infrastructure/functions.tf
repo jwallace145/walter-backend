@@ -87,6 +87,8 @@ module "functions" {
   provisioned_concurrent_executions = each.value.provisioned_concurrent_executions
   alias_name                        = "release"
   function_version                  = each.value.function_version
+  security_group_ids                = [module.network.function_sg_id]
+  subnet_ids                        = [module.network.private_subnet_id]
 }
 
 /************************************
