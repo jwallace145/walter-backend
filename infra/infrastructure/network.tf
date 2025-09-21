@@ -5,6 +5,7 @@
 module "network" {
   source              = "./modules/vpc_network"
   name                = "WalterBackend"
+  region              = var.region
   domain              = var.domain
   vpc_cidr            = var.network_cidr
   availability_zone   = var.availability_zone
