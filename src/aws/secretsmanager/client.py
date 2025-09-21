@@ -118,7 +118,9 @@ class WalterSecretsManagerClient:
         return self.polygon_api_key
 
     def get_access_token_secret_key(self) -> str:
+        log.debug("Getting access token secret key")
         if self.access_token_secret_key is None:
+            log.debug("Access token secret key not found, fetching from AWS")
             self.access_token_secret_key = self._get_secret(
                 Secrets.ACCESS_TOKEN_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.ACCESS_TOKEN_SECRET_KEY.get_secret_key(),
@@ -126,7 +128,9 @@ class WalterSecretsManagerClient:
         return self.access_token_secret_key
 
     def get_refresh_token_secret_key(self) -> str:
+        log.debug("Getting refresh token secret key")
         if self.refresh_token_secret_key is None:
+            log.debug("Refresh token secret key not found, fetching from AWS")
             self.refresh_token_secret_key = self._get_secret(
                 Secrets.REFRESH_TOKEN_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.REFRESH_TOKEN_SECRET_KEY.get_secret_key(),

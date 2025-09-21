@@ -1,3 +1,8 @@
+variable "region" {
+  description = "The region of WalterBackend."
+  type        = string
+}
+
 variable "domain" {
   description = "The domain of WalterBackend."
   type        = string
