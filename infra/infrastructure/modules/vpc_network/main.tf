@@ -128,3 +128,29 @@ resource "aws_security_group" "function_sg" {
     Name = "${var.name}-Function-SG-${var.domain}"
   }
 }
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+
+  # Associate with the private route table so private subnets can reach DynamoDB
+  route_table_ids = [aws_route_table.private.id]
+
+  tags = {
+    Name = "${var.name}-VPCE-DynamoDB-${var.domain}"
+  }
+}
+
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = aws_vpc.this.id
+  service_name        = "com.amazonaws.${var.region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private.id]
+  security_group_ids  = [aws_security_group.function_sg.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.name}-VPCE-SecretsManager-${var.domain}"
+  }
+}
