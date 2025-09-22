@@ -158,6 +158,11 @@ variable "canary_provisioned_concurrent_executions" {
   }
 }
 
+variable "canary_assume_role_additional_principals" {
+  description = "The additional AWS principals to allow STS assume role access on the WalterBackend Canary roles. Useful for local testing."
+  type        = list(string)
+}
+
 variable "workflow_function_version" {
   description = "The WalterBackend-Workflow Lambda function version to use to serve all workflows."
   type        = number
