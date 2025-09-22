@@ -4,7 +4,7 @@ import subprocess
 import sys
 from enum import Enum
 from time import sleep
-from typing import List
+from typing import Dict, List
 
 import boto3
 from mypy_boto3_ecr import ECRClient
@@ -226,6 +226,32 @@ def update_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     sleep(30)
 
 
+def get_latest_function_versions(
+    lambda_client: LambdaClient, functions: List[str]
+) -> Dict[str, int]:
+    print_build_step_header(
+        f"LATEST FUNCTION VERSIONS '{VERSION_TAG}'", APP_ENVIRONMENT
+    )
+
+    print(f"Getting latest function versions:\n{json.dumps(functions, indent=4)}")
+    func_versions = {}
+
+    paginator = lambda_client.get_paginator("list_versions_by_function")
+
+    for func in functions:
+        versions: list[str] = []
+
+        for page in paginator.paginate(FunctionName=func):
+            versions.extend(
+                v["Version"] for v in page["Versions"] if v["Version"] != "$LATEST"
+            )
+
+        latest_version = max(map(int, versions)) if versions else None
+        func_versions[func] = latest_version
+
+    print(f"Latest function versions:\n{json.dumps(func_versions, indent=4)}")
+
+
 def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     print_build_step_header(
         f"PUBLISH WALTER BACKEND FUNCTIONS '{VERSION_TAG}'", APP_ENVIRONMENT
@@ -241,32 +267,17 @@ def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None
     sleep(30)
 
 
-def update_aliases(lambda_client: LambdaClient, functions: List[str]) -> None:
+def update_aliases(lambda_client: LambdaClient, functions: Dict[str, int]) -> None:
     print_build_step_header(
         f"UPDATE WALTER BACKEND FUNCTION ALIASES '{VERSION_TAG}'", APP_ENVIRONMENT
     )
 
-    print("Getting latest function versions...")
-
-    latest_versions = {}
-    for func in functions:
-        response = lambda_client.list_versions_by_function(FunctionName=func)
-        versions = []
-        for v in response["Versions"]:
-            version = v["Version"]
-            if version == "$LATEST":
-                continue
-            versions.append(int(version))
-        versions.sort()
-        latest_version = versions[-1]
-        latest_versions[func] = latest_version
-
-    print(f"Latest function versions:\n{json.dumps(latest_versions, indent=4)}")
-
-    print("Updating function aliases...")
+    print(
+        f"Updating function aliases to the latest function versions:\n{json.dumps(functions, indent=4)}"
+    )
 
     release_versions = {}
-    for func, version in latest_versions.items():
+    for func, version in functions.items():
         lambda_client.update_alias(
             FunctionName=func,
             Name=FUNCTION_ALIAS,
@@ -356,5 +367,7 @@ update_docs(s3_client)
 build_and_upload_image(ecr_client)
 ensure_git_tag()
 update_functions(lambda_client, LAMBDA_FUNCTIONS)
+get_latest_function_versions(lambda_client, LAMBDA_FUNCTIONS)
 publish_functions(lambda_client, LAMBDA_FUNCTIONS)
-update_aliases(lambda_client, LAMBDA_FUNCTIONS)
+latest_versions = get_latest_function_versions(lambda_client, LAMBDA_FUNCTIONS)
+update_aliases(lambda_client, latest_versions)
