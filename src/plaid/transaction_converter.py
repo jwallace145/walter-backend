@@ -28,6 +28,7 @@ PERSONAL_FINANCE_CATEGORY_TO_TRANSACTION_TYPE: Dict[
     PersonalFinanceCategories.PERSONAL_CARE: TransactionType.BANKING,
     PersonalFinanceCategories.TRANSPORTATION: TransactionType.BANKING,
     PersonalFinanceCategories.TRAVEL: TransactionType.BANKING,
+    PersonalFinanceCategories.OTHER: TransactionType.BANKING,
 }
 """(dict): Mapping of personal finance categories to transaction types"""
 
@@ -125,6 +126,11 @@ class TransactionConverter:
     def _create_banking_transaction(
         self, account: Account, plaid_transaction: dict
     ) -> BankTransaction:
+        # plaid merchant name is nullable
+        merchant_name = plaid_transaction["merchant_name"]
+        if merchant_name is None:
+            merchant_name = "UNKNOWN MERCHANT"
+
         return BankTransaction.create(
             account_id=account.account_id,
             user_id=account.user_id,
@@ -133,7 +139,7 @@ class TransactionConverter:
             transaction_category=TransactionCategory.RESTAURANTS,  # TODO: Fix this hardcoded value
             transaction_date=plaid_transaction["date"],
             transaction_amount=plaid_transaction["amount"],
-            merchant_name=plaid_transaction["merchant_name"],
+            merchant_name=merchant_name,
             plaid_transaction_id=plaid_transaction["transaction_id"],
             plaid_account_id=plaid_transaction["account_id"],
         )
