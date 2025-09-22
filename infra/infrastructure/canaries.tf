@@ -28,7 +28,9 @@ module "canary_role_db_access" {
     module.users_table.table_arn,
     module.sessions_table.table_arn
   ]
-  delete_access_table_arns = []
+  delete_access_table_arns = [
+    module.users_table.table_arn # CreateUser canary needs to be able to delete test user after creation
+  ]
 }
 
 # canary requires access to auth secrets to create authenticated sessions
