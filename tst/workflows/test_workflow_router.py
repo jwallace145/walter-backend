@@ -49,4 +49,7 @@ def test_get_workflow_from_string() -> None:
 def test_get_workflow_name_from_task(
     workflow_router: WorkflowRouter,
 ) -> None:
-    assert workflow_router._get_workflow_name(task) == "SyncUserTransactions"
+    assert workflow_router._get_workflow_details(task) == (
+        "SyncUserTransactions",
+        "test-message-id",
+    )

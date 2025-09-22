@@ -40,12 +40,12 @@ class WorkflowFactory:
     def __post_init__(self) -> None:
         LOG.debug("Creating WorkflowFactory")
 
-    def get_workflow(self, workflow: Workflows) -> Workflow:
-        LOG.info(f"Getting workflow '{workflow.value}'")
+    def get_workflow(self, workflow: Workflows, request_id: str) -> Workflow:
+        LOG.info(f"Getting workflow '{workflow.value}' for request '{request_id}'")
 
         # get workflow specific credentials
         workflow_credentials: Tuple[str, str, str] = self.get_workflow_credentials(
-            workflow
+            workflow, request_id
         )
         aws_access_key_id, aws_secret_access_key, aws_session_token = (
             workflow_credentials
@@ -75,7 +75,9 @@ class WorkflowFactory:
             case _:
                 raise ValueError(f"Workflow '{workflow}' not found")
 
-    def get_workflow_credentials(self, workflow: Workflows) -> Tuple[str, str, str]:
+    def get_workflow_credentials(
+        self, workflow: Workflows, request_id: str
+    ) -> Tuple[str, str, str]:
         LOG.info(f"Getting workflow credentials for '{workflow.value}'")
         domain: str = self.client_factory.get_domain().value
 
@@ -87,7 +89,7 @@ class WorkflowFactory:
         sts: WalterSTSClient = self.client_factory.get_sts_client()
         credentials = sts.assume_role(
             role_name,
-            f"{workflow.value}-{domain}",
+            request_id,
         )
         LOG.info(f"Assumed role '{role_name}' successfully!")
 

@@ -20,7 +20,7 @@ locals {
     }
 
     sync_transactions = {
-      name        = "SyncTransactions"
+      name        = "SyncUserTransactions"
       description = "The role that is assumed by the WalterBackend Workflow function to execute the SyncTransactions workflow. (${var.domain})"
       secrets = [
         module.secrets["Plaid"].secret_name
@@ -51,13 +51,14 @@ locals {
  **********************/
 
 module "workflow_base_role" {
-  source             = "./modules/base_function_role"
-  account_id         = var.account_id
-  domain             = var.domain
-  component          = "Workflow"
-  description        = "The IAM role used by the WalterBackend Workflow function to assume execution roles. (${var.domain})"
-  assumable_entities = [for role in local.WORKFLOW_ROLES : role.name]
-  kms_key_arns       = [module.env_vars_key.arn]
+  source                            = "./modules/base_function_role"
+  account_id                        = var.account_id
+  domain                            = var.domain
+  component                         = "Workflow"
+  description                       = "The IAM role used by the WalterBackend Workflow function to assume execution roles. (${var.domain})"
+  assumable_entities                = [for role in local.WORKFLOW_ROLES : role.name]
+  kms_key_arns                      = [module.env_vars_key.arn]
+  receive_message_queue_access_arns = [module.queues["sync_transactions"].queue_arn]
 }
 
 module "workflow_roles" {

@@ -28,4 +28,10 @@ variable "kms_key_arns" {
   type = list(string)
 }
 
+variable "receive_message_queue_access_arns" {
+  description = "The list of SQS queue ARN(s) that the workflow requires receive message access."
+  type        = list(string)
+  default     = []
+}
+
 
