@@ -23,8 +23,23 @@ variable "secret_names" {
   type        = list(string)
 }
 
-variable "table_names" {
-  description = "The names of the WalterDB table(s) the API requires access to for executions."
+variable "read_table_access_arns" {
+  description = "The ARN(s) of the WalterDB DynamoDB tables that the API requires read access to items."
+  type        = list(string)
+}
+
+variable "write_table_access_arns" {
+  description = "The ARN(s) of the WalterDB DynamoDB tables that the API requires write access to items."
+  type        = list(string)
+}
+
+variable "delete_table_access_arns" {
+  description = "The ARNs of the WalterDB DynamoDB tables that the API requires delete access to items."
+  type        = list(string)
+}
+
+variable "send_message_access_queue_arns" {
+  description = "The ARN(s) of the SQS queues that the API requires permissions to send messages."
   type        = list(string)
 }
 

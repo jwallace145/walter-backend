@@ -70,6 +70,7 @@ class BaseCanary(ABC):
 
         # assume api failure until api response status is confirmed as success
         api_status = Status.FAILURE
+        api_request_id = "NULL_REQUEST_ID"
         try:
 
             # get tokens if api is authenticated
@@ -80,15 +81,23 @@ class BaseCanary(ABC):
                 user = self.db.get_user_by_email(self.CANARY_USER_EMAIL)
                 tokens = self._start_session(user)
 
+            # call api
             log.info(f"Calling API at '{self.api_url}'")
             api_response = self.call_api(tokens)
+
+            # get api response details
             api_status_code = api_response.status_code
             api_response_json = api_response.json()
+            api_request_id = api_response_json.get("RequestId", "NULL_REQUEST_ID")
             api_status = Status.from_string(api_response_json.get("Status", "Failure"))
             log.info(
-                f"API Response - Status Code: {api_status_code} Status: {api_status.value}"
+                f"API Response - Status Code: {api_status_code} Request ID: {api_request_id} Status: {api_status}"
             )
+
+            # print api response details for debugging
             log.debug(f"API Response - JSON: {json.dumps(api_response_json, indent=4)}")
+
+            # validate api response
             self.validate(api_response)
 
             # end session if api is authenticated
@@ -121,6 +130,7 @@ class BaseCanary(ABC):
 
             return CanaryResponse(
                 api_name=self.api_name,
+                request_id=api_request_id,
                 status=Status.SUCCESS if success else Status.FAILURE,
                 response_time_millis=(end - start).total_seconds() * 1000,
             ).to_json()

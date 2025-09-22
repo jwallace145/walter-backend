@@ -20,10 +20,15 @@ module "canary_role" {
 module "canary_role_db_access" {
   source      = "./modules/iam_dynamodb_access_policy"
   policy_name = "canary-db-access-policy"
-  table_names = [
-    module.users_table.table_name,
-    module.sessions_table.table_name
+  read_access_table_arns = [
+    module.users_table.table_arn,
+    module.sessions_table.table_arn
   ]
+  write_access_table_arns = [
+    module.users_table.table_arn,
+    module.sessions_table.table_arn
+  ]
+  delete_access_table_arns = []
 }
 
 # canary requires access to auth secrets to create authenticated sessions

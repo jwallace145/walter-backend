@@ -11,6 +11,7 @@ class CanaryResponse:
     """
 
     api_name: str
+    request_id: str
     status: Status
     response_time_millis: float
 
@@ -20,6 +21,7 @@ class CanaryResponse:
             "body": json.dumps(
                 {
                     "Canary": self.api_name,
+                    "RequestId": self.request_id,
                     "Status": self.status.value,
                     "ResponseTimeMillis": self.response_time_millis,
                 }

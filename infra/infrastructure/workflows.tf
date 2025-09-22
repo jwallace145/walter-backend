@@ -6,9 +6,14 @@ locals {
       secrets = [
         module.secrets["Polygon"].secret_name
       ]
-      tables = [
-        module.securities_table.table_name
+      read_access_table_arns = [
+        module.securities_table.table_arn
       ]
+      write_access_table_arns = [
+        module.securities_table.table_arn
+      ]
+      delete_access_table_arns   = []
+      receive_message_queue_arns = []
       principals = [
         var.workflow_assume_role_additional_principals
       ]
@@ -20,10 +25,19 @@ locals {
       secrets = [
         module.secrets["Plaid"].secret_name
       ]
-      tables = [
-        module.users_table.table_name,
-        module.accounts_table.table_name,
-        module.transactions_table.table_name
+      read_access_table_arns = [
+        module.users_table.table_arn,
+        module.accounts_table.table_arn,
+        module.transactions_table.table_arn
+      ]
+      write_access_table_arns = [
+        module.users_table.table_arn,
+        module.accounts_table.table_arn,
+        module.transactions_table.table_arn
+      ]
+      delete_access_table_arns = []
+      receive_message_queue_arns = [
+        module.queues["sync_transactions"].queue_arn
       ]
       principals = [
         var.workflow_assume_role_additional_principals
@@ -87,14 +101,17 @@ resource "aws_iam_policy" "workflow_kms_access_policy" {
 }
 
 module "workflow_roles" {
-  for_each              = local.WORKFLOW_ROLES
-  source                = "./modules/workflow_iam_role"
-  name                  = each.value.name
-  domain                = var.domain
-  description           = each.value.description
-  secrets_access        = each.value.secrets
-  tables_access         = each.value.tables
-  workflow_base_role    = module.workflow_base_role.arn
-  additional_principals = var.workflow_assume_role_additional_principals
+  for_each                          = local.WORKFLOW_ROLES
+  source                            = "./modules/workflow_iam_role"
+  name                              = each.value.name
+  domain                            = var.domain
+  description                       = each.value.description
+  secrets_access                    = each.value.secrets
+  read_table_access_arns            = each.value.read_access_table_arns
+  write_table_access_arns           = each.value.write_access_table_arns
+  delete_table_access_arns          = each.value.delete_access_table_arns
+  receive_message_access_queue_arns = each.value.receive_message_queue_arns
+  workflow_base_role                = module.workflow_base_role.arn
+  additional_principals             = var.workflow_assume_role_additional_principals
 }
 
