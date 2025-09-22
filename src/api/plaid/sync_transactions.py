@@ -11,7 +11,8 @@ from src.api.common.exceptions import (
     UserDoesNotExist,
 )
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.database.accounts.models import Account
 from src.database.client import WalterDB

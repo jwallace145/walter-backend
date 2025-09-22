@@ -10,6 +10,7 @@ import boto3
 from mypy_boto3_ecr import ECRClient
 from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_sts.client import STSClient
 
 ##########
 # MODELS #
@@ -96,7 +97,37 @@ def print_build_step_header(step_name: str, environment: str) -> None:
     print("=" * 60 + "\n")
 
 
-def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
+def log_build_vars() -> None:
+    print_build_step_header("BUILD VARS", APP_ENVIRONMENT)
+
+    print("Building new WalterBackend version with the following build variables:")
+
+    build_info = {
+        "WalterBackend version": VERSION,
+        "WalterBackend image URI": WALTER_BACKEND_IMAGE_URI,
+        "Lambda functions": ", ".join(LAMBDA_FUNCTIONS),
+        "Function alias": FUNCTION_ALIAS,
+        "Release description": RELEASE_DESCRIPTION,
+        "AWS region": AWS_REGION,
+        "AWS account ID": AWS_ACCOUNT_ID,
+        "Application environment": APP_ENVIRONMENT,
+    }
+
+    for key, value in build_info.items():
+        print(f"{key}: {value}")
+
+
+def log_build_identity(sts_client: STSClient) -> None:
+    print_build_step_header("BUILD IDENTITY", APP_ENVIRONMENT)
+
+    print("Getting caller identity...")
+    caller_identity = sts_client.get_caller_identity()
+    print(f"Account ID: {caller_identity['Account']}")
+    print(f"User ID: {caller_identity['UserId']}")
+    print(f"ARN: {caller_identity['Arn']}")
+
+
+def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient, STSClient]:
     print_build_step_header("INITIALIZING BOTO3 CLIENTS", APP_ENVIRONMENT)
 
     print("Initializing S3 client...")
@@ -108,7 +139,10 @@ def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
     print("Initializing Lambda client...")
     lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 
-    return s3_client, ecr_client, lambda_client
+    print("Initializing STS client...")
+    sts_client = boto3.client("sts", region_name=AWS_REGION)
+
+    return s3_client, ecr_client, lambda_client, sts_client
 
 
 def update_docs(s3_client: S3Client) -> None:
@@ -251,6 +285,8 @@ def get_latest_function_versions(
 
     print(f"Latest function versions:\n{json.dumps(func_versions, indent=4)}")
 
+    return func_versions
+
 
 def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     print_build_step_header(
@@ -360,9 +396,9 @@ def ensure_git_tag() -> None:
 # SCRIPT #
 ##########
 
-
-s3_client, ecr_client, lambda_client = create_boto3_clients()
-
+log_build_vars()
+s3_client, ecr_client, lambda_client, sts_client = create_boto3_clients()
+log_build_identity(sts_client)
 update_docs(s3_client)
 build_and_upload_image(ecr_client)
 ensure_git_tag()

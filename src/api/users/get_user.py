@@ -4,7 +4,7 @@ from typing import Optional
 
 from src.api.common.exceptions import NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
-from src.api.common.models import Response
+from src.api.common.response import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.s3.client import WalterS3Client
 from src.aws.secretsmanager.client import WalterSecretsManagerClient

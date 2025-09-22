@@ -13,7 +13,7 @@ from src.api.common.exceptions import (
     UserDoesNotExist,
 )
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
-from src.api.common.models import Response
+from src.api.common.response import Response
 from src.api.common.utils import is_valid_email
 from src.auth.authenticator import WalterAuthenticator
 from src.auth.models import Tokens

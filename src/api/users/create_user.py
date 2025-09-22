@@ -10,7 +10,7 @@ from src.api.common.exceptions import (
     UserAlreadyExists,
 )
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
-from src.api.common.models import Response
+from src.api.common.response import Response
 from src.api.common.utils import is_valid_email, is_valid_name, is_valid_password
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB

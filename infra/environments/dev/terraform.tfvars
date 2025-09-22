@@ -12,7 +12,7 @@ domain            = "dev"
 walter_backend_version = "0.0.0"
 
 # The logging level, can set to debug for more verbose logs
-log_level = "DEBUG"
+log_level = "INFO"
 
 # The number of days to retain application logs before deletion
 log_retention_in_days = 7
@@ -21,9 +21,11 @@ log_retention_in_days = 7
 hosted_zone_id = "Z06872281VCZDG3SK2QXB"
 
 # WalterBackend Network settings
-network_cidr        = "10.0.0.0/27"
-public_subnet_cidr  = "10.0.0.0/28"
-private_subnet_cidr = "10.0.0.16/28"
+# The WalterBackend functions create ENIs in the private subnets assigned to private IPs
+# that serve requests, for higher environments, a larger address should be used
+network_cidr        = "10.0.0.0/27"  # 32 IPs total
+public_subnet_cidr  = "10.0.0.0/28"  # 16 public IPs (AWS reserves 5 IPs) = 11 usable IPs
+private_subnet_cidr = "10.0.0.16/28" # 16 private IPs (AWS reserves 5 IPs) = 11 usable IPs
 
 # WalterBackend API settings
 api_timeout_seconds                   = 15

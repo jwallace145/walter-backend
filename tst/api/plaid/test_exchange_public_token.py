@@ -4,7 +4,8 @@ import pytest
 
 from src.api.common.exceptions import InvalidPlaidInstitution
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.plaid.exchange_public_token.method import ExchangePublicToken
 from src.api.plaid.exchange_public_token.models import AccountDetails

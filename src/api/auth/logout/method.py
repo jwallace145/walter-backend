@@ -9,7 +9,7 @@ from src.api.common.exceptions import (
     SessionDoesNotExist,
 )
 from src.api.common.methods import HTTPStatus, Status, WalterAPIMethod
-from src.api.common.models import Response
+from src.api.common.response import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session

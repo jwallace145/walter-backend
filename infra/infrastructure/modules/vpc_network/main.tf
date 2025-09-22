@@ -116,14 +116,6 @@ resource "aws_security_group" "function_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # No inbound rules needed for API Gateway
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = []
-  }
-
   tags = {
     Name = "${var.name}-Function-SG-${var.domain}"
   }
@@ -147,10 +139,37 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   service_name        = "com.amazonaws.${var.region}.secretsmanager"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [aws_subnet.private.id]
-  security_group_ids  = [aws_security_group.function_sg.id]
+  security_group_ids  = [aws_security_group.secretsmanager_vpce_sg.id]
   private_dns_enabled = true
+
+  depends_on = [aws_security_group.secretsmanager_vpce_sg]
 
   tags = {
     Name = "${var.name}-VPCE-SecretsManager-${var.domain}"
+  }
+}
+
+resource "aws_security_group" "secretsmanager_vpce_sg" {
+  name        = "${var.name}-SecretsManagerVPCE-SG-${var.domain}"
+  description = "SG for Secrets Manager VPC endpoint. (${var.domain})"
+  vpc_id      = aws_vpc.this.id
+
+  # Allow Lambda SG to reach endpoint on 443
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.function_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name}-SecretsManagerVPCE-SG-${var.domain}"
   }
 }

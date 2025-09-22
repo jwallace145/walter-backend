@@ -9,7 +9,8 @@ from src.api.common.metrics import (
     METRICS_RESPONSE_TIME_MILLISECONDS,
     METRICS_SUCCESS,
 )
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.database.client import WalterDB
 from src.database.sessions.models import Session
