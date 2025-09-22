@@ -164,7 +164,9 @@ locals {
         module.holdings_table.table_arn,
         module.securities_table.table_arn
       ]
-      write_access_table_arns  = []
+      write_access_table_arns = [
+        module.accounts_table.table_arn
+      ]
       delete_access_table_arns = []
     }
 
