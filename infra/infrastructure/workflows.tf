@@ -51,53 +51,13 @@ locals {
  **********************/
 
 module "workflow_base_role" {
-  source      = "./modules/iam_lambda_execution_role"
-  name        = "WalterBackend-Workflow-Base-Role-${var.domain}"
-  description = "The IAM role used by the WalterBackend Workflow Lambda function to assume workflow-specific roles for execution. (${var.domain})"
-  policies = {
-    assume_workflow_roles_policy = aws_iam_policy.workflow_assume_role_policy.arn
-  }
-}
-
-resource "aws_iam_policy" "workflow_assume_role_policy" {
-  name        = "WalterBackend-Workflow-Base-Assume-Policy-${var.domain}"
-  description = "The base IAM policy for the WalterBackend Workflow function used to assume workflow-specific execution roles."
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "sts:AssumeRole",
-        ]
-        Effect = "Allow"
-        Resource = [
-          module.workflow_roles["update_security_prices"].role_arn,
-          module.workflow_roles["sync_transactions"].role_arn
-        ]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "workflow_kms_access_policy" {
-  name        = "WalterBackend-Workflow-Base-KMS-Policy-${var.domain}"
-  description = "The base IAM policy for the WalterBackend Workflow function used to encrypt and decrypt with KMS."
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "kms:*"
-        ]
-        Effect = "Allow"
-        Resource = [
-          module.functions["workflow"].kms_key_arn
-        ]
-      }
-    ]
-  })
+  source             = "./modules/base_function_role"
+  account_id         = var.account_id
+  domain             = var.domain
+  component          = "Workflow"
+  description        = "The IAM role used by the WalterBackend Workflow function to assume execution roles. (${var.domain})"
+  assumable_entities = [for role in local.WORKFLOW_ROLES : role.name]
+  kms_key_arns       = [module.env_vars_key.arn]
 }
 
 module "workflow_roles" {

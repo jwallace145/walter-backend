@@ -68,6 +68,14 @@ locals {
  * WalterBackend Functions *
  ***************************/
 
+module "env_vars_key" {
+  source      = "./modules/kms_key"
+  account_id  = var.account_id
+  domain      = var.domain
+  name        = "LambdaEnvVars"
+  description = "The KMS key used to encrypt and decrypt Lambda function environment variables. (${var.domain})"
+}
+
 module "functions" {
   for_each                          = local.FUNCTIONS
   source                            = "./modules/lamdba_function"
@@ -89,6 +97,7 @@ module "functions" {
   function_version                  = each.value.function_version
   security_group_ids                = [module.network.function_sg_id]
   subnet_ids                        = [module.network.private_subnet_id]
+  env_vars_kms_key_arn              = module.env_vars_key.arn
 }
 
 /************************************

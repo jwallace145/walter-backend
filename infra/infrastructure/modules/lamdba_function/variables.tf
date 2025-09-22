@@ -91,3 +91,8 @@ variable "subnet_ids" {
   description = "List of subnet IDs to associate with the Lambda function."
   type        = list(string)
 }
+
+variable "env_vars_kms_key_arn" {
+  description = "ARN of the KMS key used to encrypt environment variables."
+  type        = string
+}
