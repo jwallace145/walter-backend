@@ -1,57 +1,55 @@
-data "aws_partition" "current" {}
-
-data "aws_caller_identity" "current" {}
-
-data "aws_region" "current" {}
-
 locals {
-  table_arns = [
-    for name in var.table_names :
-    "arn:${data.aws_partition.current.partition}:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${name}"
-  ]
-
-  table_index_arns = [
-    for name in var.table_names :
-    "arn:${data.aws_partition.current.partition}:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${name}/index/*"
+  read_index_arns = [
+    for arn in var.read_access_table_arns :
+    "${arn}/index/*"
   ]
 }
 
 data "aws_iam_policy_document" "this" {
-  statement {
-    sid = "DynamoDBReadAccess"
+  dynamic "statement" {
+    for_each = length(var.read_access_table_arns) > 0 ? [1] : []
+    content {
+      sid = "DynamoDBReadAccess"
 
-    actions = [
-      "dynamodb:BatchGetItem",
-      "dynamodb:DescribeTable",
-      "dynamodb:GetItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:ListTagsOfResource"
-    ]
+      actions = [
+        "dynamodb:BatchGetItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:ListTagsOfResource"
+      ]
 
-    resources = concat(local.table_arns, local.table_index_arns)
+      resources = concat(var.read_access_table_arns, local.read_index_arns)
+    }
   }
 
-  statement {
-    sid = "DynamoDBWriteAccess"
+  dynamic "statement" {
+    for_each = length(var.write_access_table_arns) > 0 ? [1] : []
+    content {
+      sid = "DynamoDBWriteAccess"
 
-    actions = [
-      "dynamodb:BatchWriteItem",
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem"
-    ]
+      actions = [
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
+      ]
 
-    resources = local.table_arns
+      resources = var.write_access_table_arns
+    }
   }
 
-  statement {
-    sid = "DynamoDBDeleteItemAccess"
+  dynamic "statement" {
+    for_each = length(var.delete_access_table_arns) > 0 ? [1] : []
+    content {
+      sid = "DynamoDBDeleteItemAccess"
 
-    actions = [
-      "dynamodb:DeleteItem"
-    ]
+      actions = [
+        "dynamodb:DeleteItem"
+      ]
 
-    resources = local.table_arns
+      resources = var.delete_access_table_arns
+    }
   }
 }
 

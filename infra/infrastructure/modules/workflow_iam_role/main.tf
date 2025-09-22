@@ -41,14 +41,16 @@ module "workflow_role_secrets_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "db_access_attachment" {
-  count      = length(var.tables_access) > 0 ? 1 : 0
+  count      = length(concat(var.read_table_access_arns, var.write_table_access_arns, var.delete_table_access_arns)) > 0 ? 1 : 0
   role       = aws_iam_role.workflow_role.name
   policy_arn = module.workflow_role_db_access[0].policy_arn
 }
 
 module "workflow_role_db_access" {
-  count       = length(var.tables_access) > 0 ? 1 : 0
-  source      = "../iam_dynamodb_access_policy"
-  policy_name = local.WORKFLOW_DB_ACCESS_POLICY_NAME
-  table_names = var.tables_access
+  count                    = length(concat(var.read_table_access_arns, var.write_table_access_arns, var.delete_table_access_arns)) > 0 ? 1 : 0
+  source                   = "../iam_dynamodb_access_policy"
+  policy_name              = local.WORKFLOW_DB_ACCESS_POLICY_NAME
+  read_access_table_arns   = var.read_table_access_arns
+  write_access_table_arns  = var.write_table_access_arns
+  delete_access_table_arns = var.delete_table_access_arns
 }
