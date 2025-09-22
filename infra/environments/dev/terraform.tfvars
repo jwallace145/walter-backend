@@ -37,6 +37,7 @@ api_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/WalterA
 canary_timeout_seconds                   = 30
 canary_lambda_memory_mb                  = 1024
 canary_provisioned_concurrent_executions = 0
+canary_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/WalterAIDeveloper"]
 
 # WalterBackend Workflow Settings
 workflow_timeout_seconds                   = 15
