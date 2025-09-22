@@ -2,7 +2,7 @@ locals {
   WORKFLOW_ROLE_NAME                  = "WalterBackend-Workflow-${var.name}-Role-${var.domain}"
   WORKFLOW_SECRETS_ACCESS_POLICY_NAME = "WalterBackend-Workflow-${var.name}-Secrets-Policy-${var.domain}"
   WORKFLOW_DB_ACCESS_POLICY_NAME      = "WalterBackend-Workflow-${var.name}-DB-Policy-${var.domain}"
-  WORKFLOW_SQS_ACCESS_POLICY_NAME     = "WalterBackend-Workflow-${var.domain}-SQS-Policy-${var.domain}"
+  WORKFLOW_SQS_ACCESS_POLICY_NAME     = "WalterBackend-Workflow-${var.name}-SQS-Policy-${var.domain}"
 }
 
 resource "aws_iam_role" "workflow_role" {
@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "workflow_role_trust_policy" {
 
 resource "aws_iam_role_policy_attachment" "lambda_execution_access_attachment" {
   role       = aws_iam_role.workflow_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "secrets_access_attachment" {

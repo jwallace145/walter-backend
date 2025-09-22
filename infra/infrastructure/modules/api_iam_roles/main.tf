@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "api_iam_role_trust_policy" {
 
 resource "aws_iam_role_policy_attachment" "lambda_execution_access_attachment" {
   role       = aws_iam_role.api_iam_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_role_policy_attachment" "secrets_access_attachment" {
