@@ -164,21 +164,18 @@ class PlaidClient:
             LOG.info("Getting newly added transactions...")
             added_transactions = []
             for plaid_transaction in response["added"]:
-                LOG.debug(f"Plaid Transaction: {plaid_transaction}")
                 transaction = self.transaction_converter.convert(plaid_transaction)
                 added_transactions.append(transaction)
 
             LOG.info("Getting modified transactions...")
             modified_transactions = []
             for plaid_transaction in response["modified"]:
-                LOG.debug(f"Plaid Transaction: {plaid_transaction}")
                 transaction = self.transaction_converter.convert(plaid_transaction)
                 modified_transactions.append(transaction)
 
             LOG.info("Getting removed transactions...")
             removed_transactions = []
             for plaid_transaction in response["removed"]:
-                LOG.debug(f"Plaid Transaction: {plaid_transaction}")
                 transaction = self.transaction_converter.convert(plaid_transaction)
                 removed_transactions.append(transaction)
 

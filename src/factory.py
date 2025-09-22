@@ -184,7 +184,9 @@ class ClientFactory:
 
     def get_transaction_converter(self) -> TransactionConverter:
         if self.transaction_converter is None:
-            self.transaction_converter = TransactionConverter(self.get_db_client())
+            self.transaction_converter = TransactionConverter(
+                self.get_db_client(), self.get_expense_categorizer()
+            )
         return self.transaction_converter
 
     def get_expense_categorizer(self) -> ExpenseCategorizerMLP:
