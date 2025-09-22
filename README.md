@@ -31,7 +31,8 @@ Walter combines automation and intelligence to help you spend smarter, save fast
 
 ### Architecture
 
-![walter-backend-arch-diagram](https://github.com/user-attachments/assets/53243c49-7b86-4e87-b354-82108cfcca68)
+![walter-backend-architecture-diagram](https://github.com/user-attachments/assets/75a99b3b-a1d7-4399-b0af-ec7a4c9510f7)
+
 
 ## API Documentation
 
