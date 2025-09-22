@@ -71,7 +71,8 @@ locals {
         module.users_table.table_arn,
         module.sessions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     logout = {
@@ -88,7 +89,8 @@ locals {
         module.users_table.table_arn,
         module.sessions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     refresh = {
@@ -105,7 +107,8 @@ locals {
         module.users_table.table_arn,
         module.sessions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     get_user = {
@@ -122,7 +125,8 @@ locals {
         module.users_table.table_arn,
         module.sessions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     create_user = {
@@ -135,7 +139,8 @@ locals {
       write_access_table_arns = [
         module.users_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     update_user = {
@@ -148,7 +153,8 @@ locals {
       write_access_table_arns = [
         module.users_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     get_accounts = {
@@ -167,7 +173,8 @@ locals {
       write_access_table_arns = [
         module.accounts_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     create_account = {
@@ -186,7 +193,8 @@ locals {
         module.sessions_table.table_arn,
         module.users_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     update_account = {
@@ -205,7 +213,8 @@ locals {
         module.sessions_table.table_arn,
         module.users_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     delete_account = {
@@ -223,6 +232,7 @@ locals {
       delete_access_table_arns = [
         module.accounts_table.table_arn,
       ]
+      send_message_access_queue_arns = []
     }
 
     get_transactions = {
@@ -239,8 +249,9 @@ locals {
         module.securities_table.table_arn,
         module.transactions_table.table_arn,
       ]
-      write_access_table_arns  = []
-      delete_access_table_arns = []
+      write_access_table_arns        = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     add_transaction = {
@@ -257,7 +268,8 @@ locals {
       write_access_table_arns = [
         module.transactions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     edit_transaction = {
@@ -274,7 +286,8 @@ locals {
       write_access_table_arns = [
         module.transactions_table.table_arn,
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     delete_transaction = {
@@ -292,6 +305,7 @@ locals {
       delete_access_table_arns = [
         module.transactions_table.table_arn
       ]
+      send_message_access_queue_arns = []
     }
 
     create_link_token = {
@@ -309,7 +323,8 @@ locals {
         module.sessions_table.table_arn,
         module.users_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
 
     exchange_public_token = {
@@ -331,6 +346,9 @@ locals {
         module.sessions_table.table_arn,
         module.users_table.table_arn
       ]
+      send_message_access_queue_arns = [
+        module.queues["sync_transactions"].queue_arn
+      ]
     }
 
     sync_transactions = {
@@ -350,7 +368,8 @@ locals {
         module.users_table.table_arn,
         module.transactions_table.table_arn
       ]
-      delete_access_table_arns = []
+      delete_access_table_arns       = []
+      send_message_access_queue_arns = []
     }
   }
 }
@@ -486,17 +505,18 @@ resource "aws_iam_policy" "api_kms_access_policy" {
 }
 
 module "api_roles" {
-  source                     = "./modules/api_iam_roles"
-  for_each                   = local.API_ROLES
-  domain                     = var.domain
-  name                       = each.value.name
-  description                = each.value.description
-  secret_names               = each.value.secrets
-  read_table_access_arns     = each.value.read_access_table_arns
-  write_table_access_arns    = each.value.write_access_table_arns
-  delete_table_access_arns   = each.value.delete_access_table_arns
-  api_base_role              = module.api_base_role.arn
-  assume_api_role_principals = var.api_assume_role_additional_principals
+  source                         = "./modules/api_iam_roles"
+  for_each                       = local.API_ROLES
+  domain                         = var.domain
+  name                           = each.value.name
+  description                    = each.value.description
+  secret_names                   = each.value.secrets
+  read_table_access_arns         = each.value.read_access_table_arns
+  write_table_access_arns        = each.value.write_access_table_arns
+  delete_table_access_arns       = each.value.delete_access_table_arns
+  send_message_access_queue_arns = each.value.send_message_access_queue_arns
+  api_base_role                  = module.api_base_role.arn
+  assume_api_role_principals     = var.api_assume_role_additional_principals
 }
 
 

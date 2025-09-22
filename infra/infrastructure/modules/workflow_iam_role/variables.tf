@@ -38,6 +38,11 @@ variable "delete_table_access_arns" {
   type        = list(string)
 }
 
+variable "receive_message_access_queue_arns" {
+  description = "The ARN(s) of the SQS queues that the workflow can receive messages from for task processing."
+  type        = list(string)
+}
+
 variable "workflow_base_role" {
   description = "The IAM role used by the WalterBackend workflow function to assume the more specific workflow roles after routing."
   type        = string

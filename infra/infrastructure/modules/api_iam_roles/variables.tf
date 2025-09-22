@@ -38,6 +38,11 @@ variable "delete_table_access_arns" {
   type        = list(string)
 }
 
+variable "send_message_access_queue_arns" {
+  description = "The ARN(s) of the SQS queues that the API requires permissions to send messages."
+  type        = list(string)
+}
+
 variable "api_base_role" {
   description = "The IAM role used by the WalterBackend API function to assume the more specific API roles after routing."
   type        = string

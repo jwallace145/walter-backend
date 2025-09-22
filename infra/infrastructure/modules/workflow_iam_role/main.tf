@@ -2,6 +2,7 @@ locals {
   WORKFLOW_ROLE_NAME                  = "WalterBackend-Workflow-${var.name}-Role-${var.domain}"
   WORKFLOW_SECRETS_ACCESS_POLICY_NAME = "WalterBackend-Workflow-${var.name}-Secrets-Policy-${var.domain}"
   WORKFLOW_DB_ACCESS_POLICY_NAME      = "WalterBackend-Workflow-${var.name}-DB-Policy-${var.domain}"
+  WORKFLOW_SQS_ACCESS_POLICY_NAME     = "WalterBackend-Workflow-${var.domain}-SQS-Policy-${var.domain}"
 }
 
 resource "aws_iam_role" "workflow_role" {
@@ -53,4 +54,18 @@ module "workflow_role_db_access" {
   read_access_table_arns   = var.read_table_access_arns
   write_access_table_arns  = var.write_table_access_arns
   delete_access_table_arns = var.delete_table_access_arns
+}
+
+resource "aws_iam_role_policy_attachment" "sqs_access_attachment" {
+  count      = length(var.receive_message_access_queue_arns) > 0 ? 1 : 0
+  role       = aws_iam_role.workflow_role.name
+  policy_arn = module.workflow_role_sqs_access[0].policy_arn
+}
+
+module "workflow_role_sqs_access" {
+  count       = length(var.receive_message_access_queue_arns) > 0 ? 1 : 0
+  source      = "../iam_sqs_queue_access_policy"
+  name        = local.WORKFLOW_SQS_ACCESS_POLICY_NAME
+  queue_arns  = var.receive_message_access_queue_arns
+  access_type = "consumer"
 }

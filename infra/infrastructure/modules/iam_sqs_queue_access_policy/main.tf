@@ -2,6 +2,13 @@ locals {
   is_consumer = lower(var.access_type) == "consumer"
 }
 
+resource "aws_iam_policy" "this" {
+  name        = var.name
+  description = var.description
+  policy      = data.aws_iam_policy_document.this.json
+  tags        = var.tags
+}
+
 data "aws_iam_policy_document" "this" {
   statement {
     sid    = local.is_consumer ? "SQSConsumePermissions" : "SQSProducePermissions"
@@ -20,11 +27,4 @@ data "aws_iam_policy_document" "this" {
 
     resources = var.queue_arns
   }
-}
-
-resource "aws_iam_policy" "this" {
-  name        = var.name
-  description = var.description
-  policy      = data.aws_iam_policy_document.this.json
-  tags        = var.tags
 }

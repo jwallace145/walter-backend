@@ -12,7 +12,6 @@ variable "description" {
 variable "access_type" {
   description = "Type of access this policy grants to the queues. One of: \"consumer\" or \"producer\"."
   type        = string
-  default     = "consumer"
 
   validation {
     condition     = contains(["consumer", "producer"], var.access_type)
