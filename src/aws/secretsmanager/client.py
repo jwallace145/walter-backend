@@ -7,7 +7,7 @@ from mypy_boto3_secretsmanager import SecretsManagerClient
 from src.environment import Domain
 from src.utils.log import Logger
 
-log = Logger(__name__).get_logger()
+LOG = Logger(__name__).get_logger()
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -105,12 +105,14 @@ class WalterSecretsManagerClient:
     stripe_test_secret_key: str = None
 
     def __post_init__(self) -> None:
-        log.debug(
+        LOG.debug(
             f"Creating {self.domain.value} SecretsManager client in region '{self.client.meta.region_name}'"
         )
 
     def get_polygon_api_key(self) -> str:
+        LOG.debug("Getting Polygon API key")
         if self.polygon_api_key is None:
+            LOG.debug("Polygon API key not found, fetching from AWS")
             self.polygon_api_key = self._get_secret(
                 Secrets.POLYGON_API_KEY.get_secret_name(self.domain),
                 Secrets.POLYGON_API_KEY.get_secret_key(),
@@ -118,7 +120,9 @@ class WalterSecretsManagerClient:
         return self.polygon_api_key
 
     def get_access_token_secret_key(self) -> str:
+        LOG.debug("Getting access token secret key")
         if self.access_token_secret_key is None:
+            LOG.debug("Access token secret key not found, fetching from AWS")
             self.access_token_secret_key = self._get_secret(
                 Secrets.ACCESS_TOKEN_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.ACCESS_TOKEN_SECRET_KEY.get_secret_key(),
@@ -126,7 +130,9 @@ class WalterSecretsManagerClient:
         return self.access_token_secret_key
 
     def get_refresh_token_secret_key(self) -> str:
+        LOG.debug("Getting refresh token secret key")
         if self.refresh_token_secret_key is None:
+            LOG.debug("Refresh token secret key not found, fetching from AWS")
             self.refresh_token_secret_key = self._get_secret(
                 Secrets.REFRESH_TOKEN_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.REFRESH_TOKEN_SECRET_KEY.get_secret_key(),
@@ -134,7 +140,9 @@ class WalterSecretsManagerClient:
         return self.refresh_token_secret_key
 
     def get_stripe_secret_key(self) -> str:
+        LOG.debug("Getting Stripe secret key")
         if self.stripe_test_secret_key is None:
+            LOG.debug("Stripe secret key not found, fetching from AWS")
             self.stripe_test_secret_key = self._get_secret(
                 Secrets.STRIPE_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.STRIPE_SECRET_KEY.get_secret_key(),
@@ -142,7 +150,9 @@ class WalterSecretsManagerClient:
         return self.stripe_test_secret_key
 
     def get_plaid_client_id(self) -> str:
+        LOG.debug("Getting Plaid client ID")
         if self.plaid_sandbox_credentials_client_id is None:
+            LOG.debug("Plaid client ID not found, fetching from AWS")
             self.plaid_sandbox_credentials_client_id = self._get_secret(
                 Secrets.PLAID_CLIENT_ID.get_secret_name(self.domain),
                 Secrets.PLAID_CLIENT_ID.get_secret_key(),
@@ -150,7 +160,9 @@ class WalterSecretsManagerClient:
         return self.plaid_sandbox_credentials_client_id
 
     def get_plaid_secret_key(self) -> str:
+        LOG.debug("Getting Plaid secret key")
         if self.plaid_sandbox_credentials_secret_key is None:
+            LOG.debug("Plaid secret key not found, fetching from AWS")
             self.plaid_sandbox_credentials_secret_key = self._get_secret(
                 Secrets.PLAID_SECRET_KEY.get_secret_name(self.domain),
                 Secrets.PLAID_SECRET_KEY.get_secret_key(),
@@ -158,7 +170,9 @@ class WalterSecretsManagerClient:
         return self.plaid_sandbox_credentials_secret_key
 
     def get_datadog_api_key(self) -> str:
+        LOG.debug("Getting Datadog API key")
         if self.datadog_api_key is None:
+            LOG.debug("Datadog API key not found, fetching from AWS")
             self.datadog_api_key = self._get_secret(
                 Secrets.DATADOG_API_KEY.get_secret_name(self.domain),
                 Secrets.DATADOG_API_KEY.get_secret_key(),

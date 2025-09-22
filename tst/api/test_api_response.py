@@ -1,4 +1,5 @@
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.environment import Domain
 
 

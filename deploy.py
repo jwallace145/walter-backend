@@ -4,12 +4,13 @@ import subprocess
 import sys
 from enum import Enum
 from time import sleep
-from typing import List
+from typing import Dict, List
 
 import boto3
 from mypy_boto3_ecr import ECRClient
 from mypy_boto3_lambda import LambdaClient
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_sts.client import STSClient
 
 ##########
 # MODELS #
@@ -96,7 +97,37 @@ def print_build_step_header(step_name: str, environment: str) -> None:
     print("=" * 60 + "\n")
 
 
-def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
+def log_build_vars() -> None:
+    print_build_step_header("BUILD VARS", APP_ENVIRONMENT)
+
+    print("Building new WalterBackend version with the following build variables:")
+
+    build_info = {
+        "WalterBackend version": VERSION,
+        "WalterBackend image URI": WALTER_BACKEND_IMAGE_URI,
+        "Lambda functions": ", ".join(LAMBDA_FUNCTIONS),
+        "Function alias": FUNCTION_ALIAS,
+        "Release description": RELEASE_DESCRIPTION,
+        "AWS region": AWS_REGION,
+        "AWS account ID": AWS_ACCOUNT_ID,
+        "Application environment": APP_ENVIRONMENT,
+    }
+
+    for key, value in build_info.items():
+        print(f"{key}: {value}")
+
+
+def log_build_identity(sts_client: STSClient) -> None:
+    print_build_step_header("BUILD IDENTITY", APP_ENVIRONMENT)
+
+    print("Getting caller identity...")
+    caller_identity = sts_client.get_caller_identity()
+    print(f"Account ID: {caller_identity['Account']}")
+    print(f"User ID: {caller_identity['UserId']}")
+    print(f"ARN: {caller_identity['Arn']}")
+
+
+def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient, STSClient]:
     print_build_step_header("INITIALIZING BOTO3 CLIENTS", APP_ENVIRONMENT)
 
     print("Initializing S3 client...")
@@ -108,7 +139,10 @@ def create_boto3_clients() -> tuple[S3Client, ECRClient, LambdaClient]:
     print("Initializing Lambda client...")
     lambda_client = boto3.client("lambda", region_name=AWS_REGION)
 
-    return s3_client, ecr_client, lambda_client
+    print("Initializing STS client...")
+    sts_client = boto3.client("sts", region_name=AWS_REGION)
+
+    return s3_client, ecr_client, lambda_client, sts_client
 
 
 def update_docs(s3_client: S3Client) -> None:
@@ -226,6 +260,34 @@ def update_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     sleep(30)
 
 
+def get_latest_function_versions(
+    lambda_client: LambdaClient, functions: List[str]
+) -> Dict[str, int]:
+    print_build_step_header(
+        f"LATEST FUNCTION VERSIONS '{VERSION_TAG}'", APP_ENVIRONMENT
+    )
+
+    print(f"Getting latest function versions:\n{json.dumps(functions, indent=4)}")
+    func_versions = {}
+
+    paginator = lambda_client.get_paginator("list_versions_by_function")
+
+    for func in functions:
+        versions: list[str] = []
+
+        for page in paginator.paginate(FunctionName=func):
+            versions.extend(
+                v["Version"] for v in page["Versions"] if v["Version"] != "$LATEST"
+            )
+
+        latest_version = max(map(int, versions)) if versions else None
+        func_versions[func] = latest_version
+
+    print(f"Latest function versions:\n{json.dumps(func_versions, indent=4)}")
+
+    return func_versions
+
+
 def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None:
     print_build_step_header(
         f"PUBLISH WALTER BACKEND FUNCTIONS '{VERSION_TAG}'", APP_ENVIRONMENT
@@ -241,32 +303,17 @@ def publish_functions(lambda_client: LambdaClient, functions: List[str]) -> None
     sleep(30)
 
 
-def update_aliases(lambda_client: LambdaClient, functions: List[str]) -> None:
+def update_aliases(lambda_client: LambdaClient, functions: Dict[str, int]) -> None:
     print_build_step_header(
         f"UPDATE WALTER BACKEND FUNCTION ALIASES '{VERSION_TAG}'", APP_ENVIRONMENT
     )
 
-    print("Getting latest function versions...")
-
-    latest_versions = {}
-    for func in functions:
-        response = lambda_client.list_versions_by_function(FunctionName=func)
-        versions = []
-        for v in response["Versions"]:
-            version = v["Version"]
-            if version == "$LATEST":
-                continue
-            versions.append(int(version))
-        versions.sort()
-        latest_version = versions[-1]
-        latest_versions[func] = latest_version
-
-    print(f"Latest function versions:\n{json.dumps(latest_versions, indent=4)}")
-
-    print("Updating function aliases...")
+    print(
+        f"Updating function aliases to the latest function versions:\n{json.dumps(functions, indent=4)}"
+    )
 
     release_versions = {}
-    for func, version in latest_versions.items():
+    for func, version in functions.items():
         lambda_client.update_alias(
             FunctionName=func,
             Name=FUNCTION_ALIAS,
@@ -349,12 +396,14 @@ def ensure_git_tag() -> None:
 # SCRIPT #
 ##########
 
-
-s3_client, ecr_client, lambda_client = create_boto3_clients()
-
+log_build_vars()
+s3_client, ecr_client, lambda_client, sts_client = create_boto3_clients()
+log_build_identity(sts_client)
 update_docs(s3_client)
 build_and_upload_image(ecr_client)
 ensure_git_tag()
 update_functions(lambda_client, LAMBDA_FUNCTIONS)
+get_latest_function_versions(lambda_client, LAMBDA_FUNCTIONS)
 publish_functions(lambda_client, LAMBDA_FUNCTIONS)
-update_aliases(lambda_client, LAMBDA_FUNCTIONS)
+latest_versions = get_latest_function_versions(lambda_client, LAMBDA_FUNCTIONS)
+update_aliases(lambda_client, latest_versions)

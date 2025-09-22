@@ -6,7 +6,8 @@ from requests_toolbelt.multipart import decoder
 
 from src.api.common.exceptions import BadRequest, NotAuthenticated, UserDoesNotExist
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.auth.authenticator import WalterAuthenticator
 from src.aws.s3.client import WalterS3Client
 from src.database.client import WalterDB

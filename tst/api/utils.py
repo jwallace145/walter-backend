@@ -2,7 +2,7 @@ import json
 from typing import Optional
 
 from src.api.common.methods import HTTPStatus, Status
-from src.api.common.models import Response
+from src.api.common.response import Response
 from src.api.routing.methods import HTTPMethod
 from src.environment import Domain
 

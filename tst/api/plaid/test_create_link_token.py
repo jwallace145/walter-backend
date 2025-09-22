@@ -3,7 +3,8 @@ from typing import Optional
 import pytest
 
 from src.api.common.methods import WalterAPIMethod
-from src.api.common.models import HTTPStatus, Response, Status
+from src.api.common.models import HTTPStatus, Status
+from src.api.common.response import Response
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.plaid.create_link_token import CreateLinkToken
 from src.api.routing.methods import HTTPMethod
