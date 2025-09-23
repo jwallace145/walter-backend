@@ -142,11 +142,15 @@ class TransactionConverter:
             merchant_name, amount
         )
 
+        transaction_subtype = BankingTransactionSubType.DEBIT
+        if amount < 0:
+            transaction_subtype = BankingTransactionSubType.CREDIT
+
         return BankTransaction.create(
             account_id=account.account_id,
             user_id=account.user_id,
             transaction_type=TransactionType.BANKING,
-            transaction_subtype=BankingTransactionSubType.DEBIT,  # TODO: Fix this hardcoded value
+            transaction_subtype=transaction_subtype,
             transaction_category=transaction_category,
             transaction_date=plaid_transaction["date"],
             transaction_amount=amount,
