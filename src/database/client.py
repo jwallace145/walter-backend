@@ -241,6 +241,11 @@ class WalterDB:
     def delete_account(self, user_id: str, account_id: str) -> None:
         return self.accounts_table.delete_account(user_id, account_id)
 
+    def delete_accounts(self, user_id: str) -> None:
+        accounts = self.accounts_table.get_accounts(user_id)
+        for account in accounts:
+            self.accounts_table.delete_account(user_id, account.account_id)
+
     ##############
     # SECURITIES #
     ##############
