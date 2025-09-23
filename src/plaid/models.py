@@ -90,6 +90,7 @@ class PersonalFinanceCategories(Enum):
     PERSONAL_CARE = "personal_care"
     TRANSPORTATION = "transportation"
     TRAVEL = "travel"
+    OTHER = "other"
 
     @classmethod
     def from_string(cls, category_str: str):

@@ -2,6 +2,7 @@ import datetime as dt
 
 import pytest
 
+from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.database.client import WalterDB
 from src.database.transactions.models import BankTransaction
 from src.plaid.transaction_converter import TransactionConverter
@@ -9,8 +10,10 @@ from tst.plaid.utils import create_plaid_transaction
 
 
 @pytest.fixture
-def transaction_converter(walter_db: WalterDB) -> TransactionConverter:
-    return TransactionConverter(walter_db)
+def transaction_converter(
+    walter_db: WalterDB, transactions_categorizer: ExpenseCategorizerMLP
+) -> TransactionConverter:
+    return TransactionConverter(walter_db, transactions_categorizer)
 
 
 def test_transaction_converter(transaction_converter: TransactionConverter) -> None:

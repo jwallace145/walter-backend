@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 
+from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
 from src.database.transactions.models import (
@@ -8,7 +9,6 @@ from src.database.transactions.models import (
     BankTransaction,
     InvestmentTransaction,
     Transaction,
-    TransactionCategory,
     TransactionType,
 )
 from src.plaid.models import PersonalFinanceCategories
@@ -28,6 +28,7 @@ PERSONAL_FINANCE_CATEGORY_TO_TRANSACTION_TYPE: Dict[
     PersonalFinanceCategories.PERSONAL_CARE: TransactionType.BANKING,
     PersonalFinanceCategories.TRANSPORTATION: TransactionType.BANKING,
     PersonalFinanceCategories.TRAVEL: TransactionType.BANKING,
+    PersonalFinanceCategories.OTHER: TransactionType.BANKING,
 }
 """(dict): Mapping of personal finance categories to transaction types"""
 
@@ -42,6 +43,7 @@ class TransactionConverter:
     """
 
     db: WalterDB
+    transaction_categorizer: ExpenseCategorizerMLP
 
     plaid_account_cache: Dict[str, Account] = None
 
@@ -50,6 +52,10 @@ class TransactionConverter:
         self.plaid_account_cache = {}
 
     def convert(self, plaid_transaction: dict) -> Transaction:
+        LOG.debug(
+            f"Converting Plaid transaction to WalterDB format:\n{plaid_transaction}"
+        )
+
         # verify account exists before converting transaction, each transaction
         # should be associated with an account persisted in the database
         plaid_account_id: str = plaid_transaction["account_id"]
@@ -125,15 +131,30 @@ class TransactionConverter:
     def _create_banking_transaction(
         self, account: Account, plaid_transaction: dict
     ) -> BankTransaction:
+        amount = plaid_transaction["amount"]
+
+        # plaid merchant name is nullable
+        merchant_name = plaid_transaction["merchant_name"]
+        if merchant_name is None:
+            merchant_name = "UNKNOWN MERCHANT"
+
+        transaction_category = self.transaction_categorizer.categorize(
+            merchant_name, amount
+        )
+
+        transaction_subtype = BankingTransactionSubType.DEBIT
+        if amount < 0:
+            transaction_subtype = BankingTransactionSubType.CREDIT
+
         return BankTransaction.create(
             account_id=account.account_id,
             user_id=account.user_id,
             transaction_type=TransactionType.BANKING,
-            transaction_subtype=BankingTransactionSubType.DEBIT,  # TODO: Fix this hardcoded value
-            transaction_category=TransactionCategory.RESTAURANTS,  # TODO: Fix this hardcoded value
+            transaction_subtype=transaction_subtype,
+            transaction_category=transaction_category,
             transaction_date=plaid_transaction["date"],
-            transaction_amount=plaid_transaction["amount"],
-            merchant_name=plaid_transaction["merchant_name"],
+            transaction_amount=amount,
+            merchant_name=merchant_name,
             plaid_transaction_id=plaid_transaction["transaction_id"],
             plaid_account_id=plaid_transaction["account_id"],
         )

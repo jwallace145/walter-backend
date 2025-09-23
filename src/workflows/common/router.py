@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import Tuple
 
 from src.environment import AWS_REGION, DOMAIN
 from src.factory import ClientFactory
@@ -24,19 +25,21 @@ class WorkflowRouter:
         self.workflow_factory = WorkflowFactory(client_factory=self.client_factory)
 
     def get_workflow(self, event: dict) -> Workflow:
-        workflow_name = self._get_workflow_name(event)
+        workflow_name, request_id = self._get_workflow_details(event)
         workflow = Workflows.from_string(workflow_name)
-        return self.workflow_factory.get_workflow(workflow)
+        return self.workflow_factory.get_workflow(workflow, request_id)
 
-    def _get_workflow_name(self, event: dict) -> str:
+    def _get_workflow_details(self, event: dict) -> Tuple[str, str]:
         LOG.info(f"Getting workflow name from event:\n{json.dumps(event, indent=4)}")
+
+        request_id = event.get("Records", [{}])[0].get("messageId", "NULL_REQUEST_ID")
 
         # only sqs messages have records in the event
         # so if there are no records, assume its a scheduled job
         # where workflow_name is in the event
         if "Records" not in event:
             if "workflow_name" in event:
-                return event["workflow_name"]
+                return event["workflow_name"], request_id
             else:
                 raise ValueError("No workflow name found in event!")
 
@@ -54,6 +57,6 @@ class WorkflowRouter:
             record = records[0]
             body = json.loads(record["body"])
             workflow_name = body["workflow_name"]
-            return workflow_name
+            return workflow_name, request_id
         except Exception as e:
             raise ValueError(f"Failed to get workflow name from event: {e}")

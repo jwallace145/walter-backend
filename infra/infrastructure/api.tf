@@ -340,12 +340,10 @@ locals {
       ]
       write_access_table_arns = [
         module.sessions_table.table_arn,
-        module.users_table.table_arn
+        module.users_table.table_arn,
+        module.accounts_table.table_arn
       ]
-      delete_access_table_arns = [
-        module.sessions_table.table_arn,
-        module.users_table.table_arn
-      ]
+      delete_access_table_arns = []
       send_message_access_queue_arns = [
         module.queues["sync_transactions"].queue_arn
       ]
