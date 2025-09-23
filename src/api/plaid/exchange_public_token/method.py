@@ -144,7 +144,7 @@ class ExchangePublicToken(WalterAPIMethod):
                 "institution_id": institution_id,
                 "institution_name": institution_name,
                 "num_accounts": len(accounts),
-                "sync_transactions_task_ids": [task_ids],
+                "sync_transactions_task_ids": task_ids,
             },
         )
 
