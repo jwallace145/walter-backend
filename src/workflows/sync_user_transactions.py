@@ -190,7 +190,7 @@ class SyncUserTransactions(Workflow):
         updated_accounts: List[Account] = []
         for account in accounts:
             account.plaid_cursor = plaid_cursor
-            account.plaid_synced_at = synced_at
+            account.plaid_last_sync_at = synced_at
             updated_accounts.append(self.db.update_account(account))
         LOG.info(
             f"Updated {len(updated_accounts)} account(s) with new Plaid cursor synced at '{synced_at.isoformat()}'"
