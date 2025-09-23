@@ -285,6 +285,7 @@ class ExchangePublicToken(WalterAPIMethod):
                     plaid_account_id=account.account_id,
                     plaid_access_token=response.access_token,
                     plaid_item_id=response.item_id,
+                    plaid_cursor=None,
                     plaid_last_sync_at=None,
                 )
             )

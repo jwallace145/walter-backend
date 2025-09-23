@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
-from typing import List, Set, Tuple
+from datetime import datetime
+from typing import List, Optional, Set, Tuple
 
 from src.database.accounts.models import Account
 from src.database.client import WalterDB
@@ -58,20 +59,25 @@ class SyncUserTransactions(Workflow):
         )
 
         # get plaid access token for account(s)
-        token: str = self._get_plaid_access_token(accounts)
+        plaid_access_token_and_cursor: Tuple[str, Optional[str]] = (
+            self._get_plaid_access_token_and_cursor(accounts)
+        )
+        plaid_access_token, plaid_cursor = plaid_access_token_and_cursor
 
         # sync transactions for account with plaid
         response: SyncTransactionsResponse = self.plaid.sync_transactions(
-            user_id, token, cursor=None
+            user_id, plaid_access_token, plaid_cursor
         )
 
-        # decompose plaid sync transactions response
-        response.cursor  # TODO: What to do with this?
-        response.synced_at  # TODO: What to do with this?
+        # update accounts with new plaid cursor and synced at
+        self._update_accounts(accounts, response.cursor, response.synced_at)
+
+        # decompose sync transactions response into added, modified, and removed transactions
         added_transactions = response.added_transactions
         modified_transactions = response.modified_transactions
         removed_transactions = response.removed_transactions
 
+        # sync transactions to database
         for transaction in added_transactions:
             self.db.add_transaction(transaction)
 
@@ -92,6 +98,8 @@ class SyncUserTransactions(Workflow):
             data={
                 "user_id": user.user_id,
                 "plaid_item_id": plaid_item_id,
+                "plaid_cursor": response.cursor,
+                "plaid_synced_at": response.synced_at.isoformat(),
                 "accounts": [account.to_dict() for account in accounts],
             },
         )
@@ -143,14 +151,48 @@ class SyncUserTransactions(Workflow):
 
         return accounts
 
-    def _get_plaid_access_token(self, accounts: List[Account]) -> str:
-        LOG.info(f"Getting Plaid access token for {len(accounts)} account(s)")
+    def _get_plaid_access_token_and_cursor(
+        self, accounts: List[Account]
+    ) -> Tuple[str, Optional[str]]:
+        LOG.info(
+            f"Getting Plaid access token and cursor for {len(accounts)} account(s)"
+        )
         access_tokens: Set[str] = set(
-            [account.plaid_access_token for account in accounts]
+            [
+                account.plaid_access_token
+                for account in accounts
+                if account.plaid_access_token
+            ]
+        )
+        cursors: Set[str] = set(
+            [account.plaid_cursor for account in accounts if account.plaid_cursor]
         )
         if len(access_tokens) == 0:
             raise ValueError("No Plaid access tokens found for account(s)")
         if len(access_tokens) > 1:
             raise ValueError("Multiple Plaid access tokens found for account(s)")
-        LOG.info(f"Verified single Plaid access token for {len(accounts)} account(s)")
-        return access_tokens.pop()
+        if len(cursors) > 1:
+            raise ValueError("Multiple Plaid cursors found for account(s)")
+        if len(cursors) == 0:
+            LOG.info("No Plaid cursor found for account(s), using empty cursor")
+            return access_tokens.pop(), None
+        LOG.info(
+            f"Verified single Plaid access token and cursor for {len(accounts)} account(s)"
+        )
+        return access_tokens.pop(), cursors.pop()
+
+    def _update_accounts(
+        self, accounts: List[Account], plaid_cursor: str, synced_at: datetime
+    ) -> List[Account]:
+        LOG.info(
+            f"Updating {len(accounts)} account(s) with new Plaid cursor synced at '{synced_at.isoformat()}'"
+        )
+        updated_accounts: List[Account] = []
+        for account in accounts:
+            account.plaid_cursor = plaid_cursor
+            account.plaid_synced_at = synced_at
+            updated_accounts.append(self.db.update_account(account))
+        LOG.info(
+            f"Updated {len(updated_accounts)} account(s) with new Plaid cursor synced at '{synced_at.isoformat()}'"
+        )
+        return updated_accounts

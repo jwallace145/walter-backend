@@ -43,6 +43,7 @@ class Account(ABC):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = DEFAULT_LOGO_URL,
     ) -> None:
@@ -61,6 +62,7 @@ class Account(ABC):
         self.plaid_account_id = plaid_account_id
         self.plaid_access_token = plaid_access_token
         self.plaid_item_id = plaid_item_id
+        self.plaid_cursor = plaid_cursor
         self.plaid_last_sync_at = plaid_last_sync_at
         self.logo_url = logo_url
 
@@ -81,6 +83,7 @@ class Account(ABC):
             "plaid_account_id": self.plaid_account_id,
             "plaid_access_token": self.plaid_access_token,
             "plaid_item_id": self.plaid_item_id,
+            "plaid_cursor": self.plaid_cursor,
             "plaid_last_sync_at": (
                 self.plaid_last_sync_at.isoformat() if self.plaid_last_sync_at else None
             ),
@@ -148,6 +151,11 @@ class Account(ABC):
                 "S": self.plaid_item_id,
             }
 
+        if self.plaid_cursor:
+            ddb_item["plaid_cursor"] = {
+                "S": self.plaid_cursor,
+            }
+
         if self.plaid_last_sync_at:
             ddb_item["plaid_last_sync_at"] = {"S": self.plaid_last_sync_at.isoformat()}
 
@@ -181,6 +189,7 @@ class Account(ABC):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ):
         account_type = AccountType.from_string(account_type)
@@ -197,6 +206,7 @@ class Account(ABC):
                     plaid_account_id=plaid_account_id,
                     plaid_access_token=plaid_access_token,
                     plaid_item_id=plaid_item_id,
+                    plaid_cursor=plaid_cursor,
                     plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.CREDIT:
@@ -211,6 +221,7 @@ class Account(ABC):
                     plaid_account_id=plaid_account_id,
                     plaid_access_token=plaid_access_token,
                     plaid_item_id=plaid_item_id,
+                    plaid_cursor=plaid_cursor,
                     plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.INVESTMENT:
@@ -225,6 +236,7 @@ class Account(ABC):
                     plaid_account_id=plaid_account_id,
                     plaid_access_token=plaid_access_token,
                     plaid_item_id=plaid_item_id,
+                    plaid_cursor=plaid_cursor,
                     plaid_last_sync_at=plaid_last_sync_at,
                 )
             case AccountType.LOAN:
@@ -239,6 +251,7 @@ class Account(ABC):
                     plaid_account_id=plaid_account_id,
                     plaid_access_token=plaid_access_token,
                     plaid_item_id=plaid_item_id,
+                    plaid_cursor=plaid_cursor,
                     plaid_last_sync_at=plaid_last_sync_at,
                 )
             case _:
@@ -279,6 +292,7 @@ class DepositoryAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
     ) -> None:
@@ -298,6 +312,7 @@ class DepositoryAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
         )
@@ -321,6 +336,7 @@ class DepositoryAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
@@ -340,6 +356,7 @@ class DepositoryAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
         )
 
@@ -369,6 +386,7 @@ class DepositoryAccount(Account):
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
             logo_url=ddb_item["logo_url"]["S"],
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
+            plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
@@ -393,6 +411,7 @@ class CreditAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
     ) -> None:
@@ -412,6 +431,7 @@ class CreditAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
         )
@@ -435,6 +455,7 @@ class CreditAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
@@ -454,6 +475,7 @@ class CreditAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
         )
 
@@ -483,6 +505,7 @@ class CreditAccount(Account):
             logo_url=ddb_item["logo_url"]["S"],
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
 
@@ -506,6 +529,7 @@ class InvestmentAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
     ) -> None:
@@ -525,6 +549,7 @@ class InvestmentAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
         )
@@ -548,6 +573,7 @@ class InvestmentAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
@@ -567,6 +593,7 @@ class InvestmentAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
         )
 
@@ -596,6 +623,7 @@ class InvestmentAccount(Account):
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
+            plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
 
@@ -619,6 +647,7 @@ class LoanAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
         logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
     ) -> None:
@@ -638,6 +667,7 @@ class LoanAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
             logo_url=logo_url,
         )
@@ -673,6 +703,7 @@ class LoanAccount(Account):
             plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
+            plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_last_sync_at=plaid_last_sync_at,
         )
@@ -690,6 +721,7 @@ class LoanAccount(Account):
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ):
         now = datetime.now(timezone.utc)
@@ -709,5 +741,6 @@ class LoanAccount(Account):
             plaid_account_id=plaid_account_id,
             plaid_access_token=plaid_access_token,
             plaid_item_id=plaid_item_id,
+            plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
         )
