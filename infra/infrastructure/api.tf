@@ -366,8 +366,10 @@ locals {
         module.transactions_table.table_arn,
         module.accounts_table.table_arn
       ]
-      delete_access_table_arns       = []
-      send_message_access_queue_arns = []
+      delete_access_table_arns = []
+      send_message_access_queue_arns = [
+        module.queues["sync_transactions"].queue_arn
+      ]
     }
   }
 }
