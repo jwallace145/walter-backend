@@ -29,6 +29,7 @@ PERSONAL_FINANCE_CATEGORY_TO_TRANSACTION_TYPE: Dict[
     PersonalFinanceCategories.TRANSPORTATION: TransactionType.BANKING,
     PersonalFinanceCategories.TRAVEL: TransactionType.BANKING,
     PersonalFinanceCategories.OTHER: TransactionType.BANKING,
+    PersonalFinanceCategories.TRANSFER_OUT: TransactionType.BANKING,
 }
 """(dict): Mapping of personal finance categories to transaction types"""
 

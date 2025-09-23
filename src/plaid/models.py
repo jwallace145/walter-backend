@@ -89,6 +89,7 @@ class PersonalFinanceCategories(Enum):
     LOAN_PAYMENTS = "loan_payments"
     PERSONAL_CARE = "personal_care"
     TRANSPORTATION = "transportation"
+    TRANSFER_OUT = "transfer_out"
     TRAVEL = "travel"
     OTHER = "other"
 
