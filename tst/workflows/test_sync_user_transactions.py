@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Tuple
 
 import pytest
 
@@ -85,7 +85,7 @@ def test_verify_account_does_not_exist(
         sync_user_transactions_workflow._verify_accounts_exist(user_id, plaid_item_id)
 
 
-def test_get_plaid_access_token(
+def test_get_plaid_access_token_and_cursor_success(
     sync_user_transactions_workflow: SyncUserTransactions,
     walter_db: WalterDB,
 ) -> None:
@@ -94,9 +94,13 @@ def test_get_plaid_access_token(
     accounts: List[Account] = sync_user_transactions_workflow._verify_accounts_exist(
         user_id, plaid_item_id
     )
-    token = sync_user_transactions_workflow._get_plaid_access_token(accounts)
-    assert token is not None
+    plaid_access_token_and_cursor: Tuple[str, str] = (
+        sync_user_transactions_workflow._get_plaid_access_token_and_cursor(accounts)
+    )
+    assert plaid_access_token_and_cursor is not None
+    token, cursor = plaid_access_token_and_cursor
     assert token != ""
+    assert cursor is None
 
 
 def test_sync_transactions_success(

@@ -204,6 +204,7 @@ class WalterDB:
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[dt.datetime] = None,
     ) -> Account:
         return self.accounts_table.create_account(
@@ -218,6 +219,7 @@ class WalterDB:
             plaid_account_id,
             plaid_access_token,
             plaid_item_id,
+            plaid_cursor,
             plaid_last_sync_at,
         )
 

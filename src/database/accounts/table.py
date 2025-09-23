@@ -41,6 +41,7 @@ class AccountsTable:
         plaid_account_id: Optional[str] = None,
         plaid_access_token: Optional[str] = None,
         plaid_item_id: Optional[str] = None,
+        plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
     ) -> Account:
         """
@@ -86,6 +87,8 @@ class AccountsTable:
             args["plaid_access_token"] = plaid_access_token
         if plaid_item_id:
             args["plaid_item_id"] = plaid_item_id
+        if plaid_cursor:
+            args["plaid_cursor"] = plaid_cursor
         if plaid_last_sync_at:
             args["plaid_last_sync_at"] = plaid_last_sync_at
 

@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import Tuple
+from typing import List, Tuple
 
 from src.api.common.exceptions import (
     AccountDoesNotExist,
@@ -86,16 +86,25 @@ class SyncTransactions(WalterAPIMethod):
         user_id, account_id = args
         user: User = self._verify_user_exists(user_id)
         account: Account = self._verify_account_exists(user_id, account_id)
-        self._add_task_to_queue(user_id, account.plaid_item_id)
+        accounts: List[Account] = self.db.get_accounts_by_plaid_item_id(
+            account.plaid_item_id
+        )
+        task_id: str = self._add_task_to_queue(user_id, account.plaid_item_id)
         return self._create_response(
             http_status=HTTPStatus.OK,
             status=Status.SUCCESS,
             message="Added task to queue!",
             data={
                 "user_id": user.user_id,
-                "account_id": account.account_id,
+                "task_id": task_id,
                 "institution_name": account.institution_name,
-                "account_name": account.account_name,
+                "accounts": [
+                    {
+                        "account_id": account.account_id,
+                        "account_name": account.account_name,
+                    }
+                    for account in accounts
+                ],
             },
         )
 
@@ -173,7 +182,7 @@ class SyncTransactions(WalterAPIMethod):
 
         return account
 
-    def _add_task_to_queue(self, user_id: str, account: Account) -> None:
+    def _add_task_to_queue(self, user_id: str, plaid_item_id: str) -> str:
         """
         Adds a synchronize user transactions task to the queue for processing.
 
@@ -182,11 +191,14 @@ class SyncTransactions(WalterAPIMethod):
             account: The account object that contains the Plaid item ID.
         """
         LOG.info(
-            f"Adding sync transactions task to queue for account '{account.account_id}' and Plaid item ID '{account.plaid_item_id}'"
+            f"Adding sync transactions task to queue for Plaid item ID '{plaid_item_id}'"
         )
-        task = SyncUserTransactionsTask(user_id, account.plaid_item_id)
-        self.queue.add_task(task)
+        task: SyncUserTransactionsTask = SyncUserTransactionsTask(
+            user_id, plaid_item_id
+        )
+        task_id: str = self.queue.add_task(task)
         LOG.info("Sync user transactions event successfully added to queue!")
+        return task_id
 
     def validate_fields(self, event: dict) -> None:
         pass
