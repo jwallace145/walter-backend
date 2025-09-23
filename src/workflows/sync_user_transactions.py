@@ -69,9 +69,6 @@ class SyncUserTransactions(Workflow):
             user_id, plaid_access_token, plaid_cursor
         )
 
-        # update accounts with new plaid cursor and synced at
-        self._update_accounts(accounts, response.cursor, response.synced_at)
-
         # decompose sync transactions response into added, modified, and removed transactions
         added_transactions = response.added_transactions
         modified_transactions = response.modified_transactions
@@ -90,6 +87,9 @@ class SyncUserTransactions(Workflow):
                 transaction.transaction_id,
                 transaction.transaction_date,
             )
+
+        # update accounts with new plaid cursor and synced at
+        self._update_accounts(accounts, response.cursor, response.synced_at)
 
         return WorkflowResponse(
             name=SyncUserTransactions.WORKFLOW_NAME,
