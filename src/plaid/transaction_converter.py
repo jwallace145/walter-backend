@@ -63,6 +63,7 @@ class TransactionConverter:
     def __post_init__(self) -> None:
         LOG.debug("Initializing Transaction Converter")
         self.plaid_account_cache = {}
+        self.plaid_transaction_cache = {}
 
     def convert(
         self, plaid_transaction: dict, conversion_type: TransactionConversionType
