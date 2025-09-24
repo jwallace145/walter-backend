@@ -120,6 +120,10 @@ class Transaction(ABC):
     def get_transaction_date(self) -> datetime:
         return datetime.strptime(self.transaction_date.split("#")[0], "%Y-%m-%d")
 
+    def update_transaction_date(self, new_date: datetime) -> str:
+        self.transaction_date = f"{new_date.strftime('%Y-%m-%d')}#{self.transaction_id}"
+        return self.transaction_date
+
     def _get_common_attributes_dict(self) -> dict:
         attributes = {
             "transaction_id": self.transaction_id,
@@ -172,6 +176,9 @@ class Transaction(ABC):
         if self.transaction_type == TransactionType.BANKING:
             return self.transaction_subtype in [BankingTransactionSubType.DEBIT]
         return False
+
+    def is_plaid_transaction(self) -> bool:
+        return self.plaid_transaction_id is not None
 
     @abstractmethod
     def to_dict(self) -> dict:

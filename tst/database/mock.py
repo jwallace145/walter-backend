@@ -373,6 +373,8 @@ class MockDDB:
                         quantity=float(transaction_json["quantity"]),
                         price_per_share=float(transaction_json["price_per_share"]),
                         transaction_id=transaction_id,
+                        plaid_account_id=transaction_json["plaid_account_id"],
+                        plaid_transaction_id=transaction_json["plaid_transaction_id"],
                     ).to_ddb_item()
                 else:
                     transaction_item = BankTransaction(
@@ -395,5 +397,7 @@ class MockDDB:
                         ),
                         merchant_name=transaction_json["merchant_name"],
                         transaction_id=transaction_id,
+                        plaid_account_id=transaction_json["plaid_account_id"],
+                        plaid_transaction_id=transaction_json["plaid_transaction_id"],
                     ).to_ddb_item()
                 self.mock_ddb.put_item(TableName=table_name, Item=transaction_item)

@@ -100,21 +100,36 @@ def print_build_step_header(step_name: str, environment: str) -> None:
 def log_build_vars() -> None:
     print_build_step_header("BUILD VARS", APP_ENVIRONMENT)
 
-    print("Building new WalterBackend version with the following build variables:")
+    print("Building new WalterBackend version with the following build variables...\n")
 
-    build_info = {
-        "WalterBackend version": VERSION,
-        "WalterBackend image URI": WALTER_BACKEND_IMAGE_URI,
-        "Lambda functions": ", ".join(LAMBDA_FUNCTIONS),
-        "Function alias": FUNCTION_ALIAS,
-        "Release description": RELEASE_DESCRIPTION,
-        "AWS region": AWS_REGION,
-        "AWS account ID": AWS_ACCOUNT_ID,
-        "Application environment": APP_ENVIRONMENT,
+    print("\nAWS Account and Environment Information:\n")
+    aws_account_info = {
+        "AWS Region": AWS_REGION,
+        "AWS Account ID": AWS_ACCOUNT_ID,
+        "Application Environment": APP_ENVIRONMENT,
     }
 
-    for key, value in build_info.items():
-        print(f"{key}: {value}")
+    for k, v in aws_account_info.items():
+        print(f"{k}: {v}")
+
+    print("\nWalterBackend Image Information:\n")
+    image_info = {
+        "WalterBackend Version": VERSION,
+        "WalterBackend Image URI": WALTER_BACKEND_IMAGE_URI,
+        "WalterBackend Release Description": RELEASE_DESCRIPTION,
+    }
+
+    for k, v in image_info.items():
+        print(f"{k}: {v}")
+
+    print("\nWalterBackend Serverless Functions Information:\n")
+    functions_info = {
+        "WalterBackend Serverless Functions": json.dumps(LAMBDA_FUNCTIONS, indent=4),
+        "WalterBackend API Function Alias": FUNCTION_ALIAS,
+    }
+
+    for k, v in functions_info.items():
+        print(f"{k}: {v}")
 
 
 def log_build_identity(sts_client: STSClient) -> None:

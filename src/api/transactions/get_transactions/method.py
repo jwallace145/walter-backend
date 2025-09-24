@@ -212,6 +212,7 @@ class GetTransactions(WalterAPIMethod):
                                 "price_per_share": transaction.price_per_share,
                                 "quantity": transaction.quantity,
                                 "transaction_amount": transaction.transaction_amount,
+                                "is_plaid_transaction": transaction.is_plaid_transaction(),
                             }
                         )
                 case TransactionType.BANKING:
@@ -232,6 +233,7 @@ class GetTransactions(WalterAPIMethod):
                                 )[0],
                                 "merchant_name": transaction.merchant_name,
                                 "transaction_amount": transaction.transaction_amount,
+                                "is_plaid_transaction": transaction.is_plaid_transaction(),
                             }
                         )
 

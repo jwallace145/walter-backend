@@ -6,11 +6,12 @@ locals {
   SECURITIES_TABLE   = "Securities-${var.domain}"
   HOLDINGS_TABLE     = "Holdings-${var.domain}"
 
-  USERS_EMAIL_INDEX               = "Users-EmailIndex-${var.domain}"
-  ACCOUNTS_PLAID_ACCOUNT_ID_INDEX = "Accounts-PlaidAccountIdIndex-${var.domain}"
-  ACCOUNTS_PLAID_ITEM_ID_INDEX    = "Accounts-PlaidItemIdIndex-${var.domain}"
-  TRANSACTIONS_USER_INDEX         = "Transactions-UserIndex-${var.domain}"
-  SECURITIES_TICKER_INDEX         = "Securities-TickerIndex-${var.domain}"
+  USERS_EMAIL_INDEX                       = "Users-EmailIndex-${var.domain}"
+  ACCOUNTS_PLAID_ACCOUNT_ID_INDEX         = "Accounts-PlaidAccountIdIndex-${var.domain}"
+  ACCOUNTS_PLAID_ITEM_ID_INDEX            = "Accounts-PlaidItemIdIndex-${var.domain}"
+  TRANSACTIONS_USER_INDEX                 = "Transactions-UserIndex-${var.domain}"
+  TRANSACTIONS_PLAID_TRANSACTION_ID_INDEX = "Transactions-PlaidTransactionId-${var.domain}"
+  SECURITIES_TICKER_INDEX                 = "Securities-TickerIndex-${var.domain}"
 }
 
 /*******************

@@ -161,6 +161,13 @@ class Account(ABC):
 
         return ddb_item
 
+    def is_linked_with_plaid(self) -> bool:
+        # plaid cursor and last sync are nullable plaid vars so not great for
+        # determining if the account is linked with plaid
+        if self.plaid_item_id and self.plaid_access_token and self.account_id:
+            return True
+        return False
+
     @abstractmethod
     def to_dict(self) -> dict:
         pass
