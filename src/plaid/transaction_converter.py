@@ -88,7 +88,7 @@ class TransactionConverter:
                 # update transaction fields
                 transaction.transaction_amount = plaid_transaction["amount"]
                 transaction.merchant_name = self._get_merchant_name(plaid_transaction)
-                transaction.transaction_date = plaid_transaction["date"]
+                transaction.update_transaction_date(plaid_transaction["date"])
 
                 return transaction
             case TransactionConversionType.DELETED:
