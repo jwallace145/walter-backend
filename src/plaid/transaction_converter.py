@@ -87,9 +87,7 @@ class TransactionConverter:
 
                 # update transaction fields
                 transaction.transaction_amount = plaid_transaction["amount"]
-                transaction.merchant_name = plaid_transaction.get(
-                    "merchant_name", "UNKNOWN MERCHANT"
-                )
+                transaction.merchant_name = self._get_merchant_name(plaid_transaction)
                 transaction.transaction_date = plaid_transaction["date"]
 
                 return transaction
@@ -150,7 +148,7 @@ class TransactionConverter:
         amount = plaid_transaction["amount"]
 
         # plaid merchant name is nullable
-        merchant_name = plaid_transaction.get("merchant_name", "UNKNOWN MERCHANT")
+        merchant_name = self._get_merchant_name(plaid_transaction)
 
         transaction_category = self.transaction_categorizer.categorize(
             merchant_name, amount
@@ -189,3 +187,10 @@ class TransactionConverter:
             raise ValueError("Transaction must be associated with the same account")
 
         return transaction
+
+    def _get_merchant_name(self, plaid_transaction: dict) -> str:
+        # merchant name is nullable
+        merchant: str = plaid_transaction.get("merchant_name", "UNKNOWN MERCHANT")
+        if merchant is None:
+            merchant = "UNKNOWN MERCHANT"
+        return merchant
