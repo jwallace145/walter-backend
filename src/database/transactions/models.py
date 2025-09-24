@@ -173,6 +173,9 @@ class Transaction(ABC):
             return self.transaction_subtype in [BankingTransactionSubType.DEBIT]
         return False
 
+    def is_plaid_transaction(self) -> bool:
+        return self.plaid_transaction_id is not None
+
     @abstractmethod
     def to_dict(self) -> dict:
         pass

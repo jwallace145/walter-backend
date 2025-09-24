@@ -79,7 +79,8 @@ class SyncUserTransactions(Workflow):
             self.db.add_transaction(transaction)
 
         for transaction in modified_transactions:
-            self.db.edit_transaction(transaction)
+            # before we can update transaction we have to corresponding db entry
+            self.db.update_transaction(transaction)
 
         for transaction in removed_transactions:
             self.db.delete_transaction(
