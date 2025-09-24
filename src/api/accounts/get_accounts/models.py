@@ -10,6 +10,7 @@ from src.database.users.models import User
 
 @dataclass
 class GetAccountsResponseAccountDict:
+    linked_with_plaid: bool
     account_id: str
     institution_name: str
     account_name: str
@@ -20,6 +21,7 @@ class GetAccountsResponseAccountDict:
 
     def to_dict(self) -> dict:
         return {
+            "linked_with_plaid": self.linked_with_plaid,
             "account_id": self.account_id,
             "institution_name": self.institution_name,
             "account_name": self.account_name,
@@ -60,6 +62,7 @@ class GetAccountsResponseHoldingDict:
 
 @dataclass
 class GetAccountsResponseInvestmentAccountDict:
+    linked_with_plaid: bool
     account_id: str
     institution_name: str
     account_name: str
@@ -71,6 +74,7 @@ class GetAccountsResponseInvestmentAccountDict:
 
     def to_dict(self) -> dict:
         return {
+            "linked_with_plaid": self.linked_with_plaid,
             "account_id": self.account_id,
             "institution_name": self.institution_name,
             "account_name": self.account_name,
@@ -121,6 +125,7 @@ class GetAccountsResponseData:
                 holdings = self._get_holdings(account)
                 accounts.append(
                     GetAccountsResponseInvestmentAccountDict(
+                        linked_with_plaid=account.is_linked_with_plaid(),
                         account_id=account.account_id,
                         institution_name=account.institution_name,
                         account_name=account.account_name,
@@ -134,6 +139,7 @@ class GetAccountsResponseData:
             else:
                 accounts.append(
                     GetAccountsResponseAccountDict(
+                        linked_with_plaid=account.is_linked_with_plaid(),
                         account_id=account.account_id,
                         institution_name=account.institution_name,
                         account_name=account.account_name,
