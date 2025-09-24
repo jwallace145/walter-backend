@@ -21,7 +21,10 @@ from src.plaid.models import (
     ExchangePublicTokenResponse,
     SyncTransactionsResponse,
 )
-from src.plaid.transaction_converter import TransactionConverter
+from src.plaid.transaction_converter import (
+    TransactionConversionType,
+    TransactionConverter,
+)
 from src.utils.log import Logger
 
 LOG = Logger(__name__).get_logger()
@@ -164,19 +167,25 @@ class PlaidClient:
             LOG.info("Getting newly added transactions...")
             added_transactions = []
             for plaid_transaction in response["added"]:
-                transaction = self.transaction_converter.convert(plaid_transaction)
+                transaction = self.transaction_converter.convert(
+                    plaid_transaction, TransactionConversionType.NEW
+                )
                 added_transactions.append(transaction)
 
             LOG.info("Getting modified transactions...")
             modified_transactions = []
             for plaid_transaction in response["modified"]:
-                transaction = self.transaction_converter.convert(plaid_transaction)
+                transaction = self.transaction_converter.convert(
+                    plaid_transaction, TransactionConversionType.UPDATED
+                )
                 modified_transactions.append(transaction)
 
             LOG.info("Getting removed transactions...")
             removed_transactions = []
             for plaid_transaction in response["removed"]:
-                transaction = self.transaction_converter.convert(plaid_transaction)
+                transaction = self.transaction_converter.convert(
+                    plaid_transaction, TransactionConversionType.DELETED
+                )
                 removed_transactions.append(transaction)
 
             added.extend(added_transactions)

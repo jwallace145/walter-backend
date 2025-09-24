@@ -5,7 +5,10 @@ import pytest
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.database.client import WalterDB
 from src.database.transactions.models import BankTransaction
-from src.plaid.transaction_converter import TransactionConverter
+from src.plaid.transaction_converter import (
+    TransactionConversionType,
+    TransactionConverter,
+)
 from tst.plaid.utils import create_plaid_transaction
 
 
@@ -26,7 +29,9 @@ def test_transaction_converter(transaction_converter: TransactionConverter) -> N
     plaid_transaction = create_plaid_transaction(
         plaid_account_id, plaid_transaction_id, merchant_name, amount, date
     )
-    transaction = transaction_converter.convert(plaid_transaction)
+    transaction = transaction_converter.convert(
+        plaid_transaction, TransactionConversionType.NEW
+    )
 
     assert isinstance(transaction, BankTransaction)
     assert transaction.plaid_account_id == plaid_account_id
