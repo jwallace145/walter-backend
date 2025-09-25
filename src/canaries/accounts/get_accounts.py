@@ -73,6 +73,7 @@ class GetAccounts(BaseCanary):
             match account_type:
                 case AccountType.DEPOSITORY | AccountType.CREDIT | AccountType.LOAN:
                     required_account_fields = [
+                        ("linked_with_plaid", None),
                         ("account_id", None),
                         ("institution_name", None),
                         ("account_name", None),
@@ -83,6 +84,7 @@ class GetAccounts(BaseCanary):
                     ]
                 case AccountType.INVESTMENT:
                     required_account_fields = [
+                        ("linked_with_plaid", None),
                         ("account_id", None),
                         ("institution_name", None),
                         ("account_name", None),
