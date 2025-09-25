@@ -53,3 +53,16 @@ variable "additional_principals" {
   type        = list(string)
 }
 
+variable "s3_access" {
+  type = list(object({
+    access_type = string
+    bucket_arn  = string
+    prefixes    = list(string)
+  }))
+
+  validation {
+    condition     = alltrue([for s in var.s3_access : contains(["read", "write", "delete"], s.access_type)])
+    error_message = "access_type must be one of: read, write, delete"
+  }
+}
+

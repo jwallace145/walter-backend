@@ -14,6 +14,7 @@ locals {
       ]
       delete_access_table_arns   = []
       receive_message_queue_arns = []
+      s3_access                  = []
       principals = [
         var.workflow_assume_role_additional_principals
       ]
@@ -38,6 +39,13 @@ locals {
       delete_access_table_arns = []
       receive_message_queue_arns = [
         module.queues["sync_transactions"].queue_arn
+      ]
+      s3_access = [
+        {
+          access_type = "write"
+          bucket_arn  = module.cdn_bucket.bucket_arn
+          prefixes    = ["public/logos/*"]
+        }
       ]
       principals = [
         var.workflow_assume_role_additional_principals
@@ -68,6 +76,7 @@ module "workflow_roles" {
   domain                            = var.domain
   description                       = each.value.description
   secrets_access                    = each.value.secrets
+  s3_access                         = each.value.s3_access
   read_table_access_arns            = each.value.read_access_table_arns
   write_table_access_arns           = each.value.write_access_table_arns
   delete_table_access_arns          = each.value.delete_access_table_arns
