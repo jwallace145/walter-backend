@@ -48,3 +48,6 @@ workflow_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/Wa
 # SyncUserTransactions Workflow Settings
 sync_transactions_max_concurrency    = 2
 sync_transactions_max_retry_attempts = 1
+
+# WalterBackend CloudFront CDN Settings
+cdn_bucket_access_additional_principals = ["arn:aws:iam::010526272437:user/WalterAIDeveloper"]

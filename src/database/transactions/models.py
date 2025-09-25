@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, Union
 
+from src.environment import DOMAIN
+
 
 class TransactionType(Enum):
     """Transaction Types"""
@@ -91,6 +93,8 @@ class TransactionCategory(Enum):
 class Transaction(ABC):
     """Transaction Model"""
 
+    DEFAULT_TRANSACTION_LOGO_S3_URI = f"s3://walterai-public-media-{DOMAIN.value}/transaction_logos/default-merchant-logo.png"
+
     def __init__(
         self,
         transaction_id: str,
@@ -101,6 +105,7 @@ class Transaction(ABC):
         transaction_category: TransactionCategory,
         transaction_date: datetime,
         transaction_amount: float,
+        transaction_logo_s3_uri: Optional[str] = None,
         plaid_transaction_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
     ) -> None:
@@ -114,6 +119,10 @@ class Transaction(ABC):
             f"{transaction_date.strftime('%Y-%m-%d')}#{transaction_id}"
         )
         self.transaction_amount = transaction_amount
+        # ensure non-null transaction logo
+        if transaction_logo_s3_uri is None:
+            transaction_logo_s3_uri = self.DEFAULT_TRANSACTION_LOGO_S3_URI
+        self.transaction_logo_s3_uri = transaction_logo_s3_uri
         self.plaid_transaction_id = plaid_transaction_id
         self.plaid_account_id = plaid_account_id
 
@@ -134,6 +143,7 @@ class Transaction(ABC):
             "transaction_category": self.transaction_category.value,
             "transaction_date": self.transaction_date.split("#")[0],
             "transaction_amount": self.transaction_amount,
+            "transaction_logo_s3_uri": self.transaction_logo_s3_uri,
         }
 
         # add optional fields to return item
@@ -154,6 +164,7 @@ class Transaction(ABC):
             "transaction_category": {"S": self.transaction_category.value},
             "transaction_date": {"S": self.transaction_date},
             "transaction_amount": {"N": str(self.transaction_amount)},
+            "transaction_logo_s3_uri": {"S": self.transaction_logo_s3_uri},
         }
 
         # add optional fields to return item
@@ -211,6 +222,7 @@ class InvestmentTransaction(Transaction):
         security_id: str,
         quantity: float,
         price_per_share: float,
+        transaction_logo_s3_uri: Optional[str] = None,
         plaid_transaction_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
     ) -> None:
@@ -223,6 +235,7 @@ class InvestmentTransaction(Transaction):
             transaction_category,
             transaction_date,
             transaction_amount,
+            transaction_logo_s3_uri,
             plaid_transaction_id,
             plaid_account_id,
         )
@@ -280,6 +293,7 @@ class InvestmentTransaction(Transaction):
             security_id=f"sec-{exchange.lower()}-{ticker.lower()}",
             quantity=quantity,
             price_per_share=price_per_share,
+            transaction_logo_s3_uri=None,
             plaid_transaction_id=plaid_transaction_id,
             plaid_account_id=plaid_account_id,
         )
@@ -305,6 +319,7 @@ class InvestmentTransaction(Transaction):
             transaction_amount=float(ddb_item["transaction_amount"]["N"]),
             security_id=ddb_item["security_id"]["S"],
             quantity=float(ddb_item["quantity"]["N"]),
+            transaction_logo_s3_uri=ddb_item["transaction_logo_s3_uri"]["S"],
             price_per_share=float(ddb_item["price_per_share"]["N"]),
             plaid_transaction_id=ddb_item.get("plaid_transaction_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
@@ -325,6 +340,7 @@ class BankTransaction(Transaction):
         transaction_date: datetime,
         transaction_amount: float,
         merchant_name: str,
+        transaction_logo_s3_uri: Optional[str] = None,
         plaid_transaction_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
     ) -> None:
@@ -337,6 +353,7 @@ class BankTransaction(Transaction):
             transaction_category,
             transaction_date,
             transaction_amount,
+            transaction_logo_s3_uri,
             plaid_transaction_id,
             plaid_account_id,
         )
@@ -365,6 +382,7 @@ class BankTransaction(Transaction):
         transaction_date: datetime,
         transaction_amount: float,
         merchant_name: str,
+        transaction_logo_s3_uri: Optional[str] = None,
         plaid_transaction_id: Optional[str] = None,
         plaid_account_id: Optional[str] = None,
     ):
@@ -378,6 +396,7 @@ class BankTransaction(Transaction):
             transaction_date=transaction_date,
             transaction_amount=transaction_amount,
             merchant_name=merchant_name,
+            transaction_logo_s3_uri=transaction_logo_s3_uri,
             plaid_transaction_id=plaid_transaction_id,
             plaid_account_id=plaid_account_id,
         )
@@ -402,6 +421,7 @@ class BankTransaction(Transaction):
             ),
             transaction_amount=float(ddb_item["transaction_amount"]["N"]),
             merchant_name=ddb_item["merchant_name"]["S"],
+            transaction_logo_s3_uri=ddb_item["transaction_logo_s3_uri"]["S"],
             plaid_transaction_id=ddb_item.get("plaid_transaction_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
         )
