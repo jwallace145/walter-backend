@@ -273,4 +273,8 @@ variable "stripe_secret_key" {
   type        = string
 }
 
+variable "cdn_bucket_access_additional_principals" {
+  description = "The list of additional AWS principal(s) allowed to access the CDN S3 bucket."
+  type        = list(string)
+}
 

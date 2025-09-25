@@ -211,6 +211,9 @@ class GetTransactions(WalterAPIMethod):
                                 "transaction_category": transaction.transaction_category.value,
                                 "price_per_share": transaction.price_per_share,
                                 "quantity": transaction.quantity,
+                                "merchant_logo_url": self._get_merchant_logo_url(
+                                    transaction.merchant_logo_s3_uri
+                                ),
                                 "transaction_amount": transaction.transaction_amount,
                                 "is_plaid_transaction": transaction.is_plaid_transaction(),
                             }
@@ -232,9 +235,16 @@ class GetTransactions(WalterAPIMethod):
                                     "#"
                                 )[0],
                                 "merchant_name": transaction.merchant_name,
+                                "merchant_logo_url": self._get_merchant_logo_url(
+                                    transaction.merchant_logo_s3_uri
+                                ),
                                 "transaction_amount": transaction.transaction_amount,
                                 "is_plaid_transaction": transaction.is_plaid_transaction(),
                             }
                         )
 
         return account_transactions
+
+    def _get_merchant_logo_url(self, merchant_logo_s3_uri: str) -> str:
+        key = merchant_logo_s3_uri.split("public/")[-1]
+        return f"https://d2v0gz9k690ozv.cloudfront.net/public/{key}"

@@ -136,7 +136,7 @@ class UpdateAccount(WalterAPIMethod):
         account.account_name = body["account_name"]
         account.account_mask = body["account_mask"]
         account.balance = float(body["balance"])  # ensure float
-        account.logo_url = body["logo_url"]
+        account.logo_s3_uri = body["logo_url"]
         account.updated_at = datetime.now(timezone.utc)
 
         # Persist changes

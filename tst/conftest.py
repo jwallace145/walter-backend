@@ -21,6 +21,7 @@ from src.environment import Domain
 from src.factory import ClientFactory
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
+from src.media.bucket import MediaBucket
 from src.metrics.client import DatadogMetricsClient
 from src.transactions.queue import SyncUserTransactionsTaskQueue
 from src.workflows.factory import WorkflowFactory
@@ -171,6 +172,16 @@ def sync_transactions_task_queue(
 
 
 @pytest.fixture
+def media_bucket(
+    walter_s3: WalterS3Client,
+) -> MediaBucket:
+    return MediaBucket(
+        client=walter_s3,
+        domain=Domain.TESTING,
+    )
+
+
+@pytest.fixture
 def transactions_categorizer() -> ExpenseCategorizerMLP:
     return MockTransactionsCategorizer()
 
@@ -207,6 +218,7 @@ def client_factory(
     transactions_categorizer: MockTransactionsCategorizer,
     plaid_client: MockPlaidClient,
     sync_transactions_task_queue: SyncUserTransactionsTaskQueue,
+    media_bucket: MediaBucket,
 ) -> ClientFactory:
     # create a client factory
     client_factory: ClientFactory = ClientFactory(
@@ -228,6 +240,7 @@ def client_factory(
     client_factory.expense_categorizer = transactions_categorizer
     client_factory.plaid = plaid_client
     client_factory.sync_transactions_task_queue = sync_transactions_task_queue
+    client_factory.media_bucket = media_bucket
 
     # return the client factory configured with mock clients
     return client_factory

@@ -67,7 +67,7 @@ def test_update_account_success(
     assert updated["account_name"] == "Taxable"
     assert updated["account_mask"] == "4321"
     assert updated["balance"] == 999.99
-    assert updated["logo_url"] == "https://logo.example.com"
+    assert updated["logo_s3_uri"] == "https://logo.example.com"
 
 
 def test_update_account_failure_invalid_account_type(

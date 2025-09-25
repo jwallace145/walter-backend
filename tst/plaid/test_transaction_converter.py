@@ -5,6 +5,7 @@ import pytest
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.database.client import WalterDB
 from src.database.transactions.models import BankTransaction
+from src.media.bucket import MediaBucket
 from src.plaid.transaction_converter import (
     TransactionConversionType,
     TransactionConverter,
@@ -14,9 +15,15 @@ from tst.plaid.utils import create_plaid_transaction
 
 @pytest.fixture
 def transaction_converter(
-    walter_db: WalterDB, transactions_categorizer: ExpenseCategorizerMLP
+    walter_db: WalterDB,
+    transactions_categorizer: ExpenseCategorizerMLP,
+    media_bucket: MediaBucket,
 ) -> TransactionConverter:
-    return TransactionConverter(walter_db, transactions_categorizer)
+    return TransactionConverter(
+        db=walter_db,
+        transaction_categorizer=transactions_categorizer,
+        media_bucket=media_bucket,
+    )
 
 
 def test_transaction_converter_new_transaction(

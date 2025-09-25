@@ -14,6 +14,7 @@ from src.database.client import WalterDB
 from src.environment import Domain
 from src.investments.holdings.updater import HoldingUpdater
 from src.investments.securities.updater import SecurityUpdater
+from src.media.bucket import MediaBucket
 from src.metrics.client import DatadogMetricsClient
 from src.plaid.client import PlaidClient
 from src.plaid.transaction_converter import TransactionConverter
@@ -52,6 +53,7 @@ class ClientFactory:
     transaction_converter: TransactionConverter = None
     plaid: PlaidClient = None
     sync_transactions_task_queue: SyncUserTransactionsTaskQueue = None
+    media_bucket: MediaBucket = None
 
     def __post_init__(self) -> None:
         LOG.debug("Creating WalterBackend client factory")
@@ -184,8 +186,11 @@ class ClientFactory:
 
     def get_transaction_converter(self) -> TransactionConverter:
         if self.transaction_converter is None:
+            LOG.debug("Creating TransactionConverter")
             self.transaction_converter = TransactionConverter(
-                self.get_db_client(), self.get_expense_categorizer()
+                db=self.get_db_client(),
+                transaction_categorizer=self.get_expense_categorizer(),
+                media_bucket=self.get_media_bucket(),
             )
         return self.transaction_converter
 
@@ -220,6 +225,12 @@ class ClientFactory:
                 self.get_sqs_client()
             )
         return self.sync_transactions_task_queue
+
+    def get_media_bucket(self) -> MediaBucket:
+        if self.media_bucket is None:
+            LOG.debug("Creating MediaBucket")
+            self.media_bucket = MediaBucket(self.get_s3_client(), self.domain)
+        return self.media_bucket
 
     def _boto3_client_kwargs(self) -> dict:
         if (

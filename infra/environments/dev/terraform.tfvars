@@ -12,7 +12,7 @@ domain            = "dev"
 walter_backend_version = "0.0.0"
 
 # The logging level, can set to debug for more verbose logs
-log_level = "INFO"
+log_level = "DEBUG"
 
 # The number of days to retain application logs before deletion
 log_retention_in_days = 7
@@ -48,3 +48,6 @@ workflow_assume_role_additional_principals = ["arn:aws:iam::010526272437:user/Wa
 # SyncUserTransactions Workflow Settings
 sync_transactions_max_concurrency    = 2
 sync_transactions_max_retry_attempts = 1
+
+# WalterBackend CloudFront CDN Settings
+cdn_bucket_access_additional_principals = ["arn:aws:iam::010526272437:user/WalterAIDeveloper"]

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
+
+import requests
 
 from src.ai.mlp.expenses import ExpenseCategorizerMLP
 from src.database.accounts.models import Account
@@ -11,6 +13,7 @@ from src.database.transactions.models import (
     Transaction,
     TransactionType,
 )
+from src.media.bucket import MediaBucket
 from src.plaid.models import PersonalFinanceCategories
 from src.utils.log import Logger
 
@@ -42,7 +45,7 @@ class TransactionConversionType(Enum):
     DELETED = "deleted"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TransactionConverter:
     """
     Transaction Converter
@@ -56,6 +59,7 @@ class TransactionConverter:
 
     db: WalterDB
     transaction_categorizer: ExpenseCategorizerMLP
+    media_bucket: MediaBucket
 
     plaid_account_cache: Dict[str, Account] = None
     plaid_transaction_cache: Dict[str, Transaction] = None
@@ -79,7 +83,20 @@ class TransactionConverter:
 
         match conversion_type:
             case TransactionConversionType.NEW:
-                return self._create_new_transaction(account, plaid_transaction)
+                # For each new transaction, upload new merchant logos to media bucket
+                # so WalterBackend can serve the logos from CDN with low-latency
+                merchant_logo_s3_uri: Optional[str] = (
+                    self._upload_merchant_logo_if_not_present(plaid_transaction)
+                )
+
+                # fall back to using account logo if merchant logo for particular transaction
+                # cannot be found
+                if merchant_logo_s3_uri is None:
+                    merchant_logo_s3_uri = account.logo_s3_uri
+
+                return self._create_new_transaction(
+                    account, plaid_transaction, merchant_logo_s3_uri
+                )
             case TransactionConversionType.UPDATED:
                 transaction: Transaction = self._get_existing_transaction(
                     account, plaid_transaction
@@ -143,7 +160,7 @@ class TransactionConverter:
         return transactions
 
     def _create_new_transaction(
-        self, account: Account, plaid_transaction: dict
+        self, account: Account, plaid_transaction: dict, merchant_logo_s3_uri: str
     ) -> Transaction:
         amount = plaid_transaction["amount"]
 
@@ -167,6 +184,7 @@ class TransactionConverter:
             transaction_date=plaid_transaction["date"],
             transaction_amount=amount,
             merchant_name=merchant_name,
+            merchant_logo_s3_uri=merchant_logo_s3_uri,
             plaid_transaction_id=plaid_transaction["transaction_id"],
             plaid_account_id=plaid_transaction["account_id"],
         )
@@ -193,4 +211,60 @@ class TransactionConverter:
         merchant: str = plaid_transaction.get("merchant_name", "UNKNOWN MERCHANT")
         if merchant is None:
             merchant = "UNKNOWN MERCHANT"
-        return merchant
+
+        name: str = plaid_transaction.get("name", "UNKNOWN_NAME")
+        if name is None:
+            name = "UNKNOWN_NAME"
+
+        if merchant != "UNKNOWN MERCHANT":
+            return merchant
+
+        if name != "UNKNOWN_NAME":
+            return name
+
+        return "UNKNOWN"
+
+    def _upload_merchant_logo_if_not_present(
+        self, plaid_transaction: dict
+    ) -> Optional[str]:
+        LOG.debug(
+            "Attempting to upload new Plaid merchant logo to media bucket if not already present..."
+        )
+
+        # logos can be null, so just skip upload if not present and transaction will use default logo
+        logo_url: Optional[str] = plaid_transaction.get("logo_url", None)
+        if logo_url is None:
+            LOG.debug("Merchant logo URL is null, skipping upload")
+            return None
+
+        LOG.debug(
+            f"Merchant logo URL is not null, checking media bucket for logo: '{logo_url}'"
+        )
+
+        logo_name = logo_url.split("/")[-1]
+        logo_key = f"logos/{logo_name}"
+        get_logo_resp: Tuple[bool, Optional[str]] = (
+            self.media_bucket.does_public_file_exist(logo_key)
+        )
+        logo_exists, s3_uri = get_logo_resp
+
+        if logo_exists:
+            LOG.debug(
+                f"Logo '{logo_name}' already exists in media bucket, skipping upload"
+            )
+            return s3_uri
+
+        LOG.debug(f"Logo '{logo_name}' does not exist in media bucket, uploading...")
+
+        resp = requests.get(logo_url)
+        resp.raise_for_status()
+        body = resp.content
+
+        s3_uri = self.media_bucket.upload_public_contents(
+            name=logo_key,
+            contents=body,
+        )
+
+        LOG.debug(f"Logo '{logo_name}' uploaded successfully!")
+
+        return s3_uri
