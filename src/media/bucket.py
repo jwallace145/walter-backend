@@ -1,55 +1,83 @@
 from dataclasses import dataclass
+from enum import Enum
 
 from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
 from src.utils.log import Logger
 
-log = Logger(__name__).get_logger()
+LOG = Logger(__name__).get_logger()
+
+
+class MediaPrivacyType(Enum):
+
+    PUBLIC = "public"
+    PRIVATE = "private"
+
+    def get_folder_name(self) -> str:
+        return self.value
 
 
 @dataclass
-class PublicMediaBucket:
+class MediaBucket:
     """
-    Public Media Bucket
+    Media Bucket
     """
 
-    NAME_FORMAT = "walterai-public-media-{domain}"
-
-    STOCKS_DIR = "stocks"
-    STOCK_LOGO_KEY_FORMAT = "{stocks_dir}/{symbol}/logo.svg"
-    STOCK_ICON_KEY_FORMAT = "{stocks_dir}/{symbol}/icon.png"
+    NAME_FORMAT = "walter-backend-media-{domain}"
 
     client: WalterS3Client
     domain: Domain
 
     def __post_init__(self) -> None:
-        self.bucket = PublicMediaBucket._get_bucket_name(self.domain)
-        log.debug(f"Creating PublicMediaBucket with bucket name: {self.bucket}")
-
-    def get_stock_logo_url(self, symbol: str) -> str:
-        log.info(f"Getting stock '{symbol.upper()}' logo from bucket '{self.bucket}'")
-        return self.client.get_public_url(
-            bucket=self.bucket, key=PublicMediaBucket._get_logo_key(symbol)
+        self.bucket = MediaBucket._get_bucket_name(self.domain)
+        LOG.debug(
+            f"Initializing MediaBucket client ({self.domain.value}) with bucket name: {self.bucket}"
         )
 
-    def get_stock_icon_url(self, symbol: str) -> str:
-        log.info(f"Getting stock '{symbol.upper()}' icon from bucket '{self.bucket}'")
-        return self.client.get_public_url(
-            bucket=self.bucket, key=PublicMediaBucket._get_icon_key(symbol)
+    def does_public_file_exist(self, key: str) -> bool:
+        return self._check_if_file_exists(key, MediaPrivacyType.PUBLIC)
+
+    def does_private_file_exist(self, key: str) -> bool:
+        return self._check_if_file_exists(key, MediaPrivacyType.PRIVATE)
+
+    def upload_public_contents(self, name: str, contents: str) -> None:
+        self._stream_contents(name, contents, MediaPrivacyType.PUBLIC)
+
+    def upload_private_contents(self, name: str, contents: str) -> None:
+        self._stream_contents(name, contents, MediaPrivacyType.PRIVATE)
+
+    def _stream_contents(
+        self, key: str, contents: str, privacy_type: MediaPrivacyType
+    ) -> None:
+        full_key: str = MediaBucket._get_key_name(key, privacy_type)
+        LOG.debug(
+            f"Uploading '{privacy_type.value}' file '{key}' to bucket '{self.bucket}'"
         )
+        self.client.put_object(self.bucket, full_key, contents)
+        LOG.debug(
+            f"Uploaded '{privacy_type.value}' file '{key}' to bucket '{self.bucket}'"
+        )
+
+    def _check_if_file_exists(self, key: str, privacy_type: MediaPrivacyType) -> bool:
+        full_key: str = MediaBucket._get_key_name(key, privacy_type)
+        LOG.debug(
+            f"Checking if '{privacy_type.value}' file with key '{full_key}' exists in bucket '{self.bucket}'"
+        )
+        if self.client.does_object_exist(self.bucket, key):
+            LOG.debug(
+                f"'{privacy_type.value}' file with key '{full_key}' exists in bucket '{self.bucket}'"
+            )
+            return True
+        else:
+            LOG.debug(
+                f"'{privacy_type.value}' file with key '{full_key}' does not exist in bucket '{self.bucket}'"
+            )
+            return False
+
+    @staticmethod
+    def _get_key_name(name: str, privacy_type: MediaPrivacyType) -> str:
+        return f"{privacy_type.get_folder_name()}/{name}"
 
     @staticmethod
     def _get_bucket_name(domain: Domain) -> str:
-        return PublicMediaBucket.NAME_FORMAT.format(domain=domain.value)
-
-    @staticmethod
-    def _get_logo_key(symbol: str) -> str:
-        return PublicMediaBucket.STOCK_LOGO_KEY_FORMAT.format(
-            stocks_dir=PublicMediaBucket.STOCKS_DIR, symbol=symbol.lower()
-        )
-
-    @staticmethod
-    def _get_icon_key(symbol: str) -> str:
-        return PublicMediaBucket.STOCK_ICON_KEY_FORMAT.format(
-            stocks_dir=PublicMediaBucket.STOCKS_DIR, symbol=symbol.lower()
-        )
+        return MediaBucket.NAME_FORMAT.format(domain=domain.value)

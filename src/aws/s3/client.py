@@ -79,6 +79,17 @@ class WalterS3Client:
             )
             raise error
 
+    def does_object_exist(self, bucket: str, key: str) -> bool:
+        uri = WalterS3Client.get_uri(bucket, key)
+        log.debug(f"Checking if object exists in S3 with URI '{uri}'")
+        try:
+            self.client.head_object(Bucket=bucket, Key=key)
+            log.debug(f"Object exists in S3 with URI '{uri}'")
+            return True
+        except ClientError:
+            log.debug(f"Object does not exist in S3 with URI '{uri}'")
+            return False
+
     def download_object(self, bucket: str, key: str) -> BytesIO:
         log.debug(
             f"Downloading object from S3 with URI '{WalterS3Client.get_uri(bucket, key)}'"
