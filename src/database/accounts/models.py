@@ -303,7 +303,7 @@ class DepositoryAccount(Account):
         plaid_last_sync_at: Optional[datetime] = None,
         logo_s3_uri: Optional[
             str
-        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-depository-account.png",
+        ] = f"s3://walter-backend-media-{DOMAIN.value}/public/logos/default-depository-account-logo.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -424,7 +424,7 @@ class CreditAccount(Account):
         plaid_last_sync_at: Optional[datetime] = None,
         logo_s3_uri: Optional[
             str
-        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-credit-account.png",
+        ] = f"s3://walter-backend-media-{DOMAIN.value}/public/logos/default-credit-account-logo.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -544,7 +544,7 @@ class InvestmentAccount(Account):
         plaid_last_sync_at: Optional[datetime] = None,
         logo_s3_uri: Optional[
             str
-        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-depository-account.png",
+        ] = f"s3://walter-backend-media-{DOMAIN.value}/public/logos/default-investment-account-logo.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -664,7 +664,7 @@ class LoanAccount(Account):
         plaid_last_sync_at: Optional[datetime] = None,
         logo_s3_uri: Optional[
             str
-        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-loan-account.png",
+        ] = f"s3://walter-backend-media-{DOMAIN.value}/public/logos/default-loan-account-logo.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
