@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional, Tuple
 
 from src.aws.s3.client import WalterS3Client
 from src.environment import Domain
@@ -34,29 +35,34 @@ class MediaBucket:
             f"Initializing MediaBucket client ({self.domain.value}) with bucket name: {self.bucket}"
         )
 
-    def does_public_file_exist(self, key: str) -> bool:
-        return self._check_if_file_exists(key, MediaPrivacyType.PUBLIC)
+    def does_public_file_exist(self, key: str) -> Tuple[bool, Optional[str]]:
+        file_exists: bool = self._check_if_file_exists(key, MediaPrivacyType.PUBLIC)
+        s3_uri: Optional[str] = None
+        if file_exists:
+            s3_uri = self.get_public_s3_uri(key)
+        return file_exists, s3_uri
 
     def does_private_file_exist(self, key: str) -> bool:
         return self._check_if_file_exists(key, MediaPrivacyType.PRIVATE)
 
-    def upload_public_contents(self, name: str, contents: str) -> None:
-        self._stream_contents(name, contents, MediaPrivacyType.PUBLIC)
+    def upload_public_contents(self, name: str, contents: str) -> str:
+        return self._stream_contents(name, contents, MediaPrivacyType.PUBLIC)
 
     def upload_private_contents(self, name: str, contents: str) -> None:
-        self._stream_contents(name, contents, MediaPrivacyType.PRIVATE)
+        return self._stream_contents(name, contents, MediaPrivacyType.PRIVATE)
 
     def _stream_contents(
         self, key: str, contents: str, privacy_type: MediaPrivacyType
-    ) -> None:
+    ) -> str:
         full_key: str = MediaBucket._get_key_name(key, privacy_type)
         LOG.debug(
             f"Uploading '{privacy_type.value}' file '{key}' to bucket '{self.bucket}'"
         )
-        self.client.put_object(self.bucket, full_key, contents)
+        s3_uri: str = self.client.put_object(self.bucket, full_key, contents)
         LOG.debug(
             f"Uploaded '{privacy_type.value}' file '{key}' to bucket '{self.bucket}'"
         )
+        return s3_uri
 
     def _check_if_file_exists(self, key: str, privacy_type: MediaPrivacyType) -> bool:
         full_key: str = MediaBucket._get_key_name(key, privacy_type)
@@ -73,6 +79,17 @@ class MediaBucket:
                 f"'{privacy_type.value}' file with key '{full_key}' does not exist in bucket '{self.bucket}'"
             )
             return False
+
+    def get_public_s3_uri(self, key: str) -> str:
+        return self._get_s3_uri(MediaPrivacyType.PUBLIC, key)
+
+    def get_private_s3_uri(self, key: str) -> str:
+        return self._get_s3_uri(MediaPrivacyType.PRIVATE, key)
+
+    def _get_s3_uri(self, privacy_type: MediaPrivacyType, key: str) -> str:
+        return WalterS3Client.get_uri(
+            bucket=self.bucket, key=MediaBucket._get_key_name(key, privacy_type)
+        )
 
     @staticmethod
     def _get_key_name(name: str, privacy_type: MediaPrivacyType) -> str:

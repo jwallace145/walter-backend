@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
+from src.environment import DOMAIN
+
 
 class AccountType(Enum):
     """Account Types"""
@@ -24,8 +26,6 @@ class AccountType(Enum):
 class Account(ABC):
     """Account Model"""
 
-    DEFAULT_LOGO_URL = "https://walterai-public-media-dev.s3.us-east-1.amazonaws.com/cash-accounts/default/logo.svg"
-
     def __init__(
         self,
         account_id: str,
@@ -45,7 +45,7 @@ class Account(ABC):
         plaid_item_id: Optional[str] = None,
         plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
-        logo_url: Optional[str] = DEFAULT_LOGO_URL,
+        logo_s3_uri: Optional[str] = None,
     ) -> None:
         self.account_id = account_id
         self.user_id = user_id
@@ -64,7 +64,7 @@ class Account(ABC):
         self.plaid_item_id = plaid_item_id
         self.plaid_cursor = plaid_cursor
         self.plaid_last_sync_at = plaid_last_sync_at
-        self.logo_url = logo_url
+        self.logo_s3_uri = logo_s3_uri
 
     def get_common_attributes_dict(self) -> dict:
         return {
@@ -87,7 +87,7 @@ class Account(ABC):
             "plaid_last_sync_at": (
                 self.plaid_last_sync_at.isoformat() if self.plaid_last_sync_at else None
             ),
-            "logo_url": self.logo_url,
+            "logo_s3_uri": self.logo_s3_uri,
         }
 
     def get_common_attributes_ddb_item(self) -> dict:
@@ -125,8 +125,8 @@ class Account(ABC):
             "updated_at": {
                 "S": self.updated_at.isoformat(),
             },
-            "logo_url": {
-                "S": self.logo_url,
+            "logo_s3_uri": {
+                "S": self.logo_s3_uri,
             },
         }
 
@@ -301,7 +301,9 @@ class DepositoryAccount(Account):
         plaid_item_id: Optional[str] = None,
         plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
-        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+        logo_s3_uri: Optional[
+            str
+        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-depository-account.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -321,7 +323,7 @@ class DepositoryAccount(Account):
             plaid_item_id=plaid_item_id,
             plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
-            logo_url=logo_url,
+            logo_s3_uri=logo_s3_uri,
         )
 
     def to_dict(self) -> dict:
@@ -391,7 +393,7 @@ class DepositoryAccount(Account):
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
             plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
-            logo_url=ddb_item["logo_url"]["S"],
+            logo_s3_uri=ddb_item["logo_s3_uri"]["S"],
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
@@ -420,7 +422,9 @@ class CreditAccount(Account):
         plaid_item_id: Optional[str] = None,
         plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
-        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+        logo_s3_uri: Optional[
+            str
+        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-credit-account.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -440,7 +444,7 @@ class CreditAccount(Account):
             plaid_item_id=plaid_item_id,
             plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
-            logo_url=logo_url,
+            logo_s3_uri=logo_s3_uri,
         )
 
     def to_dict(self) -> dict:
@@ -509,7 +513,7 @@ class CreditAccount(Account):
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
             plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
-            logo_url=ddb_item["logo_url"]["S"],
+            logo_s3_uri=ddb_item["logo_s3_uri"]["S"],
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
             plaid_item_id=ddb_item.get("plaid_item_id", {}).get("S"),
             plaid_cursor=ddb_item.get("plaid_cursor", {}).get("S"),
@@ -538,7 +542,9 @@ class InvestmentAccount(Account):
         plaid_item_id: Optional[str] = None,
         plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
-        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+        logo_s3_uri: Optional[
+            str
+        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-depository-account.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -558,7 +564,7 @@ class InvestmentAccount(Account):
             plaid_item_id=plaid_item_id,
             plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
-            logo_url=logo_url,
+            logo_s3_uri=logo_s3_uri,
         )
 
     def to_dict(self) -> dict:
@@ -625,7 +631,7 @@ class InvestmentAccount(Account):
             ),
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
-            logo_url=ddb_item["logo_url"]["S"],
+            logo_s3_uri=ddb_item["logo_s3_uri"]["S"],
             plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),
@@ -656,7 +662,9 @@ class LoanAccount(Account):
         plaid_item_id: Optional[str] = None,
         plaid_cursor: Optional[str] = None,
         plaid_last_sync_at: Optional[datetime] = None,
-        logo_url: Optional[str] = Account.DEFAULT_LOGO_URL,
+        logo_s3_uri: Optional[
+            str
+        ] = f"s3://walter-backend-media-{DOMAIN}/public/logos/default-loan-account.png",
     ) -> None:
         super().__init__(
             account_id=account_id,
@@ -676,7 +684,7 @@ class LoanAccount(Account):
             plaid_item_id=plaid_item_id,
             plaid_cursor=plaid_cursor,
             plaid_last_sync_at=plaid_last_sync_at,
-            logo_url=logo_url,
+            logo_s3_uri=logo_s3_uri,
         )
 
     def to_dict(self) -> dict:
@@ -706,7 +714,7 @@ class LoanAccount(Account):
             ),
             created_at=datetime.fromisoformat(ddb_item["created_at"]["S"]),
             updated_at=datetime.fromisoformat(ddb_item["updated_at"]["S"]),
-            logo_url=ddb_item["logo_url"]["S"],
+            logo_s3_uri=ddb_item["logo_s3_uri"]["S"],
             plaid_institution_id=ddb_item.get("plaid_institution_id", {}).get("S"),
             plaid_account_id=ddb_item.get("plaid_account_id", {}).get("S"),
             plaid_access_token=ddb_item.get("plaid_access_token", {}).get("S"),

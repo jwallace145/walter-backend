@@ -204,7 +204,7 @@ class MockDDB:
                         "updated_at": {
                             "S": json_account["updated_at"],
                         },
-                        "logo_url": {
+                        "logo_s3_uri": {
                             "S": json_account["logo_url"],
                         },
                         "plaid_account_id": {
