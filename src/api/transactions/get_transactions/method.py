@@ -211,7 +211,9 @@ class GetTransactions(WalterAPIMethod):
                                 "transaction_category": transaction.transaction_category.value,
                                 "price_per_share": transaction.price_per_share,
                                 "quantity": transaction.quantity,
-                                "merchant_logo_url": self._get_merchant_logo_url(transaction.merchant_logo_s3_uri),
+                                "merchant_logo_url": self._get_merchant_logo_url(
+                                    transaction.merchant_logo_s3_uri
+                                ),
                                 "transaction_amount": transaction.transaction_amount,
                                 "is_plaid_transaction": transaction.is_plaid_transaction(),
                             }
