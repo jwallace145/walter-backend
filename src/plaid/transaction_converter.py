@@ -14,27 +14,9 @@ from src.database.transactions.models import (
     TransactionType,
 )
 from src.media.bucket import MediaBucket
-from src.plaid.models import PersonalFinanceCategories
 from src.utils.log import Logger
 
 LOG = Logger(__name__).get_logger()
-
-PERSONAL_FINANCE_CATEGORY_TO_TRANSACTION_TYPE: Dict[
-    PersonalFinanceCategories, TransactionType
-] = {
-    PersonalFinanceCategories.ENTERTAINMENT: TransactionType.BANKING,
-    PersonalFinanceCategories.FOOD_AND_DRINK: TransactionType.BANKING,
-    PersonalFinanceCategories.GENERAL_MERCHANDISE: TransactionType.BANKING,
-    PersonalFinanceCategories.GENERAL_SERVICES: TransactionType.BANKING,
-    PersonalFinanceCategories.INCOME: TransactionType.BANKING,
-    PersonalFinanceCategories.LOAN_PAYMENTS: TransactionType.BANKING,
-    PersonalFinanceCategories.PERSONAL_CARE: TransactionType.BANKING,
-    PersonalFinanceCategories.TRANSPORTATION: TransactionType.BANKING,
-    PersonalFinanceCategories.TRAVEL: TransactionType.BANKING,
-    PersonalFinanceCategories.OTHER: TransactionType.BANKING,
-    PersonalFinanceCategories.TRANSFER_OUT: TransactionType.BANKING,
-}
-"""(dict): Mapping of personal finance categories to transaction types"""
 
 
 class TransactionConversionType(Enum):

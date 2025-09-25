@@ -22,12 +22,26 @@ module "cdn_bucket" {
     {
       prefix     = "*",
       principals = concat([], var.cdn_bucket_access_additional_principals)
+    },
+    {
+      prefix = "public/logos/*"
+      principals = [
+        module.workflow_roles["sync_transactions"].role_arn
+      ]
     }
   ]
   write_access_principals = [
     {
-      prefix     = "*",
-      principals = concat([], var.cdn_bucket_access_additional_principals)
+      prefix = "*",
+      principals = concat([
+        module.workflow_roles["sync_transactions"].role_arn
+      ], var.cdn_bucket_access_additional_principals)
+    },
+    {
+      prefix = "public/logos/*"
+      principals = [
+        module.workflow_roles["sync_transactions"].role_arn
+      ]
     }
   ]
   delete_access_principals = [

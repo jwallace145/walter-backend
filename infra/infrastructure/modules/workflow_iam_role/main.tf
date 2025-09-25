@@ -3,6 +3,7 @@ locals {
   WORKFLOW_SECRETS_ACCESS_POLICY_NAME = "WalterBackend-Workflow-${var.name}-Secrets-Policy-${var.domain}"
   WORKFLOW_DB_ACCESS_POLICY_NAME      = "WalterBackend-Workflow-${var.name}-DB-Policy-${var.domain}"
   WORKFLOW_SQS_ACCESS_POLICY_NAME     = "WalterBackend-Workflow-${var.name}-SQS-Policy-${var.domain}"
+  WORKFLOW_S3_ACCESS_POLICY_NAME      = "WalterBackend-Workflow-${var.name}-S3-Policy-${var.domain}"
 }
 
 resource "aws_iam_role" "workflow_role" {
@@ -68,4 +69,25 @@ module "workflow_role_sqs_access" {
   name        = local.WORKFLOW_SQS_ACCESS_POLICY_NAME
   queue_arns  = var.receive_message_access_queue_arns
   access_type = "consumer"
+}
+
+resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
+  count      = length(var.s3_access) > 0 ? 1 : 0
+  role       = aws_iam_role.workflow_role.name
+  policy_arn = module.workflow_role_s3_access[0].policy_arn
+}
+
+module "workflow_role_s3_access" {
+  count       = length(var.s3_access) > 0 ? 1 : 0
+  source      = "../iam_s3_access_policy"
+  policy_name = local.WORKFLOW_S3_ACCESS_POLICY_NAME
+  read_access_bucket_prefixes = flatten([
+    for s in var.s3_access : (s.access_type == "read" ? [for p in s.prefixes : "${s.bucket_arn}/${p}"] : [])
+  ])
+  write_access_bucket_prefixes = flatten([
+    for s in var.s3_access : (s.access_type == "write" ? [for p in s.prefixes : "${s.bucket_arn}/${p}"] : [])
+  ])
+  delete_access_bucket_prefixes = flatten([
+    for s in var.s3_access : (s.access_type == "delete" ? [for p in s.prefixes : "${s.bucket_arn}/${p}"] : [])
+  ])
 }
