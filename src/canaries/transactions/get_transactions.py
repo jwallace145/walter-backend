@@ -92,7 +92,9 @@ class GetTransactions(BaseCanary):
                 ("transaction_category", "Restaurants"),
                 ("transaction_date", "2025-08-01"),
                 ("merchant_name", "Canary Coffee"),
+                ("merchant_logo_url", None),
                 ("transaction_amount", 5.0),
+                ("is_plaid_transaction", False),
             ],
             "bank-txn-7016361254": [
                 ("account_id", "acct-5782898837"),
@@ -106,7 +108,9 @@ class GetTransactions(BaseCanary):
                 ("transaction_category", "Entertainment"),
                 ("transaction_date", "2025-08-01"),
                 ("merchant_name", "Canary Concert Tickets"),
+                ("merchant_logo_url", None),
                 ("transaction_amount", 100.0),
+                ("is_plaid_transaction", False),
             ],
             "investment-txn-7017568759": [
                 ("account_id", "acct-5782388299"),
@@ -122,7 +126,9 @@ class GetTransactions(BaseCanary):
                 ("transaction_category", "Investment"),
                 ("price_per_share", 100.0),
                 ("quantity", 10.0),
+                ("merchant_logo_url", None),
                 ("transaction_amount", 1000.0),
+                ("is_plaid_transaction", False),
             ],
         }
 
