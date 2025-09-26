@@ -164,6 +164,7 @@ set_environment_variables() {
         "PLAID_SECRET"
         "POLYGON_API_KEY"
         "STRIPE_SECRET_KEY"
+        "WALTER_BACKEND_API_KEY"
     )
 
     # Function to check if all required vars are set
@@ -270,6 +271,7 @@ run_terraform() {
         -var="api_function_version=$API_FUNCTION_VERSION"
         -var="canary_function_version=$CANARY_FUNCTION_VERSION"
         -var="workflow_function_version=$WORKFLOW_FUNCTION_VERSION"
+        -var="walter_backend_api_key=$WALTER_BACKEND_API_KEY"
     )
 
     # Run the specified action

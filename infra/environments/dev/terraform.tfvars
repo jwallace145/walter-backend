@@ -28,6 +28,8 @@ public_subnet_cidr  = "10.0.0.0/28"  # 16 public IPs (AWS reserves 5 IPs) = 11 u
 private_subnet_cidr = "10.0.0.16/28" # 16 private IPs (AWS reserves 5 IPs) = 11 usable IPs
 
 # WalterBackend API settings
+api_rate_limit                        = 5
+api_burst_limit                       = 10
 api_timeout_seconds                   = 15
 api_lambda_memory_mb                  = 1024
 api_provisioned_concurrent_executions = 0

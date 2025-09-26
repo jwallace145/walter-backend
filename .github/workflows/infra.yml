@@ -61,6 +61,7 @@ jobs:
           PLAID_SECRET: ${{ secrets.PLAID_SECRET }}
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          WALTER_BACKEND_API_KEY: ${{ secrets.WALTER_BACKEND_API_KEY }}
         run: |
           ./infra/scripts/plan.sh dev
         continue-on-error: true
