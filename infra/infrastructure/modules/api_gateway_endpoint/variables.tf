@@ -17,3 +17,8 @@ variable "lambda_invoke_arn" {
   description = "The Lambda function invoke ARN"
   type        = string
 }
+
+variable "api_key_required" {
+  description = "Whether the endpoint requires an API key or not."
+  type        = string
+}

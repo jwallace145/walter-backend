@@ -1,8 +1,9 @@
 resource "aws_api_gateway_method" "endpoint_method" {
-  rest_api_id   = var.rest_api_id
-  resource_id   = var.resource_id
-  http_method   = var.http_method
-  authorization = "NONE"
+  rest_api_id      = var.rest_api_id
+  resource_id      = var.resource_id
+  http_method      = var.http_method
+  authorization    = "NONE"
+  api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "endpoint_integration" {

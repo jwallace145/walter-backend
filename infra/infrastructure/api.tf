@@ -389,6 +389,7 @@ module "api_custom_domain" {
 
 module "api" {
   source                = "./modules/api_gateway"
+  domain                = var.domain
   name                  = local.NAME
   description           = local.DESCRIPTION
   function_name         = module.functions["api"].function_name
@@ -396,6 +397,9 @@ module "api" {
   image_digest          = module.repositories["walter_backend"].image_digest
   stage_name            = local.STAGE_NAME
   log_retention_in_days = var.log_retention_in_days
+  api_key_value         = var.walter_backend_api_key
+  rate_limit            = var.api_rate_limit
+  burst_limit           = var.api_burst_limit
 }
 
 resource "aws_api_gateway_resource" "auth" {
@@ -432,6 +436,7 @@ module "endpoints" {
   resource_id       = module.resources[each.value.path].resource_id
   http_method       = each.value.method
   lambda_invoke_arn = module.functions["api"].invoke_arn
+  api_key_required  = true # API key required for all endpoints to ensure known callers
 }
 
 /***************************

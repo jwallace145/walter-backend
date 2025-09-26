@@ -82,6 +82,17 @@ variable "private_subnet_cidr" {
   type        = string
 }
 
+variable "api_rate_limit" {
+  description = "The steady-state number of requests per second allowed to the WalterBackend API before throttling occurs."
+  type        = number
+}
+
+variable "api_burst_limit" {
+  description = "The maximum number of requests that the WalterBackend API can handle in a short burst before throttling."
+  type        = number
+}
+
+
 variable "api_function_version" {
   description = "The WalterBackend-API Lambda function version to use for API requests."
   type        = number
@@ -228,6 +239,15 @@ variable "sync_transactions_max_retry_attempts" {
   }
 }
 
+variable "cdn_bucket_access_additional_principals" {
+  description = "The list of additional AWS principal(s) allowed to access the CDN S3 bucket."
+  type        = list(string)
+}
+
+/**********************************
+ * WalterBackend Secret Variables *
+ **********************************/
+
 variable "access_token_secret_key" {
   description = "The secret key used to create access tokens used for API authentication."
   type        = string
@@ -273,8 +293,8 @@ variable "stripe_secret_key" {
   type        = string
 }
 
-variable "cdn_bucket_access_additional_principals" {
-  description = "The list of additional AWS principal(s) allowed to access the CDN S3 bucket."
-  type        = list(string)
+variable "walter_backend_api_key" {
+  description = "The API key used to make calls to the WalterBackend API."
+  type        = string
 }
 

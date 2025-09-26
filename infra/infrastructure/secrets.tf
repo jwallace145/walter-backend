@@ -19,14 +19,18 @@ locals {
     Stripe = {
       STRIPE_SECRET_KEY = var.stripe_secret_key
     }
+    WalterBackendAPIKey = {
+      WALTER_BACKEND_API_KEY = var.walter_backend_api_key
+    }
   }
 
   DESCRIPTIONS = {
-    Auth    = "The secret keys used for authentication by WalterBackend to sign and verify API requests. (${var.domain})"
-    Datadog = "The Datadog secret keys used by WalterBackend to emit metrics and send logs to Datadog for dashboards and monitoring. (${var.domain})"
-    Plaid   = "The Plaid client ID and secret used by WalterBackend to authenticate with Plaid. (${var.domain})"
-    Polygon = "The Polygon API key used to make requests to Polygon. (${var.domain})"
-    Stripe  = "The secret key used to interact with Stripe for customer billing. (${var.domain})"
+    Auth                = "The secret keys used for authentication by WalterBackend to sign and verify API requests. (${var.domain})"
+    Datadog             = "The Datadog secret keys used by WalterBackend to emit metrics and send logs to Datadog for dashboards and monitoring. (${var.domain})"
+    Plaid               = "The Plaid client ID and secret used by WalterBackend to authenticate with Plaid. (${var.domain})"
+    Polygon             = "The Polygon API key used to make requests to Polygon. (${var.domain})"
+    Stripe              = "The secret key used to interact with Stripe for customer billing. (${var.domain})"
+    WalterBackendAPIKey = "The API key used to make calls to the WalterBackend API. (${var.domain})"
   }
 }
 
