@@ -382,16 +382,14 @@ def add_transaction(
 
 
 @app.command()
-def edit_transaction(
+def update_transaction(
     token: str = None,
     transaction_date: str = None,
     transaction_id: str = None,
-    date: str = None,
-    vendor: str = None,
-    amount: float = None,
-    category: str = None,
+    updated_category: str = None,
+    updated_merchant_name: str = None,
 ) -> None:
-    log.info("WalterCLI: EditTransaction")
+    log.info("WalterCLI: UpdateTransaction")
     event: dict = create_api_event(
         http_path="/transactions",
         http_method="PUT",
@@ -399,15 +397,13 @@ def edit_transaction(
         query_params={},
         transaction_date=transaction_date,
         transaction_id=transaction_id,
-        updated_date=date,
-        updated_vendor=vendor,
-        updated_amount=amount,
-        updated_category=category,
+        updated_category=updated_category,
+        updated_merchant_name=updated_merchant_name,
     )
     response: dict = (
         APIRouter().get_method(event).invoke(event, emit_metrics=False).to_json()
     )
-    log.info(f"WalterCLI: EditTransaction Response:\n{parse_response(response)}")
+    log.info(f"WalterCLI: UpdateTransaction Response:\n{parse_response(response)}")
 
 
 @app.command()
