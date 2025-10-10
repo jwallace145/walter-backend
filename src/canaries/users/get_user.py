@@ -30,12 +30,13 @@ class GetUser(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
         super().__init__(
-            GetUser.CANARY_NAME, GetUser.API_URL, authenticator, db, metrics
+            GetUser.CANARY_NAME, GetUser.API_URL, api_key, authenticator, db, metrics
         )
 
     def is_authenticated(self) -> bool:
@@ -44,7 +45,10 @@ class GetUser(BaseCanary):
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         return requests.get(
             GetUser.API_URL,
-            headers={"Authorization": f"Bearer {tokens.access_token}"},
+            headers={
+                "Authorization": f"Bearer {tokens.access_token}",
+                "x-api-key": self.api_key,
+            },
         )
 
     def validate_cookies(self, cookies: RequestsCookieJar) -> None:

@@ -24,11 +24,14 @@ class Logout(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
-        super().__init__(Logout.API_NAME, Logout.API_URL, authenticator, db, metrics)
+        super().__init__(
+            Logout.API_NAME, Logout.API_URL, api_key, authenticator, db, metrics
+        )
 
     def is_authenticated(self) -> bool:
         return True
@@ -36,7 +39,10 @@ class Logout(BaseCanary):
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         return requests.post(
             Logout.API_URL,
-            headers={"Authorization": f"Bearer {tokens.access_token}"},
+            headers={
+                "Authorization": f"Bearer {tokens.access_token}",
+                "x-api-key": self.api_key,
+            },
         )
 
     def validate_cookies(self, cookies: RequestsCookieJar) -> None:

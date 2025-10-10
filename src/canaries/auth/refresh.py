@@ -24,18 +24,25 @@ class Refresh(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
-        super().__init__(Refresh.API_NAME, Refresh.API_URL, authenticator, db, metrics)
+        super().__init__(
+            Refresh.API_NAME, Refresh.API_URL, api_key, authenticator, db, metrics
+        )
 
     def is_authenticated(self) -> bool:
         return True
 
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         return requests.post(
-            Refresh.API_URL, headers={"Authorization": f"Bearer {tokens.refresh_token}"}
+            Refresh.API_URL,
+            headers={
+                "Authorization": f"Bearer {tokens.refresh_token}",
+                "x-api-key": self.api_key,
+            },
         )
 
     def validate_cookies(self, cookies: RequestsCookieJar) -> None:

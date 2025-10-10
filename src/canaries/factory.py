@@ -65,6 +65,7 @@ class CanaryFactory:
     CANARY_ROLE_NAME_FORMAT = "WalterBackend-Canary-{method}-Role-{domain}"
 
     client_factory: ClientFactory
+    api_key: str
 
     def __post_init__(self) -> None:
         LOG.debug("Creating CanaryFactory")
@@ -82,42 +83,49 @@ class CanaryFactory:
         match canary_type:
             case CanaryType.LOGIN:
                 return Login(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.REFRESH:
                 return Refresh(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.LOGOUT:
                 return Logout(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.GET_USER:
                 return GetUser(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.CREATE_USER:
                 return CreateUser(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.GET_ACCOUNTS:
                 return GetAccounts(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),
                 )
             case CanaryType.GET_TRANSACTIONS:
                 return GetTransactions(
+                    api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
                     metrics=self.client_factory.get_metrics_client(),

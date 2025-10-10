@@ -30,6 +30,7 @@ class GetTransactions(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
@@ -37,6 +38,7 @@ class GetTransactions(BaseCanary):
         super().__init__(
             GetTransactions.CANARY_NAME,
             GetTransactions.API_URL,
+            api_key,
             authenticator,
             db,
             metrics,
@@ -48,7 +50,10 @@ class GetTransactions(BaseCanary):
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         return requests.get(
             GetTransactions.API_URL,
-            headers={"Authorization": f"Bearer {tokens.access_token}"},
+            headers={
+                "Authorization": f"Bearer {tokens.access_token}",
+                "x-api-key": self.api_key,
+            },
         )
 
     def validate_cookies(self, cookies: RequestsCookieJar) -> None:

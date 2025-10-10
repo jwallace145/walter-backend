@@ -10,6 +10,7 @@ locals {
       memory_size                       = var.api_lambda_memory_mb
       lambda_handler                    = "walter.api_entrypoint"
       provisioned_concurrent_executions = var.api_provisioned_concurrent_executions
+      additional_env_vars               = {}
     },
     canary = {
       name                              = "WalterBackend-Canary-${var.domain}"
@@ -21,6 +22,9 @@ locals {
       memory_size                       = var.canary_lambda_memory_mb
       lambda_handler                    = "walter.canaries_entrypoint"
       provisioned_concurrent_executions = var.canary_provisioned_concurrent_executions
+      additional_env_vars = {
+        "WALTER_BACKEND_API_KEY" = var.walter_backend_api_key
+      }
     },
     workflow = {
       name                              = "WalterBackend-Workflow-${var.domain}"
@@ -32,6 +36,7 @@ locals {
       memory_size                       = var.workflow_lambda_memory_mb
       lambda_handler                    = "walter.workflows_entrypoint"
       provisioned_concurrent_executions = var.workflow_provisioned_concurrent_executions
+      additional_env_vars               = {}
     }
   }
 
@@ -98,6 +103,7 @@ module "functions" {
   security_group_ids                = [module.network.function_sg_id]
   subnet_ids                        = [module.network.private_subnet_id]
   env_vars_kms_key_arn              = module.env_vars_key.arn
+  additional_env_vars               = each.value.additional_env_vars
 }
 
 /************************************

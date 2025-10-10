@@ -51,12 +51,14 @@ class BaseCanary(ABC):
         self,
         api_name: str,
         api_url: str,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
         self.api_name = api_name
         self.api_url = api_url
+        self.api_key = api_key
         self.authenticator = authenticator
         self.db = db
         self.metrics = metrics
