@@ -11,6 +11,7 @@ def login_canary(
     client_factory: ClientFactory,
 ) -> Login:
     return Login(
+        api_key="test-api-key",
         authenticator=client_factory.get_authenticator(),
         db=client_factory.get_db_client(),
         metrics=client_factory.get_metrics_client(),

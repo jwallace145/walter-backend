@@ -34,12 +34,18 @@ class CreateUser(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
         super().__init__(
-            CreateUser.CANARY_NAME, CreateUser.API_URL, authenticator, db, metrics
+            CreateUser.CANARY_NAME,
+            CreateUser.API_URL,
+            api_key,
+            authenticator,
+            db,
+            metrics,
         )
 
     def is_authenticated(self) -> bool:
@@ -48,7 +54,7 @@ class CreateUser(BaseCanary):
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         return requests.post(
             CreateUser.API_URL,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "x-api-key": self.api_key},
             json={
                 "email": self.NEW_USER_EMAIL,
                 "first_name": self.NEW_USER_FIRST_NAME,

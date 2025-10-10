@@ -26,7 +26,7 @@ resource "aws_lambda_function" "this" {
   }
 
   environment {
-    variables = {
+    variables = merge({
       DD_LAMBDA_HANDLER = var.lambda_handler
       DD_LOG_LEVEL      = var.log_level
       DD_API_KEY        = var.datadog_api_key
@@ -35,7 +35,7 @@ resource "aws_lambda_function" "this" {
       DD_TRACE_ENABLED  = false
       DOMAIN            = var.domain
       LOG_LEVEL         = var.log_level
-    }
+    }, var.additional_env_vars)
   }
 
   kms_key_arn = var.env_vars_kms_key_arn

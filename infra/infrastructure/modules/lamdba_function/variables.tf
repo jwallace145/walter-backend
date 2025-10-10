@@ -96,3 +96,8 @@ variable "env_vars_kms_key_arn" {
   description = "ARN of the KMS key used to encrypt environment variables."
   type        = string
 }
+
+variable "additional_env_vars" {
+  description = "The additional environment variables to add to the Lambda function."
+  type        = map(string)
+}

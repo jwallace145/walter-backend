@@ -27,11 +27,14 @@ class Login(BaseCanary):
 
     def __init__(
         self,
+        api_key: str,
         authenticator: WalterAuthenticator,
         db: WalterDB,
         metrics: DatadogMetricsClient,
     ) -> None:
-        super().__init__(Login.API_NAME, Login.API_URL, authenticator, db, metrics)
+        super().__init__(
+            Login.API_NAME, Login.API_URL, api_key, authenticator, db, metrics
+        )
 
     def is_authenticated(self) -> bool:
         return False
@@ -39,7 +42,7 @@ class Login(BaseCanary):
     def call_api(self, tokens: Optional[Tokens] = None) -> Response:
         api_response = requests.post(
             Login.API_URL,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "x-api-key": self.api_key},
             json={
                 "email": self.CANARY_USER_EMAIL,
                 "password": self.CANARY_USER_PASSWORD,
