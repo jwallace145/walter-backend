@@ -133,9 +133,14 @@ class EditTransaction(WalterAPIMethod):
         body = json.loads(event["body"])
 
         # get updated transaction category from request body
-        updated_transaction_category = TransactionCategory.from_string(
-            body["updated_category"]
-        )
+        try:
+            updated_transaction_category = TransactionCategory.from_string(
+                body["updated_category"]
+            )
+        except ValueError:
+            raise BadRequest(
+                f"Invalid transaction category: '{body['updated_category']}'"
+            )
 
         # update transaction based on transaction type
         match transaction.transaction_type:
