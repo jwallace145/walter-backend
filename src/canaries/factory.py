@@ -9,6 +9,7 @@ from src.canaries.auth.logout import Logout
 from src.canaries.auth.refresh import Refresh
 from src.canaries.common.canary import BaseCanary
 from src.canaries.transactions.get_transactions import GetTransactions
+from src.canaries.transactions.update_transaction import UpdateTransaction
 from src.canaries.users.create_user import CreateUser
 from src.canaries.users.get_user import GetUser
 from src.factory import ClientFactory
@@ -46,6 +47,7 @@ class CanaryType(Enum):
     ################
 
     GET_TRANSACTIONS = "GetTransactions"
+    UPDATE_TRANSACTION = "UpdateTransaction"
 
     def get_canary_name(self) -> str:
         return self.value
@@ -125,6 +127,13 @@ class CanaryFactory:
                 )
             case CanaryType.GET_TRANSACTIONS:
                 return GetTransactions(
+                    api_key=self.api_key,
+                    authenticator=self.client_factory.get_authenticator(),
+                    db=self.client_factory.get_db_client(),
+                    metrics=self.client_factory.get_metrics_client(),
+                )
+            case CanaryType.UPDATE_TRANSACTION:
+                return UpdateTransaction(
                     api_key=self.api_key,
                     authenticator=self.client_factory.get_authenticator(),
                     db=self.client_factory.get_db_client(),
