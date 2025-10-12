@@ -120,6 +120,25 @@ locals {
       ]
       delete_table_access_arns = []
     }
+
+    update_transaction = {
+      name        = "UpdateTransaction"
+      description = "The IAM role used by the UpdateTransaction canary to test API health. (${var.domain})"
+      secrets = [
+        module.secrets["Auth"].secret_name
+      ]
+      read_table_access_arns = [
+        module.users_table.table_arn,
+        module.sessions_table.table_arn,
+        module.transactions_table.table_arn
+      ]
+      write_table_access_arns = [
+        module.users_table.table_arn,
+        module.sessions_table.table_arn,
+        module.transactions_table.table_arn
+      ]
+      delete_table_access_arns = []
+    }
   }
 }
 
