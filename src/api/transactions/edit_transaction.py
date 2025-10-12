@@ -17,10 +17,7 @@ from src.database.client import WalterDB
 from src.database.securities.models import SecurityType
 from src.database.sessions.models import Session
 from src.database.transactions.models import (
-    BankingTransactionSubType,
-    BankTransaction,
     InvestmentTransaction,
-    InvestmentTransactionSubType,
     Transaction,
     TransactionCategory,
     TransactionType,
@@ -51,12 +48,8 @@ class EditTransaction(WalterAPIMethod):
     REQUIRED_FIELDS = [
         "transaction_date",
         "transaction_id",
-        "updated_date",
-        "updated_amount",
+        "updated_merchant_name",
         "updated_category",
-        "updated_transaction_type",
-        "updated_transaction_subtype",
-        "updated_transaction_category",
     ]
     EXCEPTIONS = [
         (BadRequest, HTTPStatus.BAD_REQUEST),
@@ -103,7 +96,7 @@ class EditTransaction(WalterAPIMethod):
         if isinstance(updated_transaction, InvestmentTransaction):
             self.holding_updater.update_transaction(updated_transaction)
 
-        self.db.put_transaction(updated_transaction)
+        self.db.update_transaction(updated_transaction)
 
         return self._create_response(
             http_status=HTTPStatus.OK,
@@ -139,86 +132,35 @@ class EditTransaction(WalterAPIMethod):
     ) -> Transaction:
         body = json.loads(event["body"])
 
-        # get static transaction id
-        transaction_id = body["transaction_id"]
-
-        # get updated transaction request body fields
-        updated_date = EditTransaction._get_date(body["updated_date"])
-        updated_amount = EditTransaction._get_transaction_amount(body["updated_amount"])
-        updated_transaction_type = TransactionType.from_string(
-            body["updated_transaction_type"]
-        )
-        updated_transaction_category = TransactionCategory.from_string(
-            body["updated_transaction_category"]
-        )
-
-        # if user updated transaction date, delete and recreate transaction as
-        # date is part of the primary key
-        if updated_date != transaction.get_transaction_date():
-            log.info(
-                f"User updated transaction date! Deleting user transaction '{transaction_id}'"
+        # get updated transaction category from request body
+        try:
+            updated_transaction_category = TransactionCategory.from_string(
+                body["updated_category"]
+            )
+        except ValueError:
+            raise BadRequest(
+                f"Invalid transaction category: '{body['updated_category']}'"
             )
 
-            # update holding if investment transaction
-            if isinstance(transaction, InvestmentTransaction):
-                self.holding_updater.delete_transaction(transaction)
-
-            # delete the transaction
-            self.db.delete_transaction(
-                account_id=transaction.account_id,
-                transaction_id=transaction.transaction_id,
-                date=transaction.get_transaction_date(),
-            )
-
+        # update transaction based on transaction type
         match transaction.transaction_type:
             case TransactionType.INVESTMENT:
-                # get required fields for investment transaction from request body
-                try:
-                    transaction_subtype = InvestmentTransactionSubType.from_string(
-                        body["updated_transaction_subtype"]
-                    )
-                    ticker = body["ticker"]
-                    exchange = body["exchange"]
-                except KeyError as e:
-                    raise BadRequest(
-                        f"Missing required field for investment transaction: {str(e)}"
-                    )
-
-                security_type = EditTransaction._get_security_type(ticker)
-                self.security_updater.add_security_if_not_exists(ticker, security_type)
-
-                return InvestmentTransaction.create(
-                    user_id=transaction.user_id,
-                    account_id=transaction.account_id,
-                    date=updated_date,
-                    ticker=ticker,
-                    exchange=exchange,
-                    transaction_type=updated_transaction_type,
-                    transaction_subtype=transaction_subtype,
-                    transaction_category=updated_transaction_category,
+                # TODO: Implement updating investment transactions
+                raise NotImplementedError(
+                    "Updating investment transactions not supported!"
                 )
             case TransactionType.BANKING:
                 # get required fields for banking transaction from request body
                 try:
-                    transaction_subtype = BankingTransactionSubType.from_string(
-                        body["updated_transaction_subtype"]
-                    )
-                    merchant_name = body["merchant_name"]
+                    updated_merchant_name = body["updated_merchant_name"]
                 except KeyError as e:
                     raise BadRequest(
                         f"Missing required field for bank transaction: {str(e)}"
                     )
-
-                return BankTransaction.create(
-                    user_id=transaction.user_id,
-                    account_id=transaction.account_id,
-                    transaction_type=updated_transaction_type,
-                    transaction_subtype=transaction_subtype,
-                    transaction_category=updated_transaction_category,
-                    transaction_date=updated_date,
-                    transaction_amount=updated_amount,
-                    merchant_name=merchant_name,
-                )
+                # update the modified fields for the transaction
+                transaction.merchant_name = updated_merchant_name
+                transaction.transaction_category = updated_transaction_category
+                return transaction
 
     def validate_fields(self, event: dict) -> None:
         pass

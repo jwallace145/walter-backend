@@ -195,7 +195,7 @@ def holding_updater(walter_db: WalterDB) -> HoldingUpdater:
 def security_updater(
     polygon_client: MockPolygonClient, walter_db: WalterDB
 ) -> SecurityUpdater:
-    return SecurityUpdater(polygon_client, walter_db)
+    return SecurityUpdater(polygon_client=polygon_client, walter_db=walter_db)
 
 
 ############################

@@ -206,7 +206,9 @@ class ClientFactory:
 
     def get_security_updater(self) -> SecurityUpdater:
         if self.security_updater is None:
-            self.security_updater = SecurityUpdater(self.get_db_client())
+            self.security_updater = SecurityUpdater(
+                polygon_client=self.get_polygon_client(), walter_db=self.get_db_client()
+            )
         return self.security_updater
 
     def get_plaid_client(self) -> PlaidClient:
