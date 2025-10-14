@@ -1,7 +1,6 @@
-from datetime import datetime
-
 import pytest
 
+from src.api.common.methods import WalterAPIMethod
 from src.api.common.models import HTTPStatus, Status
 from src.api.factory import APIMethod, APIMethodFactory
 from src.api.routing.methods import HTTPMethod
@@ -21,7 +20,7 @@ DELETE_TRANSACTION_API_METHOD = HTTPMethod.DELETE
 @pytest.fixture
 def delete_transaction_api(
     api_method_factory: APIMethodFactory,
-) -> APIMethodFactory:
+) -> WalterAPIMethod:
     return api_method_factory.get_api(
         APIMethod.DELETE_TRANSACTION, UNIT_TEST_REQUEST_ID
     )
@@ -36,7 +35,6 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     user_id = "user-005"
     session_id = "session-005"
     account_id = "acct-007"
-    transaction_date = "2025-08-02"
     transaction_id = "investment-txn-010"
     security_id = "sec-nyse-coke"
     token, token_expiry = walter_authenticator.generate_access_token(
@@ -46,11 +44,7 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
         DELETE_TRANSACTION_API_PATH,
         DELETE_TRANSACTION_API_METHOD,
         token=token,
-        body={
-            "account_id": account_id,
-            "date": transaction_date,
-            "transaction_id": transaction_id,
-        },
+        query={"transaction_id": transaction_id},
     )
 
     # assert holding exists prior to api invocation
@@ -76,9 +70,7 @@ def test_delete_buy_investment_transaction_failure_invalid_holding_update(
     assert holding.total_cost_basis == pytest.approx(3000.0)
 
     # assert transaction still exists
-    transaction = walter_db.get_transaction(
-        account_id, transaction_id, datetime.strptime(transaction_date, "%Y-%m-%d")
-    )
+    transaction = walter_db.get_user_transaction(user_id, transaction_id)
     assert transaction is not None
     assert transaction.transaction_id == transaction_id
     assert isinstance(transaction, InvestmentTransaction)

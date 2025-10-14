@@ -77,7 +77,7 @@ class GetTransactions(WalterAPIMethod):
         # if account_id is provided, get transactions for that account, else get transactions for user
         if account_id:
             account: Account = self._verify_account_exists(user, account_id)
-            transactions: List[Transaction] = self.db.get_transactions_by_account(
+            transactions: List[Transaction] = self.db.get_account_transactions(
                 account.account_id, start_date, end_date
             )
             account_transactions: List[dict] = self._get_account_transactions(
@@ -85,7 +85,7 @@ class GetTransactions(WalterAPIMethod):
             )
         else:
             accounts: List[Account] = self.db.get_accounts(user.user_id)
-            transactions: List[Transaction] = self.db.get_transactions_by_user(
+            transactions: List[Transaction] = self.db.get_user_transactions(
                 user.user_id, start_date, end_date
             )
             account_transactions: List[dict] = self._get_account_transactions(
@@ -231,9 +231,7 @@ class GetTransactions(WalterAPIMethod):
                                 "transaction_type": transaction.transaction_type.value,
                                 "transaction_subtype": transaction.transaction_subtype.value,
                                 "transaction_category": transaction.transaction_category.value,
-                                "transaction_date": transaction.transaction_date.split(
-                                    "#"
-                                )[0],
+                                "transaction_date": transaction.transaction_date.isoformat(),
                                 "merchant_name": transaction.merchant_name,
                                 "merchant_logo_url": self._get_merchant_logo_url(
                                     transaction.merchant_logo_s3_uri

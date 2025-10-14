@@ -322,24 +322,33 @@ class MockDDB:
         self.mock_ddb.create_table(
             TableName=table_name,
             KeySchema=[
-                {"AttributeName": "account_id", "KeyType": "HASH"},
-                {"AttributeName": "transaction_date", "KeyType": "RANGE"},
+                {"AttributeName": "user_id", "KeyType": "HASH"},
+                {"AttributeName": "transaction_id", "KeyType": "RANGE"},
             ],
             AttributeDefinitions=[
                 {"AttributeName": "user_id", "AttributeType": "S"},
                 {"AttributeName": "account_id", "AttributeType": "S"},
+                {"AttributeName": "transaction_id", "AttributeType": "S"},
                 {"AttributeName": "transaction_date", "AttributeType": "S"},
             ],
             BillingMode=MockDDB.ON_DEMAND_BILLING_MODE,
             GlobalSecondaryIndexes=[
                 {
-                    "IndexName": f"Transactions-UserIndex-{Domain.TESTING.value}",
+                    "IndexName": f"Transactions-UserDateRangeIndex-{Domain.TESTING.value}",
                     "KeySchema": [
                         {"AttributeName": "user_id", "KeyType": "HASH"},
                         {"AttributeName": "transaction_date", "KeyType": "RANGE"},
                     ],
                     "Projection": {"ProjectionType": "ALL"},
-                }
+                },
+                {
+                    "IndexName": f"Transactions-AccountDateRangeIndex-{Domain.TESTING.value}",
+                    "KeySchema": [
+                        {"AttributeName": "account_id", "KeyType": "HASH"},
+                        {"AttributeName": "transaction_date", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
             ],
         )
         # seed transactions from the provided JSONL file
@@ -363,9 +372,9 @@ class MockDDB:
                         transaction_category=TransactionCategory.from_string(
                             transaction_json["transaction_category"]
                         ),
-                        transaction_date=datetime.datetime.strptime(
-                            transaction_json["transaction_date"], "%Y-%m-%d"
-                        ),
+                        transaction_date=datetime.datetime.fromisoformat(
+                            transaction_json["transaction_date"]
+                        ).date(),
                         transaction_amount=float(
                             transaction_json["transaction_amount"]
                         ),
@@ -391,7 +400,7 @@ class MockDDB:
                         ),
                         transaction_date=datetime.datetime.strptime(
                             transaction_json["transaction_date"], "%Y-%m-%d"
-                        ),
+                        ).date(),
                         transaction_amount=float(
                             transaction_json["transaction_amount"]
                         ),

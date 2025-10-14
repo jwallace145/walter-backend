@@ -116,7 +116,7 @@ class EditTransaction(WalterAPIMethod):
         transaction_id = body["transaction_id"]
 
         # query walter db for existence of transaction
-        transaction = self.db.get_user_transaction(user.user_id, transaction_id, date)
+        transaction = self.db.get_user_transaction(user.user_id, transaction_id)
 
         # raise transaction does not exist exception if transaction not found in db
         if transaction is None:

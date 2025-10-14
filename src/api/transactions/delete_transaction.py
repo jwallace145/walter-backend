@@ -1,5 +1,3 @@
-import datetime as dt
-import json
 from dataclasses import dataclass
 from typing import Optional
 
@@ -41,9 +39,9 @@ class DeleteTransaction(WalterAPIMethod):
     """
 
     API_NAME = "DeleteTransaction"
-    REQUIRED_QUERY_FIELDS = []
-    REQUIRED_HEADERS = {"Authorization": "Bearer", "content-type": "application/json"}
-    REQUIRED_FIELDS = ["transaction_id", "date"]
+    REQUIRED_QUERY_FIELDS = ["transaction_id"]
+    REQUIRED_HEADERS = {"Authorization": "Bearer"}
+    REQUIRED_FIELDS = []
     EXCEPTIONS = [
         (BadRequest, HTTPStatus.BAD_REQUEST),
         (NotAuthenticated, HTTPStatus.UNAUTHORIZED),
@@ -96,16 +94,12 @@ class DeleteTransaction(WalterAPIMethod):
     def _verify_transaction_exists(self, user: User, event: dict) -> Transaction:
         log.info(f"Verifying transaction exists for user '{user.user_id}'")
 
-        body = json.loads(event["body"])
-        transaction_date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
-        transaction_id = body["transaction_id"]
+        transaction_id = self.get_query_field(event, "transaction_id")
 
         log.info(
-            f"Getting transaction with ID '{transaction_id}' and date '{transaction_date}'"
+            f"Getting transaction with ID '{transaction_id}' for user '{user.user_id}'"
         )
-        transaction = self.db.get_user_transaction(
-            user.user_id, transaction_id, transaction_date
-        )
+        transaction = self.db.get_user_transaction(user.user_id, transaction_id)
         if transaction is None:
             raise TransactionDoesNotExist(
                 f"Transaction with ID '{transaction_id}' does not exist!"
@@ -117,7 +111,7 @@ class DeleteTransaction(WalterAPIMethod):
 
     def _delete_transaction(self, transaction: Transaction) -> None:
         log.info(
-            f"Deleting transaction with ID '{transaction.transaction_id}' and date '{transaction.get_transaction_date()}'"
+            f"Deleting transaction with ID '{transaction.transaction_id}' and date '{transaction.transaction_date.isoformat()}'"
         )
 
         if transaction.transaction_type == TransactionType.INVESTMENT:
@@ -135,7 +129,6 @@ class DeleteTransaction(WalterAPIMethod):
 
         # after any side effects of deleting the transaction are handled, delete the transaction
         self.db.delete_transaction(
-            transaction.account_id,
+            transaction.user_id,
             transaction.transaction_id,
-            transaction.get_transaction_date(),
         )

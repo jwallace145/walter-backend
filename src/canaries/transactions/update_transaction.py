@@ -1,4 +1,3 @@
-import datetime
 from dataclasses import dataclass
 from typing import Optional
 
@@ -93,22 +92,20 @@ class UpdateTransaction(BaseCanary):
         )
 
         # canary transaction details
-        account_id = "acct-5782898837"
+        user_id = self.CANARY_USER_ID
         transaction_id = "bank-txn-7015884840"
-        transaction_date = datetime.datetime.strptime("2025-08-01", "%Y-%m-%d")
 
         # get original transaction from database
         LOG.debug("Getting original transaction...")
-        transaction: Optional[Transaction] = self.db.get_transaction(
-            account_id=account_id,
+        transaction: Optional[Transaction] = self.db.get_user_transaction(
+            user_id=user_id,
             transaction_id=transaction_id,
-            transaction_date=transaction_date,
         )
 
         # verify that the original transaction exists, otherwise raise an exception
         if transaction is None:
             raise CanaryFailure(
-                f"Original transaction not found for account '{account_id}' and transaction '{transaction_id}'!"
+                f"Original transaction not found for canary '{user_id}' and transaction '{transaction_id}'!"
             )
 
         LOG.debug("Original transaction found! Reverting to original state...")

@@ -44,6 +44,7 @@ class BaseCanary(ABC):
     """
 
     CANARY_ENDPOINT = CONFIG.canaries.endpoint
+    CANARY_USER_ID = CONFIG.canaries.user_id
     CANARY_USER_EMAIL = CONFIG.canaries.user_email
     CANARY_USER_PASSWORD = CONFIG.canaries.user_password
 

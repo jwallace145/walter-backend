@@ -50,12 +50,14 @@ class CanariesConfig:
     """Canaries Configurations"""
 
     endpoint: str
+    user_id: str
     user_email: str
     user_password: str
 
     def to_dict(self) -> dict:
         return {
             "endpoint": self.endpoint,
+            "user_id": self.user_id,
             "user_email": self.user_email,
             "user_password": self.user_password,
         }
@@ -141,6 +143,7 @@ def get_walter_config() -> WalterConfig:
             ),
             canaries=CanariesConfig(
                 endpoint=config_yaml["canaries"]["endpoint"],
+                user_id=config_yaml["canaries"]["user_id"],
                 user_email=config_yaml["canaries"]["user_email"],
                 user_password=config_yaml["canaries"]["user_password"],
             ),

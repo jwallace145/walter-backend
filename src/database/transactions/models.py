@@ -1,6 +1,6 @@
 import random
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Optional, Union
 
@@ -103,7 +103,7 @@ class Transaction(ABC):
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
-        transaction_date: datetime,
+        transaction_date: date,
         transaction_amount: float,
         merchant_logo_s3_uri: Optional[str] = None,
         plaid_transaction_id: Optional[str] = None,
@@ -115,9 +115,7 @@ class Transaction(ABC):
         self.transaction_type = transaction_type
         self.transaction_subtype = transaction_subtype
         self.transaction_category = transaction_category
-        self.transaction_date = (
-            f"{transaction_date.strftime('%Y-%m-%d')}#{transaction_id}"
-        )
+        self.transaction_date = transaction_date
         self.transaction_amount = transaction_amount
         # ensure non-null merchant logo
         if merchant_logo_s3_uri is None:
@@ -126,12 +124,8 @@ class Transaction(ABC):
         self.plaid_transaction_id = plaid_transaction_id
         self.plaid_account_id = plaid_account_id
 
-    def get_transaction_date(self) -> datetime:
-        return datetime.strptime(self.transaction_date.split("#")[0], "%Y-%m-%d")
-
-    def update_transaction_date(self, new_date: datetime) -> str:
-        self.transaction_date = f"{new_date.strftime('%Y-%m-%d')}#{self.transaction_id}"
-        return self.transaction_date
+    def _get_transaction_date_uuid(self) -> str:
+        return f"{self.transaction_date.isoformat()}#{self.transaction_id}"
 
     def _get_common_attributes_dict(self) -> dict:
         attributes = {
@@ -141,7 +135,7 @@ class Transaction(ABC):
             "transaction_type": self.transaction_type.value,
             "transaction_subtype": self.transaction_subtype.value,
             "transaction_category": self.transaction_category.value,
-            "transaction_date": self.transaction_date.split("#")[0],
+            "transaction_date": self.transaction_date.isoformat(),
             "transaction_amount": self.transaction_amount,
             "merchant_logo_s3_uri": self.merchant_logo_s3_uri,
         }
@@ -162,7 +156,9 @@ class Transaction(ABC):
             "transaction_type": {"S": self.transaction_type.value},
             "transaction_subtype": {"S": self.transaction_subtype.value},
             "transaction_category": {"S": self.transaction_category.value},
-            "transaction_date": {"S": self.transaction_date},
+            "transaction_date": {
+                "S": self._get_transaction_date_uuid()
+            },  # use uuid to ensure uniqueness
             "transaction_amount": {"N": str(self.transaction_amount)},
             "merchant_logo_s3_uri": {"S": self.merchant_logo_s3_uri},
         }
@@ -202,7 +198,7 @@ class Transaction(ABC):
     @staticmethod
     def _generate_id(prefix: str) -> str:
         timestamp_part = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
-        random_part = str(random.randint(1000, 9999))
+        random_part = str(random.randint(1000000000, 9999999999))
         return f"{prefix}-txn-{timestamp_part}{random_part}"
 
 
@@ -217,7 +213,7 @@ class InvestmentTransaction(Transaction):
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
-        transaction_date: datetime,
+        transaction_date: date,
         transaction_amount: float,
         security_id: str,
         quantity: float,
@@ -270,7 +266,7 @@ class InvestmentTransaction(Transaction):
         cls,
         account_id: str,
         user_id: str,
-        date: datetime,
+        transaction_date: date,
         ticker: str,
         exchange: str,
         transaction_type: TransactionType,
@@ -288,7 +284,7 @@ class InvestmentTransaction(Transaction):
             transaction_type=transaction_type,
             transaction_subtype=transaction_subtype,
             transaction_category=transaction_category,
-            transaction_date=date,
+            transaction_date=transaction_date,
             transaction_amount=quantity * price_per_share,
             security_id=f"sec-{exchange.lower()}-{ticker.lower()}",
             quantity=quantity,
@@ -313,9 +309,9 @@ class InvestmentTransaction(Transaction):
             transaction_subtype=InvestmentTransactionSubType.from_string(
                 ddb_item["transaction_subtype"]["S"]
             ),
-            transaction_date=datetime.strptime(
-                ddb_item["transaction_date"]["S"].split("#")[0], "%Y-%m-%d"
-            ),
+            transaction_date=datetime.fromisoformat(
+                ddb_item["transaction_date"]["S"].split("#")[0]
+            ).date(),  # remove uuid suffix
             transaction_amount=float(ddb_item["transaction_amount"]["N"]),
             security_id=ddb_item["security_id"]["S"],
             quantity=float(ddb_item["quantity"]["N"]),
@@ -337,7 +333,7 @@ class BankTransaction(Transaction):
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
-        transaction_date: datetime,
+        transaction_date: date,
         transaction_amount: float,
         merchant_name: str,
         merchant_logo_s3_uri: Optional[str] = None,
@@ -379,7 +375,7 @@ class BankTransaction(Transaction):
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
         transaction_category: TransactionCategory,
-        transaction_date: datetime,
+        transaction_date: date,
         transaction_amount: float,
         merchant_name: str,
         merchant_logo_s3_uri: Optional[str] = None,
@@ -416,9 +412,9 @@ class BankTransaction(Transaction):
             transaction_category=TransactionCategory.from_string(
                 ddb_item["transaction_category"]["S"]
             ),
-            transaction_date=datetime.strptime(
-                ddb_item["transaction_date"]["S"].split("#")[0], "%Y-%m-%d"
-            ),
+            transaction_date=datetime.fromisoformat(
+                ddb_item["transaction_date"]["S"].split("#")[0]
+            ).date(),  # remove uuid suffix
             transaction_amount=float(ddb_item["transaction_amount"]["N"]),
             merchant_name=ddb_item["merchant_name"]["S"],
             merchant_logo_s3_uri=ddb_item["merchant_logo_s3_uri"]["S"],

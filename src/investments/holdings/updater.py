@@ -164,7 +164,7 @@ class HoldingUpdater:
                     f"Transaction {transaction} is not associated with holding for account '{account_id}' and security '{security_id}'!"
                 )
 
-        return sorted(transactions, key=lambda t: t.get_transaction_date())
+        return sorted(transactions, key=lambda t: t.transaction_date)
 
     def _handle_sell_transaction(
         self, holding: Holding, transaction: InvestmentTransaction
