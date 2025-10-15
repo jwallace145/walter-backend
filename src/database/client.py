@@ -114,20 +114,28 @@ class WalterDB:
     def add_transaction(self, transaction: Transaction) -> Transaction:
         return self.transactions_table.put_transaction(transaction)
 
-    def get_transaction(
-        self, account_id: str, transaction_id: str, transaction_date: dt.datetime
+    def get_user_transaction(
+        self, user_id: str, transaction_id: str
     ) -> Optional[Transaction]:
-        return self.transactions_table.get_transaction(
-            account_id, transaction_date, transaction_id
+        return self.transactions_table.get_user_transaction(user_id, transaction_id)
+
+    def get_user_transactions(
+        self,
+        user_id: str,
+        start_date: dt.datetime = dt.datetime.min,
+        end_date: dt.datetime = dt.datetime.max,
+    ) -> List[Transaction]:
+        return self.transactions_table.get_user_transactions(
+            user_id, start_date, end_date
         )
 
-    def get_transactions_by_account(
+    def get_account_transactions(
         self,
         account_id: str,
         start_date: dt.datetime = dt.datetime.min,
         end_date: dt.datetime = dt.datetime.max,
     ) -> List[Transaction]:
-        return self.transactions_table.get_transactions(
+        return self.transactions_table.get_account_transactions(
             account_id, start_date, end_date
         )
 
@@ -137,7 +145,7 @@ class WalterDB:
         log.info(
             f"Getting transactions for holding '{security_id}' in account '{account_id}'"
         )
-        transactions = self.transactions_table.get_transactions(account_id)
+        transactions = self.transactions_table.get_account_transactions(account_id)
 
         log.info(
             f"Found {len(transactions)} transactions in account '{account_id}'! Filtering transactions for holding '{security_id}'"
@@ -154,38 +162,21 @@ class WalterDB:
 
         return holding_transactions
 
-    def get_user_transaction(
-        self, user_id: str, transaction_id: str, transaction_date: dt.datetime
-    ) -> Optional[Transaction]:
-        return self.transactions_table.get_user_transaction(
-            user_id, transaction_id, transaction_date
-        )
-
-    def get_transactions_by_user(
-        self, user_id: str, start_date: dt.datetime, end_date: dt.datetime
-    ) -> List[Transaction]:
-        return self.transactions_table.get_user_transactions(
-            user_id, start_date, end_date
-        )
-
     def update_transaction(self, transaction: Transaction) -> Transaction:
         return self.transactions_table.put_transaction(transaction)
 
-    def delete_transaction(
-        self, account_id: str, transaction_id: str, date: dt.datetime
-    ) -> None:
-        return self.transactions_table.delete_transaction(
-            account_id, date, transaction_id
-        )
+    def delete_transaction(self, user_id: str, transaction_id: str) -> None:
+        return self.transactions_table.delete_transaction(user_id, transaction_id)
 
     def delete_account_transactions(self, account_id: str) -> None:
         transactions = self.transactions_table.get_transactions_by_account(account_id)
         for transaction in transactions:
             self.transactions_table.delete_transaction(
-                account_id,
-                transaction.get_transaction_date(),
-                transaction.transaction_id,
+                transaction.user_id, transaction.transaction_id
             )
+
+    def get_transactions(self) -> List[Transaction]:
+        return self.transactions_table.get_all_transactions()
 
     ############
     # ACCOUNTS #

@@ -170,7 +170,7 @@ class AddTransaction(WalterAPIMethod):
         body = json.loads(event["body"])
 
         try:
-            date = dt.datetime.strptime(body["date"], "%Y-%m-%d")
+            date = dt.datetime.strptime(body["date"], "%Y-%m-%d").date()
         except Exception:
             raise BadRequest(f"Invalid date format: {body['date']}")
 
@@ -218,7 +218,7 @@ class AddTransaction(WalterAPIMethod):
         self,
         user: User,
         account: Account,
-        date: dt.datetime,
+        date: dt.date,
         amount: float,
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,
@@ -260,7 +260,7 @@ class AddTransaction(WalterAPIMethod):
         return InvestmentTransaction.create(
             account_id=account.account_id,
             user_id=user.user_id,
-            date=date,
+            transaction_date=date,
             transaction_type=transaction_type,
             transaction_subtype=transaction_subtype,
             transaction_category=transaction_category,
@@ -274,7 +274,7 @@ class AddTransaction(WalterAPIMethod):
         self,
         user: User,
         account: Account,
-        date: dt.datetime,
+        date: dt.date,
         amount: float,
         transaction_type: TransactionType,
         transaction_subtype: TransactionSubType,

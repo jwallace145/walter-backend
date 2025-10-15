@@ -87,7 +87,7 @@ class TransactionConverter:
                 # update transaction fields
                 transaction.transaction_amount = plaid_transaction["amount"]
                 transaction.merchant_name = self._get_merchant_name(plaid_transaction)
-                transaction.update_transaction_date(plaid_transaction["date"])
+                transaction.transaction_date = plaid_transaction["date"]
 
                 return transaction
             case TransactionConversionType.DELETED:
@@ -130,7 +130,7 @@ class TransactionConverter:
         LOG.debug(
             f"Getting transactions for account '{account.account_id}' to cache for Plaid transaction ID mappings"
         )
-        transactions: List[Transaction] = self.db.get_transactions_by_account(
+        transactions: List[Transaction] = self.db.get_account_transactions(
             account.account_id
         )
         # add plaid transaction id to transaction mapping to cache
@@ -156,6 +156,7 @@ class TransactionConverter:
         transaction_subtype = BankingTransactionSubType.DEBIT
         if amount < 0:
             transaction_subtype = BankingTransactionSubType.CREDIT
+            amount = abs(amount)
 
         return BankTransaction.create(
             account_id=account.account_id,

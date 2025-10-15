@@ -34,7 +34,7 @@ def test_delete_account_success(
 
     # assert account exists prior to api invocation
     assert walter_db.get_account(user_id, account_id) is not None
-    assert walter_db.get_transactions_by_account(account_id) is not None
+    assert walter_db.get_account_transactions(account_id) is not None
     assert walter_db.get_holdings(account_id) is not None
 
     # prepare delete account event
@@ -62,7 +62,7 @@ def test_delete_account_success(
 
     # assert account, transactions, and holdings are deleted
     assert walter_db.get_account(user_id, account_id) is None
-    assert walter_db.get_transactions_by_account(account_id) == []
+    assert walter_db.get_account_transactions(account_id) == []
     assert walter_db.get_holdings(account_id) == []
 
 

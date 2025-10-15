@@ -1,5 +1,3 @@
-import datetime as dt
-
 import pytest
 
 from src.api.common.methods import WalterAPIMethod
@@ -36,7 +34,6 @@ def test_add_bank_debit_success(
 ):
     user_id = "user-001"
     session_id = "session-001"
-    account_id = "acct-001"
     token, token_expiry = walter_authenticator.generate_access_token(
         user_id, session_id
     )
@@ -64,11 +61,7 @@ def test_add_bank_debit_success(
     assert txn["transaction_category"] == TransactionCategory.RESTAURANTS.value
     assert txn["merchant_name"] == "Chipotle"
     # ensure persisted
-    txn = walter_db.get_transaction(
-        account_id=account_id,
-        transaction_id=txn["transaction_id"],
-        transaction_date=dt.datetime.strptime("2025-08-07", "%Y-%m-%d"),
-    )
+    txn = walter_db.get_user_transaction(txn["user_id"], txn["transaction_id"])
     assert txn is not None
     assert isinstance(txn, BankTransaction)
 

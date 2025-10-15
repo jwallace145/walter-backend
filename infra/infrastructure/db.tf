@@ -6,12 +6,12 @@ locals {
   SECURITIES_TABLE   = "Securities-${var.domain}"
   HOLDINGS_TABLE     = "Holdings-${var.domain}"
 
-  USERS_EMAIL_INDEX                       = "Users-EmailIndex-${var.domain}"
-  ACCOUNTS_PLAID_ACCOUNT_ID_INDEX         = "Accounts-PlaidAccountIdIndex-${var.domain}"
-  ACCOUNTS_PLAID_ITEM_ID_INDEX            = "Accounts-PlaidItemIdIndex-${var.domain}"
-  TRANSACTIONS_USER_INDEX                 = "Transactions-UserIndex-${var.domain}"
-  TRANSACTIONS_PLAID_TRANSACTION_ID_INDEX = "Transactions-PlaidTransactionId-${var.domain}"
-  SECURITIES_TICKER_INDEX                 = "Securities-TickerIndex-${var.domain}"
+  USERS_EMAIL_INDEX                     = "Users-EmailIndex-${var.domain}"
+  ACCOUNTS_PLAID_ACCOUNT_ID_INDEX       = "Accounts-PlaidAccountIdIndex-${var.domain}"
+  ACCOUNTS_PLAID_ITEM_ID_INDEX          = "Accounts-PlaidItemIdIndex-${var.domain}"
+  TRANSACTIONS_USER_DATE_RANGE_INDEX    = "Transactions-UserDateRangeIndex-${var.domain}"
+  TRANSACTIONS_ACCOUNT_DATE_RANGE_INDEX = "Transactions-AccountDateRangeIndex-${var.domain}"
+  SECURITIES_TICKER_INDEX               = "Securities-TickerIndex-${var.domain}"
 }
 
 /*******************
@@ -82,23 +82,57 @@ module "accounts_table" {
   ]
 }
 
+# ------------------------------------------------------------------------------
+# DynamoDB: Transactions Table
+# ------------------------------------------------------------------------------
+# Primary Key:
+#   - Partition key: user_id
+#   - Sort key:      transaction_id
+#
+# Purpose:
+#   Models a one-to-many relationship between a user and their transactions.
+#   Each transaction is uniquely identified by its transaction_id under a user.
+#
+# GSIs:
+#   1. TRANSACTIONS_USER_DATE_RANGE_INDEX
+#        - Keys: user_id + transaction_date
+#        - Enables fast queries for all user transactions over a date range
+#
+#   2. TRANSACTIONS_ACCOUNT_DATE_RANGE_INDEX
+#        - Keys: account_id + transaction_date
+#        - Enables fast queries for all account transactions over a date range
+#
+# Design Rationale:
+#   - Primary key (user_id + transaction_id) provides strong entity linkage.
+#   - GSIs support the main access patterns:
+#       * Get transactions by user over a date range (most common)
+#       * Get transactions by account over a date range
+#   - Optimized for serverless workloads with predictable key-based access.
+# ------------------------------------------------------------------------------
+
 module "transactions_table" {
   source = "./modules/dynamodb_table"
 
   name      = local.TRANSACTIONS_TABLE
-  hash_key  = "account_id"
-  range_key = "transaction_date"
+  hash_key  = "user_id"
+  range_key = "transaction_id"
 
   attributes = {
     user_id          = "S"
     account_id       = "S"
+    transaction_id   = "S"
     transaction_date = "S"
   }
 
   global_secondary_indexes = [
     {
-      name      = local.TRANSACTIONS_USER_INDEX
+      name      = local.TRANSACTIONS_USER_DATE_RANGE_INDEX
       hash_key  = "user_id"
+      range_key = "transaction_date"
+    },
+    {
+      name      = local.TRANSACTIONS_ACCOUNT_DATE_RANGE_INDEX
+      hash_key  = "account_id"
       range_key = "transaction_date"
     }
   ]

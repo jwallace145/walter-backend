@@ -82,11 +82,7 @@ class SyncUserTransactions(Workflow):
             self.db.update_transaction(transaction)
 
         for transaction in removed_transactions:
-            self.db.delete_transaction(
-                transaction.account_id,
-                transaction.transaction_id,
-                transaction.transaction_date,
-            )
+            self.db.delete_transaction(transaction.user_id, transaction.transaction_id)
 
         # update accounts with new plaid cursor and synced at
         self._update_accounts(accounts, response.cursor, response.synced_at)

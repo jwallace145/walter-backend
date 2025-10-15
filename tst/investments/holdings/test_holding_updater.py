@@ -1,5 +1,3 @@
-import datetime as dt
-
 import pytest
 
 from src.database.client import WalterDB
@@ -22,14 +20,11 @@ def test_update_holding_invalid_transactions(
     transaction that results in a subsequent invalid sell transaction, the holding should
     not be updated to preserve the security transaction history validity.
     """
-    account_id = "acct-007"
+    user_id = "user-005"
     transaction_id = "investment-txn-010"
-    transaction_date = "2025-08-02"
     security_id = "sec-nyse-coke"
 
-    transaction = walter_db.get_transaction(
-        account_id, transaction_id, dt.datetime.strptime(transaction_date, "%Y-%m-%d")
-    )
+    transaction = walter_db.get_user_transaction(user_id, transaction_id)
 
     # assert transaction exists prior to testing delete holding update
     assert transaction is not None

@@ -6,6 +6,7 @@ walter_config:
     refresh_token_expiration_days: 7
   canaries:
     endpoint: "https://dev-api.walterai.dev"
+    user_id: "user-4404476606"
     user_email: "canary@walterai.dev"
     user_password: "CanaryPassword1234&"
   plaid:

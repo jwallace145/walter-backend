@@ -47,7 +47,7 @@ def test_transaction_converter_new_transaction(
     assert transaction.account_id == account_id
     assert transaction.merchant_name == merchant_name
     assert transaction.transaction_amount == amount
-    assert transaction.get_transaction_date() == date
+    assert transaction.transaction_date == date
 
 
 def test_transaction_converter_updated_transaction(
@@ -72,7 +72,7 @@ def test_transaction_converter_updated_transaction(
     assert transaction.account_id == account_id
     assert transaction.merchant_name == merchant_name
     assert transaction.transaction_amount == amount
-    assert transaction.get_transaction_date() == date
+    assert transaction.transaction_date == date
 
 
 def test_transaction_converter_deleted_transaction(
@@ -97,4 +97,4 @@ def test_transaction_converter_deleted_transaction(
     assert transaction.account_id == account_id
     assert transaction.merchant_name == merchant_name
     assert transaction.transaction_amount == amount
-    assert transaction.get_transaction_date() == date
+    assert transaction.transaction_date == date
